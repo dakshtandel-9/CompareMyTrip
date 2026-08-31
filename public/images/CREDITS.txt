@@ -1,0 +1,13 @@
+halftone-everest-reveal.webp
+  Mount Everest seen from Kala Patthar.
+  Source: https://commons.wikimedia.org/wiki/File:Everest_kalapatthar_crop.jpg
+  Author: Pavel Novak
+  License: CC BY-SA 2.5
+  Modified: resized to 1200px wide and re-encoded as WebP.
+
+deals-mountain-backdrop.webp
+  The Everest massif seen from the air.
+  Source: https://commons.wikimedia.org/wiki/File:Mount_Everest_as_seen_from_Drukair2_PLW_edit.jpg
+  Author: shrimpo1967 (edit by Papa Lima Whiskey)
+  License: CC BY-SA 2.0
+  Modified: cropped to a wide band, resized to 1800px and re-encoded as WebP.

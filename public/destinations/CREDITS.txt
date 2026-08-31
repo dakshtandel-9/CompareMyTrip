@@ -1,0 +1,37 @@
+Destination photos sourced from Wikimedia Commons.
+
+meghalaya.jpg
+  Source: https://commons.wikimedia.org/wiki/File%3ADouble_decker_living_root_bridge_02.jpg
+  Author: Chiranjeeb Baul
+  License: CC BY-SA 4.0
+
+ladakh.jpg
+  Source: https://commons.wikimedia.org/wiki/File%3APangong_Tso_in_eastern_Ladakh%28Changthang%29.jpg
+  Author: Stanzin1945
+  License: CC BY-SA 4.0
+
+kerala.jpg
+  Source: https://commons.wikimedia.org/wiki/File%3AKerala_backwaters%2C_Houseboat%2C_Cruise%2C_India.jpg
+  Author: Vyacheslav Argenberg
+  License: CC BY 4.0
+
+rajasthan.jpg
+  Source: https://commons.wikimedia.org/wiki/File%3AEast_facade_Hawa_Mahal_Jaipur_from_ground_level_%28July_2022%29_-_img_01.jpg
+  Author: Chainwit.
+  License: CC BY-SA 4.0
+
+goa.jpg
+  Source: https://commons.wikimedia.org/wiki/File%3APalolem_Beach%2C_South_Goa.jpg
+  Author: iMahesh
+  License: CC BY-SA 4.0
+
+spiti.jpg
+  Source: https://commons.wikimedia.org/wiki/File%3APin_Valley_Spiti_Himachal_Jun18_D72_7092.jpg
+  Author: Timothy Gonsalves
+  License: CC BY-SA 4.0
+
+andaman.jpg
+  Source: https://commons.wikimedia.org/wiki/File%3AHavelock_Island%2C_Radhanagar_Beach%2C_tropical_bliss%2C_Andaman_Islands.jpg
+  Author: Vyacheslav Argenberg
+  License: CC BY 4.0
+

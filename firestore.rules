@@ -1,0 +1,157 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    match /siteContent/homepage {
+      // Homepage content is public by design; only admins may publish it.
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow create, update, delete: if request.auth != null
+        && request.auth.uid == userId;
+      allow get: if (request.auth != null && request.auth.uid == userId)
+        || isAdmin();
+
+      // Customer contact details are visible only to explicitly authorized
+      // CRM accounts, never to every authenticated website customer.
+      allow list: if isAdmin();
+    }
+
+    match /newsletterSubscribers/{subscriberId} {
+      function validSubscription() {
+        return request.resource.data.keys().hasOnly(['email', 'subscribedAt'])
+          && request.resource.data.email is string
+          && request.resource.data.email.size() > 3
+          && request.resource.data.email.size() <= 254
+          && request.resource.data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
+          && request.resource.data.subscribedAt == request.time;
+      }
+
+      allow create: if validSubscription();
+      allow update: if validSubscription()
+        && request.resource.data.email == resource.data.email;
+      allow read, delete: if isAdmin();
+    }
+
+    match /contactEnquiries/{enquiryId} {
+      function validNewEnquiry() {
+        return request.resource.data.keys().hasOnly([
+          'name', 'email', 'phone', 'destination', 'departure',
+          'travellers', 'message', 'packageId', 'packageTitle', 'pricePerPerson', 'source',
+          'userId', 'status', 'submittedAt'
+        ])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 2
+          && request.resource.data.name.size() <= 120
+          && request.resource.data.email is string
+          && request.resource.data.email.size() <= 254
+          && request.resource.data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
+          && request.resource.data.phone is string
+          && request.resource.data.phone.size() >= 7
+          && request.resource.data.phone.size() <= 24
+          && request.resource.data.destination is string
+          && request.resource.data.destination.size() <= 160
+          && request.resource.data.departure is string
+          && request.resource.data.departure.size() <= 20
+          && request.resource.data.travellers is string
+          && request.resource.data.travellers.size() <= 20
+          && request.resource.data.message is string
+          && request.resource.data.message.size() <= 5000
+          && request.resource.data.packageId is string
+          && request.resource.data.packageId.size() <= 180
+          && request.resource.data.packageTitle is string
+          && request.resource.data.packageTitle.size() <= 240
+          && request.resource.data.pricePerPerson is number
+          && request.resource.data.pricePerPerson >= 0
+          && request.resource.data.pricePerPerson <= 100000000
+          && request.resource.data.userId is string
+          && request.resource.data.userId.size() <= 128
+          && request.resource.data.source is string
+          && request.resource.data.source in ['contact', 'custom_quote']
+          && (
+            (request.resource.data.source == 'contact'
+              && request.resource.data.userId == ''
+              && request.resource.data.status == 'not_contacted')
+            ||
+            (request.resource.data.source == 'custom_quote'
+              && request.auth != null
+              && request.resource.data.userId == request.auth.uid
+              && request.resource.data.status == 'under_review')
+          )
+          && request.resource.data.submittedAt == request.time;
+      }
+
+      allow create: if validNewEnquiry();
+      allow read: if isAdmin()
+        || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    match /trips/{tripId} {
+      // Bookings taken through PayU checkout. Written exclusively by the
+      // server (Admin SDK, which bypasses these rules) because only the
+      // server sees PayU's verified response hash — a client that could
+      // write paymentStatus could mark its own booking paid.
+      allow read: if isAdmin()
+        || (request.auth != null && resource.data.userId == request.auth.uid);
+
+      // The travel desk decides tripStatus and the departure date after the
+      // fact, and may change nothing else — paymentStatus and the amounts
+      // stay exactly as PayU left them.
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['tripStatus', 'tripDate', 'updatedAt'])
+        && request.resource.data.tripStatus in
+             ['awaiting_confirmation', 'accepted', 'rejected', 'refunded', 'completed']
+        // Trips booked before dates existed carry no tripDate field, so the
+        // format check only applies when one is actually present.
+        && (!('tripDate' in request.resource.data)
+            || (request.resource.data.tripDate is string
+                && (request.resource.data.tripDate == ''
+                    || request.resource.data.tripDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))));
+
+      allow create, delete: if false;
+    }
+
+    match /admins/{adminId} {
+      // Admin membership is provisioned out-of-band in the Firebase console.
+      // Client applications can neither enumerate nor change this collection.
+      allow get: if request.auth != null && request.auth.uid == adminId;
+      allow list, create, update, delete: if false;
+    }
+
+    match /packages/{packageId} {
+      // Package products are public; only admins can manage them.
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /blogPosts/{postId} {
+      // Travel guides are public content; only admins can write them.
+      // Drafts live in the same collection, so an unpublished post is
+      // readable by anyone who guesses its slug — treat a draft as
+      // "not linked from the website yet", not as a secret.
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /destinationCovers/{destinationId} {
+      // Cover artwork for the public destinations grid. The destinations
+      // themselves are derived from the package catalogue; this only holds
+      // the picture an admin picked for each card.
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

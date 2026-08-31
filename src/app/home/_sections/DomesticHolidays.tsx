@@ -1,0 +1,52 @@
+"use client";
+
+import AccordionGallery from "@/components/AccordionGallery";
+import { useSiteContent } from "@/lib/useSiteContent";
+import SectionHeader from "../_components/SectionHeader";
+
+/* ------------------------------------------------------------------ */
+/* Domestic holidays — the seven-panel image showcase carried over from  */
+/* the existing homepage, unchanged in behaviour. Each panel carries the  */
+/* photo, the place and one line about it: no price, badge or CTA, so the */
+/* photography does the work (design.md §9).                             */
+/* Photos live in /public/destinations (see CREDITS.txt for sourcing).    */
+/* ------------------------------------------------------------------ */
+
+export default function DomesticHolidays() {
+  const { domestic } = useSiteContent();
+  if (!domestic.enabled) return null;
+
+  const { header, items, defaultIndex } = domestic;
+
+  return (
+    <section
+      id="domestic-holidays"
+      aria-labelledby="domestic-holidays-title"
+      className="w-full border-t border-cmt-neutral-100 bg-white px-3 py-12 sm:px-4 sm:py-16 md:px-6 lg:py-20"
+    >
+      <div className="mx-auto w-full max-w-[1440px]">
+        <SectionHeader
+          eyebrow={header.eyebrow}
+          title={<span id="domestic-holidays-title">{header.title}</span>}
+          description={header.description}
+          actionLabel={header.actionLabel}
+          actionHref={header.actionHref}
+        />
+
+        <div className="mt-8 sm:mt-10">
+          <AccordionGallery
+            items={items}
+            defaultIndex={defaultIndex}
+            expandRatio={0.42}
+            height={520}
+            gap={12}
+            radius={24}
+            accentColor="#ffc40c"
+            overlayColor="#020617"
+            trigger="hover"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}

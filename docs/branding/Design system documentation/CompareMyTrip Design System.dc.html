@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #FFFFFF; -webkit-font-smoothing: antialiased; }
+  a { color: #7A5800; text-decoration: none; }
+  a:hover { color: #0F172A; }
+  ::selection { background: #FFEFC2; color: #0F172A; }
+  @keyframes cmt-dash { to { stroke-dashoffset: -240; } }
+</style>
+</helmet>
+
+<div style="background:#FFFFFF;color:#334155;font-family:Inter,system-ui,sans-serif;align-items:flex-start;display:{{ shellDisplay }}">
+
+  <aside style="background:#FFFFFF;overflow-y:auto;box-sizing:border-box;{{ asideStyle }}">
+    <img src="./logo.png" alt="CompareMyTrip" style="display:block;width:184px;height:auto;margin-bottom:28px" />
+    <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:6px">Design System</div>
+    <div style="font:400 14px/1.55 Inter,sans-serif;color:#64748B;margin-bottom:28px">Version 1.0 · Single source of truth</div>
+    <nav style="display:flex;border-top:1px solid #F1F5F9;padding-top:16px;{{ navStyle }}">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="16">
+        <a href="{{ n.href }}" style="display:flex;gap:12px;align-items:baseline;padding:8px 12px;border-radius:8px;font:500 14px/1.4 Inter,sans-serif;color:#334155;{{ navItemStyle }}">
+          <span style="font:600 11px/1.4 Inter,sans-serif;color:#64748B;min-width:18px">{{ n.num }}</span>
+          <span>{{ n.label }}</span>
+        </a>
+      </sc-for>
+    </nav>
+  </aside>
+
+  <main style="flex:1;min-width:0">
+
+    <!-- COVER -->
+    <section id="overview" style="position:relative;overflow:hidden;padding:96px 48px 80px;background:#FFFFFF">
+      <div style="position:absolute;top:-140px;right:-120px;width:520px;height:420px;background:#FFFBEB;border-radius:58% 42% 46% 54% / 52% 48% 52% 48%;z-index:0"></div>
+      <div style="position:absolute;top:-24px;right:16px;width:300px;height:176px;z-index:0;opacity:.85;pointer-events:none">
+        <svg viewBox="0 0 340 200" width="300" height="176" fill="none">
+          <path d="M6 178C60 178 84 44 158 44c58 0 62 84 128 84" stroke="#FFC40C" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="2 10" />
+          <path d="M300 106l-34 22 12-22-12-22z" fill="#0F172A" />
+          <circle cx="6" cy="178" r="6" fill="#0F172A" />
+        </svg>
+      </div>
+      <div style="position:relative;z-index:1;max-width:820px">
+        <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:9999px;background:#FFEDA6;border:1px solid #FFE066;font:600 12px/1 Inter,sans-serif;color:#7A5800;margin-bottom:24px">Travel package platform</div>
+        <h1 style="margin:0 0 16px;font:700 72px/1.05 'Space Grotesk',sans-serif;letter-spacing:-.015em;color:#0F172A;text-wrap:balance">Travel Smarter,<br /><span style="color:#A37600">Together.</span></h1>
+        <p style="margin:0 0 32px;max-width:640px;font:400 18px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">The complete CompareMyTrip visual system — tokens, typography, components, iconography and package patterns, rendered live. CompareMyTrip is a <strong style="color:#0F172A;font-weight:600">travel-package platform</strong>: destinations and curated holiday packages are the product; flights are supporting detail inside a package. Every value on this page traces back to <a href="./design.md">design.md</a>. Nothing here is decorative guesswork.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:48px">
+          <a href="#color" style="display:inline-flex;align-items:center;gap:8px;padding:16px 32px;border-radius:12px;background:#FFC40C;color:#0F172A;font:600 18px/1.2 Inter,sans-serif;letter-spacing:.005em;box-shadow:0 1px 2px rgba(15,23,42,.05)">Explore tokens <span style="font-size:16px">&#8594;</span></a>
+          <a href="#components" style="display:inline-flex;align-items:center;gap:8px;padding:16px 32px;border-radius:12px;background:#FFFFFF;border:1px solid #E2E8F0;color:#0F172A;font:600 18px/1.2 Inter,sans-serif">View components</a>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:24px;max-width:720px">
+          <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font:700 32px/1.1 'Space Grotesk',sans-serif;color:#0F172A">{{ s.value }}</div>
+              <div style="font:400 14px/1.4 Inter,sans-serif;color:#64748B">{{ s.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- BRAND -->
+    <section id="brand" style="padding:80px 48px;border-top:1px solid #E2E8F0">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">01 — Foundation</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Brand foundation</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">CompareMyTrip sells <strong style="color:#0F172A;font-weight:600">travel packages</strong>, not flights. The product journey is Discover → Explore → Compare → Package detail → Enquire. Premium but accessible. Modern but not futuristic. Friendly but not childish. Bold but not aggressive. Minimal but not empty.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px;margin-bottom:48px">
+        <sc-for list="{{ dna }}" as="d" hint-placeholder-count="6">
+          <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(15,23,42,.06)">
+            <div style="width:48px;height:48px;border-radius:9999px;background:#FFEDA6;display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0F172A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="{{ d.icon }}"></path></svg>
+            </div>
+            <h4 style="margin:0 0 8px;font:500 20px/1.35 'Space Grotesk',sans-serif;color:#0F172A">{{ d.title }}</h4>
+            <p style="margin:0;font:400 14px/1.55 Inter,sans-serif;color:#64748B">{{ d.body }}</p>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px">
+        <div style="background:#F8FAFC;border-radius:16px;padding:32px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:24px">Personality spectrum</div>
+          <div style="display:flex;flex-direction:column;gap:24px">
+            <sc-for list="{{ sliders }}" as="sl" hint-placeholder-count="6">
+              <div>
+                <div style="display:flex;justify-content:space-between;font:600 12px/1.4 Inter,sans-serif;color:#334155;margin-bottom:10px">
+                  <span>{{ sl.left }}</span><span style="color:#64748B">{{ sl.right }}</span>
+                </div>
+                <div style="position:relative;height:4px;border-radius:9999px;background:#E2E8F0">
+                  <div style="position:absolute;top:-5px;width:14px;height:14px;border-radius:9999px;background:#FFC40C;border:2px solid #FFFFFF;box-shadow:0 1px 2px rgba(15,23,42,.05);left:{{ sl.pos }}"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="background:#FFFFFF;border:1px solid #DCFCE7;border-radius:16px;padding:24px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+              <span style="display:inline-flex;width:20px;height:20px;border-radius:9999px;background:#22C55E;align-items:center;justify-content:center">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12.5 9.5 18 20 6.5"></path></svg>
+              </span>
+              <span style="font:600 16px/1.4 Inter,sans-serif;color:#15803D">DO</span>
+            </div>
+            <ul style="margin:0;padding-left:18px;font:400 14px/1.8 Inter,sans-serif;color:#334155">
+              <li>Feel optimistic and forward-moving</li>
+              <li>Keep interfaces clear and scannable above all</li>
+              <li>Use bold contrast purposefully — one yellow action</li>
+              <li>Give content room to breathe</li>
+              <li>Reuse established patterns before inventing</li>
+            </ul>
+          </div>
+          <div style="background:#FFFFFF;border:1px solid #FEE2E2;border-radius:16px;padding:24px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+              <span style="display:inline-flex;width:20px;height:20px;border-radius:9999px;background:#EF4444;align-items:center;justify-content:center">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+              </span>
+              <span style="font:600 16px/1.4 Inter,sans-serif;color:#B91C1C">DO NOT</span>
+            </div>
+            <ul style="margin:0;padding-left:18px;font:400 14px/1.8 Inter,sans-serif;color:#334155">
+              <li>Use gradients as page backgrounds</li>
+              <li>Make the interface futuristic — no neon, no heavy glass</li>
+              <li>Overuse yellow (hard cap: 10% of any viewport)</li>
+              <li>Add decoration that carries no meaning</li>
+              <li>Ship a shrunken desktop layout as "mobile"</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLOR -->
+    <section id="color" style="padding:80px 48px;border-top:1px solid #E2E8F0">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">02 — Tokens</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Color</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">The primary scale is sampled from the logo: black + golden yellow + white. Neutral-dominant with gold as the decision signal — neutral surfaces ≥ 70% of any viewport, yellow ≤ 10%, one primary CTA per screen. Orange belongs to the warning family only and never stands in for brand gold.</p>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:16px"><span style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">Primary — Sunshine Yellow</span><span style="font:400 12px/1.4 Inter,sans-serif;color:#64748B">Token prefix <code style="font:500 12px/1.4 ui-monospace,Menlo,monospace;color:#334155">--cmt-color-</code></span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:8px;margin-bottom:12px">
+        <sc-for list="{{ primary }}" as="c" hint-placeholder-count="10">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="height:104px;border-radius:12px;display:flex;align-items:flex-end;padding:12px;box-sizing:border-box;border:1px solid rgba(15,23,42,.06);background:{{ c.hex }}">
+              <span style="font:600 12px/1 Inter,sans-serif;color:{{ c.fg }}">{{ c.step }}</span>
+            </div>
+            <div style="font:500 11px/1.4 Inter,sans-serif;color:#334155">{{ c.hex }}</div>
+            <sc-if value="{{ showNames }}" hint-placeholder-val="{{ true }}">
+              <div style="font:400 11px/1.4 Inter,sans-serif;color:#64748B;overflow-wrap:anywhere">{{ c.token }}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin:0 0 40px;font:400 14px/1.55 Inter,sans-serif;color:#64748B"><strong style="color:#0F172A">500 · #FFC40C</strong> is the action colour, sampled directly from the logo (hue 46°). <strong style="color:#0F172A">600 · #E8AC00</strong> is hover, <strong style="color:#0F172A">700 · #C99200</strong> active — deeper gold, never orange. Yellow is a surface: <strong style="color:#0F172A">#0F172A</strong> on brand yellow measures 10.8:1. For gold <em>text</em> on white use <strong style="color:#7A5800">900 · #7A5800</strong> (6.5:1).</p>
+
+      <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Secondary — Slate Blue</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:8px;margin-bottom:40px">
+        <sc-for list="{{ slate }}" as="c" hint-placeholder-count="10">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="height:104px;border-radius:12px;display:flex;align-items:flex-end;padding:12px;box-sizing:border-box;border:1px solid rgba(15,23,42,.06);background:{{ c.hex }}">
+              <span style="font:600 12px/1 Inter,sans-serif;color:{{ c.fg }}">{{ c.step }}</span>
+            </div>
+            <div style="font:500 11px/1.4 Inter,sans-serif;color:#334155">{{ c.hex }}</div>
+            <sc-if value="{{ showNames }}" hint-placeholder-val="{{ true }}">
+              <div style="font:400 11px/1.4 Inter,sans-serif;color:#64748B;overflow-wrap:anywhere">{{ c.token }}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Neutrals — surfaces, borders, text</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:12px;margin-bottom:40px">
+        <sc-for list="{{ neutrals }}" as="c" hint-placeholder-count="14">
+          <div style="border:1px solid #E2E8F0;border-radius:12px;overflow:hidden">
+            <div style="height:72px;background:{{ c.hex }}"></div>
+            <div style="padding:12px;display:flex;flex-direction:column;gap:4px">
+              <div style="font:600 12px/1.3 Inter,sans-serif;color:#0F172A">{{ c.name }}</div>
+              <div style="font:400 11px/1.3 Inter,sans-serif;color:#64748B">{{ c.hex }}</div>
+              <div style="font:400 11px/1.4 Inter,sans-serif;color:#64748B">{{ c.use }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:32px;margin-bottom:40px">
+        <div>
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Accents — categorization only</div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <sc-for list="{{ accents }}" as="g" hint-placeholder-count="4">
+              <div>
+                <div style="font:600 13px/1.4 Inter,sans-serif;color:#0F172A;margin-bottom:8px">{{ g.name }} <span style="color:#64748B;font-weight:400">· {{ g.use }}</span></div>
+                <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+                  <sc-for list="{{ g.steps }}" as="s" hint-placeholder-count="4">
+                    <div style="height:56px;border-radius:8px;display:flex;flex-direction:column;justify-content:flex-end;padding:8px;box-sizing:border-box;background:{{ s.hex }}">
+                      <span style="font:600 11px/1.3 Inter,sans-serif;color:{{ s.fg }}">{{ s.k }}</span>
+                      <span style="font:400 11px/1.3 Inter,sans-serif;opacity:.8;color:{{ s.fg }}">{{ s.hex }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Semantic — status only</div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <sc-for list="{{ semantic }}" as="g" hint-placeholder-count="4">
+              <div>
+                <div style="font:600 13px/1.4 Inter,sans-serif;color:#0F172A;margin-bottom:8px">{{ g.name }} <span style="color:#64748B;font-weight:400">· {{ g.use }}</span></div>
+                <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+                  <sc-for list="{{ g.steps }}" as="s" hint-placeholder-count="4">
+                    <div style="height:56px;border-radius:8px;display:flex;flex-direction:column;justify-content:flex-end;padding:8px;box-sizing:border-box;background:{{ s.hex }}">
+                      <span style="font:600 11px/1.3 Inter,sans-serif;color:{{ s.fg }}">{{ s.k }}</span>
+                      <span style="font:400 11px/1.3 Inter,sans-serif;opacity:.8;color:{{ s.fg }}">{{ s.hex }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:32px">
+        <div>
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Semantic aliases</div>
+          <div style="border:1px solid #E2E8F0;border-radius:16px;overflow:hidden;overflow-x:auto">
+            <sc-for list="{{ aliases }}" as="a" hint-placeholder-count="10">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #F1F5F9">
+                <span style="flex:0 0 24px;width:24px;height:24px;border-radius:6px;border:1px solid rgba(15,23,42,.08);background:{{ a.hex }}"></span>
+                <code style="flex:1;font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:#0F172A">{{ a.token }}</code>
+                <span style="font:400 12px/1.4 Inter,sans-serif;color:#64748B">{{ a.hex }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Confirmed contrast pairings</div>
+          <div style="border:1px solid #E2E8F0;border-radius:16px;overflow:hidden;overflow-x:auto">
+            <sc-for list="{{ contrast }}" as="c" hint-placeholder-count="8">
+              <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #F1F5F9">
+                <span style="flex:0 0 44px;width:44px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font:700 15px/1 'Space Grotesk',sans-serif;border:1px solid rgba(15,23,42,.08);background:{{ c.bg }};color:{{ c.fg }}">Aa</span>
+                <span style="flex:1;font:400 12px/1.4 Inter,sans-serif;color:#334155">{{ c.label }}</span>
+                <span style="font:600 12px/1 Inter,sans-serif;color:#0F172A;min-width:44px;text-align:right">{{ c.ratio }}</span>
+                <span style="font:600 11px/1 Inter,sans-serif;padding:4px 8px;border-radius:9999px;background:{{ c.tagBg }};color:{{ c.tagFg }}">{{ c.rating }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TYPOGRAPHY -->
+    <section id="type" style="padding:80px 48px;border-top:1px solid #E2E8F0">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">03 — Tokens</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Typography</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">Space Grotesk carries display and headings. Inter carries body, UI and everything a user must read quickly. Sora is approved for brand collateral only and is not loaded on the website.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:48px">
+        <div style="background:#F8FAFC;border-radius:16px;padding:32px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:12px">Primary display font</div>
+          <div style="font:700 56px/1.1 'Space Grotesk',sans-serif;color:#0F172A;letter-spacing:-.01em;margin-bottom:8px">Space Grotesk</div>
+          <div style="font:400 14px/1.55 Inter,sans-serif;color:#64748B;margin-bottom:20px">Modern · Geometric · Adventurous</div>
+          <div style="font:500 20px/1.5 'Space Grotesk',sans-serif;color:#334155;word-break:break-word">ABCDEFGHIJKLMNOPQRSTUVWXYZ<br />abcdefghijklmnopqrstuvwxyz<br />0123456789 ₹ !@#$%&amp;*()</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:20px">
+            <span style="font:500 14px/1 'Space Grotesk',sans-serif;color:#64748B">500 Medium</span>
+            <span style="font:600 14px/1 'Space Grotesk',sans-serif;color:#334155">600 SemiBold</span>
+            <span style="font:700 14px/1 'Space Grotesk',sans-serif;color:#0F172A">700 Bold</span>
+          </div>
+        </div>
+        <div style="background:#F8FAFC;border-radius:16px;padding:32px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:12px">Primary body &amp; UI font</div>
+          <div style="font:700 56px/1.1 Inter,sans-serif;color:#0F172A;letter-spacing:-.02em;margin-bottom:8px">Inter</div>
+          <div style="font:400 14px/1.55 Inter,sans-serif;color:#64748B;margin-bottom:20px">Clean · Highly readable · Neutral</div>
+          <div style="font:400 20px/1.5 Inter,sans-serif;color:#334155;word-break:break-word">ABCDEFGHIJKLMNOPQRSTUVWXYZ<br />abcdefghijklmnopqrstuvwxyz<br />0123456789 ₹ !@#$%&amp;*()</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:20px">
+            <span style="font:400 14px/1 Inter,sans-serif;color:#64748B">400 Regular</span>
+            <span style="font:500 14px/1 Inter,sans-serif;color:#64748B">500 Medium</span>
+            <span style="font:600 14px/1 Inter,sans-serif;color:#334155">600 SemiBold</span>
+            <span style="font:700 14px/1 Inter,sans-serif;color:#0F172A">700 Bold</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Type ladder — rendered at desktop size</div>
+      <div style="border:1px solid #E2E8F0;border-radius:16px;overflow:hidden;overflow-x:auto">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 92px 92px 64px 64px 78px;min-width:880px;gap:16px;padding:12px 24px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">
+          <span>Style / specimen</span><span>Family</span><span>D / T / M</span><span>Weight</span><span>Line H</span><span>Tracking</span>
+        </div>
+        <sc-for list="{{ typeRows }}" as="t" hint-placeholder-count="14">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 92px 92px 64px 64px 78px;min-width:880px;gap:16px;align-items:center;padding:20px 24px;border-bottom:1px solid #F1F5F9">
+            <div style="min-width:0;padding:4px 0">
+              <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:8px">{{ t.style }} · {{ t.use }}</div>
+              <div style="color:#0F172A;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 0;font:{{ t.css }};letter-spacing:{{ t.ls }}">{{ t.sample }}</div>
+            </div>
+            <span style="font:400 12px/1.4 Inter,sans-serif;color:#64748B">{{ t.family }}</span>
+            <span style="font:500 12px/1.4 Inter,sans-serif;color:#334155">{{ t.sizes }}</span>
+            <span style="font:400 12px/1.4 Inter,sans-serif;color:#64748B">{{ t.weight }}</span>
+            <span style="font:400 12px/1.4 Inter,sans-serif;color:#64748B">{{ t.lh }}</span>
+            <span style="font:400 12px/1.4 Inter,sans-serif;color:#64748B">{{ t.track }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px;margin-top:32px">
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:12px">Measure</div>
+          <p style="margin:0;font:400 14px/1.7 Inter,sans-serif;color:#334155">Display headlines cap at ~20ch. Body Large runs 60–72ch (max 680px), Body Regular 60–75ch (max 640px). Card body truncates at 3 lines desktop, 4 mobile.</p>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:12px">Two-tone headline</div>
+          <p style="margin:0;font:400 14px/1.7 Inter,sans-serif;color:#334155">The line always breaks before the yellow segment. On light use <strong style="color:#7A5800">#A37600</strong> at ≥32px; on dark use <strong style="color:#0F172A">#FFCB19</strong>. Never a bright yellow below 32px on white — and never orange simply because it contrasts more.</p>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:12px">Legibility floor</div>
+          <p style="margin:0;font:400 14px/1.7 Inter,sans-serif;color:#334155">11px absolute minimum, 14px body minimum, 16px minimum on inputs. Caption and Label clamp at 11px on tablet and mobile.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPACING -->
+    <section id="spacing" style="padding:80px 48px;border-top:1px solid #E2E8F0">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">04 — Tokens</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Spacing</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">Base unit 4px. Every value is a multiple of 4. The scale below is the complete set — 56, 72, 88, 104 and 144 do not exist in this system.</p>
+      </div>
+      <div style="border:1px solid #E2E8F0;border-radius:16px;overflow:hidden;overflow-x:auto;margin-bottom:32px">
+        <sc-for list="{{ spacing }}" as="s" hint-placeholder-count="14">
+          <div style="display:flex;align-items:center;gap:20px;padding:10px 24px;border-bottom:1px solid #F1F5F9">
+            <code style="flex:0 0 92px;font:500 12px/1.4 ui-monospace,Menlo,monospace;color:#0F172A">{{ s.token }}</code>
+            <span style="flex:0 0 48px;font:600 13px/1.4 Inter,sans-serif;color:#334155">{{ s.px }}</span>
+            <span style="flex:0 0 64px;font:400 12px/1.4 Inter,sans-serif;color:#64748B">{{ s.rem }}</span>
+            <span style="flex:0 0 172px;height:16px;display:block"><span style="display:block;height:16px;border-radius:4px;background:#FFC40C;width:{{ s.bar }}"></span></span>
+            <span style="flex:1;font:400 13px/1.5 Inter,sans-serif;color:#64748B">{{ s.use }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:24px">
+        <sc-for list="{{ spacingGroups }}" as="g" hint-placeholder-count="4">
+          <div style="background:#F8FAFC;border-radius:16px;padding:24px">
+            <div style="font:500 20px/1.35 'Space Grotesk',sans-serif;color:#0F172A;margin-bottom:16px">{{ g.title }}</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="4">
+                <div style="display:flex;justify-content:space-between;gap:12px;font:400 13px/1.5 Inter,sans-serif;color:#64748B">
+                  <span>{{ r.k }}</span><span style="font-weight:600;color:#0F172A;white-space:nowrap">{{ r.v }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- LAYOUT -->
+    <section id="layout" style="padding:80px 48px;border-top:1px solid #E2E8F0">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">05 — Foundation</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Layout &amp; grid</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">Twelve columns on desktop, eight on tablet, four on mobile. The 1440px container includes its 24px gutters, so grid math starts from a 1392px content box.</p>
+      </div>
+
+      <div style="border:1px solid #E2E8F0;border-radius:16px;overflow:hidden;overflow-x:auto;margin-bottom:32px">
+        <div style="display:grid;grid-template-columns:1.1fr 1fr 1fr .9fr .9fr .9fr;min-width:660px;gap:16px;padding:14px 24px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">
+          <span>Breakpoint</span><span>Range</span><span>Container</span><span>Columns</span><span>Gutter</span><span>Page padding</span>
+        </div>
+        <sc-for list="{{ breakpoints }}" as="b" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:1.1fr 1fr 1fr .9fr .9fr .9fr;min-width:660px;gap:16px;align-items:center;padding:16px 24px;border-bottom:1px solid #F1F5F9;font:400 14px/1.5 Inter,sans-serif;color:#334155">
+            <span style="font-weight:600;color:#0F172A">{{ b.name }}</span>
+            <span>{{ b.range }}</span><span>{{ b.container }}</span><span>{{ b.cols }}</span><span>{{ b.gutter }}</span><span>{{ b.pad }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background:#F8FAFC;border-radius:16px;padding:32px;margin-bottom:32px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">Desktop 12-column grid</div>
+          <div style="font:400 13px/1.4 Inter,sans-serif;color:#64748B">1392px content · 94px columns · 24px gutters</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px;height:120px;margin-bottom:32px">
+          <sc-for list="{{ cols12 }}" as="c" hint-placeholder-count="12">
+            <div style="background:#FFE4E6;border-radius:6px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;font:600 11px/1 Inter,sans-serif;color:#BE123C">{{ c }}</div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:24px">
+          <sc-for list="{{ layouts }}" as="l" hint-placeholder-count="4">
+            <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:12px;padding:16px">
+              <div style="display:flex;gap:8px;height:56px;margin-bottom:12px">
+                <sc-for list="{{ l.blocks }}" as="bl" hint-placeholder-count="3">
+                  <div style="background:#FFEDA6;border:1px solid #FFE066;border-radius:6px;display:flex;align-items:center;justify-content:center;font:600 12px/1 Inter,sans-serif;color:#0F172A;flex:{{ bl }}">{{ bl }}</div>
+                </sc-for>
+              </div>
+              <div style="font:600 14px/1.4 Inter,sans-serif;color:#0F172A;margin-bottom:4px">{{ l.name }}</div>
+              <div style="font:400 12px/1.5 Inter,sans-serif;color:#64748B">{{ l.use }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px">
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Radius</div>
+          <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:16px">
+            <sc-for list="{{ radii }}" as="r" hint-placeholder-count="5">
+              <div style="flex:1 1 0;min-width:0;text-align:center">
+                <div style="height:56px;background:#FFEDA6;border:1.5px solid #FFC40C;margin-bottom:8px;border-radius:{{ r.v }}"></div>
+                <div style="font:600 11px/1.3 Inter,sans-serif;color:#0F172A">{{ r.v }}</div>
+                <div style="font:400 11px/1.3 Inter,sans-serif;color:#64748B">{{ r.use }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Elevation</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ shadows }}" as="s" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:16px">
+                <div style="flex:0 0 56px;height:40px;border-radius:12px;background:#FFFFFF;box-shadow:{{ s.v }}"></div>
+                <div style="min-width:0">
+                  <div style="font:600 12px/1.3 Inter,sans-serif;color:#0F172A">{{ s.name }}</div>
+                  <div style="font:400 11px/1.4 Inter,sans-serif;color:#64748B">{{ s.use }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Motion</div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ motion }}" as="m" hint-placeholder-count="4">
+              <div>
+                <div style="display:flex;justify-content:space-between;font:600 12px/1.3 Inter,sans-serif;color:#0F172A;margin-bottom:6px">
+                  <span>{{ m.d }}</span><span style="font-weight:400;color:#64748B">{{ m.use }}</span>
+                </div>
+                <div style="height:4px;border-radius:9999px;background:#E2E8F0"><div style="height:4px;border-radius:9999px;background:#FFC40C;width:{{ m.bar }}"></div></div>
+              </div>
+            </sc-for>
+            <div style="font:400 11px/1.5 Inter,sans-serif;color:#64748B;margin-top:2px">Easing cubic-bezier(.4, 0, .2, 1) · animate transform &amp; opacity only · honour prefers-reduced-motion</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BUTTONS -->
+    <section id="components" style="padding:80px 48px;border-top:1px solid #E2E8F0;background:#F8FAFC">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">06 — Components</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Buttons</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">Five variants, five states each, three sizes. Radius 12px throughout. One primary button per viewport — a second yellow button is a defect.</p>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:32px;margin-bottom:24px;overflow-x:auto;box-shadow:0 2px 8px rgba(15,23,42,.06)">
+        <div style="display:grid;grid-template-columns:72px repeat(5,minmax(128px,1fr));min-width:790px;gap:20px;align-items:center;margin-bottom:20px">
+          <span></span>
+          <span style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">Primary</span>
+          <span style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">Secondary</span>
+          <span style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">Outline</span>
+          <span style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">Text</span>
+          <span style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">Icon</span>
+        </div>
+        <sc-for list="{{ btnStates }}" as="r" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:72px repeat(5,minmax(128px,1fr));min-width:790px;gap:20px;align-items:center;padding:12px 0;border-top:1px solid #F1F5F9">
+            <span style="font:600 13px/1.4 Inter,sans-serif;color:#0F172A">{{ r.state }}</span>
+            <span><span style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;font:600 16px/1.2 Inter,sans-serif;letter-spacing:.005em;background:{{ r.p.bg }};color:{{ r.p.fg }};box-shadow:{{ r.p.sh }}">Book Now <span style="font-size:14px">&#8594;</span></span></span>
+            <span><span style="display:inline-flex;align-items:center;padding:12px 24px;border-radius:12px;font:600 16px/1.2 Inter,sans-serif;background:{{ r.s.bg }};color:{{ r.s.fg }};box-shadow:{{ r.s.sh }}">Explore</span></span>
+            <span><span style="display:inline-flex;align-items:center;padding:12px 24px;border-radius:12px;background:#FFFFFF;font:600 16px/1.2 Inter,sans-serif;border:{{ r.o.border }};color:{{ r.o.fg }};box-shadow:{{ r.o.sh }}">Learn More</span></span>
+            <span><span style="display:inline-flex;align-items:center;gap:8px;font:600 16px/1.2 Inter,sans-serif;color:{{ r.t.fg }}">View Deals <span style="font-size:14px">&#8594;</span></span></span>
+            <span><span style="display:inline-flex;width:44px;height:44px;align-items:center;justify-content:center;border-radius:12px;background:#FFFFFF;border:{{ r.i.border }};box-shadow:{{ r.i.sh }}">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="{{ r.i.fg }}"><path d="M21.5 3.5 2.5 11.2l7.4 2.9 2.9 7.4z"></path></svg>
+            </span></span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:32px;box-shadow:0 2px 8px rgba(15,23,42,.06)">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:24px">Sizes</div>
+        <div style="display:flex;align-items:center;gap:32px;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:12px;background:#FFC40C;color:#0F172A;font:600 14px/1.2 Inter,sans-serif;align-self:flex-start">Book Now <span style="font-size:12px">&#8594;</span></span>
+            <span style="font:400 12px/1.4 Inter,sans-serif;color:#64748B">Small · 8/16 · 14px · h36</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;background:#FFC40C;color:#0F172A;font:600 16px/1.2 Inter,sans-serif;align-self:flex-start">Book Now <span style="font-size:14px">&#8594;</span></span>
+            <span style="font:400 12px/1.4 Inter,sans-serif;color:#64748B">Medium · 12/24 · 16px · h44</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="display:inline-flex;align-items:center;gap:12px;padding:16px 32px;border-radius:12px;background:#FFC40C;color:#0F172A;font:600 18px/1.2 Inter,sans-serif;align-self:flex-start">Book Now <span style="font-size:16px">&#8594;</span></span>
+            <span style="font:400 12px/1.4 Inter,sans-serif;color:#64748B">Large · 16/32 · 18px · h52</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FORMS -->
+    <section id="forms" style="padding:80px 48px;border-top:1px solid #E2E8F0;background:#F8FAFC">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">07 — Components</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Forms &amp; search</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">48px default height, 12px radius, 16px text. Focus is a 2px yellow border plus a soft ring — never an outline suppression.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px;margin-bottom:32px">
+        <sc-for list="{{ inputs }}" as="f" hint-placeholder-count="7">
+          <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:20px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <span style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">{{ f.label }}</span>
+              <span style="font:400 11px/1.4 Inter,sans-serif;color:#64748B">{{ f.spec }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:12px;box-sizing:border-box;background:{{ f.bg }};border:{{ f.border }};box-shadow:{{ f.ring }}">
+              <span style="flex:1;font:400 16px/1.2 Inter,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:{{ f.color }}">{{ f.value }}</span>
+              <sc-if value="{{ f.icon }}" hint-placeholder-val="{{ true }}">
+                <span style="display:inline-flex;width:20px;height:20px;border-radius:9999px;align-items:center;justify-content:center;flex:0 0 20px;background:{{ f.iconBg }}">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="{{ f.icon }}"></path></svg>
+                </span>
+              </sc-if>
+            </div>
+            <div style="margin-top:8px;font:400 12px/1.5 Inter,sans-serif;color:{{ f.helpColor }}">{{ f.help }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background:#FFFFFF;border-radius:16px;padding:24px;box-shadow:0 12px 32px rgba(15,23,42,.10);margin-bottom:24px">
+        <div style="display:flex;gap:8px;margin-bottom:20px">
+          <sc-for list="{{ searchTabs }}" as="tb" hint-placeholder-count="3">
+            <button type="button" onClick="{{ tb.select }}" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:9999px;font:600 15px/1.2 Inter,sans-serif;cursor:pointer;transition:background 200ms,border-color 200ms;background:{{ tb.bg }};color:{{ tb.fg }};border:{{ tb.border }}">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="{{ tb.icon }}"></path></svg>
+              {{ tb.label }}
+            </button>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;align-items:stretch;border:1px solid #E2E8F0;border-radius:12px">
+          <div style="flex:1 1 190px;min-width:0;padding:10px 16px;border-right:1px solid #E2E8F0">
+            <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:4px">Destination</div>
+            <div style="font:600 18px/1.3 'Space Grotesk',sans-serif;color:#0F172A;white-space:nowrap">Goa <span style="font:400 13px/1.3 Inter,sans-serif;color:#64748B">India</span></div>
+          </div>
+          <div style="flex:1 1 165px;min-width:0;padding:10px 16px;border-right:1px solid #E2E8F0">
+            <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:4px">Travel dates</div>
+            <div style="font:600 16px/1.4 Inter,sans-serif;color:#0F172A;white-space:nowrap">12 – 16 May</div>
+          </div>
+          <div style="flex:1 1 175px;min-width:0;padding:10px 16px;border-right:1px solid #E2E8F0">
+            <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:4px">Duration</div>
+            <div style="font:600 16px/1.4 Inter,sans-serif;color:#0F172A;white-space:nowrap">4 Nights / 5 Days</div>
+          </div>
+          <div style="flex:1 1 150px;min-width:0;padding:10px 16px;border-right:1px solid #E2E8F0">
+            <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:4px">Travellers</div>
+            <div style="font:600 16px/1.4 Inter,sans-serif;color:#0F172A;white-space:nowrap">2 Adults</div>
+          </div>
+          <div style="flex:1 1 175px;min-width:0;padding:10px 16px;border-right:1px solid #E2E8F0">
+            <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:4px">Package type</div>
+            <div style="font:600 16px/1.4 Inter,sans-serif;color:#0F172A;white-space:nowrap">Beach &amp; Islands</div>
+          </div>
+          <button type="button" style="border:0;cursor:pointer;flex:1 1 190px;min-height:58px;padding:0 32px;background:#FFC40C;color:#0F172A;font:600 16px/1.2 Inter,sans-serif;letter-spacing:.005em">Explore Packages</button>
+        </div>
+        <div style="display:flex;gap:32px;margin-top:20px;flex-wrap:wrap">
+          <sc-for list="{{ trust }}" as="t" hint-placeholder-count="4">
+            <span style="display:inline-flex;align-items:center;gap:8px;font:400 14px/1.4 Inter,sans-serif;color:#334155">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#7A5800" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="{{ t.icon }}"></path></svg>{{ t.label }}
+            </span>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px">
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Package type</div>
+          <button type="button" onClick="{{ toggleMenu }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 14px;border-radius:12px;border:1px solid #E2E8F0;background:#FFFFFF;font:400 16px/1.2 Inter,sans-serif;color:#0F172A;cursor:pointer;box-sizing:border-box">
+            {{ cabin }}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+          </button>
+          <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top:8px;border:1px solid #E2E8F0;border-radius:12px;box-shadow:0 6px 16px rgba(15,23,42,.08);padding:8px;background:#FFFFFF">
+              <sc-for list="{{ cabins }}" as="o" hint-placeholder-count="4">
+                <button type="button" onClick="{{ o.pick }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border:0;border-radius:4px;font:400 15px/1.2 Inter,sans-serif;text-align:left;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">
+                  {{ o.name }}
+                  <sc-if value="{{ o.active }}" hint-placeholder-val="{{ false }}">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#FFC40C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12.5 9.5 18 20 6.5"></path></svg>
+                  </sc-if>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Price range</div>
+          <div style="display:flex;justify-content:space-between;font:600 14px/1.4 Inter,sans-serif;color:#0F172A;margin-bottom:16px"><span>₹0</span><span>₹50,000+</span></div>
+          <div style="position:relative;height:4px;border-radius:9999px;background:#E2E8F0;margin:0 10px 28px">
+            <div style="position:absolute;left:18%;right:32%;top:0;height:4px;border-radius:9999px;background:#FFC40C"></div>
+            <div style="position:absolute;left:18%;top:-8px;margin-left:-10px;width:20px;height:20px;border-radius:9999px;background:#FFC40C;border:2px solid #FFFFFF;box-shadow:0 1px 2px rgba(15,23,42,.05)"></div>
+            <div style="position:absolute;left:68%;top:-8px;margin-left:-10px;width:20px;height:20px;border-radius:9999px;background:#FFC40C;border:2px solid #FFFFFF;box-shadow:0 1px 2px rgba(15,23,42,.05)"></div>
+          </div>
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:12px">Progress · 3 of 5</div>
+          <div style="height:6px;border-radius:9999px;background:#E2E8F0"><div style="width:60%;height:6px;border-radius:9999px;background:#FFC40C"></div></div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Tooltip &amp; breadcrumb</div>
+          <div style="display:inline-block;max-width:260px;background:#0F172A;color:#FFFFFF;border-radius:12px;padding:12px 16px;font:400 14px/1.5 Inter,sans-serif;box-shadow:0 6px 16px rgba(15,23,42,.08);margin-bottom:6px">Compare prices from multiple websites in one place.</div>
+          <div style="width:10px;height:10px;background:#0F172A;transform:rotate(45deg);margin:-11px 0 20px 24px"></div>
+          <div style="display:flex;align-items:center;gap:8px;font:400 14px/1.4 Inter,sans-serif;color:#64748B;flex-wrap:wrap">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"></path></svg>
+            <span style="color:#CBD5E1">/</span><span>Destinations</span><span style="color:#CBD5E1">/</span><span>India</span><span style="color:#CBD5E1">/</span><span style="font-weight:500;color:#0F172A">Goa</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARDS -->
+    <section id="cards" style="padding:80px 48px;border-top:1px solid #E2E8F0;background:#F8FAFC">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">08 — Components</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Cards</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">White, 16px radius, 1px #E2E8F0 border, 24px padding, shadow-sm at rest. Order is always badge → media → title → body → meta → CTA.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:24px;margin-bottom:24px">
+        <sc-for list="{{ cards }}" as="c" hint-placeholder-count="4">
+          <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(15,23,42,.06);display:flex;flex-direction:column">
+            <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">{{ c.kind }}</div>
+            <div style="width:48px;height:48px;border-radius:12px;background:#FFEDA6;display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0F172A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="{{ c.icon }}"></path></svg>
+            </div>
+            <h4 style="margin:0 0 8px;font:500 20px/1.35 'Space Grotesk',sans-serif;color:#0F172A">{{ c.title }}</h4>
+            <p style="margin:0 0 20px;font:400 14px/1.55 Inter,sans-serif;color:#64748B;flex:1">{{ c.body }}</p>
+            <span style="display:inline-flex;align-items:center;gap:8px;font:600 15px/1.2 Inter,sans-serif;color:{{ c.ctaColor }}">{{ c.cta }} <span style="font-size:13px">&#8594;</span></span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:24px">
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(15,23,42,.06);display:flex;flex-direction:column">
+          <div style="position:relative;aspect-ratio:4/3;background:#F1F5F9">
+            <image-slot id="cmt-pkg-goa" shape="rect" placeholder="4:3 package image"></image-slot>
+            <span style="position:absolute;top:16px;left:16px;pointer-events:none;display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:9999px;background:#DCFCE7;border:1px solid #86EFAC;font:600 12px/1.4 Inter,sans-serif;color:#15803D">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#15803D" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12.5 9.5 18 20 6.5"></path></svg>Best Price
+            </span>
+          </div>
+          <div style="padding:24px;display:flex;flex-direction:column;flex:1">
+            <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:8px">Goa, India</div>
+            <h4 style="margin:0 0 8px;font:500 20px/1.35 'Space Grotesk',sans-serif;color:#0F172A">Goa Beach Escape</h4>
+            <div style="font:600 14px/1.55 Inter,sans-serif;color:#334155;margin-bottom:8px">4 Nights / 5 Days</div>
+            <p style="margin:0 0 16px;font:400 14px/1.55 Inter,sans-serif;color:#64748B;flex:1">Beach · Adventure · Sunset cruise</p>
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
+              <span style="font:700 24px/1.1 'Space Grotesk',sans-serif;color:#0F172A;font-variant-numeric:tabular-nums">₹12,499</span>
+              <span style="font:400 13px/1.4 Inter,sans-serif;color:#64748B">per person</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font:400 13px/1.4 Inter,sans-serif;color:#64748B;margin-bottom:20px">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="#FFC40C"><path d="m12 3.5 2.7 5.6 6 .8-4.4 4.2 1.1 6.1L12 17.3 6.6 20.2l1.1-6.1-4.4-4.2 6-.8z"></path></svg>
+              <strong style="font-weight:600;color:#0F172A">4.8</strong> · 2,140 reviews
+            </div>
+            <button type="button" style="width:100%;border:0;cursor:pointer;padding:12px 24px;border-radius:12px;background:#FFC40C;color:#0F172A;font:600 16px/1.2 Inter,sans-serif">View Package</button>
+        </div>
+        </div>
+
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;overflow:hidden;overflow-x:auto;box-shadow:0 2px 8px rgba(15,23,42,.06);display:flex;flex-direction:column">
+          <div style="position:relative;aspect-ratio:4/3;background:#F1F5F9">
+            <image-slot id="cmt-card-goa" shape="rect" placeholder="4:3 destination image"></image-slot>
+          </div>
+          <div style="padding:24px;display:flex;flex-direction:column;flex:1">
+            <h4 style="margin:0 0 8px;font:500 20px/1.35 'Space Grotesk',sans-serif;color:#0F172A">Beautiful Goa</h4>
+            <p style="margin:0 0 16px;font:400 14px/1.55 Inter,sans-serif;color:#64748B;flex:1">Sun, beaches and unforgettable experiences on India's western coast.</p>
+            <div style="display:flex;align-items:baseline;justify-content:space-between">
+              <span style="font:400 12px/1.4 Inter,sans-serif;color:#64748B">From</span>
+              <span style="font:700 20px/1.2 'Space Grotesk',sans-serif;color:#0F172A;font-variant-numeric:tabular-nums">₹3,299</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="position:relative;overflow:hidden;background:#0F172A;border-radius:16px;padding:32px;color:#FFFFFF">
+          <div style="position:absolute;right:-60px;bottom:-80px;width:280px;height:220px;background:#1E293B;border-radius:56% 44% 48% 52% / 50% 50% 50% 50%"></div>
+          <div style="position:relative">
+            <span style="display:inline-flex;padding:4px 12px;border-radius:9999px;background:#FFC40C;color:#0F172A;font:600 12px/1.4 Inter,sans-serif;margin-bottom:20px">Limited Time Offer</span>
+            <h3 style="margin:0 0 8px;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#FFFFFF">Flat <span style="color:#FFCB19">10% Off</span><br />on Holiday Packages</h3>
+            <p style="margin:0 0 24px;font:400 14px/1.55 Inter,sans-serif;color:#CBD5E1">Use code GETAWAY10 on your first package booking.</p>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:24px">
+              <sc-for list="{{ countdown }}" as="cd" hint-placeholder-count="4">
+                <div style="background:#1E293B;border-radius:12px;padding:12px 8px;text-align:center;min-width:0">
+                  <div style="font:600 24px/1.1 'Space Grotesk',sans-serif;color:#FFFFFF;font-variant-numeric:tabular-nums">{{ cd.v }}</div>
+                  <div style="font:400 11px/1.4 Inter,sans-serif;color:#94A3B8">{{ cd.k }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <span style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;background:#FFC40C;color:#0F172A;font:600 16px/1.2 Inter,sans-serif">Book Now <span style="font-size:14px">&#8594;</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEEDBACK -->
+    <section id="feedback" style="padding:80px 48px;border-top:1px solid #E2E8F0;background:#F8FAFC">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">09 — Components</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Alerts, badges &amp; controls</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">Status is never communicated by colour alone — every state pairs a hue with an icon and a written label.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;margin-bottom:24px">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ alerts }}" as="a" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:12px;background:{{ a.bg }};border:{{ a.border }}">
+              <span style="display:inline-flex;flex:0 0 24px;width:24px;height:24px;border-radius:9999px;align-items:center;justify-content:center;background:{{ a.icBg }}">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="{{ a.icon }}"></path></svg>
+              </span>
+              <span style="flex:1;font:400 15px/1.5 Inter,sans-serif;color:#0F172A"><strong style="font-weight:600">{{ a.lead }}</strong> {{ a.text }}</span>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Badges — one per card</div>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px">
+            <sc-for list="{{ badges }}" as="b" hint-placeholder-count="4">
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;font:600 12px/1.4 Inter,sans-serif;background:{{ b.bg }};border:{{ b.border }};color:{{ b.fg }}">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="{{ b.icon }}"></path></svg>{{ b.label }}
+              </span>
+            </sc-for>
+          </div>
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:16px">Category tags</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ tags }}" as="t" hint-placeholder-count="6">
+              <span style="padding:8px 16px;border-radius:9999px;font:500 14px/1.2 Inter,sans-serif;background:{{ t.bg }};border:{{ t.border }};color:{{ t.fg }}">{{ t.label }}</span>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px">
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:20px">Tabs — live</div>
+          <div style="display:flex;gap:20px;min-width:0;overflow-x:auto;border-bottom:1px solid #E2E8F0">
+            <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="5">
+              <button type="button" onClick="{{ tb.select }}" style="border:0;background:none;cursor:pointer;flex:0 0 auto;white-space:nowrap;padding:0 0 12px;font:500 16px/1.4 Inter,sans-serif;transition:color 200ms;color:{{ tb.fg }};font-weight:{{ tb.fw }};box-shadow:{{ tb.underline }}">{{ tb.label }}</button>
+            </sc-for>
+          </div>
+          <div style="padding-top:20px;font:400 15px/1.6 Inter,sans-serif;color:#64748B">Active tab: <strong style="color:#0F172A;font-weight:600">{{ activeTab }}</strong> — active label is #0F172A / 600 with a 3px #FFC40C underline flush to the row border; inactive is #64748B / 500.</div>
+          <div style="margin-top:24px;font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:12px">Pagination</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <sc-for list="{{ pages }}" as="p" hint-placeholder-count="8">
+              <button type="button" onClick="{{ p.go }}" style="width:40px;height:40px;border-radius:8px;cursor:pointer;font:500 14px/1 Inter,sans-serif;display:inline-flex;align-items:center;justify-content:center;transition:background 200ms;background:{{ p.bg }};border:{{ p.border }};color:{{ p.fg }}">{{ p.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:20px">Toggles — live</div>
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <button type="button" onClick="{{ toggleAlerts }}" style="display:flex;align-items:center;gap:12px;border:0;background:none;padding:0;cursor:pointer;text-align:left">
+              <span style="position:relative;flex:0 0 44px;width:44px;height:24px;border-radius:9999px;transition:background 200ms;background:{{ trackBg }}">
+                <span style="position:absolute;top:2px;width:20px;height:20px;border-radius:9999px;background:#FFFFFF;box-shadow:0 1px 2px rgba(15,23,42,.05);transition:left 200ms;left:{{ knobLeft }}"></span>
+              </span>
+              <span style="font:400 15px/1.4 Inter,sans-serif;color:#334155">Price alerts: <strong style="font-weight:600;color:#0F172A">{{ alertsLabel }}</strong></span>
+            </button>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="position:relative;flex:0 0 44px;width:44px;height:24px;border-radius:9999px;background:#F1F5F9">
+                <span style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:9999px;background:#FAFAFA;box-shadow:0 1px 2px rgba(15,23,42,.05)"></span>
+              </span>
+              <span style="font:400 15px/1.4 Inter,sans-serif;color:#64748B">Disabled</span>
+            </div>
+          </div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:20px">Selection</div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ checks }}" as="k" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="flex:0 0 20px;width:20px;height:20px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;background:{{ k.bg }};border:{{ k.border }}">
+                  <sc-if value="{{ k.mark }}" hint-placeholder-val="{{ true }}">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" stroke="{{ k.markColor }}"><path d="{{ k.mark }}"></path></svg>
+                  </sc-if>
+                </span>
+                <span style="font:400 14px/1.4 Inter,sans-serif;color:{{ k.fg }}">{{ k.label }}</span>
+              </div>
+            </sc-for>
+            <sc-for list="{{ radios }}" as="k" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="flex:0 0 20px;width:20px;height:20px;border-radius:9999px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;border:{{ k.border }}">
+                  <sc-if value="{{ k.dot }}" hint-placeholder-val="{{ true }}">
+                    <span style="width:8px;height:8px;border-radius:9999px;background:{{ k.dot }}"></span>
+                  </sc-if>
+                </span>
+                <span style="font:400 14px/1.4 Inter,sans-serif;color:{{ k.fg }}">{{ k.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NAVBAR -->
+    <section id="nav" style="padding:80px 48px;border-top:1px solid #E2E8F0">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">10 — Components</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Navigation</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">A 40px dark utility bar above a 72px white main bar. Sign Up is the only yellow element in the header.</p>
+      </div>
+      <div style="border:1px solid #E2E8F0;border-radius:16px;overflow:hidden;overflow-x:auto;box-shadow:0 2px 8px rgba(15,23,42,.06)">
+        <div style="display:flex;align-items:center;justify-content:space-between;height:40px;padding:0 24px;min-width:880px;background:#020617">
+          <span style="font:400 12px/1.5 Inter,sans-serif;color:#CBD5E1">Smart Comparisons. Real Savings.</span>
+          <span style="display:flex;gap:24px;font:400 12px/1.5 Inter,sans-serif;color:#CBD5E1"><span>Help</span><span>Support</span><span>EN</span><span>INR</span></span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;height:72px;padding:0 24px;min-width:880px;background:#FFFFFF;border-bottom:1px solid #E2E8F0">
+          <img src="./logo.png" alt="CompareMyTrip" style="height:26px;width:auto" />
+          <div style="display:flex;align-items:center;gap:32px">
+            <sc-for list="{{ navLinks }}" as="l" hint-placeholder-count="5">
+              <span style="font:500 16px/1.4 Inter,sans-serif;padding-bottom:2px;color:{{ l.fg }};box-shadow:{{ l.underline }}">{{ l.label }}</span>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <span style="display:inline-flex;width:44px;height:44px;align-items:center;justify-content:center;border-radius:12px;border:1px solid #E2E8F0">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#334155" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14zM16.5 16.5 21 21"></path></svg>
+            </span>
+            <span style="font:500 16px/1.4 Inter,sans-serif;color:#334155">Log in</span>
+            <span style="display:inline-flex;padding:12px 24px;border-radius:12px;background:#FFC40C;color:#0F172A;font:600 16px/1.2 Inter,sans-serif">Sign Up</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ICONS -->
+    <section id="icons" style="padding:80px 48px;border-top:1px solid #E2E8F0;background:#F8FAFC">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:32px;margin-bottom:40px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:12px;max-width:720px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">11 — Foundation</div>
+          <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Iconography</h2>
+          <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">Rounded geometry, bold strokes, one library. Outline is the default and inactive style; filled marks active and emphasis. Strokes 1.5px at 16, 2px at 20–24, 2.5px at 32+.</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:20px;background:#FFFFFF;border:1px solid #E2E8F0;border-radius:12px;padding:12px 20px">
+          <sc-for list="{{ iconSizes }}" as="z" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#0F172A" strokeLinecap="round" strokeLinejoin="round" width="{{ z.px }}" height="{{ z.px }}" strokeWidth="{{ z.sw }}"><path d="M21.5 3.5 2.5 11.2l7.4 2.9 2.9 7.4z"></path></svg>
+              <span style="font:600 11px/1 Inter,sans-serif;color:#64748B">{{ z.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:24px">
+        <sc-for list="{{ iconCats }}" as="cat" hint-placeholder-count="6">
+          <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:24px">
+            <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#7A5800;margin-bottom:20px">{{ cat.name }}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr));gap:20px">
+              <sc-for list="{{ cat.icons }}" as="ic" hint-placeholder-count="8">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+                  <svg viewBox="0 0 24 24" width="26" height="26" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="{{ ic.fill }}" stroke="{{ ic.stroke }}"><path d="{{ ic.d }}"></path></svg>
+                  <span style="font:400 11px/1.3 Inter,sans-serif;color:#64748B;text-align:center">{{ ic.n }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- IMAGERY -->
+    <section id="imagery" style="padding:80px 48px;border-top:1px solid #E2E8F0">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">12 — Foundation</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Imagery &amp; shape language</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">Natural light, golden hour, moderate-to-high contrast, the subject on a third and negative space reserved for copy. Drop real brand photography into the slots below to see the ratios in place.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:20px;align-items:start;margin-bottom:32px">
+        <sc-for list="{{ ratios }}" as="r" hint-placeholder-count="5">
+          <div>
+            <div style="position:relative;background:#F1F5F9;border-radius:24px;overflow:hidden;aspect-ratio:{{ r.ar }}">
+              <image-slot shape="rect" id="{{ r.id }}" placeholder="{{ r.label }}"></image-slot>
+            </div>
+            <div style="margin-top:10px;font:600 13px/1.4 Inter,sans-serif;color:#0F172A">{{ r.name }}</div>
+            <div style="font:400 12px/1.5 Inter,sans-serif;color:#64748B">{{ r.use }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;margin-bottom:32px">
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:20px">
+          <div style="height:88px;border-radius:12px;background:linear-gradient(135deg,#FFD42E 0%,#FFC40C 55%,#E8AC00 100%);margin-bottom:14px"></div>
+          <div style="font:600 14px/1.4 Inter,sans-serif;color:#0F172A;margin-bottom:4px">Gradient</div>
+          <div style="font:400 12px/1.5 Inter,sans-serif;color:#64748B">Accent panels only. Never a page background.</div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:20px">
+          <div style="height:88px;border-radius:12px;background:#FAFAFA;background-image:radial-gradient(#0F172A 0.5px,transparent 0.5px);background-size:4px 4px;opacity:.5;margin-bottom:14px"></div>
+          <div style="font:600 14px/1.4 Inter,sans-serif;color:#0F172A;margin-bottom:4px">Grain</div>
+          <div style="font:400 12px/1.5 Inter,sans-serif;color:#64748B">3–6% opacity. Never over text or data.</div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:20px">
+          <div style="height:88px;border-radius:12px;background:#FFFFFF;box-shadow:0 12px 32px rgba(15,23,42,.10);margin-bottom:14px"></div>
+          <div style="font:600 14px/1.4 Inter,sans-serif;color:#0F172A;margin-bottom:4px">Soft shadow</div>
+          <div style="font:400 12px/1.5 Inter,sans-serif;color:#64748B">Two elevation levels per section, maximum.</div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:20px">
+          <div style="height:88px;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+            <span style="display:inline-flex;width:52px;height:52px;border-radius:9999px;background:#FFC40C;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(255,196,12,.30)">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12h15M13 6l6 6-6 6"></path></svg>
+            </span>
+          </div>
+          <div style="font:600 14px/1.4 Inter,sans-serif;color:#0F172A;margin-bottom:4px">Glow</div>
+          <div style="font:400 12px/1.5 Inter,sans-serif;color:#64748B">Yellow CTA hover only. Never at rest.</div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:20px">
+          <div style="height:88px;border-radius:12px;background:linear-gradient(90deg,rgba(15,23,42,.72) 0%,rgba(15,23,42,.35) 45%,rgba(15,23,42,0) 70%),#94A3B8;margin-bottom:14px"></div>
+          <div style="font:600 14px/1.4 Inter,sans-serif;color:#0F172A;margin-bottom:4px">Scrim</div>
+          <div style="font:400 12px/1.5 Inter,sans-serif;color:#64748B">Only where text sits on an image.</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px">
+        <div style="background:#F8FAFC;border-radius:16px;padding:20px">
+          <div style="height:96px;display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+            <svg viewBox="0 0 160 90" width="150" height="86" fill="none">
+              <path d="M8 78C40 78 52 20 92 20c30 0 30 44 62 44" stroke="#FFC40C" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="2 9" />
+              <path d="M148 58l-22 14 8-14-8-14z" fill="#0F172A" />
+              <circle cx="8" cy="78" r="5" fill="#0F172A" />
+            </svg>
+          </div>
+          <div style="font:600 14px/1.4 Inter,sans-serif;color:#0F172A">Pattern 01 · Travel Path</div>
+        </div>
+        <div style="background:#F8FAFC;border-radius:16px;padding:20px">
+          <div style="height:96px;position:relative;margin-bottom:14px">
+            <span style="position:absolute;left:8px;top:16px;width:70px;height:46px;background:#FFE066;border-radius:58% 42% 46% 54% / 60% 55% 45% 40%"></span>
+            <span style="position:absolute;left:60px;top:38px;width:84px;height:52px;background:#FFEDA6;border-radius:52% 48% 44% 56% / 56% 50% 50% 44%"></span>
+          </div>
+          <div style="font:600 14px/1.4 Inter,sans-serif;color:#0F172A">Pattern 02 · Cloud Forms</div>
+        </div>
+        <div style="background:#F8FAFC;border-radius:16px;padding:20px">
+          <div style="height:96px;display:flex;flex-direction:column;gap:10px;justify-content:center;margin-bottom:14px">
+            <span style="height:26px;width:78%;background:#FFC40C;border-radius:8px"></span>
+            <span style="height:26px;width:60%;background:#0F172A;border-radius:8px;align-self:flex-end"></span>
+          </div>
+          <div style="font:600 14px/1.4 Inter,sans-serif;color:#0F172A">Pattern 03 · Ticket Blocks</div>
+        </div>
+        <div style="background:#F8FAFC;border-radius:16px;padding:20px">
+          <div style="height:96px;border-radius:12px;background-image:radial-gradient(#CBD5E1 2px,transparent 2px);background-size:14px 14px;margin-bottom:14px"></div>
+          <div style="font:600 14px/1.4 Inter,sans-serif;color:#0F172A">Pattern 04 · Dot Grid</div>
+        </div>
+        <div style="background:#F8FAFC;border-radius:16px;padding:20px">
+          <div style="height:96px;display:flex;align-items:center;margin-bottom:14px">
+            <svg viewBox="0 0 160 90" width="150" height="86" fill="none" stroke="#FFE066" strokeWidth="2">
+              <path d="M0 26c30-18 60 18 90 0s40-10 70 4" />
+              <path d="M0 44c30-18 60 18 90 0s40-10 70 4" />
+              <path d="M0 62c30-18 60 18 90 0s40-10 70 4" />
+            </svg>
+          </div>
+          <div style="font:600 14px/1.4 Inter,sans-serif;color:#0F172A">Pattern 05 · Wave Flow</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PATTERNS -->
+    <section id="patterns" style="padding:80px 48px;border-top:1px solid #E2E8F0;background:#F8FAFC">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">13 — Patterns</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Page patterns</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">Pages are assembled from named patterns, never designed section by section. Each block below is a schematic, not a layout to copy pixel for pixel.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px">
+        <sc-for list="{{ patterns }}" as="p" hint-placeholder-count="12">
+          <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;padding:20px">
+            <div style="height:120px;border-radius:12px;background:#F8FAFC;padding:10px;box-sizing:border-box;display:flex;gap:8px;margin-bottom:16px;flex-direction:{{ p.dir }}">
+              <sc-for list="{{ p.blocks }}" as="b" hint-placeholder-count="2">
+                <div style="border-radius:6px;display:flex;align-items:center;justify-content:center;font:600 11px/1.2 Inter,sans-serif;text-align:center;padding:2px;flex:{{ b.f }};background:{{ b.bg }};color:{{ b.fg }};border:{{ b.border }}">{{ b.t }}</div>
+              </sc-for>
+            </div>
+            <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B;margin-bottom:6px">{{ p.code }}</div>
+            <div style="font:600 15px/1.4 Inter,sans-serif;color:#0F172A;margin-bottom:6px">{{ p.name }}</div>
+            <div style="font:400 12px/1.55 Inter,sans-serif;color:#64748B">{{ p.use }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- BLUEPRINT -->
+    <section id="blueprint" style="padding:80px 48px;border-top:1px solid #E2E8F0">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">14 — Patterns</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Page blueprints</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">Eighteen page types, each defined as a stack of patterns with a single primary action.</p>
+      </div>
+      <div style="border:1px solid #E2E8F0;border-radius:16px;overflow:hidden;overflow-x:auto">
+        <div style="display:grid;grid-template-columns:1.1fr 1fr 2.2fr 1fr;min-width:720px;gap:20px;padding:14px 24px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">
+          <span>Page</span><span>Layout</span><span>Sections</span><span>Primary CTA</span>
+        </div>
+        <sc-for list="{{ blueprint }}" as="b" hint-placeholder-count="18">
+          <div style="display:grid;grid-template-columns:1.1fr 1fr 2.2fr 1fr;min-width:720px;gap:20px;padding:16px 24px;border-bottom:1px solid #F1F5F9;align-items:baseline">
+            <span style="font:600 15px/1.4 Inter,sans-serif;color:#0F172A">{{ b.page }}</span>
+            <span style="font:400 13px/1.5 Inter,sans-serif;color:#64748B">{{ b.layout }}</span>
+            <span style="font:400 13px/1.5 Inter,sans-serif;color:#334155">{{ b.sections }}</span>
+            <span style="font:600 13px/1.5 Inter,sans-serif;color:#7A5800">{{ b.cta }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- RULES -->
+    <section id="rules" style="padding:80px 48px;border-top:1px solid #E2E8F0;background:#0F172A">
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#FFCB19">15 — Governance</div>
+        <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#FFFFFF">Accessibility, performance &amp; the never list</h2>
+        <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#CBD5E1;text-wrap:pretty">When uncertain, follow the established visual system rather than inventing a new pattern.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px;margin-bottom:32px">
+        <sc-for list="{{ ruleCards }}" as="r" hint-placeholder-count="3">
+          <div style="background:#1E293B;border-radius:16px;padding:28px">
+            <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#FFCB19;margin-bottom:16px">{{ r.title }}</div>
+            <ul style="margin:0;padding-left:18px;font:400 14px/1.85 Inter,sans-serif;color:#CBD5E1">
+              <sc-for list="{{ r.items }}" as="i" hint-placeholder-count="6">
+                <li>{{ i }}</li>
+              </sc-for>
+            </ul>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#020617;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:32px">
+        <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#F87171;margin-bottom:20px">Never</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 32px;font:400 14px/1.7 Inter,sans-serif;color:#CBD5E1">
+          <sc-for list="{{ never }}" as="n" hint-placeholder-count="12">
+            <div style="display:flex;gap:10px;align-items:flex-start">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#F87171" strokeWidth="3" strokeLinecap="round" style="flex:0 0 16px;margin-top:5px"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+              <span>{{ n }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <sc-if value="{{ showConflicts }}" hint-placeholder-val="{{ true }}">
+      <section id="conflicts" style="padding:80px 48px;border-top:1px solid #E2E8F0">
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:40px;max-width:720px">
+          <div style="font:600 11px/1.4 Inter,sans-serif;letter-spacing:.088em;text-transform:uppercase;color:#64748B">16 — Governance</div>
+          <h2 style="margin:0;font:600 32px/1.25 'Space Grotesk',sans-serif;letter-spacing:-.003em;color:#0F172A">Conflict register</h2>
+          <p style="margin:0;font:400 16px/1.6 Inter,sans-serif;color:#334155;text-wrap:pretty">Where the source sheets disagreed, one resolution was fixed. The overview sheet is superseded by the detailed sheets in every case.</p>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
+          <sc-for list="{{ conflicts }}" as="c" hint-placeholder-count="6">
+            <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-left:3px solid #FFC40C;border-radius:12px;padding:20px">
+              <div style="font:600 14px/1.5 Inter,sans-serif;color:#0F172A;margin-bottom:8px">{{ c.issue }}</div>
+              <div style="font:400 13px/1.6 Inter,sans-serif;color:#64748B"><strong style="color:#7A5800;font-weight:600">Resolution:</strong> {{ c.fix }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </sc-if>
+
+    <footer style="padding:48px;border-top:1px solid #E2E8F0;background:#FAFAFA;display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:16px">
+        <img src="./logo.png" alt="CompareMyTrip" style="height:24px;width:auto" />
+        <span style="font:400 13px/1.5 Inter,sans-serif;color:#64748B">Design System v1.0 · derived from sheets 01–10 · sheets 02–10 canonical</span>
+      </div>
+      <span style="font:600 14px/1.5 Inter,sans-serif;color:#0F172A">Smart. Simple. <span style="color:#0F172A">Adventurous.</span></span>
+    </footer>
+
+  </main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showTokenNames&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Documentation&quot;},&quot;showConflicts&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Documentation&quot;},&quot;iconStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;outline&quot;,&quot;filled&quot;],&quot;default&quot;:&quot;outline&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Iconography&quot;}}">
+const P = ['#FFFBEB','#FFEDA6','#FFE066','#FFD42E','#FFCB19','#FFC40C','#E8AC00','#C99200','#A37600','#7A5800'];
+const S = ['#F1F5F9','#E2E8F0','#CBD5E1','#94A3B8','#64748B','#475569','#334155','#1E293B','#0F172A','#020617'];
+const STEPS = ['50','100','200','300','400','500','600','700','800','900'];
+
+function lum(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(v => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+const L_DARK = 0.01072, L_LIGHT = 1;
+const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+const fgFor = function (hex) {
+  const L = lum(hex);
+  return ratio(L, L_DARK) >= ratio(L, L_LIGHT) ? '#0F172A' : '#FFFFFF';
+};
+
+const D = {
+  home: 'M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z',
+  search: 'M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14zM16.5 16.5 21 21',
+  menu: 'M4 7h16M4 12h16M4 17h16',
+  close: 'M6 6l12 12M18 6 6 18',
+  left: 'M20 12H5M11 18l-6-6 6-6',
+  right: 'M4 12h15M13 6l6 6-6 6',
+  up: 'M12 20V5M6 11l6-6 6 6',
+  down: 'M12 4v15M18 13l-6 6-6-6',
+  mail: 'M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3.6 7.4l8.4 5.9 8.4-5.9',
+  phone: 'M7 3h3l2 5-2.5 1.5a12 12 0 0 0 5 5L16 12l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2z',
+  message: 'M4 5h16v11H9l-5 4z',
+  bell: 'M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6zM10 20a2 2 0 0 0 4 0',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-6 8-6s8 2 8 6',
+  settings: 'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM19.4 13a7.9 7.9 0 0 0 0-2l2-1.5-2-3.4-2.3 1a8 8 0 0 0-1.7-1L14.8 3H9.2l-.6 3.1a8 8 0 0 0-1.7 1l-2.3-1-2 3.4L4.6 11a7.9 7.9 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a8 8 0 0 0 1.7 1l.6 3.1h5.6l.6-3.1a8 8 0 0 0 1.7-1l2.3 1 2-3.4z',
+  login: 'M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 8l4 4-4 4M14 12H3',
+  plus: 'M12 5v14M5 12h14',
+  minus: 'M5 12h14',
+  check: 'M4 12.5 9.5 18 20 6.5',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6',
+  edit: 'M4 20h4L20 8l-4-4L4 16z',
+  download: 'M12 4v11M7 11l5 5 5-5M4 20h16',
+  upload: 'M12 20V9M7 13l5-5 5 5M4 4h16',
+  calendar: 'M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM4 9.5h16M8 3v4M16 3v4',
+  clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5.5l3.5 2',
+  heart: 'M12 20S3.5 14.5 3.5 9.2A4.7 4.7 0 0 1 12 6.4a4.7 4.7 0 0 1 8.5 2.8C20.5 14.5 12 20 12 20z',
+  star: 'm12 3.5 2.7 5.6 6 .8-4.4 4.2 1.1 6.1L12 17.3 6.6 20.2l1.1-6.1-4.4-4.2 6-.8z',
+  location: 'M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
+  external: 'M14 4h6v6M20 4 11 13M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
+  plane: 'M21.5 3.5 2.5 11.2l7.4 2.9 2.9 7.4z',
+  hotel: 'M5 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16M15 10h3a1 1 0 0 1 1 1v10M3 21h18M8.5 8h3M8.5 12h3M8.5 16h3',
+  compare: 'M9 6H4v12h5M15 6h5v12h-5M12 3v18',
+  deals: 'M3 12V4.5A1.5 1.5 0 0 1 4.5 3H12l9 9-8.5 8.5z',
+  suitcase: 'M4 8h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM9 8V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3',
+  ticket: 'M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4zM14.5 6v12',
+  shield: 'M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6zM9 12l2 2 4-4',
+  chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
+  guide: 'M4 5a2 2 0 0 1 2-2h5v18H6a2 2 0 0 1-2-2zM13 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5z',
+  compass: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM15.5 8.5l-2 5-5 2 2-5z',
+  card: 'M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 10h18M6.5 15h3',
+  bulb: 'M9 18h6M10 21h4M12 3a6 6 0 0 1 3.5 10.9c-.6.5-.9 1.1-.9 1.8v.3H9.4v-.3c0-.7-.3-1.3-.9-1.8A6 6 0 0 1 12 3z',
+  smile: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8.5 14a4.5 4.5 0 0 0 7 0M9 9.5h.01M15 9.5h.01',
+  layers: 'M12 3 3 8l9 5 9-5zM3 13l9 5 9-5',
+  target: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 16.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zM12 13.2a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4z'
+};
+const CLOSED = ['home','heart','star','location','plane','suitcase','deals','shield','compass','message','bell','edit'];
+
+class Component extends DCLogic {
+  state = { tab: 'Beach', searchTab: 'Packages', cabin: 'Beach & Islands', menuOpen: false, alertsOn: true, page: 2, narrow: false };
+
+  componentDidMount() {
+    this._mq = window.matchMedia('(max-width: 1100px)');
+    this._onMq = e => this.setState({ narrow: e.matches });
+    this.setState({ narrow: this._mq.matches });
+    this._mq.addEventListener('change', this._onMq);
+  }
+
+  componentWillUnmount() {
+    if (this._mq) this._mq.removeEventListener('change', this._onMq);
+  }
+
+  renderVals() {
+    const narrow = this.state.narrow;
+    const showNames = this.props.showTokenNames ?? true;
+    const iconStyle = this.props.iconStyle ?? 'outline';
+    const filled = iconStyle === 'filled';
+    const mk = (hex, i) => ({ step: STEPS[i], hex, fg: fgFor(hex), token: 'primary-' + STEPS[i] });
+    const mkS = (hex, i) => ({ step: STEPS[i], hex, fg: fgFor(hex), token: 'secondary-' + STEPS[i] });
+    const ramp = (name, use, hexes) => ({
+      name, use,
+      steps: ['100', '300', '500', '700'].map((k, i) => ({ k, hex: hexes[i], fg: fgFor(hexes[i]) }))
+    });
+    const icon = (n, key) => ({
+      n, d: D[key],
+      fill: filled && CLOSED.indexOf(key) > -1 ? '#0F172A' : 'none',
+      stroke: filled && CLOSED.indexOf(key) > -1 ? '#0F172A' : '#0F172A'
+    });
+
+    return {
+      showNames,
+      showConflicts: this.props.showConflicts ?? true,
+
+      shellDisplay: narrow ? 'block' : 'flex',
+      asideStyle: narrow
+        ? 'position:static;width:100%;height:auto;border-bottom:1px solid #E2E8F0;padding:24px 20px'
+        : 'position:sticky;top:0;flex:0 0 268px;width:268px;height:100vh;border-right:1px solid #E2E8F0;padding:32px 24px 48px',
+      navStyle: narrow ? 'flex-wrap:wrap;gap:8px' : 'flex-direction:column;gap:2px',
+      navItemStyle: narrow ? 'background:#F8FAFC;border:1px solid #E2E8F0' : '',
+
+      nav: [
+        { num: '01', label: 'Overview', href: '#overview' },
+        { num: '02', label: 'Brand foundation', href: '#brand' },
+        { num: '03', label: 'Color', href: '#color' },
+        { num: '04', label: 'Typography', href: '#type' },
+        { num: '05', label: 'Spacing', href: '#spacing' },
+        { num: '06', label: 'Layout & grid', href: '#layout' },
+        { num: '07', label: 'Buttons', href: '#components' },
+        { num: '08', label: 'Forms & search', href: '#forms' },
+        { num: '09', label: 'Cards', href: '#cards' },
+        { num: '10', label: 'Alerts & controls', href: '#feedback' },
+        { num: '11', label: 'Navigation', href: '#nav' },
+        { num: '12', label: 'Iconography', href: '#icons' },
+        { num: '13', label: 'Imagery & shapes', href: '#imagery' },
+        { num: '14', label: 'Page patterns', href: '#patterns' },
+        { num: '15', label: 'Page blueprints', href: '#blueprint' },
+        { num: '16', label: 'Rules', href: '#rules' },
+        { num: '17', label: 'Conflict register', href: '#conflicts' }
+      ],
+      stats: [
+        { value: '4px', label: 'Spacing base unit' },
+        { value: '12 / 8 / 4', label: 'Grid columns' },
+        { value: '14', label: 'Type styles' },
+        { value: '2', label: 'Production typefaces' }
+      ],
+
+      dna: [
+        { title: 'Organic + Geometric', body: 'Soft cloud curves against a strict grid. Rounded geometry, never blobby.', icon: D.layers },
+        { title: 'Motion & Direction', body: 'Diagonal flight paths, arrow-suffixed CTAs, everything moving left to right.', icon: D.plane },
+        { title: 'Smart & Functional', body: 'Dense comparison data made scannable. Never decorative at the cost of legibility.', icon: D.target },
+        { title: 'Bold & Confident', body: 'Heavy display weights, near-black on white. No timid greys for headings.', icon: D.bulb },
+        { title: 'Friendly & Approachable', body: 'Warm yellow, rounded corners, real people rather than posed stock.', icon: D.smile },
+        { title: 'Modern & Tech-forward', body: 'Stencil-cut logo geometry, precise alignment, generous whitespace.', icon: D.compass }
+      ],
+      sliders: [
+        { left: 'Friendly', right: 'Professional', pos: '40%' },
+        { left: 'Modern', right: 'Timeless', pos: '35%' },
+        { left: 'Bold', right: 'Minimal', pos: '35%' },
+        { left: 'Premium', right: 'Accessible', pos: '60%' },
+        { left: 'Playful', right: 'Serious', pos: '35%' },
+        { left: 'Futuristic', right: 'Classic', pos: '60%' }
+      ],
+
+      primary: P.map(mk),
+      slate: S.map(mkS),
+      neutrals: [
+        { name: 'White', hex: '#FFFFFF', use: 'Page & card background' },
+        { name: 'Off White', hex: '#FAFAFA', use: 'Warm alternate page' },
+        { name: 'Neutral 50', hex: '#F8FAFC', use: 'Secondary background' },
+        { name: 'Neutral 100', hex: '#F1F5F9', use: 'Filled input, chip' },
+        { name: 'Neutral 200', hex: '#E2E8F0', use: 'Default border' },
+        { name: 'Neutral 300', hex: '#CBD5E1', use: 'Disabled state' },
+        { name: 'Neutral 400', hex: '#94A3B8', use: 'Placeholder' },
+        { name: 'Neutral 500', hex: '#64748B', use: 'Muted text' },
+        { name: 'Neutral 600', hex: '#475569', use: 'Secondary CTA fill' },
+        { name: 'Neutral 700', hex: '#334155', use: 'Body text' },
+        { name: 'Neutral 800', hex: '#1E293B', use: 'Dark card surface' },
+        { name: 'Neutral 900', hex: '#0F172A', use: 'Heading text, dark bg' },
+        { name: 'Near Black', hex: '#0A0A0A', use: 'Logo, print black' },
+        { name: 'Black', hex: '#000000', use: 'Logo only' }
+      ],
+      accents: [
+        ramp('Sky Blue', 'flights, informational', ['#E0F2FE', '#7DD3FC', '#0EA5E9', '#0369A1']),
+        ramp('Teal', 'hotels, verified, savings', ['#CCFBF1', '#5EEAD4', '#14B8A6', '#0F766E']),
+        ramp('Purple', 'holidays, premium tiers', ['#EDE9FE', '#A78BFA', '#7C3AED', '#5B21B6']),
+        ramp('Coral', 'urgency, price drops', ['#FFE4E6', '#FDA4AF', '#F43F5E', '#BE123C'])
+      ],
+      semantic: [
+        ramp('Success', 'confirmations, best price', ['#DCFCE7', '#86EFAC', '#22C55E', '#15803D']),
+        ramp('Warning', 'status only — not decoration', ['#FEF3C7', '#FCD34D', '#F59E0B', '#B45309']),
+        ramp('Error', 'failures, invalid input', ['#FEE2E2', '#F87171', '#EF4444', '#B91C1C']),
+        ramp('Information', 'neutral system messages', ['#DBEAFE', '#60A5FA', '#3B82F6', '#1D4ED8'])
+      ],
+      aliases: [
+        { token: '--bg-page', hex: '#FFFFFF' },
+        { token: '--bg-page-alt', hex: '#F8FAFC' },
+        { token: '--bg-card', hex: '#FFFFFF' },
+        { token: '--bg-dark', hex: '#0F172A' },
+        { token: '--text-primary', hex: '#0F172A' },
+        { token: '--text-body', hex: '#334155' },
+        { token: '--text-muted', hex: '#64748B' },
+        { token: '--border-default', hex: '#E2E8F0' },
+        { token: '--action-primary', hex: '#FFC40C' },
+        { token: '--action-primary-hover', hex: '#E8AC00' },
+        { token: '--action-secondary', hex: '#0F172A' },
+        { token: '--action-disabled-fg', hex: '#CBD5E1' }
+      ],
+      contrast: [
+        { label: 'Heading on white', bg: '#FFFFFF', fg: '#0F172A', ratio: '21.0:1', rating: 'AAA', tagBg: '#DCFCE7', tagFg: '#15803D' },
+        { label: 'Body on white', bg: '#FFFFFF', fg: '#334155', ratio: '11.7:1', rating: 'AAA', tagBg: '#DCFCE7', tagFg: '#15803D' },
+        { label: 'Muted on off-white', bg: '#FAFAFA', fg: '#64748B', ratio: '4.6:1', rating: 'AA', tagBg: '#DCFCE7', tagFg: '#15803D' },
+        { label: 'Dark text on brand yellow', bg: '#FFC40C', fg: '#0F172A', ratio: '10.8:1', rating: 'AAA', tagBg: '#DCFCE7', tagFg: '#15803D' },
+        { label: 'Deep gold text on white', bg: '#FFFFFF', fg: '#7A5800', ratio: '6.5:1', rating: 'AA', tagBg: '#DCFCE7', tagFg: '#15803D' },
+        { label: 'White on dark', bg: '#0F172A', fg: '#FFFFFF', ratio: '17.0:1', rating: 'AAA', tagBg: '#DCFCE7', tagFg: '#15803D' },
+        { label: 'Light grey on dark', bg: '#0F172A', fg: '#CBD5E1', ratio: '8.7:1', rating: 'AAA', tagBg: '#DCFCE7', tagFg: '#15803D' },
+        { label: 'Muted grey on dark card', bg: '#1E293B', fg: '#94A3B8', ratio: '4.6:1', rating: 'AA', tagBg: '#DCFCE7', tagFg: '#15803D' },
+        { label: 'Brand yellow on dark', bg: '#0F172A', fg: '#FFCB19', ratio: '11.4:1', rating: 'AAA', tagBg: '#DCFCE7', tagFg: '#15803D' }
+      ],
+
+      typeRows: [
+        { style: 'Display XXL', use: 'Big hero headlines', family: 'Space Grotesk', sizes: '72 / 56 / 40', weight: '700', lh: '1.05', track: '−1.5%', ls: '-0.015em', css: "700 44px/1.05 'Space Grotesk',sans-serif", sample: 'Travel Smarter, Together.' },
+        { style: 'Display XL', use: 'Large statements', family: 'Space Grotesk', sizes: '56 / 44 / 32', weight: '700', lh: '1.10', track: '−1%', ls: '-0.01em', css: "700 38px/1.1 'Space Grotesk',sans-serif", sample: 'Find the best deals faster.' },
+        { style: 'H1', use: 'Page titles', family: 'Space Grotesk', sizes: '40 / 32 / 26', weight: '600', lh: '1.20', track: '−0.5%', ls: '-0.005em', css: "600 34px/1.2 'Space Grotesk',sans-serif", sample: 'Beach packages in Goa' },
+        { style: 'H2', use: 'Section headings', family: 'Space Grotesk', sizes: '32 / 26 / 22', weight: '600', lh: '1.25', track: '−0.3%', ls: '-0.003em', css: "600 30px/1.25 'Space Grotesk',sans-serif", sample: 'Why travellers choose us' },
+        { style: 'H3', use: 'Subsection titles', family: 'Space Grotesk', sizes: '24 / 20 / 18', weight: '600', lh: '1.30', track: '0', ls: '0', css: "600 24px/1.3 'Space Grotesk',sans-serif", sample: "What's included in this package" },
+        { style: 'H4', use: 'Card titles', family: 'Space Grotesk', sizes: '20 / 18 / 16', weight: '500', lh: '1.35', track: '0', ls: '0', css: "500 20px/1.35 'Space Grotesk',sans-serif", sample: 'Best Deals Just for You' },
+        { style: 'H5', use: 'Labels / overlines', family: 'Inter', sizes: '16 / 15 / 14', weight: '600', lh: '1.40', track: '0', ls: '0', css: '600 16px/1.4 Inter,sans-serif', sample: 'Filter by package type' },
+        { style: 'H6', use: 'Small labels', family: 'Inter', sizes: '14 / 14 / 12', weight: '600', lh: '1.40', track: '0.5%', ls: '0.005em', css: '600 14px/1.4 Inter,sans-serif', sample: 'Included in this package' },
+        { style: 'Body Large', use: 'Large paragraphs', family: 'Inter', sizes: '18 / 16 / 15', weight: '400', lh: '1.60', track: '0', ls: '0', css: '400 18px/1.6 Inter,sans-serif', sample: 'Compare curated travel packages from 500+ trusted partners.' },
+        { style: 'Body Regular', use: 'Default paragraphs', family: 'Inter', sizes: '16 / 15 / 14', weight: '400', lh: '1.60', track: '0', ls: '0', css: '400 16px/1.6 Inter,sans-serif', sample: 'Our smart comparison engine scans hundreds of options in seconds.' },
+        { style: 'Body Small', use: 'Secondary text', family: 'Inter', sizes: '14 / 13 / 12', weight: '400', lh: '1.55', track: '0', ls: '0', css: '400 14px/1.55 Inter,sans-serif', sample: 'Prices include taxes and fees unless stated otherwise.' },
+        { style: 'Caption', use: 'Captions, metadata', family: 'Inter', sizes: '12 / 11 / 11', weight: '400', lh: '1.50', track: '0', ls: '0', css: '400 12px/1.5 Inter,sans-serif', sample: '4 Nights / 5 Days · Beach · Flights & transfers included' },
+        { style: 'Label', use: 'Form labels, overlines', family: 'Inter', sizes: '11 / 11 / 11', weight: '600', lh: '1.40', track: '0.8%', ls: '0.008em', css: '600 11px/1.4 Inter,sans-serif', sample: 'TRAVEL DATES' },
+        { style: 'Button', use: 'Buttons / CTAs', family: 'Inter', sizes: '16 / 15 / 14', weight: '600', lh: '1.20', track: '0.5%', ls: '0.005em', css: '600 16px/1.2 Inter,sans-serif', sample: 'Explore Packages' }
+      ],
+
+      spacing: [
+        { token: '--space-1', px: '4px', rem: '0.25rem', bar: '4px', use: 'Fine details, borders, tight gaps' },
+        { token: '--space-2', px: '8px', rem: '0.5rem', bar: '8px', use: 'Micro spacing, icon gaps, table spacing' },
+        { token: '--space-3', px: '12px', rem: '0.75rem', bar: '12px', use: 'Small gaps, compact elements' },
+        { token: '--space-4', px: '16px', rem: '1rem', bar: '16px', use: 'Base spacing, default gaps' },
+        { token: '--space-5', px: '20px', rem: '1.25rem', bar: '20px', use: 'Small component spacing' },
+        { token: '--space-6', px: '24px', rem: '1.5rem', bar: '24px', use: 'Medium spacing, between elements' },
+        { token: '--space-8', px: '32px', rem: '2rem', bar: '32px', use: 'Large spacing, section internals' },
+        { token: '--space-10', px: '40px', rem: '2.5rem', bar: '40px', use: 'Between cards, large components' },
+        { token: '--space-12', px: '48px', rem: '3rem', bar: '48px', use: 'Between content blocks' },
+        { token: '--space-16', px: '64px', rem: '4rem', bar: '64px', use: 'Section spacing (standard)' },
+        { token: '--space-20', px: '80px', rem: '5rem', bar: '80px', use: 'Large section spacing' },
+        { token: '--space-24', px: '96px', rem: '6rem', bar: '96px', use: 'Hero section spacing' },
+        { token: '--space-30', px: '120px', rem: '7.5rem', bar: '120px', use: 'Extra large spacing' },
+        { token: '--space-40', px: '160px', rem: '10rem', bar: '160px', use: 'Maximum section spacing' }
+      ],
+      spacingGroups: [
+        { title: 'Sections', rows: [{ k: 'Small', v: '48px' }, { k: 'Standard', v: '64px' }, { k: 'Large', v: '96px' }, { k: 'Hero', v: '120–160px' }] },
+        { title: 'Components', rows: [{ k: 'Card padding', v: '24px' }, { k: 'Button S/M/L', v: '8 / 12 / 16' }, { k: 'Card grid gap', v: '24px' }, { k: 'Feature gap', v: '40px' }] },
+        { title: 'Forms', rows: [{ k: 'Label → input', v: '8px' }, { k: 'Field → field', v: '16px' }, { k: 'Help → next', v: '24px' }, { k: 'Fields → action', v: '32px' }] },
+        { title: 'Text', rows: [{ k: 'Heading', v: '24px' }, { k: 'Subheading', v: '16px' }, { k: 'Paragraph', v: '16px' }, { k: 'Small text', v: '12px' }] }
+      ],
+
+      breakpoints: [
+        { name: 'xl · Desktop', range: '≥ 1440px', container: '1440px', cols: '12', gutter: '24px', pad: '24px' },
+        { name: 'lg · Laptop', range: '1024 – 1439px', container: '1140px', cols: '12', gutter: '24px', pad: '24px' },
+        { name: 'md · Tablet', range: '768 – 1023px', container: '768px', cols: '8', gutter: '20px', pad: '20px' },
+        { name: 'sm · Large phone', range: '640 – 767px', container: '100%', cols: '4', gutter: '16px', pad: '16px' },
+        { name: 'xs · Phone', range: '< 640px', container: '100%', cols: '4', gutter: '16px', pad: '16px' }
+      ],
+      cols12: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
+      layouts: [
+        { name: '2 column · 6 + 6', use: 'Two peer blocks, text + image', blocks: ['6', '6'] },
+        { name: '3 column · 4 + 4 + 4', use: 'Three features or destinations', blocks: ['4', '4', '4'] },
+        { name: 'Feature grid · 3 × 4', use: 'Icon feature cards, trust tiles', blocks: ['3', '3', '3', '3'] },
+        { name: 'Asymmetric · 8 + 4', use: 'Results + filters, article + TOC', blocks: ['8', '4'] }
+      ],
+      radii: [
+        { v: '8px', use: 'badges' },
+        { v: '12px', use: 'controls' },
+        { v: '16px', use: 'cards' },
+        { v: '24px', use: 'images' },
+        { v: '32px', use: 'large' }
+      ],
+      shadows: [
+        { name: 'shadow-xs', v: '0 1px 2px rgba(15,23,42,.05)', use: 'Inputs, table rows' },
+        { name: 'shadow-sm', v: '0 2px 8px rgba(15,23,42,.06)', use: 'Cards at rest' },
+        { name: 'shadow-md', v: '0 6px 16px rgba(15,23,42,.08)', use: 'Hover, menus, tooltips' },
+        { name: 'shadow-lg', v: '0 12px 32px rgba(15,23,42,.10)', use: 'Search module, sticky panel' },
+        { name: 'shadow-xl', v: '0 24px 56px rgba(15,23,42,.12)', use: 'Modals' }
+      ],
+      motion: [
+        { d: '150ms', use: 'Button hover, icon colour', bar: '25%' },
+        { d: '200ms', use: 'Default — cards, focus, tabs', bar: '45%' },
+        { d: '300ms', use: 'Drawer, accordion, image zoom', bar: '70%' },
+        { d: '400ms', use: 'Modal, section reveal', bar: '100%' }
+      ],
+
+      btnStates: [
+        { state: 'Default', p: { bg: '#FFC40C', fg: '#0F172A', sh: '0 1px 2px rgba(15,23,42,.05)' }, s: { bg: '#0F172A', fg: '#FFFFFF', sh: 'none' }, o: { border: '1px solid #E2E8F0', fg: '#0F172A', sh: 'none' }, t: { fg: '#0F172A' }, i: { border: '1px solid #E2E8F0', fg: '#0F172A', sh: 'none' } },
+        { state: 'Hover', p: { bg: '#E8AC00', fg: '#0F172A', sh: '0 4px 14px rgba(255,196,12,.30)' }, s: { bg: '#1E293B', fg: '#FFFFFF', sh: 'none' }, o: { border: '1px solid #CBD5E1', fg: '#0F172A', sh: '0 2px 8px rgba(15,23,42,.06)' }, t: { fg: '#7A5800' }, i: { border: '1px solid #CBD5E1', fg: '#0F172A', sh: '0 2px 8px rgba(15,23,42,.06)' } },
+        { state: 'Active', p: { bg: '#C99200', fg: '#0F172A', sh: 'none' }, s: { bg: '#020617', fg: '#FFFFFF', sh: 'none' }, o: { border: '1px solid #CBD5E1', fg: '#0F172A', sh: 'none' }, t: { fg: '#7A5800' }, i: { border: '1px solid #CBD5E1', fg: '#0F172A', sh: 'none' } },
+        { state: 'Focus', p: { bg: '#FFC40C', fg: '#0F172A', sh: '0 0 0 3px rgba(255,196,12,.45)' }, s: { bg: '#0F172A', fg: '#FFFFFF', sh: '0 0 0 3px rgba(255,196,12,.45)' }, o: { border: '2px solid #FFC40C', fg: '#0F172A', sh: '0 0 0 3px rgba(255,196,12,.45)' }, t: { fg: '#0F172A' }, i: { border: '2px solid #FFC40C', fg: '#0F172A', sh: '0 0 0 3px rgba(255,196,12,.45)' } },
+        { state: 'Disabled', p: { bg: '#F1F5F9', fg: '#CBD5E1', sh: 'none' }, s: { bg: '#E2E8F0', fg: '#94A3B8', sh: 'none' }, o: { border: '1px solid #F1F5F9', fg: '#CBD5E1', sh: 'none' }, t: { fg: '#CBD5E1' }, i: { border: '1px solid #F1F5F9', fg: '#CBD5E1', sh: 'none' } }
+      ],
+
+      inputs: [
+        { label: 'Default', spec: 'h48 · r12', bg: '#FFFFFF', border: '1px solid #E2E8F0', ring: 'none', color: '#94A3B8', value: 'Enter destination', help: 'Placeholder #94A3B8 — never a substitute for a label', helpColor: '#64748B', icon: '' },
+        { label: 'Hover', spec: 'border 300', bg: '#FFFFFF', border: '1px solid #CBD5E1', ring: 'none', color: '#94A3B8', value: 'Enter destination', help: 'Border steps up one neutral', helpColor: '#64748B', icon: '' },
+        { label: 'Focus', spec: '2px + ring', bg: '#FFFFFF', border: '2px solid #FFC40C', ring: '0 0 0 3px rgba(255,196,12,.45)', color: '#0F172A', value: 'Enter destination', help: 'Never suppress the outline', helpColor: '#64748B', icon: '' },
+        { label: 'Filled', spec: 'inset fill', bg: '#F1F5F9', border: '1px solid #E2E8F0', ring: 'none', color: '#0F172A', value: 'Goa, India', help: 'Value in #0F172A, place names at 600 weight', helpColor: '#64748B', icon: '' },
+        { label: 'Success', spec: 'validated', bg: '#FFFFFF', border: '2px solid #22C55E', ring: 'none', color: '#0F172A', value: 'Bali, Indonesia', help: 'Icon plus colour — never colour alone', helpColor: '#15803D', icon: 'M4 12.5 9.5 18 20 6.5', iconBg: '#22C55E' },
+        { label: 'Error', spec: 'invalid', bg: '#FFFFFF', border: '2px solid #EF4444', ring: 'none', color: '#0F172A', value: 'Invalid destination', help: 'Enter a city or airport code', helpColor: '#B91C1C', icon: 'M12 7v6M12 17h.01', iconBg: '#EF4444' },
+        { label: 'Disabled', spec: 'not-allowed', bg: '#F8FAFC', border: '1px solid #F1F5F9', ring: 'none', color: '#CBD5E1', value: 'Enter destination', help: 'Disabled fields still expose their label', helpColor: '#94A3B8', icon: '' }
+      ],
+      searchTabs: ['Packages', 'Destinations', 'Experiences'].map(l => {
+        const on = this.state.searchTab === l;
+        return {
+          label: l, icon: l === 'Packages' ? D.suitcase : l === 'Destinations' ? D.location : D.compass,
+          bg: on ? '#FFC40C' : '#FFFFFF', fg: on ? '#0F172A' : '#334155',
+          border: on ? '1px solid #FFC40C' : '1px solid #E2E8F0',
+          select: () => this.setState({ searchTab: l })
+        };
+      }),
+      trust: [
+        { label: 'Best Price Guarantee', icon: D.shield },
+        { label: 'Secure Payments', icon: D.card },
+        { label: '24/7 Customer Support', icon: D.clock },
+        { label: 'No Hidden Charges', icon: D.check }
+      ],
+      cabin: this.state.cabin,
+      menuOpen: this.state.menuOpen,
+      toggleMenu: () => this.setState(s => ({ menuOpen: !s.menuOpen })),
+      cabins: ['Beach & Islands', 'Adventure', 'Honeymoon', 'Family', 'Luxury'].map(name => {
+        const active = this.state.cabin === name;
+        return {
+          name, active,
+          bg: active ? '#FFEDA6' : 'transparent',
+          fg: active ? '#0F172A' : '#334155',
+          pick: () => this.setState({ cabin: name, menuOpen: false })
+        };
+      }),
+
+      cards: [
+        { kind: 'Feature card', title: 'Compare Packages', body: 'Curated trips from 500+ partners, ranked side by side.', cta: 'Learn More', ctaColor: '#7A5800', icon: D.compare },
+        { kind: 'Service card', title: 'Handpicked Stays', body: 'Every package includes vetted accommodation.', cta: 'Explore', ctaColor: '#0F172A', icon: D.hotel },
+        { kind: 'Content card', title: 'Destination Guides', body: 'Where to go, when to go and what it costs.', cta: 'Read More', ctaColor: '#0F172A', icon: D.guide },
+        { kind: 'Information card', title: 'Price Alerts', body: 'Get notified the moment a package price drops.', cta: 'View Tips', ctaColor: '#0F172A', icon: D.bell }
+      ],
+      countdown: [{ v: '02', k: 'Days' }, { v: '18', k: 'Hours' }, { v: '45', k: 'Mins' }, { v: '32', k: 'Secs' }],
+
+      alerts: [
+        { lead: 'Success!', text: 'Your booking has been confirmed.', bg: '#DCFCE7', border: '1px solid #86EFAC', icBg: '#22C55E', icon: 'M4 12.5 9.5 18 20 6.5' },
+        { lead: 'Heads up.', text: 'Price might change soon.', bg: '#FEF3C7', border: '1px solid #FCD34D', icBg: '#F59E0B', icon: 'M12 7v6M12 17h.01' },
+        { lead: 'Error.', text: 'Something went wrong. Please try again.', bg: '#FEE2E2', border: '1px solid #F87171', icBg: '#EF4444', icon: 'M6 6l12 12M18 6 6 18' },
+        { lead: 'Info.', text: 'New packages available for your destination.', bg: '#DBEAFE', border: '1px solid #60A5FA', icBg: '#3B82F6', icon: 'M12 11v6M12 7h.01' }
+      ],
+      badges: [
+        { label: 'Popular', bg: '#FFEDA6', border: '1px solid #FFE066', fg: '#7A5800', icon: D.star },
+        { label: 'Best Price', bg: '#DCFCE7', border: '1px solid #86EFAC', fg: '#15803D', icon: 'M4 12.5 9.5 18 20 6.5' },
+        { label: 'New', bg: '#DBEAFE', border: '1px solid #60A5FA', fg: '#1D4ED8', icon: D.plus },
+        { label: 'Limited Time', bg: '#FEE2E2', border: '1px solid #F87171', fg: '#BE123C', icon: D.clock }
+      ],
+      tags: ['Beach', 'Adventure', 'Honeymoon', 'Family', 'Luxury', 'Weekend'].map((label, i) => ({
+        label,
+        bg: i === 0 ? '#FFEDA6' : '#FFFFFF',
+        border: i === 0 ? '1px solid #FFC40C' : '1px solid #E2E8F0',
+        fg: i === 0 ? '#0F172A' : '#334155'
+      })),
+      activeTab: this.state.tab,
+      tabs: ['Beach', 'Adventure', 'Honeymoon', 'Family', 'Luxury'].map(label => {
+        const on = this.state.tab === label;
+        return {
+          label, fg: on ? '#0F172A' : '#64748B', fw: on ? '600' : '500',
+          underline: on ? 'inset 0 -3px 0 0 #FFC40C' : 'none',
+          select: () => this.setState({ tab: label })
+        };
+      }),
+      pages: ['‹', '1', '2', '3', '4', '5', '…', '10', '›'].map(label => {
+        const num = parseInt(label, 10);
+        const on = !isNaN(num) && num === this.state.page;
+        return {
+          label,
+          bg: on ? '#FFC40C' : '#FFFFFF',
+          border: on ? '1px solid #FFC40C' : '1px solid #E2E8F0',
+          fg: on ? '#0F172A' : label === '…' ? '#64748B' : '#334155',
+          go: () => { if (!isNaN(num)) this.setState({ page: num }); }
+        };
+      }),
+      alertsOn: this.state.alertsOn,
+      alertsLabel: this.state.alertsOn ? 'On' : 'Off',
+      knobLeft: this.state.alertsOn ? '22px' : '2px',
+      trackBg: this.state.alertsOn ? '#FFC40C' : '#CBD5E1',
+      toggleAlerts: () => this.setState(s => ({ alertsOn: !s.alertsOn })),
+      checks: [
+        { label: 'Unchecked', bg: '#FFFFFF', border: '2px solid #CBD5E1', mark: '', markColor: '#0F172A', fg: '#334155' },
+        { label: 'Checked', bg: '#FFC40C', border: '2px solid #FFC40C', mark: 'M4 12.5 9.5 18 20 6.5', markColor: '#0F172A', fg: '#334155' },
+        { label: 'Indeterminate', bg: '#FFC40C', border: '2px solid #FFC40C', mark: 'M6 12h12', markColor: '#0F172A', fg: '#334155' },
+        { label: 'Disabled', bg: '#F1F5F9', border: '2px solid #E2E8F0', mark: 'M4 12.5 9.5 18 20 6.5', markColor: '#CBD5E1', fg: '#94A3B8' }
+      ],
+      radios: [
+        { label: 'Unselected', border: '2px solid #CBD5E1', dot: '', fg: '#334155' },
+        { label: 'Selected', border: '2px solid #FFC40C', dot: '#FFC40C', fg: '#334155' },
+        { label: 'Disabled', border: '2px solid #E2E8F0', dot: '#CBD5E1', fg: '#94A3B8' }
+      ],
+
+      navLinks: ['Destinations', 'Packages', 'Experiences', 'Deals', 'About'].map((label, i) => ({
+        label,
+        fg: i === 0 ? '#0F172A' : '#334155',
+        underline: i === 0 ? 'inset 0 -2px 0 0 #FFC40C' : 'none'
+      })),
+
+      iconSizes: [
+        { px: '16px', sw: '1.5', label: '16' },
+        { px: '20px', sw: '2', label: '20' },
+        { px: '24px', sw: '2', label: '24' },
+        { px: '32px', sw: '2.5', label: '32' }
+      ],
+      iconCats: [
+        { name: 'Navigation', icons: [icon('Home', 'home'), icon('Search', 'search'), icon('Menu', 'menu'), icon('Close', 'close'), icon('Left', 'left'), icon('Right', 'right'), icon('Up', 'up'), icon('Down', 'down')] },
+        { name: 'Communication & user', icons: [icon('Mail', 'mail'), icon('Phone', 'phone'), icon('Message', 'message'), icon('Notification', 'bell'), icon('User', 'user'), icon('Settings', 'settings'), icon('Login', 'login'), icon('Card', 'card')] },
+        { name: 'Actions', icons: [icon('Plus', 'plus'), icon('Minus', 'minus'), icon('Check', 'check'), icon('Delete', 'trash'), icon('Edit', 'edit'), icon('Download', 'download'), icon('Upload', 'upload'), icon('External', 'external')] },
+        { name: 'Content', icons: [icon('Calendar', 'calendar'), icon('Clock', 'clock'), icon('Heart', 'heart'), icon('Star', 'star'), icon('Location', 'location'), icon('Guide', 'guide'), icon('Layers', 'layers'), icon('Target', 'target')] },
+        { name: 'Packages & travel', icons: [icon('Package', 'suitcase'), icon('Destination', 'location'), icon('Accommodation', 'hotel'), icon('Itinerary', 'guide'), icon('Activity', 'compass'), icon('Compare', 'compare'), icon('Deals', 'deals'), icon('Travellers', 'user'), icon('Voucher', 'ticket'), icon('Secure Booking', 'shield'), icon('Travel path', 'plane'), icon('Reviews', 'chart')] }
+      ],
+
+      ratios: [
+        { id: 'cmt-ratio-169', ar: '16 / 9', name: '16:9', use: 'Hero images', label: 'Drop a hero image' },
+        { id: 'cmt-ratio-43', ar: '4 / 3', name: '4:3', use: 'Website content', label: 'Drop a content image' },
+        { id: 'cmt-ratio-11', ar: '1 / 1', name: '1:1', use: 'Social, product', label: 'Drop a square image' },
+        { id: 'cmt-ratio-34', ar: '3 / 4', name: '3:4', use: 'Social portrait', label: 'Drop a portrait image' },
+        { id: 'cmt-ratio-12', ar: '1 / 2', name: '1:2', use: 'Stories', label: 'Story' }
+      ],
+
+      patterns: [
+        { code: 'H-1', name: 'Image hero', use: 'Copy on 6 columns, media bleeding to the right edge with a large curve.', dir: 'row', blocks: [{ f: '1.1', t: 'Copy + CTA', bg: '#FFEDA6', fg: '#7A5800', border: '1px solid #FFE066' }, { f: '1', t: 'Media 16:9', bg: '#E2E8F0', fg: '#334155', border: '1px solid #CBD5E1' }] },
+        { code: 'H-3', name: 'Dark hero', use: 'Full-bleed #0F172A, yellow highlight word, one yellow CTA.', dir: 'column', blocks: [{ f: '1', t: 'Dark band · headline + CTA', bg: '#0F172A', fg: '#FFCB19', border: 'none' }] },
+        { code: 'H-4', name: 'Search hero', use: 'Media band with a white search card overlapping its lower edge.', dir: 'column', blocks: [{ f: '1.4', t: 'Media', bg: '#E2E8F0', fg: '#334155', border: 'none' }, { f: '1', t: 'Search card', bg: '#FFFFFF', fg: '#0F172A', border: '1px solid #E2E8F0' }] },
+        { code: 'H-5', name: 'Destination hero', use: 'Full-bleed photo, bottom scrim, place name and meta chips.', dir: 'column', blocks: [{ f: '2', t: 'Photo + scrim', bg: '#94A3B8', fg: '#0F172A', border: 'none' }, { f: '1', t: 'Sticky sub-nav', bg: '#FFFFFF', fg: '#334155', border: '1px solid #E2E8F0' }] },
+        { code: 'F-2', name: '4-card features', use: 'Icon feature cards, 3+3+3+3, centred section header.', dir: 'row', blocks: [{ f: '1', t: '3', bg: '#FFFFFF', fg: '#334155', border: '1px solid #E2E8F0' }, { f: '1', t: '3', bg: '#FFFFFF', fg: '#334155', border: '1px solid #E2E8F0' }, { f: '1', t: '3', bg: '#FFFFFF', fg: '#334155', border: '1px solid #E2E8F0' }, { f: '1', t: '3', bg: '#FFFFFF', fg: '#334155', border: '1px solid #E2E8F0' }] },
+        { code: 'F-4', name: 'Alternating', use: 'Image and copy swapping sides per row. Mobile is always image-first.', dir: 'row', blocks: [{ f: '1', t: 'Image', bg: '#E2E8F0', fg: '#334155', border: 'none' }, { f: '1', t: 'Copy', bg: '#FFFFFF', fg: '#334155', border: '1px solid #E2E8F0' }] },
+        { code: 'D-1', name: 'Destination grid', use: '4-across cards, 4:3 image, "From ₹X", whole card is the target.', dir: 'row', blocks: [{ f: '1', t: '4:3', bg: '#E2E8F0', fg: '#334155', border: 'none' }, { f: '1', t: '4:3', bg: '#E2E8F0', fg: '#334155', border: 'none' }, { f: '1', t: '4:3', bg: '#E2E8F0', fg: '#334155', border: 'none' }, { f: '1', t: '4:3', bg: '#E2E8F0', fg: '#334155', border: 'none' }] },
+        { code: 'D-2', name: 'Horizontal deal', use: 'Image left, facts centre, price and CTA right-aligned.', dir: 'row', blocks: [{ f: '1', t: 'Img', bg: '#E2E8F0', fg: '#334155', border: 'none' }, { f: '2', t: 'Facts', bg: '#FFFFFF', fg: '#334155', border: '1px solid #E2E8F0' }, { f: '1', t: 'Price + CTA', bg: '#FFEDA6', fg: '#7A5800', border: '1px solid #FFE066' }] },
+        { code: 'D-4', name: 'Dark promo', use: 'Badge, headline, countdown and CTA on #0F172A. One per page.', dir: 'row', blocks: [{ f: '1.4', t: 'Offer + CTA', bg: '#0F172A', fg: '#FFCB19', border: 'none' }, { f: '1', t: 'Countdown', bg: '#1E293B', fg: '#CBD5E1', border: 'none' }] },
+        { code: 'C-3', name: 'Comparison', use: 'Pinned attribute column, up to 4 options, one yellow recommendation.', dir: 'row', blocks: [{ f: '1', t: 'Attrs', bg: '#F8FAFC', fg: '#334155', border: '1px solid #E2E8F0' }, { f: '1', t: 'A', bg: '#FFFFFF', fg: '#334155', border: '1px solid #E2E8F0' }, { f: '1', t: 'B', bg: '#FFEDA6', fg: '#7A5800', border: '2px solid #FFC40C' }, { f: '1', t: 'C', bg: '#FFFFFF', fg: '#334155', border: '1px solid #E2E8F0' }] },
+        { code: 'C-6', name: 'FAQ accordion', use: 'Single 760px column, dividers only, one row open by default.', dir: 'column', blocks: [{ f: '1', t: 'Question ▾', bg: '#FFFFFF', fg: '#0F172A', border: '1px solid #E2E8F0' }, { f: '1', t: 'Answer', bg: '#F8FAFC', fg: '#334155', border: 'none' }, { f: '1', t: 'Question ▾', bg: '#FFFFFF', fg: '#0F172A', border: '1px solid #E2E8F0' }] },
+        { code: 'CTA-2', name: 'Dark closing CTA', use: 'The default page ending. One per page, never two in a row.', dir: 'column', blocks: [{ f: '1', t: 'Headline + yellow button', bg: '#0F172A', fg: '#FFCB19', border: 'none' }] }
+      ],
+
+      blueprint: [
+        { page: 'Homepage', layout: 'H-4 discovery hero', sections: 'Hero → trust row → 4 features → destination grid → featured packages → dark promo → testimonials → stats → CTA', cta: 'Explore Packages' },
+        { page: 'Destinations', layout: 'D-1 destination grid', sections: 'Hero → region tags → destination grid → popular packages rail → CTA', cta: 'Browse Destination' },
+        { page: 'Destination detail', layout: 'H-5 hero', sections: 'Hero → sub-nav → overview → best time to visit → packages in X → experiences → travel tips → testimonials → FAQ', cta: 'View Packages' },
+        { page: 'Packages', layout: 'H-2 + filter grid', sections: 'Compact hero → category tags → package grid → featured package → newsletter', cta: 'View Package' },
+        { page: 'Package results', layout: 'Asymmetric 8 + 4', sections: 'Sticky search summary → sort row → filters + package list → pagination', cta: 'View Package' },
+        { page: 'Package detail', layout: 'Gallery + 8 + 4', sections: 'Gallery → title/destination/duration/rating → quick facts → overview → highlights → day-by-day itinerary → inclusions → exclusions → accommodation → activities → transport → dates → reviews → FAQ → related → sticky panel', cta: 'Enquire Now' },
+        { page: 'Compare packages', layout: 'Comparison table', sections: 'Selection summary → comparison table (destination, duration, price, stay, inclusions, activities, transfers, meals, rating) → recommendation → CTA', cta: 'Select Package' },
+        { page: 'Experiences', layout: 'F-4 alternating', sections: 'Hero → experience categories → experience grid → packages featuring them → CTA', cta: 'Find Packages' },
+        { page: 'Deals', layout: 'Deal card grid', sections: 'Tinted hero → offer tags → package deal grid → dark promo → newsletter', cta: 'View Offer' },
+        { page: 'Travel guides', layout: 'C-1 article index', sections: 'Hero → category tags → article grid → related destinations → CTA', cta: 'Read Guide' },
+        { page: 'Saved packages', layout: 'D-2 list', sections: 'Header → saved package rows → empty state → recommendations', cta: 'View Package' },
+        { page: 'About', layout: 'Alternating F-4', sections: 'Split hero → mission → stats → values → team → press → CTA', cta: 'Explore Packages' },
+        { page: 'Contact', layout: '2-column 7 + 5', sections: 'Compact hero → enquiry form + contact card → offices → FAQ link', cta: 'Send Enquiry' },
+        { page: 'Help / FAQ', layout: 'Search + accordions', sections: 'Search hero → category cards → accordions → still-need-help CTA', cta: 'Contact Support' },
+        { page: 'Login', layout: 'Split 6 + 6', sections: 'Brand panel + form card (logo only, no menu)', cta: 'Log In' },
+        { page: 'Signup', layout: 'Split 6 + 6', sections: 'Benefit list + form card with success validation', cta: 'Create Account' },
+        { page: 'Enquiry confirmation', layout: 'Centred 6 col', sections: 'Success alert → enquiry summary → what happens next → related packages', cta: 'Browse More Packages' },
+        { page: 'User dashboard', layout: 'Sidebar 3 + 9', sections: 'Sidebar → greeting → upcoming trip card → enquiries → saved packages → recommendations', cta: 'Manage Enquiry' }
+      ],
+
+      ruleCards: [
+        { title: 'Accessibility', items: ['Body ≥ 4.5:1, large text ≥ 3:1, meaningful borders ≥ 3:1', 'Every interactive element has a visible focus state', 'Never colour alone — pair hue with icon and label', '11px absolute floor, 16px minimum on inputs', 'One h1 per page; heading levels never skip', 'Errors say how to fix, not just what failed'] },
+        { title: 'Performance', items: ['AVIF with WebP fallback; hero ≤ 200KB', 'Explicit dimensions or aspect-ratio on every image', 'Lazy-load below the fold; hero is fetchpriority high', 'Animate transform and opacity only', 'SVG icons only — no icon fonts', 'Six font files maximum, subset and preloaded'] },
+        { title: 'Before you build', items: ['Check whether the component already exists', 'Check whether the page pattern already exists', 'Use tokens for colour, space, type, radius, shadow', 'Confirm grid columns at all four breakpoints', 'Define every state before writing markup', 'Document new components back into the system'] }
+      ],
+      never: [
+        'Introduce an arbitrary colour',
+        'Introduce an arbitrary border radius',
+        'Introduce a random font size',
+        'Introduce a second icon library',
+        'Overuse yellow — one CTA per viewport',
+        'Create inconsistent shadows',
+        'Ship a desktop-only layout',
+        'Use yellow text on white',
+        'Use Sora anywhere on the website',
+        'Stack two dark sections back to back',
+        'Rely on hover to reveal essential information',
+        'Suppress a focus outline'
+      ],
+      conflicts: [
+        { issue: 'Two different primary yellow ramps across the sheets, and the first build drifted into orange (#FFAA00 → #E87400 → #A64200).', fix: 'The scale is re-anchored on the logo — #FFC40C (hue 46°) action, #E8AC00 hover, #C99200 active. Every step stays hue 43–48; no step is orange.' },
+        { issue: 'Brand yellow and semantic warning amber were visually interchangeable.', fix: 'Brand gold sits at hue 46, warning #F59E0B at hue 38. Warning tokens are status-only and are never used as decorative yellow.' },
+        { issue: 'Secondary scale is neutral grey on one sheet, slate blue on another.', fix: 'Slate blue, #F1F5F9 → #020617.' },
+        { issue: 'The neutral scale labels two swatches "600".', fix: '#64748B is neutral-500, #475569 is neutral-600.' },
+        { issue: 'Type ladder lists H1 at both 64px and 40px.', fix: 'The typography sheet wins in full — H1 is 40px; 64px belongs to the Display tier.' },
+        { issue: 'Spacing base is quoted as both 8px and 4px.', fix: 'Base unit is 4px; the published 14-step scale is the complete set.' },
+        { issue: 'Caption and Label fall to 9–10px on mobile.', fix: 'Floor of 11px on every breakpoint; 12px preferred for anything a user must read.' },
+        { issue: 'The harmony chart reads "Primary 60%" while the brand rule bans overusing yellow.', fix: 'Read as brand voice, not coverage: neutrals ≥ 70%, yellow ≤ 10%, one yellow CTA per viewport.' },
+        { issue: 'No radius is published for buttons and inputs.', fix: 'Controls are 12px — fixed once, applied everywhere, never re-derived per component.' }
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

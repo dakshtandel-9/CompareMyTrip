@@ -1,0 +1,308 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { ArrowRight, Compass, MapPin, MoveRight, Plane, Search } from "lucide-react";
+
+import { buildDestinations, durationLabel } from "@/lib/destinations";
+import { useDestinationCovers } from "@/lib/useDestinationCovers";
+import { usePackages } from "@/lib/usePackages";
+
+/* ------------------------------------------------------------------ */
+/* Destinations index. Every entry is derived from the live package     */
+/* catalogue rather than a hardcoded list, so a place appears here the  */
+/* moment a package is filed under it in /admin and drops off when the  */
+/* last one goes. Cover artwork comes from /admin/destinations, falling  */
+/* back to a package photo. Each card links into /packages with that     */
+/* destination already ticked in the filter panel.                       */
+/* Card follows the trending rail (design.md §15.4 D-1): photography-led */
+/* with one yellow element — the "from" pill.                           */
+/* ------------------------------------------------------------------ */
+
+type Region = "All" | "India" | "International";
+
+type Sort = "packages" | "price" | "name";
+
+const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
+
+const sortOptions: { value: Sort; label: string }[] = [
+  { value: "packages", label: "Most packages" },
+  { value: "price", label: "Lowest price" },
+  { value: "name", label: "A–Z" },
+];
+
+export default function DestinationsIndex() {
+  const packages = usePackages();
+  const covers = useDestinationCovers();
+  const [region, setRegion] = useState<Region>("All");
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<Sort>("packages");
+
+  const destinations = useMemo(() => buildDestinations(packages, covers), [covers, packages]);
+
+  const regionCounts = useMemo(
+    () => ({
+      All: destinations.length,
+      India: destinations.filter((item) => item.region === "India").length,
+      International: destinations.filter((item) => item.region === "International").length,
+    }),
+    [destinations],
+  );
+
+  const visible = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    const filtered = destinations.filter(
+      (destination) =>
+        (region === "All" || destination.region === region) &&
+        (!needle || destination.name.toLowerCase().includes(needle)),
+    );
+
+    return [...filtered].sort((a, b) => {
+      if (sort === "price") return a.fromPrice - b.fromPrice;
+      if (sort === "name") return a.name.localeCompare(b.name);
+      return b.count - a.count || a.name.localeCompare(b.name);
+    });
+  }, [destinations, query, region, sort]);
+
+  const totalPackages = packages.length;
+  const lowestPrice = packages.length ? Math.min(...packages.map((pkg) => pkg.price)) : 0;
+
+  return (
+    <main className="w-full bg-white font-body text-cmt-neutral-900">
+      {/* Compact hero */}
+      <section className="w-full border-b border-cmt-neutral-100 bg-cmt-neutral-50 px-4 py-12 sm:px-5 sm:py-16 lg:px-6">
+        <div className="mx-auto w-full max-w-[1440px]">
+          <p className="text-xs font-semibold uppercase tracking-wider text-cmt-primary-700 sm:text-sm">
+            Destinations
+          </p>
+          <h1 className="mt-2 max-w-[18ch] font-display text-3xl font-semibold leading-[1.15] tracking-tight text-cmt-neutral-900 sm:text-5xl">
+            Every place we cover.
+          </h1>
+          <p className="mt-3 max-w-xl text-pretty text-sm leading-relaxed text-cmt-neutral-600 sm:text-base">
+            Pick a destination and we&rsquo;ll open the catalogue with it already
+            filtered — every package under it, from GST-verified operators.
+          </p>
+
+          {destinations.length > 0 && (
+            <dl className="mt-8 flex flex-wrap items-end gap-x-10 gap-y-5">
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-cmt-neutral-500">
+                  Destinations
+                </dt>
+                <dd className="mt-1 font-display text-2xl font-bold tabular-nums text-cmt-neutral-900 sm:text-3xl">
+                  {destinations.length}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-cmt-neutral-500">
+                  Packages
+                </dt>
+                <dd className="mt-1 font-display text-2xl font-bold tabular-nums text-cmt-neutral-900 sm:text-3xl">
+                  {totalPackages}
+                </dd>
+              </div>
+              {lowestPrice > 0 && (
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-cmt-neutral-500">
+                    Starting from
+                  </dt>
+                  <dd className="mt-1 font-display text-2xl font-bold tabular-nums text-cmt-neutral-900 sm:text-3xl">
+                    {formatINR(lowestPrice)}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          )}
+        </div>
+      </section>
+
+      {/* Controls */}
+      <section className="w-full px-4 py-8 sm:px-5 lg:px-6">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div
+            role="group"
+            aria-label="Filter destinations by region"
+            className="flex w-fit gap-1 rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-50 p-1"
+          >
+            {(["All", "India", "International"] as Region[]).map((value) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={region === value}
+                onClick={() => setRegion(value)}
+                className={`inline-flex h-9 items-center gap-1.5 rounded-cmt-control px-3.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 sm:px-4 ${
+                  region === value
+                    ? "bg-white text-cmt-neutral-900 shadow-cmt-xs"
+                    : "text-cmt-neutral-600 hover:text-cmt-neutral-900"
+                }`}
+              >
+                {value === "All" ? "All" : value}
+                <span className="tabular-nums text-cmt-neutral-400">{regionCounts[value]}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <label className="relative block sm:w-72">
+              <span className="sr-only">Search destinations</span>
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-400"
+                aria-hidden="true"
+              />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search destinations…"
+                className="h-11 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white pl-10 pr-4 text-sm outline-none transition-colors focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]"
+              />
+            </label>
+
+            <label className="flex items-center gap-2 text-sm">
+              <span className="shrink-0 text-cmt-neutral-600">Sort</span>
+              <select
+                value={sort}
+                onChange={(event) => setSort(event.target.value as Sort)}
+                className="h-11 rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 text-sm font-semibold outline-none transition-colors focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      {/* Grid */}
+      <section className="w-full px-4 pb-14 sm:px-5 sm:pb-20 lg:px-6">
+        <div className="mx-auto w-full max-w-[1440px]">
+          {visible.length > 0 ? (
+            <ul className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+              {visible.map((destination) => {
+                const duration = durationLabel(destination);
+                return (
+                  <li key={destination.name}>
+                    <Link
+                      href={`/packages?destination=${encodeURIComponent(destination.name)}`}
+                      className="group relative flex aspect-[4/5] w-full overflow-hidden rounded-cmt-lg bg-cmt-secondary-900 shadow-cmt-sm transition-shadow hover:shadow-cmt-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                    >
+                      {destination.image ? (
+                        <Image
+                          src={destination.image}
+                          alt={destination.name}
+                          fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <span className="absolute inset-0 grid place-items-center bg-gradient-to-br from-cmt-secondary-900 to-cmt-neutral-700">
+                          <Compass className="size-10 text-white/30" aria-hidden="true" />
+                        </span>
+                      )}
+
+                      {/* Deeper than the trending rail's: this card stacks a
+                          title, a meta line, chips and a price over the photo. */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent" />
+
+                      <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-cmt-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-cmt-neutral-900 backdrop-blur-sm">
+                        <MapPin className="size-3.5" strokeWidth={2.5} aria-hidden="true" />
+                        {destination.region}
+                      </span>
+
+                      <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-4 sm:p-5">
+                        <div>
+                          <h2 className="font-display text-lg font-bold leading-tight text-white sm:text-xl">
+                            {destination.name}
+                          </h2>
+                          <p className="mt-0.5 text-[13px] font-medium text-white/75">
+                            <span className="tabular-nums">{destination.count}</span>{" "}
+                            {destination.count === 1 ? "package" : "packages"}
+                            {duration ? ` · ${duration}` : ""}
+                          </p>
+                        </div>
+
+                        {destination.styles.length > 0 && (
+                          <ul className="flex flex-wrap gap-1.5">
+                            {destination.styles.map((style) => (
+                              <li
+                                key={style}
+                                className="rounded-cmt-full bg-white/15 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm"
+                              >
+                                {style}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+
+                        <span className="inline-flex w-fit items-center gap-1.5 rounded-cmt-full bg-cmt-primary-500 py-1.5 pl-2.5 pr-3 text-[12px] font-semibold text-cmt-neutral-900 shadow-cmt-primary">
+                          <Plane className="size-3.5" strokeWidth={2.5} aria-hidden="true" />
+                          <span className="tabular-nums">from {formatINR(destination.fromPrice)}</span>
+                        </span>
+                      </div>
+
+                      <span className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-cmt-full bg-white/15 text-white opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
+                        <MoveRight className="size-4" strokeWidth={2.5} aria-hidden="true" />
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div className="rounded-cmt-lg border border-cmt-neutral-200 bg-cmt-neutral-50 px-6 py-16 text-center">
+              <Compass className="mx-auto size-9 text-cmt-neutral-300" aria-hidden="true" />
+              <p className="mt-4 font-display text-lg font-semibold text-cmt-neutral-900">
+                {destinations.length === 0
+                  ? "No destinations yet"
+                  : "No destination matches that"}
+              </p>
+              <p className="mx-auto mt-2 max-w-[44ch] text-pretty text-sm leading-[1.6] text-cmt-neutral-600">
+                {destinations.length === 0
+                  ? "Destinations appear here as soon as packages are published to the catalogue."
+                  : "Try a different spelling, or clear the region filter to see everywhere we cover."}
+              </p>
+              {destinations.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    setRegion("All");
+                  }}
+                  className="mt-6 inline-flex h-11 items-center gap-2 rounded-cmt-control border border-cmt-neutral-300 bg-white px-5 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:border-cmt-neutral-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                >
+                  Show all destinations
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Closing CTA */}
+      <section className="w-full border-t border-cmt-neutral-100 bg-cmt-neutral-50 px-4 py-12 sm:px-5 sm:py-14 lg:px-6">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+          <div>
+            <h2 className="font-display text-xl font-semibold leading-[1.25] tracking-tight text-cmt-neutral-900 sm:text-2xl">
+              Not sure where yet?
+            </h2>
+            <p className="mt-2 max-w-[52ch] text-pretty text-sm leading-[1.6] text-cmt-neutral-600 sm:text-base">
+              Browse the full catalogue and filter by budget, duration and travel
+              style instead of by place.
+            </p>
+          </div>
+          <Link
+            href="/packages"
+            className="inline-flex h-11 w-fit shrink-0 items-center gap-2 rounded-cmt-control border border-cmt-neutral-300 bg-white px-5 font-body text-sm font-semibold text-cmt-neutral-900 transition-colors duration-150 hover:border-cmt-neutral-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 sm:h-12 sm:text-base"
+          >
+            Browse all packages
+            <ArrowRight className="size-4" strokeWidth={2.5} aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
+    </main>
+  );
+}

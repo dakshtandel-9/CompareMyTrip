@@ -39,3 +39,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# scratch / working dirs
+/tmp
+
+# video masters used only to generate the frame sequences in public/ —
+# never fetched at runtime, kept out of the repo and out of the deploy
+/media-source
+
+# the generated frame sequences themselves (~1400 JPEGs, 132MB). They are
+# served from R2 — see NEXT_PUBLIC_FRAME_CDN_URL and
+# scripts/upload-frame-sequences.mjs — and must never enter the repo or the
+# deploy bundle. Regenerate locally from /media-source if you need them.
+/public/hero-frames
+/public/train-banner

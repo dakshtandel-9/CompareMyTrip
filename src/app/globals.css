@@ -8,8 +8,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-dm-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-instrument-serif);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +24,249 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Branded first-load and route-transition screen. */
+.cmt-site-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 196, 12, 0.1), transparent 30%),
+    #ffffff;
+  opacity: 1;
+  transition: opacity 300ms ease, visibility 300ms ease;
+}
+
+.cmt-site-loader--leaving {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.cmt-site-loader__content {
+  display: flex;
+  width: min(78vw, 290px);
+  flex-direction: column;
+  align-items: center;
+}
+
+.cmt-site-loader__logo {
+  width: 100%;
+  height: auto;
+}
+
+.cmt-site-loader__track {
+  position: relative;
+  width: min(58vw, 220px);
+  height: 3px;
+  margin-top: 30px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: #e2e8f0;
+}
+
+.cmt-site-loader__progress {
+  position: absolute;
+  inset-block: 0;
+  left: -45%;
+  width: 45%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #e8ac00, #ffc40c, #ffeda6);
+  box-shadow: 0 0 14px rgba(255, 196, 12, 0.5);
+  animation: cmt-loader-progress 1.05s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.cmt-site-loader__label {
+  margin-top: 15px;
+  color: #64748b;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+@keyframes cmt-loader-progress {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(325%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmt-site-loader,
+  .cmt-site-loader__progress {
+    animation: none;
+    transition: none;
+  }
+
+  .cmt-site-loader__progress {
+    left: 0;
+    width: 100%;
+  }
+}
+
+/* FAQ accordion (§15.5 C-6) — slide the panel open over 300ms instead of
+   snapping. `interpolate-size` is what lets a height animate to `auto`;
+   browsers without ::details-content support ignore the whole rule and the
+   panel simply appears, which is the behaviour we had before. */
+.cmt-faq {
+  interpolate-size: allow-keywords;
+}
+
+.cmt-faq::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition: block-size 300ms ease, content-visibility 300ms ease allow-discrete;
+}
+
+.cmt-faq[open]::details-content {
+  block-size: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmt-faq::details-content {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* CompareMyTrip Design System tokens                                  */
+/* Source: CompareMyTripBranding/Design system documentation/design.md */
+/* Prefixed `cmt-` throughout so these never collide with Tailwind's   */
+/* built-in scale or the existing homepage tokens above.               */
+/* ------------------------------------------------------------------ */
+:root {
+  /* Primary — Sunshine Gold (design.md §3.1) */
+  --cmt-color-primary-50: #fffbeb;
+  --cmt-color-primary-100: #ffeda6;
+  --cmt-color-primary-400: #ffcb19;
+  --cmt-color-primary-500: #ffc40c;
+  --cmt-color-primary-600: #e8ac00;
+  --cmt-color-primary-700: #c99200;
+  --cmt-color-primary-800: #a37600;
+  --cmt-color-primary-900: #7a5800;
+
+  /* Neutrals (design.md §3.3) */
+  --cmt-color-white: #ffffff;
+  --cmt-color-neutral-50: #f8fafc;
+  --cmt-color-neutral-100: #f1f5f9;
+  --cmt-color-neutral-200: #e2e8f0;
+  --cmt-color-neutral-300: #cbd5e1;
+  --cmt-color-neutral-400: #94a3b8;
+  --cmt-color-neutral-500: #64748b;
+  --cmt-color-neutral-600: #475569;
+  --cmt-color-neutral-700: #334155;
+  --cmt-color-neutral-900: #0f172a;
+
+  /* Secondary — dark utility surfaces (design.md §3.2) */
+  --cmt-color-secondary-900: #020617;
+
+  /* Semantic — success/warning/error/info (design.md §3.5) */
+  --cmt-color-success-100: #dcfce7;
+  --cmt-color-success-500: #22c55e;
+  --cmt-color-success-700: #15803d;
+  --cmt-color-warning-100: #fef3c7;
+  --cmt-color-warning-500: #f59e0b;
+  --cmt-color-warning-700: #b45309;
+  --cmt-color-error-100: #fee2e2;
+  --cmt-color-error-500: #ef4444;
+  --cmt-color-error-700: #b91c1c;
+
+  /* Accent — Coral, for urgency / limited-time / price-drop markers only (design.md §3.4) */
+  --cmt-color-coral-100: #ffe4e6;
+  --cmt-color-coral-500: #f43f5e;
+  --cmt-color-coral-700: #be123c;
+
+  /* Radii (design.md §8.0) */
+  --cmt-radius-sm: 8px;
+  --cmt-radius-md: 16px;
+  --cmt-radius-lg: 24px;
+  --cmt-radius-xl: 32px;
+  --cmt-radius-control: 12px;
+  --cmt-radius-full: 9999px;
+
+  /* Shadows (design.md §8.0) */
+  --cmt-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --cmt-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --cmt-shadow-md: 0 6px 16px rgba(15, 23, 42, 0.08);
+  --cmt-shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.1);
+  --cmt-shadow-xl: 0 24px 56px rgba(15, 23, 42, 0.12);
+  --cmt-shadow-primary: 0 4px 14px rgba(255, 196, 12, 0.3);
+  --cmt-focus-ring: 0 0 0 3px rgba(255, 196, 12, 0.45);
+}
+
+@theme inline {
+  --color-cmt-primary-50: var(--cmt-color-primary-50);
+  --color-cmt-primary-100: var(--cmt-color-primary-100);
+  --color-cmt-primary-400: var(--cmt-color-primary-400);
+  --color-cmt-primary-500: var(--cmt-color-primary-500);
+  --color-cmt-primary-600: var(--cmt-color-primary-600);
+  --color-cmt-primary-700: var(--cmt-color-primary-700);
+  --color-cmt-primary-800: var(--cmt-color-primary-800);
+  --color-cmt-primary-900: var(--cmt-color-primary-900);
+
+  --color-cmt-white: var(--cmt-color-white);
+  --color-cmt-neutral-50: var(--cmt-color-neutral-50);
+  --color-cmt-neutral-100: var(--cmt-color-neutral-100);
+  --color-cmt-neutral-200: var(--cmt-color-neutral-200);
+  --color-cmt-neutral-300: var(--cmt-color-neutral-300);
+  --color-cmt-neutral-400: var(--cmt-color-neutral-400);
+  --color-cmt-neutral-500: var(--cmt-color-neutral-500);
+  --color-cmt-neutral-600: var(--cmt-color-neutral-600);
+  --color-cmt-neutral-700: var(--cmt-color-neutral-700);
+  --color-cmt-neutral-900: var(--cmt-color-neutral-900);
+
+  --color-cmt-secondary-900: var(--cmt-color-secondary-900);
+
+  --color-cmt-success-100: var(--cmt-color-success-100);
+  --color-cmt-success-500: var(--cmt-color-success-500);
+  --color-cmt-success-700: var(--cmt-color-success-700);
+  --color-cmt-warning-100: var(--cmt-color-warning-100);
+  --color-cmt-warning-500: var(--cmt-color-warning-500);
+  --color-cmt-warning-700: var(--cmt-color-warning-700);
+  --color-cmt-error-100: var(--cmt-color-error-100);
+  --color-cmt-error-500: var(--cmt-color-error-500);
+  --color-cmt-error-700: var(--cmt-color-error-700);
+
+  --color-cmt-coral-100: var(--cmt-color-coral-100);
+  --color-cmt-coral-500: var(--cmt-color-coral-500);
+  --color-cmt-coral-700: var(--cmt-color-coral-700);
+
+  --radius-cmt-sm: var(--cmt-radius-sm);
+  --radius-cmt-md: var(--cmt-radius-md);
+  --radius-cmt-lg: var(--cmt-radius-lg);
+  --radius-cmt-xl: var(--cmt-radius-xl);
+  --radius-cmt-control: var(--cmt-radius-control);
+  --radius-cmt-full: var(--cmt-radius-full);
+
+  --shadow-cmt-xs: var(--cmt-shadow-xs);
+  --shadow-cmt-sm: var(--cmt-shadow-sm);
+  --shadow-cmt-md: var(--cmt-shadow-md);
+  --shadow-cmt-lg: var(--cmt-shadow-lg);
+  --shadow-cmt-xl: var(--cmt-shadow-xl);
+  --shadow-cmt-primary: var(--cmt-shadow-primary);
+
+  --font-display: var(--font-space-grotesk), "Segoe UI", system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes cmt-rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-cmt-rise {
+    animation: cmt-rise 350ms ease-out both;
+  }
 }

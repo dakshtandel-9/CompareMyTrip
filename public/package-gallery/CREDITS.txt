@@ -1,0 +1,38 @@
+Kerala package gallery image credits
+
+The first three gallery views use public/destinations/kerala.jpg. Its credit is recorded in public/destinations/CREDITS.txt.
+
+kerala-houseboat.jpg
+  Source: https://commons.wikimedia.org/wiki/File:A_Houseboat_in_Backwaters_of_Kerala.jpg
+  Author: RndmCrs
+  License: CC0 1.0
+
+munnar-tea-plantation.jpg
+  Source: https://commons.wikimedia.org/wiki/File:Tea_plantation_in_Munnar,_Kerala.jpg
+  Author: Rohini
+  License: CC BY-SA 3.0
+
+munnar-tea-hills.jpg
+  Source: https://commons.wikimedia.org/wiki/File:Munnar_Tea_Plantation.jpg
+  Author: Raj
+  License: CC BY 2.0
+
+periyar-thekkady.jpg
+  Source: https://commons.wikimedia.org/wiki/File:Periyar_Thekkady.jpg
+  Author: Ben3john
+  License: CC BY-SA 3.0
+
+fort-kochi-fishing-nets.jpg
+  Source: https://commons.wikimedia.org/wiki/File:Chinese_fishingnet_kochi.jpg
+  Author: Challiyil Eswaramangalath Vipin
+  License: CC BY-SA 2.0
+
+alleppey-houseboat.jpg
+  Source: https://commons.wikimedia.org/wiki/File:Houseboat,_Allepey.jpg
+  Author: abhisheka kumar
+  License: CC BY-SA 4.0
+
+kerala-houseboats.jpg
+  Source: https://commons.wikimedia.org/wiki/File:Houseboats_at_Kerala_Backwaters.jpg
+  Author: Wikivoyage user Kish
+  License: Public domain

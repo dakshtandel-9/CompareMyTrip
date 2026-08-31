@@ -1,0 +1,19 @@
+Category card imagery
+=====================
+
+honeymoon.jpg      Frame 100 of /public/frames-2 (hero clip 2).
+                   ffmpeg crop=990:660:145:0, scaled to 900x600.
+international.jpg  Frame 100 of /public/frames-4 (hero clip 4).
+                   ffmpeg crop=880:587:400:20, scaled to 900x600.
+luxury.jpg         Frame 80 of /public/coastal-banner.
+                   ffmpeg crop=840:560:340:0, scaled to 900x600.
+
+All three are cropped so that the generator watermark baked into the
+bottom-right of the source frames falls outside the frame. Re-crop from the
+same sources if these ever need regenerating; do not scale these files up.
+
+These are generated scenes, not photographs of identifiable places, so their
+alt text in QuickTravelCategories.tsx describes what is shown rather than
+naming a destination. The other six category cards use real destination
+photography from /public/destinations and /public/package-gallery — see the
+CREDITS.txt in each of those folders for sourcing.
