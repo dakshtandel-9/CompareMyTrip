@@ -202,8 +202,8 @@ export default function BlogArticle() {
                 {post.destination ? `Ready to travel to ${post.destination}?` : "Ready to plan the trip?"}
               </h2>
               <p className="mt-2 max-w-prose text-sm leading-relaxed text-cmt-neutral-300">
-                Compare packages from GST-verified operators side by side — full
-                itineraries, inclusions and exclusions before you pay.
+                Compare packages side by side — full itineraries, inclusions
+                and exclusions before you pay.
               </p>
               <Link
                 href={post.destination ? `/packages?destination=${encodeURIComponent(post.destination)}` : "/packages"}

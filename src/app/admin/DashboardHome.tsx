@@ -131,7 +131,7 @@ export default function DashboardHome() {
       <h2 className="mt-9 font-display text-lg font-semibold">Jump back in</h2>
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <ShortcutCard
-          href="/admin/homepage"
+          href="/admin/content"
           title="Homepage content"
           description="All fifteen sections — headlines, photos, icons, cards, links and which ones show at all."
           icon={PanelsTopLeft}

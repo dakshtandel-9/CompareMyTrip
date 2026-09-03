@@ -17,6 +17,9 @@ import {
   Mail,
   MessageSquareQuote,
   Mountain,
+  KeyRound,
+  MessageSquare,
+  Navigation,
   PanelsTopLeft,
   RotateCcw,
   Save,
@@ -36,14 +39,17 @@ import {
   type SectionKey,
   type SiteContent,
 } from "@/lib/siteContent";
-import { Button, Toggle } from "../_components/ui";
+import { Button, FieldLabel, Toggle, inputClass } from "../_components/ui";
 import CategoriesEditor from "./CategoriesEditor";
 import HeroEditor from "./HeroEditor";
 import {
   CompareEditor,
   DomesticEditor,
+  AuthEditor,
+  ContactEditor,
   FaqEditor,
   FeaturedEditor,
+  HeaderEditor,
   GuidesEditor,
   InternationalEditor,
   LatestDealsEditor,
@@ -56,7 +62,7 @@ import {
 } from "./SectionEditors";
 
 /* ------------------------------------------------------------------ */
-/* Homepage CRM.                                                       */
+/* Website content CRM.                                                */
 /*                                                                     */
 /* One screen, a rail of every section down the left in the order they  */
 /* appear on the page, and that section's editor on the right. The      */
@@ -64,14 +70,50 @@ import {
 /* rather than fifteen sections saving independently.                   */
 /* ------------------------------------------------------------------ */
 
-const SECTION_META: Record<SectionKey, { label: string; hint: string; icon: LucideIcon }> = {
+const SECTION_META: Record<
+  SectionKey,
+  {
+    label: string;
+    hint: string;
+    icon: LucideIcon;
+    /* Most sections are homepage bands the switch simply removes. The ones
+       that are not say so themselves rather than claiming to be. */
+    toggleLabel?: string;
+    toggleOn?: string;
+    toggleOff?: string;
+  }
+> = {
+  header: {
+    label: "Header",
+    hint: "Nav links and dropdowns",
+    icon: Navigation,
+    toggleLabel: "Show the navigation links",
+    toggleOn: "The menu is live on every page.",
+    toggleOff: "Hidden — the header keeps its logo and account buttons.",
+  },
+  auth: {
+    label: "Login & signup",
+    hint: "Popup and page content",
+    icon: KeyRound,
+    toggleLabel: "Show the sign-in popup on its own",
+    toggleOn: "It appears after a visitor has been browsing a while.",
+    toggleOff: "Off — the Log in button still opens it, it just never interrupts.",
+  },
+  contact: {
+    label: "Contact page",
+    hint: "Copy, details and offices",
+    icon: MessageSquare,
+    toggleLabel: "Show the sidebar beside the enquiry form",
+    toggleOn: "“What happens next”, your contact details and the browse link.",
+    toggleOff: "Hidden — the enquiry form runs the full width of the page.",
+  },
   hero: { label: "Hero", hint: "Headlines, trust row, top picks", icon: Sparkles },
   categories: { label: "Travel styles", hint: "Icon and photo cards", icon: PanelsTopLeft },
   trending: { label: "Trending", hint: "Destination rail", icon: TrendingUp },
   compare: { label: "Compare", hint: "Comparison band heading", icon: Layers },
   featured: { label: "Featured packages", hint: "Tabs and grid", icon: Sparkles },
   weekendTreks: { label: "Weekend treks", hint: "Trek cards", icon: Mountain },
-  trainBanner: { label: "Train banner", hint: "Scrubbed video band", icon: TrainFront },
+  trainBanner: { label: "Train banner", hint: "Looping video band", icon: TrainFront },
   domestic: { label: "Domestic holidays", hint: "Accordion gallery", icon: Compass },
   international: { label: "International", hint: "Country cards", icon: Globe2 },
   whyUs: { label: "Why travel with us", hint: "Proof points", icon: ShieldCheck },
@@ -82,7 +124,7 @@ const SECTION_META: Record<SectionKey, { label: string; hint: string; icon: Luci
   newsletter: { label: "Trust & newsletter", hint: "Sign-up band", icon: Mail },
 };
 
-export default function HomepageEditor() {
+export default function ContentEditor() {
   const { content, loading, error, exists } = useSiteContentState();
 
   if (loading) {
@@ -95,12 +137,12 @@ export default function HomepageEditor() {
     );
   }
 
-  return <HomepageEditorForm saved={content} loadError={error} documentExists={exists} />;
+  return <ContentEditorForm saved={content} loadError={error} documentExists={exists} />;
 }
 
 type EditorStatus = { kind: "success" | "error"; message: string };
 
-function HomepageEditorForm({
+function ContentEditorForm({
   saved,
   loadError,
   documentExists,
@@ -111,13 +153,17 @@ function HomepageEditorForm({
 }) {
   const packages = usePackages();
 
-  /* A working copy, so nothing reaches the live homepage until Publish. */
+  /* A working copy, so nothing reaches the live site until Publish. */
   const [draft, setDraft] = useState<SiteContent>(saved);
   const [status, setStatus] = useState<EditorStatus | null>(
     loadError ? { kind: "error", message: loadError } : null,
   );
   const [saving, setSaving] = useState(false);
   const [active, setActive] = useState<SectionKey>("hero");
+  /* Reset all overwrites every section in Firebase, and there is no undo once
+     it lands — so it is held behind a typed confirmation rather than a click. */
+  const [resetPrompt, setResetPrompt] = useState(false);
+  const [resetTyped, setResetTyped] = useState("");
   const previousSaved = useRef(saved);
 
   /* `saved` always comes back through the normaliser, so the draft goes
@@ -146,9 +192,9 @@ function HomepageEditorForm({
       const normalized = normalizeSiteContent(draft);
       await saveHomepageContent(normalized);
       setDraft(normalized);
-      setStatus({ kind: "success", message: "Published to Firebase — the homepage is live." });
+      setStatus({ kind: "success", message: "Published to Firebase — the site is live." });
     } catch (error) {
-      console.error("Unable to publish homepage content", error);
+      console.error("Unable to publish site content", error);
       setStatus({
         kind: "error",
         message: "Publish failed. Check Firebase access and try again.",
@@ -163,17 +209,29 @@ function HomepageEditorForm({
     setStatus({ kind: "success", message: "Unsaved changes discarded." });
   };
 
+  const RESET_PHRASE = "Reset All";
+  /* Case- and whitespace-forgiving: the point is deliberate intent, not a
+     spelling test. */
+  const resetConfirmed = resetTyped.trim().toLowerCase() === RESET_PHRASE.toLowerCase();
+
+  const closeResetPrompt = () => {
+    setResetPrompt(false);
+    setResetTyped("");
+  };
+
   const restoreDefaults = async () => {
+    if (!resetConfirmed) return;
+    closeResetPrompt();
     setSaving(true);
     setDraft(DEFAULT_SITE_CONTENT);
     try {
       await saveHomepageContent(DEFAULT_SITE_CONTENT);
       setStatus({
         kind: "success",
-        message: "Original homepage content restored in Firebase.",
+        message: "Original site content restored in Firebase.",
       });
     } catch (error) {
-      console.error("Unable to restore homepage defaults", error);
+      console.error("Unable to restore site content defaults", error);
       setStatus({
         kind: "error",
         message: "Reset failed. Check Firebase access and try again.",
@@ -208,11 +266,12 @@ function HomepageEditorForm({
             Content
           </p>
           <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-            Homepage
+            Website content
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-cmt-neutral-600">
-            Every section of the homepage, in the order it appears. Edit the copy, the
-            photos, the icons and the cards — then publish, and the live site updates
+            Every page the site publishes, in the order a visitor meets it — the header,
+            the sign-in screens, the contact page and each homepage band. Edit the copy,
+            the photos, the icons and the cards, then publish and the live site updates
             immediately from Firebase.
           </p>
         </div>
@@ -256,7 +315,7 @@ function HomepageEditorForm({
             </span>
           )}
 
-          <Button variant="ghost" onClick={() => void restoreDefaults()} disabled={saving}>
+          <Button variant="ghost" onClick={() => setResetPrompt(true)} disabled={saving}>
             <RotateCcw className="size-4" /> Reset all
           </Button>
           <Button variant="ghost" onClick={revert} disabled={!dirty || saving}>
@@ -282,7 +341,7 @@ function HomepageEditorForm({
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-[248px_minmax(0,1fr)]">
         {/* Section rail */}
         <nav
-          aria-label="Homepage sections"
+          aria-label="Website sections"
           className="lg:sticky lg:top-[132px] rounded-cmt-md border border-cmt-neutral-200 bg-white p-2 shadow-cmt-xs"
         >
           <ul className="max-h-[70vh] space-y-0.5 overflow-y-auto">
@@ -347,11 +406,12 @@ function HomepageEditorForm({
         {/* Selected section */}
         <div className="min-w-0 space-y-5">
           <Toggle
-            label={`Show “${meta.label}” on the homepage`}
+            label={meta.toggleLabel ?? `Show “${meta.label}” on the homepage`}
             description={
               draft[active].enabled
-                ? "This section is live."
-                : "Hidden — the page renders without it, and nothing below shifts out of order."
+                ? (meta.toggleOn ?? "This section is live.")
+                : (meta.toggleOff ??
+                  "Hidden — the page renders without it, and nothing below shifts out of order.")
             }
             checked={draft[active].enabled}
             onChange={(next) => setEnabled(active, next)}
@@ -365,6 +425,76 @@ function HomepageEditorForm({
           />
         </div>
       </div>
+
+      {resetPrompt && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reset-all-title"
+          className="fixed inset-0 z-50 grid place-items-center bg-cmt-neutral-900/50 p-4"
+          onClick={closeResetPrompt}
+        >
+          <form
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void restoreDefaults();
+            }}
+            className="w-full max-w-md overflow-hidden rounded-cmt-md bg-white shadow-cmt-xl"
+          >
+            <div className="flex gap-3 px-5 pt-5">
+              <span className="grid size-9 shrink-0 place-items-center rounded-cmt-full bg-red-50 text-red-600">
+                <AlertCircle className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <h2
+                  id="reset-all-title"
+                  className="font-display text-lg font-semibold text-cmt-neutral-900"
+                >
+                  Reset all website content?
+                </h2>
+                <p className="mt-1.5 text-sm leading-6 text-cmt-neutral-600">
+                  Every section goes back to the content that ships with the site — the
+                  header, the sign-in screens, the contact page and every homepage band —
+                  and it publishes to Firebase straight away, so the live site changes for
+                  everyone. This cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="px-5 pb-1 pt-4">
+              <label className="block">
+                <FieldLabel>
+                  Type <span className="font-bold text-cmt-neutral-900">{RESET_PHRASE}</span> to
+                  confirm
+                </FieldLabel>
+                <input
+                  autoFocus
+                  value={resetTyped}
+                  onChange={(event) => setResetTyped(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") closeResetPrompt();
+                  }}
+                  placeholder={RESET_PHRASE}
+                  aria-invalid={resetTyped.length > 0 && !resetConfirmed}
+                  className={inputClass}
+                />
+              </label>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2 border-t border-cmt-neutral-100 bg-cmt-neutral-50 px-5 py-4">
+              <Button variant="ghost" onClick={closeResetPrompt}>
+                Cancel
+              </Button>
+              {/* Stays disabled until the phrase matches, so Enter cannot fire
+                  the reset early either. */}
+              <Button type="submit" variant="danger" disabled={!resetConfirmed || saving}>
+                <RotateCcw className="size-4" /> Reset all
+              </Button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
@@ -383,6 +513,12 @@ function SectionEditor({
   packages: ReturnType<typeof usePackages>;
 }): ReactNode {
   switch (active) {
+    case "header":
+      return <HeaderEditor value={draft.header} onChange={(next) => set("header", next)} />;
+    case "auth":
+      return <AuthEditor value={draft.auth} onChange={(next) => set("auth", next)} />;
+    case "contact":
+      return <ContactEditor value={draft.contact} onChange={(next) => set("contact", next)} />;
     case "hero":
       return (
         <HeroEditor

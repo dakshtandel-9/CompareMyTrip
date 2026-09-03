@@ -103,7 +103,7 @@ export default function Footer() {
           <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="inline-flex">
               <Image
-                src="/logo.png"
+                src="/comparemytrip-logo-white-plane.png"
                 alt="CompareMyTrip"
                 width={1400}
                 height={167}
@@ -187,7 +187,7 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} CompareMyTrip. All rights
             reserved.
           </p>
-          <p>Every package listed comes from a GST-verified operator.</p>
+          <p>Every package listed comes from a trusted operator.</p>
         </div>
       </div>
     </footer>

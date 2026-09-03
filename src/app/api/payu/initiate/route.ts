@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { uidFromIdToken } from "@/lib/firebase/admin";
 import { createPendingTrip } from "@/lib/firebase/serverTrips";
+import { resolveCoupon } from "@/lib/couponServer";
+import { normaliseCode } from "@/lib/coupons";
 import {
   buildRequestHash,
   getPayuConfig,
@@ -51,7 +53,10 @@ export async function POST(request: Request) {
   }
 
   const firstname = read("firstname");
-  const email = read("email");
+  // Lower-cased so a traveller is one traveller: coupon limits and the
+  // "first booking" test both match bookings on the address, and Priya@
+  // and priya@ are the same inbox.
+  const email = read("email").toLowerCase();
   const phone = read("phone").replace(/[^\d+]/g, "");
 
   if (!firstname || !email || phone.replace(/\D/g, "").length < 10) {
@@ -59,16 +64,42 @@ export async function POST(request: Request) {
   }
 
   const travellers = normaliseTravellers(read("travellers"));
-  const order = priceOrder(pkg, travellers);
-
-  const txnid = newTransactionId();
-  const productinfo = pkg.title;
-  const udf: Udf = [pkg.id, String(order.travellers), "", "", ""];
 
   // Tie the booking to the buyer's account when the browser supplied a
   // usable ID token. A missing or bad token loses the link to My Trips, but
   // must never stop the payment — the CRM still gets the record.
   const userId = await uidFromIdToken(read("idToken"));
+
+  // The coupon is decided here, not at the checkout: the browser posts a
+  // code, and this is the only place that turns one into money off. The
+  // preview the traveller saw ran the same rules a minute earlier, so a
+  // rejection now means something changed underneath them (the code ran
+  // out, the campaign closed, it was their second use) — they go back to
+  // checkout to see the real total rather than being charged a different
+  // one than the screen promised.
+  const requestedCode = normaliseCode(read("coupon"));
+  const subtotal = priceOrder(pkg, travellers).subtotal;
+  const coupon = await resolveCoupon({
+    requestedCode,
+    packageId: pkg.id,
+    subtotal,
+    identity: { userId, email },
+  }).catch((cause) => {
+    // A coupon lookup that falls over must not cost the booking. Full price
+    // is always a price we can stand behind.
+    console.error("coupon could not be resolved", cause);
+    return { applied: null, error: "" };
+  });
+
+  if (requestedCode && !coupon.applied) {
+    return fail(origin, "coupon-rejected");
+  }
+
+  const order = priceOrder(pkg, travellers, coupon.applied?.discount ?? 0);
+
+  const txnid = newTransactionId();
+  const productinfo = pkg.title;
+  const udf: Udf = [pkg.id, String(order.travellers), coupon.applied?.code ?? "", "", ""];
 
   // Recorded as pending before the redirect so a booking exists even if the
   // traveller closes the tab at PayU. The callback settles it later.
@@ -79,6 +110,10 @@ export async function POST(request: Request) {
     packageTitle: pkg.title,
     travellers: order.travellers,
     perPerson: order.perPerson,
+    subtotal: order.subtotal,
+    discount: order.discount,
+    couponCode: coupon.applied?.code ?? "",
+    couponLabel: coupon.applied?.label ?? "",
     amount: order.total,
     name: firstname,
     email,

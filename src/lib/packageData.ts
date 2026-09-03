@@ -8,7 +8,8 @@ export type PackageCategory =
   | "Mountains"
   | "Heritage"
   | "Wildlife"
-  | "Luxury";
+  | "Luxury"
+  | "Spiritual";
 
 export type PackageItineraryDay = {
   day: number;
@@ -80,6 +81,7 @@ export const PACKAGE_CATEGORIES: PackageCategory[] = [
   "Heritage",
   "Wildlife",
   "Luxury",
+  "Spiritual",
 ];
 
 export const DUMMY_PACKAGES: TravelPackage[] = [

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowRight, ChevronDown } from "lucide-react";
 
 import { Glyph } from "@/lib/adminIcons";
@@ -26,9 +27,20 @@ import SectionHeader from "../_components/SectionHeader";
 
 export default function Faq() {
   const { faq } = useSiteContent();
+  const pathname = usePathname();
+
   if (!faq.enabled) return null;
 
   const { header, items, help } = faq;
+
+  /* The escape hatch is "still not answered? talk to the team", and it ships
+     pointing at /contact — where this same section is also rendered. Offering
+     a reader the page they are already on is a dead end, so the card steps
+     aside there and the questions take the width. Comparing hrefs rather than
+     hard-coding the route keeps it right if the CTA is ever repointed. */
+  const helpHref = help.ctaHref.split(/[?#]/)[0].replace(/\/$/, "");
+  const here = pathname.replace(/\/$/, "");
+  const showHelp = helpHref !== "" && helpHref !== here;
 
   return (
     <section
@@ -47,6 +59,7 @@ export default function Faq() {
               description={header.description}
             />
 
+            {showHelp && (
             <div className="mt-8 rounded-cmt-lg border border-cmt-neutral-200 bg-white p-6 shadow-cmt-xs">
               <span className="flex h-10 w-10 items-center justify-center rounded-cmt-full bg-cmt-primary-100 text-cmt-primary-800">
                 <Glyph name={help.icon} className="h-5 w-5" />
@@ -72,6 +85,7 @@ export default function Faq() {
                 />
               </Link>
             </div>
+            )}
           </div>
         </div>
 

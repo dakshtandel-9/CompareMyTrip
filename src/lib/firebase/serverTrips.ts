@@ -18,6 +18,15 @@ export type NewTrip = {
   packageTitle: string;
   travellers: number;
   perPerson: number;
+  /** Before the coupon: perPerson × travellers. */
+  subtotal: number;
+  /** What the coupon took off, in rupees. 0 when none was applied. */
+  discount: number;
+  /** The code as applied, uppercase. Empty when none. Coupon usage is
+      counted off these rows, so this is the record of a redemption. */
+  couponCode: string;
+  couponLabel: string;
+  /** What PayU was asked to charge: subtotal − discount. */
   amount: number;
   name: string;
   email: string;

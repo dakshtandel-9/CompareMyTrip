@@ -1,20 +1,17 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, TriangleAlert } from "lucide-react";
+import { ArrowLeft, TriangleAlert } from "lucide-react";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getPayuConfig, normaliseTravellers, priceOrder, resolvePackage } from "@/lib/payu";
-import CheckoutForm from "./CheckoutForm";
+import CheckoutPanels from "./CheckoutPanels";
 
 export const metadata: Metadata = {
   title: "Checkout | CompareMyTrip",
   description: "Confirm your travellers and pay securely to hold your package.",
   robots: { index: false, follow: false },
 };
-
-const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -85,76 +82,20 @@ export default async function CheckoutPage({
         Checkout
       </h1>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-12 lg:gap-8">
-        {/* Buyer details */}
-        <section className="lg:col-span-7">
-          <div className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm sm:p-8">
-            <h2 className="font-display text-xl font-semibold sm:text-2xl">Who is travelling?</h2>
-            <p className="mt-2 max-w-[52ch] text-sm leading-[1.6] text-cmt-neutral-600">
-              The booking confirmation and operator contact go to these details.
-            </p>
-
-            {!configured ? (
-              <p className="mt-6 flex items-start gap-2 rounded-cmt-control border border-cmt-error-500/40 bg-cmt-error-100/50 p-4 text-sm leading-[1.55] text-cmt-error-700">
-                <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.25} aria-hidden="true" />
-                Payments are not switched on yet — PAYU_MERCHANT_KEY and PAYU_SALT
-                are missing from the environment.
-              </p>
-            ) : null}
-
-            <div className="mt-6">
-              <CheckoutForm
-                packageId={pkg.id}
-                travellers={order.travellers}
-                disabled={!configured}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Order summary */}
-        <aside className="lg:col-span-5">
-          <div className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm sm:p-8">
-            <h2 className="font-display text-xl font-semibold">Order summary</h2>
-
-            <div className="mt-5 flex gap-4">
-              <span className="relative h-20 w-24 shrink-0 overflow-hidden rounded-cmt-sm bg-cmt-neutral-100">
-                <Image src={pkg.image} alt="" fill sizes="96px" className="object-cover" />
-              </span>
-              <div className="min-w-0">
-                <p className="font-display text-[15px] font-semibold leading-snug">{pkg.title}</p>
-                <p className="mt-1 text-sm text-cmt-neutral-600">{pkg.location}</p>
-                <p className="mt-1 text-xs text-cmt-neutral-500">
-                  {pkg.nights} nights / {pkg.days} days · {pkg.location}
-                </p>
-              </div>
-            </div>
-
-            <dl className="mt-6 space-y-3 border-t border-cmt-neutral-200 pt-5 text-sm">
-              <div className="flex items-center justify-between">
-                <dt className="text-cmt-neutral-600">Per person</dt>
-                <dd className="tabular-nums font-medium">{formatINR(order.perPerson)}</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-cmt-neutral-600">Travellers</dt>
-                <dd className="tabular-nums font-medium">{order.travellers}</dd>
-              </div>
-            </dl>
-
-            <div className="mt-5 flex items-baseline justify-between border-t border-cmt-neutral-200 pt-5">
-              <span className="font-display text-base font-semibold">Total payable</span>
-              <span className="tabular-nums font-display text-2xl font-bold">
-                {formatINR(order.total)}
-              </span>
-            </div>
-
-            <p className="mt-4 flex items-center gap-1.5 text-xs text-cmt-neutral-600">
-              <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-cmt-success-700" strokeWidth={2.25} aria-hidden="true" />
-              GST-verified · free cancellation
-            </p>
-          </div>
-        </aside>
-      </div>
+      {/* Prices come from the server catalogue; the panels only ever show
+          them, and ask /api/coupons/validate what a code takes off. */}
+      <CheckoutPanels
+        packageId={pkg.id}
+        packageTitle={pkg.title}
+        packageLocation={pkg.location}
+        packageImage={pkg.image}
+        nights={pkg.nights}
+        days={pkg.days}
+        perPerson={order.perPerson}
+        travellers={order.travellers}
+        subtotal={order.subtotal}
+        configured={configured}
+      />
     </Shell>
   );
 }

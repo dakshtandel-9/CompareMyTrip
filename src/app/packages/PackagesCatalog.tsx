@@ -10,7 +10,17 @@ import {
   type PackageCategory,
   type TravelPackage,
 } from "@/lib/packageData";
+import {
+  WEEKEND_TRACKS,
+  WEEKEND_TREKS_CATEGORY,
+  parseTrackId,
+  trackFromParams,
+  treksOnTrack,
+  type WeekendTrack,
+} from "@/lib/weekendTracks";
+import { toIndiaState } from "@/lib/indiaStates";
 import { usePackages } from "@/lib/usePackages";
+import TrekGradeBadge from "@/components/TrekGradeBadge";
 import { useCompare } from "@/lib/useCompare";
 import {
   ArrowDownUp,
@@ -23,7 +33,6 @@ import {
   MapPin,
   RotateCcw,
   Search,
-  ShieldCheck,
   SlidersHorizontal,
   Star,
   Users,
@@ -33,13 +42,43 @@ import {
 
 type Category = "All packages" | PackageCategory;
 
-const categories: Category[] = ["All packages", ...PACKAGE_CATEGORIES];
+/* Weekend Treks is deliberately not a chip here. It is not a travel style
+   like Honeymoon or Beaches — it is a shelf of its own, reached from the
+   header and from /destinations, and split into tracks by ?category=. Leaving it
+   in would offer two overlapping ways to ask the same question. Packages keep
+   the tag: it is what the tracks are built from. */
+const categories: Category[] = [
+  "All packages",
+  ...PACKAGE_CATEGORIES.filter((item) => item !== WEEKEND_TREKS_CATEGORY),
+];
 
 /* Region has no control of its own on this page — the site header links into
    it. It lives in the URL so /packages?region=international stays shareable.
    Values are matched loosely: "international", "International", "overseas"
    and "abroad" all land in the same place. */
 type Region = "All" | "India" | "International";
+
+const REGION_BANNERS: Record<Exclude<Region, "All">, {
+  eyebrow: string;
+  title: string;
+  description: string;
+  image: string;
+}> = {
+  India: {
+    eyebrow: "Explore India",
+    title: "India Holiday Packages",
+    description:
+      "From Himalayan escapes to Kerala backwaters, compare curated stays and itineraries across India.",
+    image: "/destinations/kerala.jpg",
+  },
+  International: {
+    eyebrow: "Explore the world",
+    title: "International Holiday Packages",
+    description:
+      "Cross borders with confidence. Compare curated international holidays, transparent inclusions, and trusted operators.",
+    image: "/categories/international.jpg",
+  },
+};
 
 function parseRegion(value: string | null): Region {
   const normalized = value?.trim().toLowerCase();
@@ -50,6 +89,13 @@ function parseRegion(value: string | null): Region {
   return "All";
 }
 
+/* India is filed by state, so "Coorg" and "Mysore" both count as Karnataka
+   and the Destination filter offers one row per state instead of one per town.
+   International destinations are already countries and pass through untouched. */
+function destinationKey(pkg: TravelPackage) {
+  return pkg.region === "India" ? toIndiaState(pkg.destination) : pkg.destination;
+}
+
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
 const durationOptions = [
@@ -58,6 +104,159 @@ const durationOptions = [
   { label: "7–9 days", value: "7-9", matches: (days: number) => days >= 7 && days <= 9 },
   { label: "10+ days", value: "10+", matches: (days: number) => days >= 10 },
 ];
+
+function CatalogBanner({
+  eyebrow,
+  title,
+  description,
+  image,
+  stats,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  image: string;
+  stats: { label: string; value: string | number }[];
+}) {
+  return (
+    <section className="relative isolate flex min-h-[340px] w-full items-center overflow-hidden border-b border-white/10 bg-cmt-secondary-900 px-4 py-14 sm:min-h-[400px] sm:px-5 sm:py-20 lg:px-6">
+      <Image
+        src={image}
+        alt=""
+        fill
+        sizes="100vw"
+        fetchPriority="high"
+        className="-z-20 object-cover object-center"
+      />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/65 to-black/10" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/15" />
+
+      <div className="mx-auto w-full max-w-[1440px]">
+        <p className="text-xs font-semibold uppercase tracking-wider text-cmt-primary-400 sm:text-sm">
+          {eyebrow}
+        </p>
+        <h1 className="mt-2 max-w-[18ch] font-display text-3xl font-semibold leading-[1.15] tracking-tight text-white [text-shadow:0_3px_18px_rgba(0,0,0,0.35)] sm:text-5xl">
+          {title}
+        </h1>
+        <p className="mt-3 max-w-xl text-pretty text-sm leading-relaxed text-white/75 [text-shadow:0_2px_12px_rgba(0,0,0,0.35)] sm:text-base">
+          {description}
+        </p>
+
+        {stats.length > 0 && (
+          <dl className="mt-8 flex flex-wrap items-end gap-x-10 gap-y-5">
+            {stats.map((stat) => (
+              <div key={stat.label}>
+                <dt className="text-xs font-semibold uppercase tracking-wider text-white/55">
+                  {stat.label}
+                </dt>
+                <dd className="mt-1 font-display text-2xl font-bold tabular-nums text-white sm:text-3xl">
+                  {stat.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function WeekendTrackBanner({
+  track,
+  packages,
+}: {
+  track: WeekendTrack;
+  packages: TravelPackage[];
+}) {
+  const startingPrice = packages.length
+    ? Math.min(...packages.map((pkg) => pkg.price))
+    : 0;
+  const days = packages.map((pkg) => pkg.days).filter((value) => value > 0);
+  const shortestTrip = days.length ? Math.min(...days) : 0;
+  const longestTrip = days.length ? Math.max(...days) : 0;
+  const duration =
+    shortestTrip === longestTrip
+      ? `${shortestTrip} ${shortestTrip === 1 ? "day" : "days"}`
+      : `${shortestTrip}–${longestTrip} days`;
+
+  const stats = packages.length
+    ? [
+        { label: "Treks", value: packages.length },
+        ...(startingPrice > 0
+          ? [{ label: "Starting from", value: formatINR(startingPrice) }]
+          : []),
+        ...(shortestTrip > 0 ? [{ label: "Duration", value: duration }] : []),
+      ]
+    : [];
+
+  return (
+    <CatalogBanner
+      eyebrow="Weekend treks"
+      title={track.bannerTitle}
+      description={track.tagline}
+      image={track.bannerImage}
+      stats={stats}
+    />
+  );
+}
+
+function RegionBanner({
+  region,
+  packages,
+}: {
+  region: Exclude<Region, "All">;
+  packages: TravelPackage[];
+}) {
+  const content = REGION_BANNERS[region];
+  const destinationCount = new Set(
+    packages.map(destinationKey).filter(Boolean),
+  ).size;
+  const startingPrice = packages.length
+    ? Math.min(...packages.map((pkg) => pkg.price))
+    : 0;
+  const stats = packages.length
+    ? [
+        { label: "Packages", value: packages.length },
+        { label: "Destinations", value: destinationCount },
+        ...(startingPrice > 0
+          ? [{ label: "Starting from", value: formatINR(startingPrice) }]
+          : []),
+      ]
+    : [];
+
+  return <CatalogBanner {...content} stats={stats} />;
+}
+
+function DealsBanner({ packages }: { packages: TravelPackage[] }) {
+  const deals = packages.filter((pkg) => pkg.deal);
+  const startingPrice = deals.length
+    ? Math.min(...deals.map((pkg) => pkg.price))
+    : 0;
+  const maximumDiscount = deals.length
+    ? Math.max(...deals.map(getDiscountPercent))
+    : 0;
+  const stats = deals.length
+    ? [
+        { label: "Live deals", value: deals.length },
+        ...(maximumDiscount > 0
+          ? [{ label: "Save up to", value: `${maximumDiscount}%` }]
+          : []),
+        ...(startingPrice > 0
+          ? [{ label: "Starting from", value: formatINR(startingPrice) }]
+          : []),
+      ]
+    : [];
+
+  return (
+    <CatalogBanner
+      eyebrow="Limited-time offers"
+      title="Holiday Deals Worth Packing For"
+      description="Hand-picked escapes with meaningful savings — compare the full itinerary before the offer moves on."
+      image="/images/deals-mountain-backdrop.webp"
+      stats={stats}
+    />
+  );
+}
 
 /* The card's one secondary action is the comparison tray, not a wishlist:
    picking it fills the next slot of the homepage comparison, and picking it
@@ -118,10 +317,7 @@ function PackageCard({
           </button>
         </div>
         <div className="absolute inset-x-3 bottom-3 flex flex-wrap items-center gap-1.5">
-          <span className="inline-flex items-center gap-1 rounded-cmt-full border border-cmt-success-500/20 bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-cmt-success-700 shadow-cmt-xs">
-            <ShieldCheck className="size-3.5 text-cmt-success-500" strokeWidth={2.5} />
-            GST Verified
-          </span>
+          <TrekGradeBadge pkg={pkg} />
           {pkg.deal && (
             <span className="inline-flex items-center gap-1 rounded-cmt-full bg-cmt-neutral-900 px-2.5 py-1 text-[11px] font-semibold text-cmt-primary-400 shadow-cmt-xs">
               <BadgePercent className="size-3.5" strokeWidth={2.5} />
@@ -182,8 +378,7 @@ function PackageCard({
           ))}
         </div>
 
-        {/* The operating partner is deliberately not named on the card — the
-            GST-verified badge carries the trust signal instead. */}
+        {/* The operating partner is deliberately not named on the card. */}
         <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-cmt-neutral-500">
           <span className="inline-flex items-center gap-1">
             <RotateCcw className="size-3" /> Free cancellation
@@ -262,8 +457,17 @@ export default function PackagesCatalog() {
   const initialMaximum = Number(searchParams.get("budgetMax"));
 
   const [region, setRegion] = useState<Region>(parseRegion(searchParams.get("region")));
+  /* Set by the header's Weekend treks menu and by the track cards on
+     /destinations, as ?category=monsoon. Read once, like every other filter
+     here — the page is keyed on the query string, so arriving on a different
+     track remounts this component with the new one. */
+  const [track, setTrack] = useState(() =>
+    trackFromParams(searchParams.get("category"), searchParams.get("trek")),
+  );
   const [category, setCategory] = useState<Category>(
-    initialCategory && PACKAGE_CATEGORIES.includes(initialCategory as PackageCategory)
+    initialCategory &&
+      initialCategory !== WEEKEND_TREKS_CATEGORY &&
+      PACKAGE_CATEGORIES.includes(initialCategory as PackageCategory)
       ? (initialCategory as Category)
       : "All packages",
   );
@@ -290,7 +494,15 @@ export default function PackagesCatalog() {
      multi-destination view stays shareable. Seeded like every other filter
      here: only the region control writes back to the URL. */
   const [destinations, setDestinations] = useState<string[]>(() =>
-    searchParams.getAll("destination").map((value) => value.trim()).filter(Boolean),
+    searchParams
+      .getAll("destination")
+      .map((value) => value.trim())
+      .filter(Boolean)
+      /* Through the same rollup the options use, so a link minted before India
+         was filed by state (?destination=Kashmir, ?destination=Coorg) still
+         finds its packages AND shows the matching box ticked. Country names
+         are not aliases of anything, so they pass through untouched. */
+      .map(toIndiaState),
   );
   const [destinationQuery, setDestinationQuery] = useState("");
   const [durations, setDurations] = useState<string[]>([]);
@@ -304,11 +516,15 @@ export default function PackagesCatalog() {
   );
 
   /* Built from the catalogue, biggest first, so the list is always exactly the
-     places that have packages in the region being viewed. */
+     places that have packages in the region being viewed — a state shows up
+     the moment a package is filed under it in /admin, and drops off the moment
+     the last one goes. Never a fixed list. */
   const destinationOptions = useMemo(() => {
     const counts = new Map<string, number>();
     for (const pkg of regionPackages) {
-      counts.set(pkg.destination, (counts.get(pkg.destination) ?? 0) + 1);
+      const name = destinationKey(pkg);
+      if (!name) continue;
+      counts.set(name, (counts.get(name) ?? 0) + 1);
     }
     return [...counts.entries()]
       .map(([name, count]) => ({ name, count }))
@@ -381,13 +597,43 @@ export default function PackagesCatalog() {
     router.replace(queryString ? `/packages?${queryString}` : "/packages", { scroll: false });
   };
 
+  /* The ids on the chosen track, or null when no track is in play. A Set so
+     the per-package test below stays O(1) rather than re-grouping the whole
+     catalogue for every card. */
+  const trackPackages = useMemo(() => {
+    if (!track) return null;
+    return treksOnTrack(packages, track);
+  }, [packages, track]);
+
+  const trackIds = useMemo(
+    () => (trackPackages ? new Set(trackPackages.map((pkg) => pkg.id)) : null),
+    [trackPackages],
+  );
+
+  const activeTrackConfig = track
+    ? WEEKEND_TRACKS.find((item) => item.id === track)
+    : undefined;
+  const activeTrack = activeTrackConfig?.bannerTitle ?? "";
+
+  /* The track arrives from a menu link, so like the region it needs an
+     on-page way back out — otherwise the narrowed grid is a dead end. */
+  const clearTrack = () => {
+    setTrack(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("trek");
+    if (parseTrackId(params.get("category"))) params.delete("category");
+    const queryString = params.toString();
+    router.replace(queryString ? `/packages?${queryString}` : "/packages", { scroll: false });
+  };
+
   const visiblePackages = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     const filtered = packages.filter((pkg) => {
+      const matchesTrack = trackIds === null || trackIds.has(pkg.id);
       const matchesRegion = region === "All" || pkg.region === region;
       const matchesDeal = !dealsOnly || pkg.deal === true;
       const matchesDestination =
-        destinations.length === 0 || destinations.includes(pkg.destination);
+        destinations.length === 0 || destinations.includes(destinationKey(pkg));
       const matchesCategory =
         category === "All packages" || pkg.tags.includes(category);
       const matchesQuery =
@@ -410,6 +656,7 @@ export default function PackagesCatalog() {
         minimumRating === null || pkg.rating >= minimumRating;
 
       return (
+        matchesTrack &&
         matchesRegion &&
         matchesDeal &&
         matchesDestination &&
@@ -428,7 +675,7 @@ export default function PackagesCatalog() {
       if (sort === "rating") return b.rating - a.rating;
       return b.reviews + b.rating * 10 - (a.reviews + a.rating * 10);
     });
-  }, [budget, category, dealsOnly, destinations, durations, hotelCategories, minimumRating, packages, query, region, sort]);
+  }, [budget, category, dealsOnly, destinations, durations, hotelCategories, minimumRating, packages, query, region, sort, trackIds]);
 
   const activeFilterCount =
     durations.length +
@@ -477,7 +724,8 @@ export default function PackagesCatalog() {
       </FilterGroup>
 
       {/* Destinations are read off the catalogue, never a fixed list, so the
-          panel can only ever offer somewhere we actually sell. */}
+          panel can only ever offer somewhere we actually sell. India reads as
+          states, International as countries. */}
       <FilterGroup title="Destination">
         {destinationOptions.length > 8 && (
           <label className="relative mb-3 block">
@@ -659,14 +907,22 @@ export default function PackagesCatalog() {
 
   return (
     <main className="min-h-screen bg-cmt-neutral-50 font-body text-cmt-neutral-900">
-      {/* No masthead: the grid starts straight under the site header. Search,
-          package type and the rest live in the filter panel, and the region
-          comes in on ?region= from the header links. */}
+      {activeTrackConfig && trackPackages && (
+        <WeekendTrackBanner track={activeTrackConfig} packages={trackPackages} />
+      )}
+      {!activeTrackConfig && region !== "All" && (
+        <RegionBanner region={region} packages={regionPackages} />
+      )}
+      {!activeTrackConfig && region === "All" && dealsOnly && (
+        <DealsBanner packages={packages} />
+      )}
+
+      {/* The unfiltered catalogue starts straight under the site header. Region
+          weekend-trek, and deals views add their photography masthead above. */}
       <section className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        {/* The visible title is gone, but the document still needs one h1 —
-            screen readers and search results have nothing else to name the
-            page by, since the cards below start at h2. */}
-        <h1 className="sr-only">{regionHeading}</h1>
+        {!activeTrackConfig && region === "All" && !dealsOnly && (
+          <h1 className="sr-only">{regionHeading}</h1>
+        )}
 
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -683,6 +939,17 @@ export default function PackagesCatalog() {
                   {region === "India" ? "India only" : "International only"}
                   <X className="size-3" strokeWidth={2.5} aria-hidden="true" />
                   <span className="sr-only">Show all destinations</span>
+                </button>
+              )}
+              {activeTrack && (
+                <button
+                  type="button"
+                  onClick={clearTrack}
+                  className="inline-flex items-center gap-1 rounded-cmt-full border border-cmt-neutral-200 bg-white px-2.5 py-1 text-xs font-medium text-cmt-neutral-600 transition-colors hover:border-cmt-neutral-300 hover:text-cmt-neutral-900 focus-visible:outline-none focus-visible:shadow-[var(--cmt-focus-ring)]"
+                >
+                  {activeTrack}
+                  <X className="size-3" strokeWidth={2.5} aria-hidden="true" />
+                  <span className="sr-only">Show every package again</span>
                 </button>
               )}
               {/* The hero search on the homepage still arrives as ?q=, and the

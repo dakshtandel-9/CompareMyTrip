@@ -1,10 +1,15 @@
 import type { PackageCategory, TravelPackage } from "@/lib/packageData";
+import { toIndiaState } from "@/lib/indiaStates";
 
 /* ------------------------------------------------------------------ */
 /* The destination list is derived from the package catalogue and never  */
 /* hardcoded: a place exists as a destination exactly while a package is */
 /* filed under it. Both the public /destinations grid and the CRM's      */
 /* cover-artwork screen read this, so the two can never drift apart.     */
+/*                                                                       */
+/* India groups by state, matching the catalogue's Destination filter, so */
+/* a Coorg package and a Mysore package are both Karnataka rather than    */
+/* two near-identical cards.                                              */
 /* ------------------------------------------------------------------ */
 
 export type DestinationSummary = {
@@ -29,8 +34,9 @@ export function buildDestinations(
 ): DestinationSummary[] {
   const groups = new Map<string, TravelPackage[]>();
   for (const pkg of packages) {
-    const name = pkg.destination?.trim();
-    if (!name) continue;
+    const filed = pkg.destination?.trim();
+    if (!filed) continue;
+    const name = pkg.region === "India" ? toIndiaState(filed) : filed;
     const existing = groups.get(name);
     if (existing) existing.push(pkg);
     else groups.set(name, [pkg]);

@@ -11,29 +11,27 @@ import {
   ChevronDown,
   LogOut,
   ArrowRight,
+  Check,
+  Copy,
+  Luggage,
+  Phone,
+  TicketPercent,
 } from "lucide-react";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
-
-type NavChild = { label: string; href: string };
-
-type NavItem = {
-  label: string;
-  href?: string;
-  children?: NavChild[];
-};
-
-const navItems: NavItem[] = [
-  { label: "Destinations", href: "/destinations" },
-  { label: "Weekend Treks", href: "/packages?category=Weekend%20Treks" },
-  { label: "Domestic Tours", href: "/packages?region=india" },
-  { label: "International Holidays", href: "/packages?region=international" },
-  { label: "Deals", href: "/packages?deals=1" },
-  { label: "Travel Guides", href: "/blog" },
-];
+import { useSiteContent } from "@/lib/useSiteContent";
+import { whatsAppHref } from "@/lib/whatsapp";
 
 export default function Header() {
   const user = useAuthUser();
+  const { header, contact } = useSiteContent();
+
+  /* The nav is edited in /admin/content → Header. An item with children is
+     a dropdown and ignores its own href; one without is a plain link, and is
+     dropped entirely if it has nowhere to point. */
+  const navItems = header.enabled
+    ? header.items.filter((item) => item.children.length > 0 || item.href)
+    : [];
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [expandedMobileItem, setExpandedMobileItem] = useState<string | null>(null);
@@ -77,8 +75,24 @@ export default function Header() {
     };
   }, []);
 
+  /* Hover open/close. The close is deferred by a beat so that moving between
+     two dropdowns, or slipping a pixel outside the menu on the way to an
+     entry, does not flicker it shut; moving onto anything else cancels the
+     pending close rather than reopening. */
+  const hoverCloseTimer = useRef<number | undefined>(undefined);
+
+  const cancelHoverClose = useCallback(() => {
+    if (hoverCloseTimer.current !== undefined) {
+      window.clearTimeout(hoverCloseTimer.current);
+      hoverCloseTimer.current = undefined;
+    }
+  }, []);
+
   // ---- Close dropdown on outside click / Escape --------------------------
-  const closeDropdown = useCallback(() => setOpenDropdown(null), []);
+  const closeDropdown = useCallback(() => {
+    cancelHoverClose();
+    setOpenDropdown(null);
+  }, [cancelHoverClose]);
 
   useEffect(() => {
     if (!openDropdown) return;
@@ -111,6 +125,40 @@ export default function Header() {
     []
   );
 
+  /* Clicking the trigger. On a hovering pointer the menu is already open by
+     the time the click lands, so toggling would shut it again — there, a
+     click only ever opens, and leaving or pressing Escape is what closes it.
+     Touch and keyboard get the real toggle, since they never hovered. */
+  const activate = useCallback(
+    (key: string) => {
+      const canHover =
+        typeof window !== "undefined" && window.matchMedia("(hover: hover)").matches;
+      if (canHover) {
+        cancelHoverClose();
+        setOpenDropdown(key);
+      } else {
+        toggle(key);
+      }
+    },
+    [cancelHoverClose, toggle],
+  );
+
+  const openOnHover = useCallback(
+    (key: string) => {
+      cancelHoverClose();
+      setOpenDropdown(key);
+    },
+    [cancelHoverClose],
+  );
+
+  const closeOnHover = useCallback(() => {
+    cancelHoverClose();
+    hoverCloseTimer.current = window.setTimeout(() => setOpenDropdown(null), 140);
+  }, [cancelHoverClose]);
+
+  // A pending close must not fire into an unmounted header.
+  useEffect(() => cancelHoverClose, [cancelHoverClose]);
+
   async function handleLogout() {
     closeDropdown();
     setIsMobileMenuOpen(false);
@@ -118,6 +166,27 @@ export default function Header() {
   }
 
   const displayName = user?.displayName || user?.email?.split("@")[0] || "Account";
+
+  /* The utility strip. Each half is optional: clearing the offer, the number
+     or the trips label in /admin drops just that piece, so the strip can run
+     one-sided without leaving a hole where the other half was. */
+  const topBar = header.topBar;
+  const offerText = topBar.offerText.trim();
+  const couponCode = topBar.couponCode.trim();
+  const phoneNumber = topBar.phoneNumber.trim();
+  const tripsLabel = topBar.tripsLabel.trim();
+  const tripsHref = topBar.tripsHref.trim();
+  /* Only for someone who has trips to look at: signed out, the link would
+     lead straight to the login wall, so it stays off the strip entirely.
+     `user` is undefined until Firebase reports back, which reads as signed
+     out here — the link appears once, rather than flickering away. */
+  const showTrips = Boolean(user) && tripsLabel !== "" && tripsHref !== "";
+  /* tel: wants the number without the spacing a human reads it by. */
+  const telHref = `tel:${phoneNumber.replace(/[^\d+]/g, "")}`;
+  /* The same line the /contact page publishes, opened as a chat. */
+  const chatHref = whatsAppHref(contact.channels);
+  const showTopBar =
+    topBar.enabled && (offerText !== "" || phoneNumber !== "" || chatHref !== "" || showTrips);
 
   return (
     <>
@@ -129,6 +198,86 @@ export default function Header() {
         }`}
         style={{ transform: isHidden ? "translateY(-100%)" : "translateY(0)" }}
       >
+        {showTopBar && (
+          <div className="border-b border-cmt-neutral-200 bg-cmt-neutral-50">
+            <div className="mx-auto flex h-9 max-w-[1440px] items-center justify-between gap-4 px-6">
+              {/* Left — the offer running right now, and the code for it */}
+              <div className="flex min-w-0 items-center gap-2">
+                {offerText &&
+                  (topBar.offerHref ? (
+                    <Link
+                      href={topBar.offerHref}
+                      className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-cmt-neutral-700 transition-colors hover:text-cmt-neutral-900"
+                    >
+                      <TicketPercent
+                        size={15}
+                        strokeWidth={2}
+                        className="shrink-0 text-cmt-primary-700"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate font-medium">{offerText}</span>
+                    </Link>
+                  ) : (
+                    <span className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-cmt-neutral-700">
+                      <TicketPercent
+                        size={15}
+                        strokeWidth={2}
+                        className="shrink-0 text-cmt-primary-700"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate font-medium">{offerText}</span>
+                    </span>
+                  ))}
+                {offerText && couponCode && <CouponCode code={couponCode} />}
+              </div>
+
+              {/* Right — the two things people look for by reflex */}
+              <div className="hidden shrink-0 items-center gap-3 sm:flex">
+                {phoneNumber && (
+                  <a
+                    href={telHref}
+                    className="flex items-center gap-1.5 text-[12.5px] text-cmt-neutral-700 transition-colors hover:text-cmt-neutral-900"
+                  >
+                    <Phone size={14} strokeWidth={2} aria-hidden="true" />
+                    {topBar.phoneLabel && (
+                      <span className="hidden text-cmt-neutral-500 lg:inline">
+                        {topBar.phoneLabel}
+                      </span>
+                    )}
+                    <span className="font-semibold text-cmt-neutral-900">{phoneNumber}</span>
+                  </a>
+                )}
+
+                {chatHref && (
+                  <a
+                    href={chatHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-[12.5px] font-medium text-cmt-neutral-700 transition-colors hover:text-cmt-neutral-900"
+                  >
+                    <WhatsAppMark className="size-3.5 text-[#25D366]" />
+                    WhatsApp
+                  </a>
+                )}
+
+                {(phoneNumber || chatHref) && showTrips && (
+                  <span className="h-3.5 w-px bg-cmt-neutral-200" aria-hidden="true" />
+                )}
+
+                {showTrips && (
+                  <Link
+                    href={tripsHref}
+                    className="flex items-center gap-1.5 text-[12.5px] font-medium text-cmt-neutral-700 transition-colors hover:text-cmt-neutral-900"
+                  >
+                    <Luggage size={14} strokeWidth={2} aria-hidden="true" />
+                    {tripsLabel}
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-6">
           {/* Logo. flex-1 here and on the right actions gives both flanks equal
               width, which centres the nav between them without taking it out of
@@ -137,7 +286,7 @@ export default function Header() {
           <div className="flex flex-1 items-center justify-start">
             <Link href="/" className="flex shrink-0 items-center">
               <Image
-                src="/logo.png"
+                src="/comparemytrip-logo-white-plane.png"
                 alt="CompareMyTrip"
                 width={1400}
                 height={167}
@@ -153,15 +302,24 @@ export default function Header() {
             className="hidden shrink-0 items-center gap-6 min-[1400px]:flex min-[1400px]:gap-7"
           >
             {navItems.map((item) => {
-              const hasChildren = Boolean(item.children?.length);
-              const isOpen = openDropdown === item.label;
+              const hasChildren = item.children.length > 0;
+              const isOpen = openDropdown === item.id;
 
               return (
-                <div key={item.label} className="relative">
+                <div
+                  key={item.id}
+                  className="relative"
+                  /* Hover opens on a pointer that can hover — the handlers sit
+                     on the wrapper, which spans both the trigger and the menu,
+                     so crossing the gap between them is not a mouse-leave.
+                     Touch still goes through the click handler below. */
+                  onMouseEnter={hasChildren ? () => openOnHover(item.id) : undefined}
+                  onMouseLeave={hasChildren ? closeOnHover : undefined}
+                >
                   {hasChildren ? (
                     <button
                       type="button"
-                      onClick={() => toggle(item.label)}
+                      onClick={() => activate(item.id)}
                       aria-expanded={isOpen}
                       aria-haspopup="menu"
                       className="flex items-center gap-1 whitespace-nowrap py-2 text-[14px] font-medium text-cmt-neutral-700 transition-colors hover:text-cmt-neutral-900"
@@ -176,7 +334,7 @@ export default function Header() {
                     </button>
                   ) : (
                     <Link
-                      href={item.href!}
+                      href={item.href}
                       className="whitespace-nowrap py-2 text-[14px] font-medium text-cmt-neutral-700 transition-colors hover:text-cmt-neutral-900"
                     >
                       {item.label}
@@ -188,9 +346,9 @@ export default function Header() {
                       role="menu"
                       className="absolute left-0 top-full z-50 mt-2 min-w-[200px] rounded-cmt-md border border-cmt-neutral-200 bg-white p-1.5 shadow-cmt-md"
                     >
-                      {item.children!.map((child) => (
+                      {item.children.map((child) => (
                         <Link
-                          key={child.href}
+                          key={child.id}
                           href={child.href}
                           role="menuitem"
                           onClick={closeDropdown}
@@ -299,7 +457,13 @@ export default function Header() {
           aria-label="Navigation menu"
         >
           <div className="flex items-center justify-between border-b border-cmt-neutral-200 px-6 py-4">
-            <Image src="/logo.png" alt="CompareMyTrip" width={1400} height={167} className="h-6 w-auto" />
+            <Image
+              src="/comparemytrip-logo-white-plane.png"
+              alt="CompareMyTrip"
+              width={1400}
+              height={167}
+              className="h-6 w-auto"
+            />
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -312,17 +476,17 @@ export default function Header() {
 
           <nav aria-label="Mobile navigation" className="flex flex-col px-6 pt-2">
             {navItems.map((item, i) => {
-              const hasChildren = Boolean(item.children?.length);
-              const isExpanded = expandedMobileItem === item.label;
+              const hasChildren = item.children.length > 0;
+              const isExpanded = expandedMobileItem === item.id;
 
               return (
-                <div key={item.label} className={i > 0 ? "border-t border-cmt-neutral-100" : ""}>
+                <div key={item.id} className={i > 0 ? "border-t border-cmt-neutral-100" : ""}>
                   {hasChildren ? (
                     <>
                       <button
                         type="button"
                         onClick={() =>
-                          setExpandedMobileItem((v) => (v === item.label ? null : item.label))
+                          setExpandedMobileItem((v) => (v === item.id ? null : item.id))
                         }
                         className="flex w-full items-center justify-between py-4 font-display text-[17px] font-semibold text-cmt-neutral-900"
                       >
@@ -336,9 +500,9 @@ export default function Header() {
                       </button>
                       {isExpanded && (
                         <div className="flex flex-col gap-1 pb-4 pl-3">
-                          {item.children!.map((child) => (
+                          {item.children.map((child) => (
                             <Link
-                              key={child.href}
+                              key={child.id}
                               href={child.href}
                               onClick={() => setIsMobileMenuOpen(false)}
                               className="rounded-cmt-control px-3 py-2.5 text-[15px] text-cmt-neutral-600 hover:bg-cmt-neutral-50 hover:text-cmt-neutral-900"
@@ -351,7 +515,7 @@ export default function Header() {
                     </>
                   ) : (
                     <Link
-                      href={item.href!}
+                      href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="block py-4 font-display text-[17px] font-semibold text-cmt-neutral-900"
                     >
@@ -364,6 +528,45 @@ export default function Header() {
           </nav>
 
           <div className="mt-auto flex flex-col gap-3 border-t border-cmt-neutral-200 px-6 pb-8 pt-4">
+            {/* The strip's right half only fits from sm up, so the drawer
+                carries the number and the trips link at this width. */}
+            {showTopBar && (phoneNumber || chatHref || showTrips) && (
+              <div className="flex flex-col gap-3 pb-1">
+                {phoneNumber && (
+                  <a
+                    href={telHref}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex h-11 items-center justify-center gap-2 rounded-cmt-control border border-cmt-neutral-200 text-[15px] font-medium text-cmt-neutral-900"
+                  >
+                    <Phone size={18} strokeWidth={2} aria-hidden="true" />
+                    {phoneNumber}
+                  </a>
+                )}
+                {chatHref && (
+                  <a
+                    href={chatHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex h-11 items-center justify-center gap-2 rounded-cmt-control border border-cmt-neutral-200 text-[15px] font-medium text-cmt-neutral-900"
+                  >
+                    <WhatsAppMark className="size-[18px] text-[#25D366]" />
+                    WhatsApp
+                  </a>
+                )}
+                {showTrips && (
+                  <Link
+                    href={tripsHref}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex h-11 items-center justify-center gap-2 rounded-cmt-control border border-cmt-neutral-200 text-[15px] font-medium text-cmt-neutral-900"
+                  >
+                    <Luggage size={18} strokeWidth={2} aria-hidden="true" />
+                    {tripsLabel}
+                  </Link>
+                )}
+              </div>
+            )}
+
             {user ? (
               <>
                 <Link
@@ -406,5 +609,60 @@ export default function Header() {
         </div>
       )}
     </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* The coupon chip. A code is there to be used, so it copies on click   */
+/* rather than asking to be read off the screen and retyped; the        */
+/* confirmation rides in the label so a screen reader hears it too.     */
+/* Clipboard access can be refused (an insecure origin, a locked-down   */
+/* browser) — the chip then simply stays as it was, and the code is     */
+/* still legible and selectable.                                        */
+/* ------------------------------------------------------------------ */
+
+function CouponCode({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), 1800);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      aria-label={copied ? `Coupon code ${code} copied` : `Copy coupon code ${code}`}
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-cmt-full border border-dashed border-cmt-primary-700 bg-cmt-primary-50 px-2.5 py-0.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-cmt-neutral-900 transition-colors hover:bg-cmt-primary-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+    >
+      <span>{code}</span>
+      {copied ? (
+        <Check size={12} strokeWidth={2.5} aria-hidden="true" />
+      ) : (
+        <Copy size={12} strokeWidth={2} aria-hidden="true" />
+      )}
+    </button>
+  );
+}
+
+/* The WhatsApp glyph, so the link is recognised as WhatsApp rather than as
+   some generic chat bubble. Carried over from the floating button this
+   replaced. */
+function WhatsAppMark({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.347-.347.52-.52.174-.174.232-.297.347-.495.116-.198.058-.372-.058-.52-.116-.15-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+    </svg>
   );
 }

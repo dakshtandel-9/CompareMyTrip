@@ -41,6 +41,12 @@ export type Trip = {
   packageTitle: string;
   travellers: number;
   perPerson: number;
+  /* The coupon, as applied at checkout. Bookings taken before coupons
+     existed carry none of these, and read as a full-price order. */
+  subtotal: number;
+  discount: number;
+  couponCode: string;
+  couponLabel: string;
   amount: number;
   name: string;
   email: string;
@@ -92,6 +98,11 @@ const mapTrip = (id: string, data: StoredTrip): Trip => ({
   packageTitle: text(data.packageTitle),
   travellers: number(data.travellers),
   perPerson: number(data.perPerson),
+  /* Older rows have no subtotal: the amount charged was the subtotal. */
+  subtotal: number(data.subtotal) || number(data.amount),
+  discount: number(data.discount),
+  couponCode: text(data.couponCode),
+  couponLabel: text(data.couponLabel),
   amount: number(data.amount),
   name: text(data.name),
   email: text(data.email),

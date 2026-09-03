@@ -86,14 +86,14 @@ export default function PackageDetailClient() {
 
           <aside className="space-y-4 lg:sticky lg:top-24">
             <BookingCard pkg={pkg} details={details} travellers={travellers} onTravellersChange={setTravellers} onRequestQuote={requestQuote} />
-            <div className="rounded-cmt-md bg-cmt-neutral-900 p-5 text-white"><p className="font-semibold">Why book here</p><p className="mt-1 text-xs leading-5 text-cmt-neutral-300">Your request is shared securely with our GST-verified partners, so you can compare quotes before you pay.</p></div>
+            <div className="rounded-cmt-md bg-cmt-neutral-900 p-5 text-white"><p className="font-semibold">Why book here</p><p className="mt-1 text-xs leading-5 text-cmt-neutral-300">Your request is shared securely with our partners, so you can compare quotes before you pay.</p></div>
           </aside>
         </div>
       </div>
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-cmt-neutral-200 bg-white/95 p-3 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="flex items-center gap-1 text-[10px] text-cmt-neutral-500"><ShieldCheck className="size-3 shrink-0 text-cmt-success-700" strokeWidth={2.5} aria-hidden="true" />GST-verified · per person</p>
+            <p className="text-[10px] text-cmt-neutral-500">Per person</p>
             <p className="mt-0.5 flex items-baseline gap-1.5"><span className="font-display text-lg font-bold">{formatINR(pkg.price)}</span>{discount > 0 && <span className="rounded-cmt-full bg-cmt-success-100 px-2 py-0.5 text-[10px] font-semibold text-cmt-success-700">{discount}% off</span>}</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">

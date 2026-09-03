@@ -281,6 +281,13 @@ export default function AdminTripsList() {
                   <BadgeIndianRupee className="size-4 text-cmt-neutral-400" />
                   {formatINR(trip.amount)}
                 </p>
+                {/* Only where a coupon actually moved the number — every
+                    older booking would otherwise carry a dash. */}
+                {trip.discount > 0 && (
+                  <p className="mt-1 text-xs text-cmt-success-700">
+                    {trip.couponCode} · −{formatINR(trip.discount)} off {formatINR(trip.subtotal)}
+                  </p>
+                )}
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">

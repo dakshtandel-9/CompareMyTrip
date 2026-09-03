@@ -1,86 +1,283 @@
 "use client";
 
 /* ------------------------------------------------------------------ */
-/* Scroll-scrubbed frame sequence, shared by the banner bands.          */
+/* Scroll-scrubbed frame sequence — shared by the hero and the banners.  */
 /*                                                                       */
-/* The naive version of this — request every frame on mount, then run a  */
-/* rAF loop for the life of the page redrawing a full-screen canvas each */
-/* tick — costs the whole page, not just the band that owns it. Three    */
-/* banners doing that were repainting 3.6 megapixels each, every frame,  */
-/* while the hero above them was the thing actually on screen.           */
+/* The version this replaces asked the browser for every frame of the    */
+/* sequence, held an <img> for each one, and called decode() on all of   */
+/* them. For the hero that is 1191 frames: ~95MB over the wire, and      */
+/* ~4.4GB of decoded 1280x720 bitmaps pinned in memory, because an       */
+/* explicitly decoded image the page still references is an image the    */
+/* browser may not throw away. On a phone the tab is killed long before  */
+/* the sequence finishes arriving; on a desktop it stalls, and either    */
+/* way the scrub is left near the opening frames while the section       */
+/* scrolls past. Locally the frames come off disk fast enough to hide    */
+/* all of it, which is why it only shows up once deployed.               */
 /*                                                                       */
-/* So this controller: loads nothing until the band is near the viewport, */
-/* runs its loop only while the band is on screen, keeps a handful of     */
-/* requests in flight instead of hundreds, decodes each frame before      */
-/* counting it ready (an undecoded image decodes on the thread that draws */
-/* it — mid-scrub), sizes the canvas to the footage rather than to the    */
-/* display, and skips any redraw that would put the same frame back.      */
+/* So this controller works to two budgets instead:                      */
+/*                                                                       */
+/*   Bytes.  Only a stride of the source frames is used, chosen from the */
+/*     device tier — a laptop scrubs ~400 of the hero's 1191, a phone    */
+/*     ~200. The rest are never requested.                               */
+/*                                                                       */
+/*   Memory.  At most RESIDENT frame images are alive at once, and       */
+/*     decode() is called only inside a window around the playhead,      */
+/*     biased the way the scroll is travelling. Frames are stored        */
+/*     `immutable, max-age=1y`, so re-creating a dropped one is an       */
+/*     HTTP-cache read rather than a download.                           */
+/*                                                                       */
+/* What stays resident is a coarse skeleton spread across the whole clip */
+/* plus a dense window that travels with the playhead. That is what      */
+/* makes a jump to any point in the scroll land on a picture: the        */
+/* skeleton is always there to draw while the detail arrives behind it.  */
+/*                                                                       */
+/* Loading follows the same shape — a dozen frames spanning the clip     */
+/* first, so it is scrubbable end to end almost immediately, then the    */
+/* detail where the viewer actually is, then the rest of the skeleton.   */
 /* ------------------------------------------------------------------ */
 
-type Options = {
+/** How much the device is asked to carry. */
+type Tier = "high" | "medium" | "low";
+
+export type ScrollFrameSequenceOptions = {
   wrapper: HTMLElement;
   canvas: HTMLCanvasElement;
-  /** Public path holding frame_0001.jpg …, no trailing slash. */
+  /** Base path holding frame_0001.jpg …, no trailing slash. */
   dir: string;
+  /** How many frames the sequence has on the CDN. */
   count: number;
+  /** Fraction of the wrapper's scroll left over after the clip's last
+      frame, holding that frame on screen before the section unpins. */
+  tailHold?: number;
+  /** Progress through the clip, 0 → 1, every frame the loop runs. Stays at
+      1 for the whole of the tail hold. */
+  onProgress?: (progress: number) => void;
+  /** Frames to actually use, per tier. Sequences whose frames are unusually
+      heavy should pass their own; the defaults suit ~80KB frames. */
+  maxFrames?: Partial<Record<Tier, number>>;
 };
 
-/** Requests allowed in flight at once. */
-const MAX_PARALLEL_LOADS = 6;
+/** Requests in flight. The decoder is the bottleneck well before the socket
+    is, so this stays short of what HTTP/2 would happily allow. */
+const PARALLEL: Record<Tier, number> = { high: 8, medium: 6, low: 4 };
 
-/** Seconds for the scrub to settle onto the scroll position. */
-const SCRUB_SETTLE = 0.1;
+/** Frame images alive at once — the memory ceiling. Eviction will not touch
+    the skeleton or the travelling window, so the real figure sits a handful
+    over this rather than exactly on it. */
+const RESIDENT: Record<Tier, number> = { high: 80, medium: 44, low: 26 };
 
-/** How early the frames start downloading, in px of scroll. */
-const PRELOAD_MARGIN = "1200px 0px";
+/** Frames decoded ahead of the playhead, in the direction of travel. An
+    undecoded image decodes on the thread that draws it — mid-scrub. This is
+    the number that actually costs memory: a decoded 1280x720 frame is 3.7MB,
+    against ~80KB for the same frame still compressed. */
+const DECODE_AHEAD: Record<Tier, number> = { high: 20, medium: 14, low: 8 };
+
+/** And behind it, for scrubbing back up. */
+const DECODE_BEHIND: Record<Tier, number> = { high: 6, medium: 5, low: 3 };
+
+/** Frames of the source sequence actually used. */
+const DEFAULT_MAX_FRAMES: Record<Tier, number> = { high: 400, medium: 200, low: 110 };
+
+/** Load passes that stay resident for the life of the page: every 16th of
+    the frames in play, spread across the whole clip. */
+const SKELETON_PASS = 2;
+
+/** And the pass fetched before anything else — roughly a dozen frames, which
+    is a scrubbable clip end to end for about the weight of one photograph. */
+const BOOTSTRAP_PASS = 1;
+
+/** Slack either side of the travelling window before a frame is dropped, so
+    a scrub that reverses does not immediately re-request what it just had. */
+const EVICT_MARGIN = 6;
+
+/** Seconds for the scrub to settle onto the scroll position. Short enough
+    that the frame under the cursor is the frame being looked at, long enough
+    to absorb a coarse wheel notch. */
+const SCRUB_SETTLE = 0.075;
+
+/** Decodes running at once, kept clear of the fetches. */
+const MAX_DECODES = 4;
+
+/** Requests before a frame is written off — a 404 must not be retried for
+    the life of the page. */
+const MAX_ATTEMPTS = 3;
+
+/** The canvas is never given more pixels than this, whatever the display
+    claims: past 2x we upscale the source at four times the fill cost. */
+const MAX_PIXEL_RATIO = 2;
+
+/** How early frames start arriving, in px of scroll. */
+const PRELOAD_MARGIN = "1400px 0px";
 
 /** How early the loop wakes up, so the first frame is never a blank box. */
 const RUN_MARGIN = "300px 0px";
 
-const frameSrc = (dir: string, index: number) =>
-  `${dir}/frame_${String(index + 1).padStart(4, "0")}.jpg`;
+/** Rescheduling walks the sequence, so it waits for the playhead to move or
+    for a beat to pass rather than running on every animation frame. */
+const SCHEDULE_INTERVAL_MS = 200;
 
-const isReady = (img: HTMLImageElement | undefined) =>
-  !!img && img.complete && img.naturalWidth > 0 && img.dataset.decoded === "1";
+const IDLE = 0;
+const LOADING = 1;
+const READY = 2;
+const FAILED = 3;
 
-export function startScrollFrameSequence({ wrapper, canvas, dir, count }: Options) {
+const clamp01 = (value: number) => (value < 0 ? 0 : value > 1 ? 1 : value);
+
+const frameSrc = (dir: string, sourceIndex: number) =>
+  `${dir}/frame_${String(sourceIndex + 1).padStart(4, "0")}.jpg`;
+
+/* What the device is asked to carry. deviceMemory is Chromium-only, so its
+   absence reads as "desktop unless the pointer says otherwise" rather than
+   as a low-memory machine — Safari on a MacBook is not a budget phone. */
+function deviceTier(): Tier {
+  if (typeof navigator === "undefined") return "medium";
+
+  const nav = navigator as Navigator & {
+    deviceMemory?: number;
+    connection?: { saveData?: boolean; effectiveType?: string };
+  };
+
+  const connection = nav.connection;
+  if (connection?.saveData) return "low";
+  if (connection?.effectiveType && /^(slow-)?2g$/.test(connection.effectiveType)) {
+    return "low";
+  }
+
+  const coarse =
+    typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+  const memory = nav.deviceMemory ?? (coarse ? 4 : 8);
+  const cores = navigator.hardwareConcurrency ?? (coarse ? 4 : 8);
+
+  if (memory <= 2 || cores <= 2) return "low";
+  if (memory <= 4 || cores <= 4 || coarse) return "medium";
+  return "high";
+}
+
+export function startScrollFrameSequence({
+  wrapper,
+  canvas,
+  dir,
+  count,
+  tailHold = 0,
+  onProgress,
+  maxFrames,
+}: ScrollFrameSequenceOptions) {
   // Opaque: the frame covers the whole box, so there is nothing behind it
-  // worth blending against.
+  // worth blending each pixel against.
   const ctx = canvas.getContext("2d", { alpha: false });
   if (!ctx) return () => {};
 
-  const images: HTMLImageElement[] = new Array(count);
+  const tier = deviceTier();
+  const parallel = PARALLEL[tier];
+  const resident = RESIDENT[tier];
+  const decodeAhead = DECODE_AHEAD[tier];
+  const decodeBehind = DECODE_BEHIND[tier];
+
+  // A hold of the entire section would leave nothing to scrub through.
+  const hold = Math.min(Math.max(tailHold, 0), 0.9);
+
+  /* Which of the source frames this device actually scrubs. The last one is
+     always in, so the clip ends on the image it was cut to end on. */
+  const budget = Math.max(2, Math.floor(maxFrames?.[tier] ?? DEFAULT_MAX_FRAMES[tier]));
+  const stride = Math.max(1, Math.ceil(count / budget));
+  const total = Math.max(2, Math.min(count, Math.floor((count - 1) / stride) + 1));
+  const lastIndex = total - 1;
+  const sourceOf = (index: number) => (index >= lastIndex ? count - 1 : index * stride);
+
+  /* Parallel arrays rather than objects: this is walked on every scheduling
+     pass, and 400 small objects is 400 pointer chases. */
+  const status = new Uint8Array(total);
+  const attempts = new Uint8Array(total);
+  const pass = new Uint8Array(total);
+  const decodeAsked = new Uint8Array(total);
+  const images: (HTMLImageElement | undefined)[] = new Array(total);
+
+  /* Load order, coarse to fine: the two ends, then every 64th frame, then
+     every 32nd, down to every one. */
+  const UNASSIGNED = 255;
+  pass.fill(UNASSIGNED);
+  pass[0] = 0;
+  pass[lastIndex] = 0;
+  let passNumber = 0;
+  for (let step = 64; step >= 1; step >>= 1) {
+    for (let i = 0; i < total; i += step) {
+      if (pass[i] === UNASSIGNED) pass[i] = passNumber;
+    }
+    passNumber += 1;
+  }
+  for (let i = 0; i < total; i++) if (pass[i] === UNASSIGNED) pass[i] = passNumber;
+
+  const isSkeleton = (index: number) => pass[index] <= SKELETON_PASS;
+
+  let skeletonCount = 0;
+  for (let i = 0; i < total; i++) if (isSkeleton(i)) skeletonCount += 1;
+
+  /* Whatever the skeleton does not occupy is the dense window that travels
+     with the playhead, weighted ahead of it because that is where the scroll
+     is going. */
+  const windowSlots = Math.max(8, resident - skeletonCount);
+  const aheadSpan = Math.max(4, Math.round(windowSlots * 0.72));
+  const behindSpan = Math.max(2, windowSlots - aheadSpan);
 
   let currentFrame = 0;
+  let playhead = 0;
+  let direction = 1;
   let rafId = 0;
   let cancelled = false;
   let running = false;
+  let loadStarted = false;
   let lastTime = 0;
 
   let lastDrawnFrame = -1;
   let needsRedraw = true;
 
-  /* Cached on resize: reading it per frame forces a layout per frame. */
+  let inFlight = 0;
+  let decoding = 0;
+  let liveImages = 0;
+
+  /* Cached in measure(): reading either per frame forces a layout per frame. */
   let scrollableHeight = 0;
-  /* Learned from the first frame that arrives, so the canvas is never
-     given more pixels than the footage actually has. */
+  let wrapperTop = 0;
+
+  /* Learned from the first frame that lands, so the canvas is never given
+     more pixels than the footage has to fill them with. */
   let sourceWidth = 0;
 
-  const nearestReady = (frameIndex: number) => {
-    for (let offset = 1; offset < count; offset++) {
-      const before = images[frameIndex - offset];
-      if (isReady(before)) return before;
-      const after = images[frameIndex + offset];
-      if (isReady(after)) return after;
+  const windowStart = () => playhead - (direction >= 0 ? behindSpan : aheadSpan);
+  const windowEnd = () => playhead + (direction >= 0 ? aheadSpan : behindSpan);
+
+  /* ---------------- drawing ---------------- */
+
+  const drawable = (index: number) => {
+    const img = images[index];
+    return img && img.complete && img.naturalWidth > 0 ? img : undefined;
+  };
+
+  /* While the sequence is still filling in, fall back to the closest frame
+     that has arrived so the canvas never blanks out mid-scrub. Bounded: with
+     a skeleton down, a hit is never far, and an unbounded scan of the whole
+     sequence is not something the loop can repeat every frame. */
+  const nearestDrawable = (index: number) => {
+    const reach = Math.min(total, Math.max(96, aheadSpan * 2));
+    for (let offset = 1; offset <= reach; offset++) {
+      const before = index - offset;
+      if (before >= 0) {
+        const img = drawable(before);
+        if (img) return img;
+      }
+      const after = index + offset;
+      if (after < total) {
+        const img = drawable(after);
+        if (img) return img;
+      }
     }
     return undefined;
   };
 
-  const drawFrame = (frameIndex: number) => {
-    if (!needsRedraw && frameIndex === lastDrawnFrame) return;
+  const drawFrame = (index: number) => {
+    if (!needsRedraw && index === lastDrawnFrame) return;
 
-    const exact = images[frameIndex];
-    const img = isReady(exact) ? exact : nearestReady(frameIndex);
+    const img = drawable(index) ?? nearestDrawable(index);
     if (!img) return;
 
     const canvasWidth = canvas.width;
@@ -107,105 +304,246 @@ export function startScrollFrameSequence({ wrapper, canvas, dir, count }: Option
       drawHeight,
     );
 
-    lastDrawnFrame = frameIndex;
+    lastDrawnFrame = index;
     needsRedraw = false;
   };
 
-  const resize = () => {
+  /* ---------------- geometry ---------------- */
+
+  const measure = () => {
     const box = canvas.parentElement;
     const width = box?.clientWidth ?? window.innerWidth;
     const height = box?.clientHeight ?? window.innerHeight;
 
     // Match the display, but never ask for more pixels than the footage has.
     const cap = sourceWidth > 0 ? Math.max(1, sourceWidth / Math.max(width, 1)) : 2;
-    const scale = Math.min(window.devicePixelRatio || 1, cap);
+    const scale = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO, cap);
 
-    canvas.width = Math.round(width * scale);
-    canvas.height = Math.round(height * scale);
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
+    const nextWidth = Math.max(1, Math.round(width * scale));
+    const nextHeight = Math.max(1, Math.round(height * scale));
+
+    // Assigning either clears the backing store, so only do it on a change.
+    if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
+      canvas.width = nextWidth;
+      canvas.height = nextHeight;
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
+      needsRedraw = true;
+    }
 
     scrollableHeight = wrapper.offsetHeight - window.innerHeight;
+    wrapperTop = wrapper.getBoundingClientRect().top + window.scrollY;
+  };
 
-    // Resizing the backing store clears it.
-    needsRedraw = true;
-    drawFrame(Math.round(currentFrame));
+  /* Progress through the clip. The tail is the slice of the scroll after the
+     last frame, where progress stays pinned at 1 — without it the sequence
+     lands on its final frame at the exact pixel the section unpins, so the
+     end of the clip is never actually seen. */
+  const clipProgress = () => {
+    if (scrollableHeight <= 0) return 0;
+    const scrolled = window.scrollY - wrapperTop;
+    return clamp01(clamp01(scrolled / scrollableHeight) / (1 - hold));
   };
 
   /* ---------------- loading ---------------- */
 
-  const queue: number[] = [];
-  let inFlight = 0;
-  let loadStarted = false;
+  const release = (index: number) => {
+    const img = images[index];
+    if (!img) return;
 
-  const startLoad = (frameIndex: number) => {
+    img.onload = null;
+    img.onerror = null;
+    // Aborts a request still in flight and lets the decoded bitmap go. The
+    // bytes stay in the HTTP cache, so coming back costs a decode, not a
+    // round trip. removeAttribute rather than src="", which some browsers
+    // read as a request for the page's own URL.
+    img.removeAttribute("src");
+
+    images[index] = undefined;
+    decodeAsked[index] = 0;
+    liveImages -= 1;
+    if (status[index] === LOADING) inFlight -= 1;
+    status[index] = IDLE;
+    if (lastDrawnFrame === index) needsRedraw = true;
+  };
+
+  /* Drops the frames furthest from the playhead until the sequence is back
+     inside its budget. The skeleton and the travelling window are off
+     limits — between them they are sized to fit, so there is always
+     something else to give up. */
+  const evict = () => {
+    const protectedFrom = windowStart() - EVICT_MARGIN;
+    const protectedTo = windowEnd() + EVICT_MARGIN;
+
+    while (liveImages > resident) {
+      let worst = -1;
+      let worstDistance = -1;
+
+      for (let i = 0; i < total; i++) {
+        if (!images[i] || status[i] === LOADING || isSkeleton(i)) continue;
+        if (i >= protectedFrom && i <= protectedTo) continue;
+
+        const distance = Math.abs(i - playhead);
+        if (distance > worstDistance) {
+          worstDistance = distance;
+          worst = i;
+        }
+      }
+
+      if (worst < 0) return;
+      release(worst);
+    }
+  };
+
+  const startLoad = (index: number) => {
     const img = new window.Image();
     img.decoding = "async";
-    images[frameIndex] = img;
+    images[index] = img;
+    status[index] = LOADING;
+    liveImages += 1;
+    inFlight += 1;
 
-    const settled = () => {
+    const settled = (ok: boolean) => {
+      // Released mid-flight: release() has already done the accounting.
+      if (cancelled || images[index] !== img) return;
+
       inFlight -= 1;
-      if (Math.abs(frameIndex - Math.round(currentFrame)) <= 1) needsRedraw = true;
+      status[index] = READY;
+
+      if (ok) {
+        if (sourceWidth === 0 && img.naturalWidth > 0) {
+          sourceWidth = img.naturalWidth;
+          // First frame in: re-measure now the footage's size is known.
+          measure();
+        }
+        // Only the frame on screen right now is worth a repaint.
+        if (Math.abs(index - playhead) <= 1) needsRedraw = true;
+      } else {
+        attempts[index] += 1;
+        release(index);
+        // Back to IDLE unless it has failed too often, so a dropped
+        // connection costs a retry rather than the frame.
+        if (attempts[index] >= MAX_ATTEMPTS) status[index] = FAILED;
+      }
+
       pump();
     };
 
-    const decoded = () => {
-      img.dataset.decoded = "1";
+    img.onload = () => settled(true);
+    img.onerror = () => settled(false);
+    img.src = frameSrc(dir, sourceOf(index));
+  };
 
-      if (sourceWidth === 0 && img.naturalWidth > 0) {
-        sourceWidth = img.naturalWidth;
-        // First frame in: re-size now that the footage's own size is known.
-        resize();
+  /* Worth requesting next, in this order: the coarsest pass, so the clip is
+     scrubbable end to end; then the travelling window, nearest the playhead
+     first; then the rest of the skeleton. Everything else waits for the
+     window to reach it. */
+  const nextToLoad = () => {
+    const from = windowStart();
+    const to = windowEnd();
+
+    let best = -1;
+    let bestScore = Infinity;
+
+    for (let i = 0; i < total; i++) {
+      if (status[i] !== IDLE) continue;
+
+      let score: number;
+      if (pass[i] <= BOOTSTRAP_PASS) {
+        score = pass[i] * 4096 + Math.abs(i - playhead);
+      } else if (i >= from && i <= to) {
+        score = 1e6 + Math.abs(i - playhead);
+      } else if (isSkeleton(i)) {
+        score = 2e6 + pass[i] * 4096 + Math.abs(i - playhead);
+      } else {
+        continue;
       }
 
-      settled();
-    };
+      if (score < bestScore) {
+        bestScore = score;
+        best = i;
+      }
+    }
 
-    img.onload = () => {
-      if (typeof img.decode === "function") img.decode().then(decoded, decoded);
-      else decoded();
-    };
-    img.onerror = settled;
-
-    inFlight += 1;
-    img.src = frameSrc(dir, frameIndex);
+    return best;
   };
 
   function pump() {
-    while (inFlight < MAX_PARALLEL_LOADS && queue.length > 0) {
-      startLoad(queue.shift()!);
+    if (cancelled || !loadStarted) return;
+    while (inFlight < parallel) {
+      const index = nextToLoad();
+      if (index < 0) return;
+      startLoad(index);
     }
   }
+
+  /* Decoding is what makes the scrub smooth: an image drawn before it is
+     decoded decodes synchronously, on the frame it first appears in. So the
+     window either side of the playhead is decoded up front, weighted the way
+     the scroll is travelling. */
+  const decodeWindow = () => {
+    const from = playhead - (direction >= 0 ? decodeBehind : decodeAhead);
+    const to = playhead + (direction >= 0 ? decodeAhead : decodeBehind);
+
+    for (let i = from; i <= to && decoding < MAX_DECODES; i++) {
+      if (i < 0 || i >= total) continue;
+      if (status[i] !== READY || decodeAsked[i]) continue;
+
+      const img = images[i];
+      if (!img) continue;
+
+      decodeAsked[i] = 1;
+
+      if (typeof img.decode !== "function") continue;
+
+      decoding += 1;
+      const done = () => {
+        decoding -= 1;
+      };
+      img.decode().then(done, done);
+    }
+  };
 
   const beginLoading = () => {
     if (loadStarted) return;
     loadStarted = true;
-    for (let i = 0; i < count; i++) queue.push(i);
     pump();
   };
 
   /* ---------------- loop ---------------- */
 
-  const targetFrame = () => {
-    if (scrollableHeight <= 0) return 0;
-    const progress = -wrapper.getBoundingClientRect().top / scrollableHeight;
-    return Math.min(Math.max(progress, 0), 1) * (count - 1);
-  };
+  let lastScheduled = 0;
+  let lastScheduledFrame = -1;
 
   const tick = (time: number) => {
     if (cancelled || !running) return;
+    rafId = requestAnimationFrame(tick);
 
     const delta = lastTime === 0 ? 1 / 60 : Math.min((time - lastTime) / 1000, 0.1);
     lastTime = time;
 
-    const target = targetFrame();
+    const progress = clipProgress();
+    const target = progress * lastIndex;
+
     // Eased against elapsed time, so the settle feels the same whatever the
     // display refreshes at.
+    const previous = currentFrame;
     currentFrame += (target - currentFrame) * (1 - Math.exp(-delta / SCRUB_SETTLE));
     if (Math.abs(target - currentFrame) < 0.25) currentFrame = target;
+    if (currentFrame !== previous) direction = currentFrame > previous ? 1 : -1;
 
-    drawFrame(Math.round(currentFrame));
-    rafId = requestAnimationFrame(tick);
+    playhead = Math.round(currentFrame);
+
+    drawFrame(playhead);
+    onProgress?.(progress);
+
+    if (playhead !== lastScheduledFrame || time - lastScheduled > SCHEDULE_INTERVAL_MS) {
+      lastScheduledFrame = playhead;
+      lastScheduled = time;
+      evict();
+      pump();
+      decodeWindow();
+    }
   };
 
   const start = () => {
@@ -215,18 +553,25 @@ export function startScrollFrameSequence({ wrapper, canvas, dir, count }: Option
     rafId = requestAnimationFrame(tick);
   };
 
+  /* Scrolled past the band, the loop has nothing to say — and every frame it
+     keeps taking is a frame the sections below it do not get. */
   const stop = () => {
     running = false;
     cancelAnimationFrame(rafId);
   };
 
-  let resizeScheduled = false;
-  const onResize = () => {
-    if (resizeScheduled) return;
-    resizeScheduled = true;
+  /* ---------------- wiring ---------------- */
+
+  let measureScheduled = false;
+  const remeasure = () => {
+    if (measureScheduled || cancelled) return;
+    measureScheduled = true;
     requestAnimationFrame(() => {
-      resizeScheduled = false;
-      resize();
+      measureScheduled = false;
+      if (cancelled) return;
+      measure();
+      drawFrame(playhead);
+      onProgress?.(clipProgress());
     });
   };
 
@@ -244,16 +589,25 @@ export function startScrollFrameSequence({ wrapper, canvas, dir, count }: Option
     { rootMargin: RUN_MARGIN },
   );
 
-  resize();
+  // The wrapper is sized in vh, so its height moves with the viewport — and
+  // on mobile the viewport moves whenever the URL bar does.
+  const resizeObserver = new ResizeObserver(remeasure);
+
+  measure();
   preloadObserver.observe(wrapper);
   runObserver.observe(wrapper);
-  window.addEventListener("resize", onResize);
+  resizeObserver.observe(wrapper);
+  window.addEventListener("resize", remeasure, { passive: true });
+  window.addEventListener("orientationchange", remeasure, { passive: true });
 
   return () => {
     cancelled = true;
     stop();
     preloadObserver.disconnect();
     runObserver.disconnect();
-    window.removeEventListener("resize", onResize);
+    resizeObserver.disconnect();
+    window.removeEventListener("resize", remeasure);
+    window.removeEventListener("orientationchange", remeasure);
+    for (let i = 0; i < total; i++) release(i);
   };
 }

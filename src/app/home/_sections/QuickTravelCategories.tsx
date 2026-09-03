@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 import { Glyph } from "@/lib/adminIcons";
 import { useSiteContent } from "@/lib/useSiteContent";
 import ContentImage from "../_components/ContentImage";
+import RailButton from "../_components/RailButton";
 import SectionHeader from "../_components/SectionHeader";
 
 /* ------------------------------------------------------------------ */
@@ -31,30 +31,6 @@ import SectionHeader from "../_components/SectionHeader";
 /* Two cards per press, which keeps a partial card in view as the hint
    that the rail continues. */
 const CARDS_PER_PRESS = 2;
-
-function RailButton({
-  label,
-  icon: Icon,
-  disabled,
-  onClick,
-}: {
-  label: string;
-  icon: LucideIcon;
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      disabled={disabled}
-      onClick={onClick}
-      className="grid size-11 place-items-center rounded-cmt-full border bg-white transition-[background-color,border-color,color,opacity] duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 enabled:border-cmt-primary-400 enabled:text-cmt-neutral-900 enabled:hover:border-cmt-primary-500 enabled:hover:bg-cmt-primary-50 disabled:cursor-not-allowed disabled:border-cmt-neutral-200 disabled:text-cmt-neutral-300"
-    >
-      <Icon className="size-[18px]" strokeWidth={2.5} aria-hidden="true" />
-    </button>
-  );
-}
 
 export default function QuickTravelCategories() {
   const { categories } = useSiteContent();

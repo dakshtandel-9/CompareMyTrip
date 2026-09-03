@@ -22,14 +22,26 @@ import { useUserProfile } from "@/lib/firebase/useUserProfile";
    can set their own password or link Google to that same account later from
    /account. */
 
-type Props = { packageId: string; travellers: number; disabled?: boolean };
+type Props = {
+  packageId: string;
+  travellers: number;
+  /** The coupon the traveller has applied, owned by CheckoutPanels. Posted
+      as a code only — what it is worth is decided again on the server. */
+  couponCode: string;
+  disabled?: boolean;
+};
 
 const FIELD =
   "mt-2 h-12 w-full rounded-cmt-control border bg-white px-4 text-base text-cmt-neutral-900 placeholder:text-cmt-neutral-400 transition-colors duration-150 focus:border-cmt-primary-500 focus:outline-2 focus:-outline-offset-2 focus:outline-cmt-primary-500";
 
 const LABEL = "block font-body text-sm font-semibold text-cmt-neutral-900";
 
-export default function CheckoutForm({ packageId, travellers, disabled }: Props) {
+export default function CheckoutForm({
+  packageId,
+  travellers,
+  couponCode,
+  disabled,
+}: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [provisioning, setProvisioning] = useState(false);
   const { status, profile } = useUserProfile();
@@ -107,6 +119,7 @@ export default function CheckoutForm({ packageId, travellers, disabled }: Props)
     <form action="/api/payu/initiate" method="post" onSubmit={handleSubmit} noValidate>
       <input type="hidden" name="packageId" value={packageId} />
       <input type="hidden" name="travellers" value={travellers} />
+      <input type="hidden" name="coupon" value={couponCode} />
       {/* Filled in by handleSubmit just before the POST, so the token is
           always fresh rather than minted on render and possibly expired. */}
       <input type="hidden" name="idToken" defaultValue="" />

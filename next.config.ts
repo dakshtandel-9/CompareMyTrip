@@ -28,6 +28,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  async redirects() {
+    return [
+      {
+        /* The homepage CRM grew into the whole site's content editor and moved
+           to /admin/content. Bookmarks and open tabs still point at the old
+           path, so send them on rather than 404. */
+        source: "/admin/homepage",
+        destination: "/admin/content",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

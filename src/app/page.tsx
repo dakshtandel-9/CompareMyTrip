@@ -23,7 +23,7 @@ import TrustAndNewsletter from "./home/_sections/TrustAndNewsletter";
 export const metadata: Metadata = {
   title: "CompareMyTrip — Compare travel packages before you book",
   description:
-    "Compare curated travel packages side by side — full itineraries, inclusions and cancellation terms published up front, from GST-verified operators across India and beyond.",
+    "Compare curated travel packages side by side — full itineraries, inclusions and cancellation terms published up front, from trusted operators across India and beyond.",
 };
 
 export default function HomePage() {

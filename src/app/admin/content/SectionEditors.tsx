@@ -6,11 +6,21 @@ import {
   Compass,
   Globe2,
   HelpCircle,
+  Image as ImageIcon,
+  KeyRound,
   Layers,
+  ListOrdered,
+  MapPin,
+  MessageSquare,
   Mail,
   MessageSquareQuote,
   Mountain,
+  ChevronDown,
+  ChevronUp,
+  Navigation,
+  Plus,
   ShieldCheck,
+  Trash2,
   Sparkles,
   Star,
   TrainFront,
@@ -24,7 +34,11 @@ import {
   type DomesticContent,
   type FaqContent,
   type FeaturedContent,
+  type AuthContent,
+  type AuthPageContent,
+  type ContactContent,
   type GuidesContent,
+  type HeaderContent,
   type InternationalContent,
   type LatestDealsContent,
   type NewsletterContent,
@@ -34,6 +48,7 @@ import {
   type VisaType,
   type WeekendTreksContent,
   type WhyUsContent,
+  nextId,
 } from "@/lib/siteContent";
 import IconPicker from "../_components/IconPicker";
 import AvatarField from "../_components/AvatarField";
@@ -44,7 +59,7 @@ import {
   SectionHeaderFields,
   SelectField,
 } from "../_components/EditorParts";
-import { Card, FieldLabel, TextArea, TextField } from "../_components/ui";
+import { Button, Card, FieldLabel, TextArea, TextField, Toggle } from "../_components/ui";
 
 /* ------------------------------------------------------------------ */
 /* One editor per homepage section.                                    */
@@ -57,6 +72,842 @@ import { Card, FieldLabel, TextArea, TextField } from "../_components/ui";
 
 const grid2 = "grid gap-4 sm:grid-cols-2";
 const grid3 = "grid gap-4 sm:grid-cols-3";
+
+/* ---------------------------- Contact ----------------------------- */
+
+/* The /contact page's copy, the business details that shipped empty, and the
+   optional bands. Not the enquiry form — its fields, validation and where it
+   submits are code — and not the two link targets, only their wording. */
+
+/* How the value is linked on the page: email → mailto:, phone → tel:, and
+   text is printed as-is. */
+const CHANNEL_KINDS = ["email", "phone", "text"] as const;
+
+export function ContactEditor({
+  value,
+  onChange,
+}: {
+  value: ContactContent;
+  onChange: (next: ContactContent) => void;
+}) {
+  const filledChannels = value.channels.filter((c) => c.value.trim() !== "").length;
+
+  return (
+    <div className="space-y-5">
+      <Card
+        icon={<MessageSquare className="size-5" />}
+        title="Page heading"
+        description="The band across the top of the contact page."
+      >
+        <TextField
+          label="Eyebrow"
+          value={value.eyebrow}
+          onChange={(eyebrow) => onChange({ ...value, eyebrow })}
+          placeholder="Contact"
+        />
+        <TextField
+          className="mt-4"
+          label="Heading"
+          value={value.title}
+          onChange={(title) => onChange({ ...value, title })}
+          placeholder="Tell us about the trip."
+        />
+        <TextArea
+          className="mt-4"
+          label="Sub-line"
+          value={value.description}
+          onChange={(description) => onChange({ ...value, description })}
+        />
+      </Card>
+
+      <Card
+        icon={<MessageSquare className="size-5" />}
+        title="Above the enquiry form"
+        description="The form's own fields, validation and where it sends to are fixed — this is the heading over them."
+      >
+        <TextField
+          label="Heading"
+          value={value.formTitle}
+          onChange={(formTitle) => onChange({ ...value, formTitle })}
+          placeholder="Send an enquiry"
+        />
+        <TextArea
+          className="mt-4"
+          label="Sub-line"
+          value={value.formDescription}
+          onChange={(formDescription) => onChange({ ...value, formDescription })}
+        />
+      </Card>
+
+      <Card
+        icon={<ListOrdered className="size-5" />}
+        title={`What happens next (${value.steps.length})`}
+        description="The numbered steps in the sidebar. Numbering follows the order here."
+      >
+        <TextField
+          label="Card heading"
+          value={value.sidebarTitle}
+          onChange={(sidebarTitle) => onChange({ ...value, sidebarTitle })}
+          placeholder="What happens next"
+        />
+
+        <div className="mt-4">
+          <ListEditor
+            items={value.steps}
+            onChange={(steps) => onChange({ ...value, steps })}
+            idPrefix="contact-step"
+            addLabel="Add step"
+            summary={(item) => item.title || "Untitled"}
+            blank={{ title: "New step", description: "" }}
+          >
+            {(item, patch) => (
+              <div className="space-y-4">
+                <TextField
+                  label="Title"
+                  value={item.title}
+                  onChange={(title) => patch({ title })}
+                  placeholder="Your enquiry reaches the travel desk"
+                />
+                <TextArea
+                  label="Description"
+                  value={item.description}
+                  onChange={(description) => patch({ description })}
+                />
+              </div>
+            )}
+          </ListEditor>
+        </div>
+      </Card>
+
+      <Card
+        icon={<Mail className="size-5" />}
+        title={`Reach us directly (${filledChannels} filled in)`}
+        description="Your public contact details. A row with an empty value is left out, and the whole block disappears when nothing is filled in — so it never shows a blank email line."
+      >
+        <TextField
+          label="Block heading"
+          value={value.directTitle}
+          onChange={(directTitle) => onChange({ ...value, directTitle })}
+          placeholder="Reach us directly"
+        />
+
+        <div className="mt-4">
+          <ListEditor
+            items={value.channels}
+            onChange={(channels) => onChange({ ...value, channels })}
+            idPrefix="contact-channel"
+            addLabel="Add a way to reach you"
+            minItems={0}
+            summary={(item) =>
+              item.value.trim() === ""
+                ? `${item.label || "Untitled"} — empty, not shown`
+                : `${item.label || "Untitled"} · ${item.value}`
+            }
+            blank={{ icon: "Mail", label: "Email", value: "", kind: "email" as const }}
+          >
+            {(item, patch) => (
+              <div className="space-y-4">
+                <div className={grid2}>
+                  <IconPicker value={item.icon} onChange={(icon) => patch({ icon })} />
+                  <TextField
+                    label="Label"
+                    value={item.label}
+                    onChange={(label) => patch({ label })}
+                    placeholder="Email"
+                    hint="Read out by screen readers before the value."
+                  />
+                </div>
+                <div className={grid2}>
+                  <TextField
+                    label="Value"
+                    value={item.value}
+                    onChange={(value_) => patch({ value: value_ })}
+                    placeholder="support@comparemytrip.com"
+                    hint="Leave blank to keep this row off the page."
+                  />
+                  <SelectField
+                    label="Behaves as"
+                    value={item.kind}
+                    onChange={(kind) => patch({ kind })}
+                    options={CHANNEL_KINDS}
+                    hint="email opens the mail app · phone dials · text is not a link."
+                  />
+                </div>
+              </div>
+            )}
+          </ListEditor>
+        </div>
+
+        <TextField
+          className="mt-4"
+          label="Opening hours"
+          value={value.hours}
+          onChange={(hours) => onChange({ ...value, hours })}
+          placeholder="Mon–Sat, 9:30am – 7:00pm IST"
+          hint="Leave blank to leave the hours line off."
+        />
+      </Card>
+
+      <Card
+        icon={<Compass className="size-5" />}
+        title="Browse packages link"
+        description="The text link at the bottom of the sidebar. It always goes to the packages page."
+      >
+        <div className={grid2}>
+          <TextField
+            label="Prompt"
+            value={value.browsePrompt}
+            onChange={(browsePrompt) => onChange({ ...value, browsePrompt })}
+            placeholder="Would rather look around first?"
+          />
+          <TextField
+            label="Link text"
+            value={value.browseLabel}
+            onChange={(browseLabel) => onChange({ ...value, browseLabel })}
+            placeholder="Browse packages"
+          />
+        </div>
+      </Card>
+
+      <Card
+        icon={<MapPin className="size-5" />}
+        title={`Offices (${value.offices.items.length})`}
+        description="The band of address cards. It stays off the page until at least one office is added."
+      >
+        <Toggle
+          label="Show the offices band"
+          description={
+            value.offices.enabled
+              ? value.offices.items.length > 0
+                ? "Live on the contact page."
+                : "On, but nothing to show yet — add an office below."
+              : "Hidden, whatever is listed below."
+          }
+          checked={value.offices.enabled}
+          onChange={(enabled) =>
+            onChange({ ...value, offices: { ...value.offices, enabled } })
+          }
+        />
+
+        <TextField
+          className="mt-4"
+          label="Band heading"
+          value={value.offices.title}
+          onChange={(title) => onChange({ ...value, offices: { ...value.offices, title } })}
+          placeholder="Where we are"
+        />
+
+        <div className="mt-4">
+          <ListEditor
+            items={value.offices.items}
+            onChange={(items) => onChange({ ...value, offices: { ...value.offices, items } })}
+            idPrefix="contact-office"
+            addLabel="Add office"
+            minItems={0}
+            summary={(item) => item.city || "Untitled"}
+            blank={{ city: "New office", note: "", address: "" }}
+          >
+            {(item, patch) => (
+              <div className="space-y-4">
+                <div className={grid2}>
+                  <TextField
+                    label="City"
+                    value={item.city}
+                    onChange={(city) => patch({ city })}
+                    placeholder="Mumbai"
+                  />
+                  <TextField
+                    label="Note"
+                    value={item.note}
+                    onChange={(note) => patch({ note })}
+                    placeholder="Head office"
+                    hint="Optional — the small gold line above the address."
+                  />
+                </div>
+                <TextArea
+                  label="Address"
+                  value={item.address}
+                  onChange={(address) => patch({ address })}
+                />
+              </div>
+            )}
+          </ListEditor>
+        </div>
+      </Card>
+
+    </div>
+  );
+}
+
+/* ----------------------------- Auth ------------------------------- */
+
+/* Copy, icons and artwork for the three sign-in surfaces. Deliberately no
+   field labels, placeholders, button text or routes: those belong to the
+   forms, and the forms are code. Nothing here can change what a screen does,
+   only what it says and shows. */
+
+/** The artwork column and headings, shared by the login and signup pages. */
+function AuthPageFields({
+  value,
+  onChange,
+}: {
+  value: AuthPageContent;
+  onChange: (next: AuthPageContent) => void;
+}) {
+  return (
+    <>
+      <div className={grid2}>
+        <TextField
+          label="Heading"
+          value={value.title}
+          onChange={(title) => onChange({ ...value, title })}
+          placeholder="Welcome back!"
+        />
+        <TextField
+          label="Sub-line"
+          value={value.subtitle}
+          onChange={(subtitle) => onChange({ ...value, subtitle })}
+          placeholder="Log in to continue…"
+        />
+      </div>
+
+      <div className={`${grid2} mt-4`}>
+        <TextField
+          label="Top-right prompt"
+          value={value.navPrompt}
+          onChange={(navPrompt) => onChange({ ...value, navPrompt })}
+          placeholder="New here?"
+          hint="The plain text before the link."
+        />
+        <TextField
+          label="Top-right link text"
+          value={value.navLinkLabel}
+          onChange={(navLinkLabel) => onChange({ ...value, navLinkLabel })}
+          placeholder="Sign up"
+          hint="Where it goes is fixed — login and signup point at each other."
+        />
+      </div>
+    </>
+  );
+}
+
+function AuthArtworkFields({
+  value,
+  onChange,
+}: {
+  value: AuthPageContent;
+  onChange: (next: AuthPageContent) => void;
+}) {
+  return (
+    <>
+      <ImageField
+        label="Photo"
+        value={value.image}
+        onChange={(image) => onChange({ ...value, image })}
+      />
+      <TextField
+        className="mt-4"
+        label="Photo description"
+        value={value.imageAlt}
+        onChange={(imageAlt) => onChange({ ...value, imageAlt })}
+        placeholder="Airplane wing above the clouds at sunset"
+        hint="Read aloud by screen readers — describe the photo, don't label it."
+      />
+
+      <div className={`${grid2} mt-4`}>
+        <TextField
+          label="Headline — line 1"
+          value={value.headlineLead}
+          onChange={(headlineLead) => onChange({ ...value, headlineLead })}
+          placeholder="Travel Smarter,"
+        />
+        <TextField
+          label="Headline — line 2 (gold)"
+          value={value.headlineHighlight}
+          onChange={(headlineHighlight) => onChange({ ...value, headlineHighlight })}
+          placeholder="Save More."
+        />
+      </div>
+
+      <TextArea
+        className="mt-4"
+        label="Sub-copy"
+        value={value.imageSubcopy}
+        onChange={(imageSubcopy) => onChange({ ...value, imageSubcopy })}
+      />
+    </>
+  );
+}
+
+export function AuthEditor({
+  value,
+  onChange,
+}: {
+  value: AuthContent;
+  onChange: (next: AuthContent) => void;
+}) {
+  const { prompt, login, signup } = value;
+
+  return (
+    <div className="space-y-5">
+      <Card
+        icon={<KeyRound className="size-5" />}
+        title="Sign-in popup"
+        description="The prompt that appears after a visitor has been browsing a while. Switching the section off stops it appearing on its own — the Log in button still opens it."
+      >
+        <div className={grid2}>
+          <TextField
+            label="Headline — first part"
+            value={prompt.titleLead}
+            onChange={(titleLead) => onChange({ ...value, prompt: { ...prompt, titleLead } })}
+            placeholder="Travel smarter,"
+          />
+          <TextField
+            label="Headline — highlighted part"
+            value={prompt.titleHighlight}
+            onChange={(titleHighlight) =>
+              onChange({ ...value, prompt: { ...prompt, titleHighlight } })
+            }
+            placeholder="save more."
+          />
+        </div>
+
+        <TextArea
+          className="mt-4"
+          label="Sub-line on the Log in tab"
+          value={prompt.loginSubtitle}
+          onChange={(loginSubtitle) =>
+            onChange({ ...value, prompt: { ...prompt, loginSubtitle } })
+          }
+        />
+        <TextArea
+          className="mt-4"
+          label="Sub-line on the Sign up tab"
+          value={prompt.signupSubtitle}
+          onChange={(signupSubtitle) =>
+            onChange({ ...value, prompt: { ...prompt, signupSubtitle } })
+          }
+        />
+        <TextField
+          className="mt-4"
+          label="Dismiss link"
+          value={prompt.dismissLabel}
+          onChange={(dismissLabel) =>
+            onChange({ ...value, prompt: { ...prompt, dismissLabel } })
+          }
+          placeholder="Keep browsing"
+        />
+      </Card>
+
+      <Card
+        icon={<ShieldCheck className="size-5" />}
+        title={`Popup reassurance row (${prompt.trust.length})`}
+        description="The small icon and label pairs along the bottom of the popup."
+      >
+        <ListEditor
+          items={prompt.trust}
+          onChange={(trust) => onChange({ ...value, prompt: { ...prompt, trust } })}
+          idPrefix="prompt-trust"
+          addLabel="Add item"
+          summary={(item) => item.label || "Untitled"}
+          blank={{ icon: "ShieldCheck", label: "New item", description: "" }}
+        >
+          {(item, patch) => (
+            <div className={grid2}>
+              <IconPicker value={item.icon} onChange={(icon) => patch({ icon })} />
+              <TextField
+                label="Label"
+                value={item.label}
+                onChange={(label) => patch({ label })}
+                placeholder="Secure payments"
+              />
+            </div>
+          )}
+        </ListEditor>
+      </Card>
+
+      <Card
+        icon={<KeyRound className="size-5" />}
+        title="Login page"
+        description="The headings above the login form. The fields themselves are fixed."
+      >
+        <AuthPageFields
+          value={login}
+          onChange={(next) => onChange({ ...value, login: { ...login, ...next } })}
+        />
+      </Card>
+
+      <Card
+        icon={<ImageIcon className="size-5" />}
+        title="Login page artwork"
+        description="The photo panel beside the login form."
+      >
+        <AuthArtworkFields
+          value={login}
+          onChange={(next) => onChange({ ...value, login: { ...login, ...next } })}
+        />
+      </Card>
+
+      <Card
+        icon={<ShieldCheck className="size-5" />}
+        title={`Login page trust strip (${login.trust.length})`}
+        description="The three cells under the login form."
+      >
+        <ListEditor
+          items={login.trust}
+          onChange={(trust) => onChange({ ...value, login: { ...login, trust } })}
+          idPrefix="login-trust"
+          addLabel="Add item"
+          summary={(item) => item.label || "Untitled"}
+          blank={{ icon: "ShieldCheck", label: "New item", description: "" }}
+        >
+          {(item, patch) => (
+            <div className="space-y-4">
+              <div className={grid2}>
+                <IconPicker value={item.icon} onChange={(icon) => patch({ icon })} />
+                <TextField
+                  label="Label"
+                  value={item.label}
+                  onChange={(label) => patch({ label })}
+                  placeholder="Secure Payments"
+                />
+              </div>
+              <TextField
+                label="Description"
+                value={item.description}
+                onChange={(description) => patch({ description })}
+                placeholder="Your data is protected with 256-bit encryption."
+              />
+            </div>
+          )}
+        </ListEditor>
+      </Card>
+
+      <Card
+        icon={<KeyRound className="size-5" />}
+        title="Signup page"
+        description="The headings above the signup form. The fields themselves are fixed."
+      >
+        <AuthPageFields
+          value={signup}
+          onChange={(next) => onChange({ ...value, signup: { ...signup, ...next } })}
+        />
+      </Card>
+
+      <Card
+        icon={<ImageIcon className="size-5" />}
+        title="Signup page artwork"
+        description="The photo panel beside the signup form."
+      >
+        <AuthArtworkFields
+          value={signup}
+          onChange={(next) => onChange({ ...value, signup: { ...signup, ...next } })}
+        />
+      </Card>
+
+      <Card
+        icon={<Sparkles className="size-5" />}
+        title={`Signup page feature cards (${signup.features.length})`}
+        description="The cards over the signup photo."
+      >
+        <ListEditor
+          items={signup.features}
+          onChange={(features) => onChange({ ...value, signup: { ...signup, features } })}
+          idPrefix="signup-feature"
+          addLabel="Add card"
+          summary={(item) => item.title || "Untitled"}
+          blank={{ icon: "Sparkles", title: "New card", description: "" }}
+        >
+          {(item, patch) => (
+            <div className="space-y-4">
+              <div className={grid2}>
+                <IconPicker value={item.icon} onChange={(icon) => patch({ icon })} />
+                <TextField
+                  label="Title"
+                  value={item.title}
+                  onChange={(title) => patch({ title })}
+                  placeholder="Exclusive Deals"
+                />
+              </div>
+              <TextField
+                label="Description"
+                value={item.description}
+                onChange={(description) => patch({ description })}
+                placeholder="Access special member only offers."
+              />
+            </div>
+          )}
+        </ListEditor>
+      </Card>
+    </div>
+  );
+}
+
+/* ---------------------------- Header ------------------------------ */
+
+export function HeaderEditor({
+  value,
+  onChange,
+}: {
+  value: HeaderContent;
+  onChange: (next: HeaderContent) => void;
+}) {
+  /* Children are edited in place rather than through a nested ListEditor:
+     that component owns its own collapse state, and nesting one per row
+     resets those rows every time the parent list re-renders. */
+  const patchChildren = (
+    itemId: string,
+    map: (children: HeaderContent["items"][number]["children"]) => HeaderContent["items"][number]["children"],
+  ) =>
+    onChange({
+      ...value,
+      items: value.items.map((item) =>
+        item.id === itemId ? { ...item, children: map(item.children) } : item,
+      ),
+    });
+
+  const topBar = value.topBar;
+  const patchTopBar = (patch: Partial<HeaderContent["topBar"]>) =>
+    onChange({ ...value, topBar: { ...topBar, ...patch } });
+
+  return (
+    <div className="space-y-5">
+      <Card
+        icon={<BadgePercent className="size-5" />}
+        title="Offer strip"
+        description="The thin line above the menu: the offer on the left, the phone number and the visitor's trips on the right. Clear a field to drop just that piece."
+      >
+        <Toggle
+          label="Show the offer strip"
+          description={
+            topBar.enabled
+              ? "Live above the menu on every page."
+              : "Hidden, whatever is filled in below."
+          }
+          checked={topBar.enabled}
+          onChange={(enabled) => patchTopBar({ enabled })}
+        />
+
+        <div className={`${grid2} mt-4`}>
+          <TextField
+            label="Offer"
+            value={topBar.offerText}
+            onChange={(offerText) => patchTopBar({ offerText })}
+            placeholder="Flat 12% off on every monsoon package"
+            hint="Empty hides the offer and its code."
+          />
+          <TextField
+            label="Coupon code"
+            value={topBar.couponCode}
+            onChange={(couponCode) => patchTopBar({ couponCode })}
+            placeholder="MONSOON12"
+            hint="Copies to the clipboard when clicked. Leave empty for an offer with no code."
+          />
+        </div>
+
+        <TextField
+          className="mt-4"
+          label="Offer link"
+          value={topBar.offerHref}
+          onChange={(offerHref) => patchTopBar({ offerHref })}
+          placeholder="/packages?deals=1"
+          hint="Where the offer text goes. Empty leaves it as plain text."
+        />
+
+        <div className={`${grid2} mt-4`}>
+          <TextField
+            label="Phone number"
+            value={topBar.phoneNumber}
+            onChange={(phoneNumber) => patchTopBar({ phoneNumber })}
+            placeholder="+91 80 4718 2200"
+            hint="Printed exactly as typed, and dialled on a tap."
+          />
+          <TextField
+            label="Phone label"
+            value={topBar.phoneLabel}
+            onChange={(phoneLabel) => patchTopBar({ phoneLabel })}
+            placeholder="Talk to a travel expert"
+            hint="Sits before the number on wide screens only."
+          />
+        </div>
+
+        <div className={`${grid2} mt-4`}>
+          <TextField
+            label="Trips label"
+            value={topBar.tripsLabel}
+            onChange={(tripsLabel) => patchTopBar({ tripsLabel })}
+            placeholder="My Trips"
+          />
+          <TextField
+            label="Trips link"
+            value={topBar.tripsHref}
+            onChange={(tripsHref) => patchTopBar({ tripsHref })}
+            placeholder="/account"
+            hint="Both are needed, and the link only shows to a signed-in visitor."
+          />
+        </div>
+      </Card>
+
+      <Card
+        icon={<Navigation className="size-5" />}
+        title={`Menu links (${value.items.length})`}
+        description="The links across the top of every page. Add entries to a link to turn it into a dropdown — the parent then opens the menu instead of navigating, so it does not need a page of its own."
+      >
+        <ListEditor
+          items={value.items}
+          onChange={(items) => onChange({ ...value, items })}
+          idPrefix="nav"
+          addLabel="Add menu link"
+          summary={(item) =>
+            item.children.length > 0
+              ? `${item.label || "Untitled"} · ${item.children.length} in dropdown`
+              : item.label || "Untitled"
+          }
+          blank={{ label: "New link", href: "/", children: [] }}
+        >
+          {(item, patch) => (
+            <div className="space-y-4">
+              <div className={grid2}>
+                <TextField
+                  label="Label"
+                  value={item.label}
+                  onChange={(label) => patch({ label })}
+                  placeholder="Weekend Treks"
+                />
+                <TextField
+                  label="Link"
+                  value={item.href}
+                  onChange={(href) => patch({ href })}
+                  placeholder="/packages?category=weekend-treks"
+                  hint={
+                    item.children.length > 0
+                      ? "Unused while this link has a dropdown."
+                      : "A path on this site, or a full https:// address."
+                  }
+                />
+              </div>
+
+              <div className="rounded-cmt-sm border border-cmt-neutral-200 bg-white p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-semibold text-cmt-neutral-900">
+                      Dropdown ({item.children.length})
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-cmt-neutral-500">
+                      {item.children.length === 0
+                        ? "No dropdown — this stays a plain link."
+                        : "Shown when the visitor opens this menu."}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    onClick={() =>
+                      patchChildren(item.id, (children) => [
+                        ...children,
+                        { id: nextId(item.id, children), label: "New entry", href: "/" },
+                      ])
+                    }
+                  >
+                    <Plus className="size-4" /> Add entry
+                  </Button>
+                </div>
+
+                {item.children.length > 0 && (
+                  <ul className="mt-3 space-y-2.5">
+                    {item.children.map((child, childIndex) => (
+                      <li
+                        key={child.id}
+                        className="rounded-cmt-sm border border-cmt-neutral-200 bg-cmt-neutral-50 p-3"
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className={`${grid2} min-w-0 flex-1`}>
+                            <TextField
+                              label="Label"
+                              value={child.label}
+                              onChange={(label) =>
+                                patchChildren(item.id, (children) =>
+                                  children.map((c, i) =>
+                                    i === childIndex ? { ...c, label } : c,
+                                  ),
+                                )
+                              }
+                              placeholder="Sunrise Track"
+                            />
+                            <TextField
+                              label="Link"
+                              value={child.href}
+                              onChange={(href) =>
+                                patchChildren(item.id, (children) =>
+                                  children.map((c, i) => (i === childIndex ? { ...c, href } : c)),
+                                )
+                              }
+                              placeholder="/packages?category=sunrise"
+                            />
+                          </div>
+
+                          <div className="flex shrink-0 flex-col gap-1 pt-[22px]">
+                            <button
+                              type="button"
+                              aria-label="Move up"
+                              disabled={childIndex === 0}
+                              onClick={() =>
+                                patchChildren(item.id, (children) => {
+                                  const next = [...children];
+                                  [next[childIndex - 1], next[childIndex]] = [
+                                    next[childIndex],
+                                    next[childIndex - 1],
+                                  ];
+                                  return next;
+                                })
+                              }
+                              className="grid size-7 place-items-center rounded-cmt-sm border border-cmt-neutral-200 bg-white text-cmt-neutral-500 transition-colors hover:bg-cmt-neutral-50 disabled:opacity-35"
+                            >
+                              <ChevronUp className="size-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Move down"
+                              disabled={childIndex === item.children.length - 1}
+                              onClick={() =>
+                                patchChildren(item.id, (children) => {
+                                  const next = [...children];
+                                  [next[childIndex], next[childIndex + 1]] = [
+                                    next[childIndex + 1],
+                                    next[childIndex],
+                                  ];
+                                  return next;
+                                })
+                              }
+                              className="grid size-7 place-items-center rounded-cmt-sm border border-cmt-neutral-200 bg-white text-cmt-neutral-500 transition-colors hover:bg-cmt-neutral-50 disabled:opacity-35"
+                            >
+                              <ChevronDown className="size-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Remove entry"
+                              onClick={() =>
+                                patchChildren(item.id, (children) =>
+                                  children.filter((_, i) => i !== childIndex),
+                                )
+                              }
+                              className="grid size-7 place-items-center rounded-cmt-sm border border-cmt-neutral-200 bg-white text-red-600 transition-colors hover:border-red-200 hover:bg-red-50"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+        </ListEditor>
+      </Card>
+    </div>
+  );
+}
 
 /* --------------------------- Trending ----------------------------- */
 
@@ -974,16 +1825,19 @@ export function ReviewsEditor({
         title="Section heading"
         description="The band above the review cards."
       >
+        {/* No link fields: the rail is the whole of the reviews on this
+            site, so a "view all" would have nowhere to point. */}
         <SectionHeaderFields
           value={value.header}
           onChange={(header) => onChange({ ...value, header })}
+          withAction={false}
         />
       </Card>
 
       <Card
         icon={<Star className="size-5" />}
         title={`Reviews (${value.items.length})`}
-        description="Three reads best — they lay out as one row across desktop."
+        description="They run as one horizontal rail, so add as many as you like — the row scrolls rather than wrapping onto a second line."
       >
         <ListEditor
           items={value.items}

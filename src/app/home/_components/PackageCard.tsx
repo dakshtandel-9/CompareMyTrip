@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { BedDouble, Clock, MapPin, RotateCcw, ShieldCheck, Users } from "lucide-react";
+import { BedDouble, Clock, MapPin, RotateCcw, Users } from "lucide-react";
 
 import { getDiscountPercent, type TravelPackage } from "@/lib/packageData";
+import TrekGradeBadge from "@/components/TrekGradeBadge";
 import Price from "./Price";
 import Rating from "./Rating";
 
@@ -61,10 +62,7 @@ export default function PackageCard({
           </div>
         )}
 
-        <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-cmt-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-cmt-neutral-700 backdrop-blur-sm">
-          <ShieldCheck className="h-3.5 w-3.5 text-cmt-success-500" strokeWidth={2.5} />
-          GST Verified
-        </div>
+        <TrekGradeBadge pkg={pkg} className="absolute right-3 top-3" />
       </div>
 
       <div className="flex flex-1 flex-col p-4">
@@ -109,8 +107,7 @@ export default function PackageCard({
           ))}
         </div>
 
-        {/* The operating partner is deliberately not named on the card — the
-            GST-verified badge carries the trust signal instead. */}
+        {/* The operating partner is deliberately not named on the card. */}
         <p className="mt-3 inline-flex items-center gap-1 text-[11px] text-cmt-neutral-500">
           <RotateCcw className="h-3 w-3" strokeWidth={2} />
           Free cancellation

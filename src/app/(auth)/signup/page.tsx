@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User, Mail, Lock, ArrowRight, BadgePercent, Wallet, UserCheck } from "lucide-react";
+import { User, Mail, Lock, ArrowRight } from "lucide-react";
 import SplitAuthShell from "../_components/SplitAuthShell";
 import TextField from "../_components/TextField";
 import PasswordStrength from "../_components/PasswordStrength";
@@ -14,15 +14,14 @@ import GoogleIcon from "../_components/GoogleIcon";
 import AuthAlert from "../_components/AuthAlert";
 import { signUpWithEmail, signInWithGoogle, getAuthErrorMessage } from "@/lib/firebase/auth";
 import PhoneNumberField from "@/components/PhoneNumberField";
-
-const features = [
-  { icon: BadgePercent, title: "Exclusive Deals", description: "Access special member only offers." },
-  { icon: Wallet, title: "Easy Bookings", description: "Book flights, hotels and holidays in minutes." },
-  { icon: UserCheck, title: "Personalized Experience", description: "Get recommendations tailored just for you." },
-];
+import { Glyph } from "@/lib/adminIcons";
+import { useSiteContent } from "@/lib/useSiteContent";
 
 export default function SignupPage() {
   const router = useRouter();
+  /* Copy, icons and artwork only — the form below is code, not content. */
+  const { auth } = useSiteContent();
+  const copy = auth.signup;
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("+91");
@@ -84,18 +83,18 @@ export default function SignupPage() {
 
   return (
     <SplitAuthShell
-      navPrompt={<>Already have an account? <Link href="/login" className="font-semibold text-cmt-primary-900 hover:underline">Log in</Link></>}
-      title="Create your account"
-      subtitle="Sign up and start your smart travel journey today."
-      imageSrc="/auth/login.png"
-      imageAlt="Overwater bungalows on a tropical lagoon"
-      headline={<>Your Next Adventure<br /><span className="text-cmt-primary-400">Awaits.</span></>}
-      imageSubcopy="Create your free account and unlock member-only prices on flights, stays and holiday packages."
+      navPrompt={<>{copy.navPrompt} <Link href="/login" className="font-semibold text-cmt-primary-900 hover:underline">{copy.navLinkLabel}</Link></>}
+      title={copy.title}
+      subtitle={copy.subtitle}
+      imageSrc={copy.image}
+      imageAlt={copy.imageAlt}
+      headline={<>{copy.headlineLead}<br /><span className="text-cmt-primary-400">{copy.headlineHighlight}</span></>}
+      imageSubcopy={copy.imageSubcopy}
       imagePanelBottom={
         <div className="flex flex-col gap-3">
-          {features.map(({ icon: Icon, title, description }) => (
-            <div key={title} className="flex items-center gap-3 rounded-cmt-md border border-white/15 bg-white/10 p-3 backdrop-blur-sm">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-cmt-full bg-cmt-primary-500"><Icon size={18} className="text-cmt-neutral-900" aria-hidden="true" /></span>
+          {copy.features.map(({ id, icon, title, description }) => (
+            <div key={id} className="flex items-center gap-3 rounded-cmt-md border border-white/15 bg-white/10 p-3 backdrop-blur-sm">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-cmt-full bg-cmt-primary-500"><Glyph name={icon} className="h-[18px] w-[18px] text-cmt-neutral-900" /></span>
               <div><p className="text-[13px] font-semibold leading-[1.3] text-cmt-white">{title}</p><p className="text-[12px] leading-[1.4] text-cmt-neutral-300">{description}</p></div>
             </div>
           ))}

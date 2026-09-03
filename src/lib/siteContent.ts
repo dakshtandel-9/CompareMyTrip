@@ -360,9 +360,207 @@ export type NewsletterContent = {
   successMessage: string;
 };
 
+/* ---------------------------- Header ------------------------------ */
+
+/** One entry inside a nav item's dropdown. */
+export type NavChildContent = {
+  id: string;
+  label: string;
+  href: string;
+};
+
+/** One top-level entry in the site header.
+
+    An item with no children is a plain link and uses `href`. Give it
+    children and it becomes a dropdown instead — the header renders the
+    label as a button and `href` stops being used, so a parent that is only
+    a menu does not need a page of its own to point at. */
+export type NavItemContent = {
+  id: string;
+  label: string;
+  href: string;
+  children: NavChildContent[];
+};
+
+/** The header is the one band that is not part of the homepage scroll, so
+    `enabled` here hides the nav links rather than the header itself — the
+    logo and the account controls always ship. */
+export type HeaderContent = {
+  enabled: boolean;
+  items: NavItemContent[];
+  topBar: HeaderTopBarContent;
+};
+
+/** The thin utility strip above the nav: the offer running right now on the
+    left, and the two things people look for by reflex on the right — a phone
+    number and their own trips.
+
+    Each half hides on its own. An empty `offerText` drops the offer (and its
+    code with it), an empty `phoneNumber` drops the call link, and an empty
+    `tripsLabel` drops the trips link, so the strip can carry one side, the
+    other, or both without leaving a gap where the missing half was.
+
+    `couponCode` is optional next to the offer: an offer that needs no code
+    still reads fine on its own. */
+export type HeaderTopBarContent = {
+  enabled: boolean;
+  /** "Flat 12% off every monsoon package" — the offer, in one line. */
+  offerText: string;
+  /** Shown as a click-to-copy chip. Leave empty for an offer with no code. */
+  couponCode: string;
+  /** Where the offer text points. Empty leaves it as plain text. */
+  offerHref: string;
+  /** Printed as typed; the tel: link is built from the digits in it. */
+  phoneNumber: string;
+  /** The line above/next to the number — "Talk to a travel expert". */
+  phoneLabel: string;
+  tripsLabel: string;
+  tripsHref: string;
+};
+
+/* ----------------------------- Auth ------------------------------- */
+/* Copy, icons and artwork for the sign-in surfaces — the timed prompt, the
+   login page and the signup page.
+
+   Deliberately nothing else. The fields, validation, Firebase calls, error
+   messages and the Google button are all code, not content: an editor can
+   change what these screens say and show, never what they do. So there is no
+   entry here for a field label, a placeholder, a route or a button action. */
+
+/** A small icon + label pair, used for the prompt's reassurance row and the
+    login page's trust strip. `icon` is a key into ICON_LIBRARY. */
+export type AuthTrustItem = {
+  id: string;
+  icon: string;
+  label: string;
+  /** Shown under the label on the login page; the prompt's row ignores it. */
+  description: string;
+};
+
+/** One of the cards over the signup page's artwork. */
+export type AuthFeatureItem = {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+};
+
+/** The prompt that appears after a visitor has been browsing a while. */
+export type AuthPromptContent = {
+  enabled: boolean;
+  /** Headline, split so the second half keeps the gold treatment. */
+  titleLead: string;
+  titleHighlight: string;
+  /** The sub-line changes with the selected tab. */
+  loginSubtitle: string;
+  signupSubtitle: string;
+  /** The "no thanks" link under the form. */
+  dismissLabel: string;
+  trust: AuthTrustItem[];
+};
+
+/** The side of a full auth page that is not the form. */
+export type AuthPageContent = {
+  title: string;
+  subtitle: string;
+  /** Prompt in the top-right, above the form. */
+  navPrompt: string;
+  navLinkLabel: string;
+  /** Artwork column. */
+  image: string;
+  imageAlt: string;
+  headlineLead: string;
+  headlineHighlight: string;
+  imageSubcopy: string;
+};
+
+export type AuthContent = {
+  /** Hides the timed prompt. The login and signup pages are routes and always
+      reachable, so only the prompt has a switch. */
+  enabled: boolean;
+  prompt: AuthPromptContent;
+  login: AuthPageContent & { trust: AuthTrustItem[] };
+  signup: AuthPageContent & {
+    features: AuthFeatureItem[];
+    /** The row of avatars is on the login page only; signup shows features. */
+  };
+};
+
+/* ---------------------------- Contact ----------------------------- */
+/* Everything the /contact page says, including the business details that
+   shipped empty as PENDING — an editor can now fill the email, phone, hours
+   and offices in without a deploy, and each block still hides itself when
+   left blank.
+
+   The enquiry form is not here: its fields, validation and submission are
+   code. Nor are the two destinations (/packages, /faqs) — a link's target is
+   wiring, not copy, and only its wording is editable. */
+
+/** One line in the "Reach us directly" list. `kind` decides how the value is
+    linked: an email becomes mailto:, a phone tel:, and text is not a link. */
+export type ContactChannel = {
+  id: string;
+  icon: string;
+  label: string;
+  value: string;
+  kind: "email" | "phone" | "text";
+};
+
+/** One numbered row of the "What happens next" card. */
+export type ContactStep = {
+  id: string;
+  title: string;
+  description: string;
+};
+
+export type ContactOffice = {
+  id: string;
+  city: string;
+  /** Small gold line above the address — "Head office". Optional. */
+  note: string;
+  address: string;
+};
+
+export type ContactContent = {
+  /** The sidebar card beside the enquiry form. Off, the form runs the full
+      width of the page rather than leaving the column empty. */
+  enabled: boolean;
+
+  eyebrow: string;
+  title: string;
+  description: string;
+
+  formTitle: string;
+  formDescription: string;
+
+  sidebarTitle: string;
+  steps: ContactStep[];
+
+  /** "Reach us directly" — the whole block hides when there is nothing in it. */
+  directTitle: string;
+  channels: ContactChannel[];
+  hours: string;
+
+  browsePrompt: string;
+  browseLabel: string;
+
+  offices: {
+    enabled: boolean;
+    title: string;
+    items: ContactOffice[];
+  };
+
+  /* No FAQ fields here on purpose: the contact page renders the homepage's
+     own FAQ section, so it is edited once, in that section, and both places
+     follow. */
+};
+
 /* ------------------------- The whole page ------------------------- */
 
 export type SiteContent = {
+  header: HeaderContent;
+  auth: AuthContent;
+  contact: ContactContent;
   hero: HeroContent;
   categories: CategoriesContent;
   trending: TrendingContent;
@@ -383,6 +581,9 @@ export type SiteContent = {
 /** Every editable section, in the order it appears on the page. Drives the
     CRM's section list so a new section shows up there by being added here. */
 export const SECTION_ORDER = [
+  "header",
+  "auth",
+  "contact",
   "hero",
   "categories",
   "trending",
@@ -408,6 +609,185 @@ export type SectionKey = (typeof SECTION_ORDER)[number];
    guess at what the copy used to say. */
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
+  contact: {
+    enabled: true,
+    eyebrow: "Contact",
+    title: "Tell us about the trip.",
+    description:
+      "Send one enquiry and our travel desk comes back with packages that match your dates, your pace and your budget — no obligation to book.",
+    formTitle: "Send an enquiry",
+    formDescription: "The more you tell us, the closer the first set of options will be.",
+    sidebarTitle: "What happens next",
+    steps: [
+      {
+        id: "contact-step-1",
+        title: "Your enquiry reaches the travel desk",
+        description: "It lands with the team that handles the destination you asked about.",
+      },
+      {
+        id: "contact-step-2",
+        title: "We come back with matching packages",
+        description:
+          "We shortlist suitable options, with inclusions and final pricing spelled out.",
+      },
+      {
+        id: "contact-step-3",
+        title: "You compare, then decide",
+        description: "Line the options up side by side and book the one that actually fits.",
+      },
+    ],
+    directTitle: "Reach us directly",
+    /* Empty because the registered address, support email and phone are still
+       PENDING in requirements/01-Project-Requirements.md. Filling them in in
+       the CRM is what makes the block appear — nothing invented ships. */
+    channels: [
+      { id: "contact-channel-1", icon: "Mail", label: "Email", value: "", kind: "email" },
+      { id: "contact-channel-2", icon: "Phone", label: "Phone", value: "", kind: "phone" },
+    ],
+    hours: "",
+    browsePrompt: "Would rather look around first?",
+    browseLabel: "Browse packages",
+    offices: {
+      enabled: true,
+      title: "Where we are",
+      items: [],
+    },
+  },
+  auth: {
+    enabled: true,
+    prompt: {
+      enabled: true,
+      titleLead: "Travel smarter,",
+      titleHighlight: "save more.",
+      loginSubtitle:
+        "Log in to save packages, compare side by side and pick up where you left off.",
+      signupSubtitle: "Create a free account for member-only prices and faster checkout.",
+      dismissLabel: "Keep browsing",
+      trust: [
+        { id: "prompt-trust-1", icon: "ShieldCheck", label: "Secure payments", description: "" },
+        { id: "prompt-trust-2", icon: "BadgePercent", label: "Member-only deals", description: "" },
+        { id: "prompt-trust-3", icon: "Headset", label: "24/7 support", description: "" },
+      ],
+    },
+    login: {
+      title: "Welcome back!",
+      subtitle: "Log in to continue comparing and booking the best travel deals.",
+      navPrompt: "New here?",
+      navLinkLabel: "Sign up",
+      image: "/auth/signup.png",
+      imageAlt: "Airplane wing above the clouds at sunset",
+      headlineLead: "Travel Smarter,",
+      headlineHighlight: "Save More.",
+      imageSubcopy:
+        "Compare flights, hotels and holiday packages from 500+ partners and get the best deals instantly.",
+      trust: [
+        {
+          id: "login-trust-1",
+          icon: "ShieldCheck",
+          label: "Secure Payments",
+          description: "Your data is protected with 256-bit encryption.",
+        },
+        {
+          id: "login-trust-2",
+          icon: "BadgeCheck",
+          label: "Best Price Guarantee",
+          description: "Find the best deals or we make it right.",
+        },
+        {
+          id: "login-trust-3",
+          icon: "Headset",
+          label: "24/7 Support",
+          description: "We're here to help you anytime.",
+        },
+      ],
+    },
+    signup: {
+      title: "Create your account",
+      subtitle: "Sign up and start your smart travel journey today.",
+      navPrompt: "Already have an account?",
+      navLinkLabel: "Log in",
+      image: "/auth/login.png",
+      imageAlt: "Overwater bungalows on a tropical lagoon",
+      headlineLead: "Your Next Adventure",
+      headlineHighlight: "Awaits.",
+      imageSubcopy:
+        "Create your free account and unlock member-only prices on flights, stays and holiday packages.",
+      features: [
+        {
+          id: "signup-feature-1",
+          icon: "BadgePercent",
+          title: "Exclusive Deals",
+          description: "Access special member only offers.",
+        },
+        {
+          id: "signup-feature-2",
+          icon: "Wallet",
+          title: "Easy Bookings",
+          description: "Book flights, hotels and holidays in minutes.",
+        },
+        {
+          id: "signup-feature-3",
+          icon: "UserCheck",
+          title: "Personalized Experience",
+          description: "Get recommendations tailored just for you.",
+        },
+      ],
+    },
+  },
+  header: {
+    enabled: true,
+    topBar: {
+      enabled: true,
+      offerText: "Flat 12% off on every monsoon package",
+      couponCode: "MONSOON12",
+      offerHref: "/packages?deals=1",
+      phoneNumber: "+91 80 4718 2200",
+      phoneLabel: "Talk to a travel expert",
+      tripsLabel: "My Trips",
+      tripsHref: "/account",
+    },
+    items: [
+      { id: "nav-1", label: "Explore", href: "/destinations", children: [] },
+      {
+        id: "nav-2",
+        label: "Weekend treks",
+        href: "/packages?category=weekend-treks",
+        children: [
+          { id: "nav-2-1", label: "Sunrise Treks", href: "/packages?category=sunrise" },
+          { id: "nav-2-2", label: "Monsoon Treks", href: "/packages?category=monsoon" },
+          { id: "nav-2-3", label: "Weekend Escape", href: "/packages?category=escapes" },
+        ],
+      },
+      {
+        id: "nav-3",
+        label: "India",
+        href: "/packages?region=india",
+        children: [
+          { id: "nav-3-1", label: "Kashmir", href: "/packages?region=india&destination=Kashmir" },
+          { id: "nav-3-2", label: "Kerala", href: "/packages?region=india&destination=Kerala" },
+          { id: "nav-3-3", label: "Rajasthan", href: "/packages?region=india&destination=Rajasthan" },
+          { id: "nav-3-4", label: "Goa", href: "/packages?region=india&destination=Goa" },
+          { id: "nav-3-5", label: "Andaman", href: "/packages?region=india&destination=Andaman" },
+          { id: "nav-3-6", label: "Explore More", href: "/packages?region=india" },
+        ],
+      },
+      {
+        id: "nav-4",
+        label: "World",
+        href: "/packages?region=international",
+        children: [
+          { id: "nav-4-1", label: "Thailand", href: "/packages?region=international&destination=Thailand" },
+          { id: "nav-4-2", label: "Bali", href: "/packages?region=international&destination=Bali" },
+          { id: "nav-4-3", label: "Singapore", href: "/packages?region=international&destination=Singapore" },
+          { id: "nav-4-4", label: "Vietnam", href: "/packages?region=international&destination=Vietnam" },
+          { id: "nav-4-5", label: "Maldives", href: "/packages?region=international&destination=Maldives" },
+          { id: "nav-4-6", label: "Explore More", href: "/packages?region=international" },
+        ],
+      },
+      { id: "nav-5", label: "Deals", href: "/packages?deals=1", children: [] },
+      { id: "nav-6", label: "Travel Guides", href: "/blog", children: [] },
+    ],
+  },
   hero: {
     enabled: true,
     copy: [
@@ -641,7 +1021,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       eyebrow: "Handpicked This Week",
       title: "Featured packages",
       description:
-        "Every package here comes from a GST-verified operator, with the full itinerary, inclusions and exclusions published before you enquire.",
+        "Every package here comes from a trusted operator, with the full itinerary, inclusions and exclusions published before you enquire.",
       actionLabel: "Browse all packages",
       actionHref: "/packages",
     },
@@ -1025,9 +1405,14 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       title: "What people said afterwards",
       description:
         "Collected after the trip, published as written. We keep the critical ones up — they are the reason the good ones mean anything.",
-      actionLabel: "Read all reviews",
-      actionHref: "/reviews",
+      /* The rail is the whole section: there is no /reviews page to send
+         anyone to, so the header carries the arrows instead of a link. */
+      actionLabel: "",
+      actionHref: "",
     },
+    /* Placeholder faces until real traveller photos are uploaded over them
+       in /admin → Homepage → Reviews. Every one of these is replaceable
+       from that screen, avatar included. */
     items: [
       {
         id: "rev-1",
@@ -1035,7 +1420,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
           "The comparison table did the thing I always end up doing in a spreadsheet. Two packages looked identical until I saw one had airport transfers and the other did not.",
         name: "Ananya R.",
         initials: "AR",
-        avatar: "",
+        avatar: "https://i.pravatar.cc/160?img=47",
         trip: "Kerala Backwaters & Hills Escape",
         travelled: "Travelled July 2026",
         rating: 5,
@@ -1046,7 +1431,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
           "Booked Dharamshala for five nights. The itinerary matched what actually happened, which sounds like a low bar until you have had it go the other way.",
         name: "Vikram S.",
         initials: "VS",
-        avatar: "",
+        avatar: "https://i.pravatar.cc/160?img=12",
         trip: "Dharamshala Mountain & Monastery Break",
         travelled: "Travelled June 2026",
         rating: 5,
@@ -1057,9 +1442,86 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
           "One thing I would flag: the Goa resort was further from the main beach than I expected. Support moved us to a closer property the same evening, no argument about it.",
         name: "Meera K.",
         initials: "MK",
-        avatar: "",
+        avatar: "https://i.pravatar.cc/160?img=32",
         trip: "Goa Beach Getaway with Island Cruise",
         travelled: "Travelled May 2026",
+        rating: 4,
+      },
+      {
+        id: "rev-4",
+        quote:
+          "Kumara Parvatha is a hard trek and the listing said so before I paid, which I appreciated. The group size was the eleven people they promised, not twenty.",
+        name: "Rohit N.",
+        initials: "RN",
+        avatar: "https://i.pravatar.cc/160?img=59",
+        trip: "Kumara Parvatha Weekend Trek",
+        travelled: "Travelled April 2026",
+        rating: 5,
+      },
+      {
+        id: "rev-5",
+        quote:
+          "The Volvo left Delhi forty minutes late and nobody told us why. Everything after that was fine — Solang Valley, the hotel, the driver — but the start was scrappy.",
+        name: "Sneha P.",
+        initials: "SP",
+        avatar: "https://i.pravatar.cc/160?img=45",
+        trip: "Manali Volvo Tour Package – 4 Nights / 5 Days",
+        travelled: "Travelled March 2026",
+        rating: 3,
+      },
+      {
+        id: "rev-6",
+        quote:
+          "Booked Kashmir for my parents, who are in their sixties. I asked about the walking on each day and got a straight answer per day rather than a brochure line.",
+        name: "Imran Q.",
+        initials: "IQ",
+        avatar: "https://i.pravatar.cc/160?img=68",
+        trip: "Magnificent Kashmir",
+        travelled: "Travelled March 2026",
+        rating: 5,
+      },
+      {
+        id: "rev-7",
+        quote:
+          "Skandagiri at 3am with a group I had never met could have gone badly. The trek lead had done it enough times to keep everyone together, and we made the sunrise.",
+        name: "Divya B.",
+        initials: "DB",
+        avatar: "https://i.pravatar.cc/160?img=26",
+        trip: "Skandagiri Sunrise Trek",
+        travelled: "Travelled February 2026",
+        rating: 5,
+      },
+      {
+        id: "rev-8",
+        quote:
+          "Jibhi was quieter than the photos suggested, which is a compliment. The Serolsar Lake walk was the day I would go back for. Wifi at the stay is basically decorative.",
+        name: "Karan M.",
+        initials: "KM",
+        avatar: "https://i.pravatar.cc/160?img=14",
+        trip: "Jibhi Jalori Pass Tour Package",
+        travelled: "Travelled February 2026",
+        rating: 4,
+      },
+      {
+        id: "rev-9",
+        quote:
+          "Priced three operators for the same Kasol dates. This one was not the cheapest, but it was the only one that put the inclusions in writing before payment.",
+        name: "Nikita J.",
+        initials: "NJ",
+        avatar: "https://i.pravatar.cc/160?img=20",
+        trip: "Manali Kasol Tour Package from Delhi",
+        travelled: "Travelled January 2026",
+        rating: 5,
+      },
+      {
+        id: "rev-10",
+        quote:
+          "A day trek is an easy thing to get wrong by overselling it. Tadiandamol was described accurately, started on time, and I was home by evening as advertised.",
+        name: "Arjun V.",
+        initials: "AV",
+        avatar: "https://i.pravatar.cc/160?img=51",
+        trip: "Tadiandamol Weekend Trek",
+        travelled: "Travelled January 2026",
         rating: 4,
       },
     ],
@@ -1134,7 +1596,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         id: "faq-1",
         question: "Do you sell the packages yourself?",
         answer:
-          "CompareMyTrip is a comparison platform. Every package is delivered by a GST-verified tour operator that we check before it is listed. We put the packages side by side, publish the full inclusions and exclusions, and confirm who will be operating your trip once you book.",
+          "CompareMyTrip is a comparison platform. Every package is delivered by a tour operator that we check before it is listed. We put the packages side by side, publish the full inclusions and exclusions, and confirm who will be operating your trip once you book.",
       },
       {
         id: "faq-2",
@@ -1242,6 +1704,26 @@ function list<T>(
   return items.length > 0 ? items : fallback;
 }
 
+/* Weekend-trek menu links used to carry the same thing twice —
+   ?category=Weekend%20Treks&trek=monsoon — and the catalogue now reads the
+   track straight off ?category=monsoon. A menu published against the old
+   shape is rewritten as it loads, so the links shorten themselves and the
+   CRM shows the form that gets produced today. Old links still work in the
+   address bar either way (see trackFromParams); this is about not carrying
+   the long one around forever. */
+function simplifyTrekHref(href: string): string {
+  const query = /^\/packages\?(.+)$/.exec(href.trim())?.[1];
+  if (!query) return href;
+
+  const params = new URLSearchParams(query);
+  if (params.get("category")?.trim().toLowerCase() !== "weekend treks") return href;
+
+  const trek = params.get("trek")?.trim().toLowerCase();
+  params.delete("trek");
+  params.set("category", trek || "weekend-treks");
+  return `/packages?${params.toString()}`;
+}
+
 function header(raw: unknown, fallback: SectionHeaderContent): SectionHeaderContent {
   const value = isRecord(raw) ? raw : {};
   return {
@@ -1263,6 +1745,20 @@ const section = (raw: unknown): Record<string, unknown> => (isRecord(raw) ? raw 
 export function normalizeSiteContent(raw: unknown): SiteContent {
   const base = DEFAULT_SITE_CONTENT;
   const root = isRecord(raw) ? raw : {};
+
+  /* --- header --- */
+  const headerRaw = section(root.header);
+  const topBarRaw = section(headerRaw.topBar);
+
+  /* --- contact --- */
+  const contactRaw = section(root.contact);
+  const officesRaw = section(contactRaw.offices);
+
+  /* --- auth --- */
+  const authRaw = section(root.auth);
+  const promptRaw = section(authRaw.prompt);
+  const loginRaw = section(authRaw.login);
+  const signupRaw = section(authRaw.signup);
 
   /* --- hero --- */
   const heroRaw = section(root.hero);
@@ -1297,7 +1793,151 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     alt: str(item.alt, ""),
   }));
 
+  const normalizedHeaderItems = list(headerRaw.items, base.header.items, (item, index) => ({
+    id: str(item.id, `nav-${index + 1}`),
+    label: str(item.label, "Untitled"),
+    href: simplifyTrekHref(str(item.href, "")),
+    /* Not `list()`: an empty children array is the meaningful, common
+       case — a plain link — and must not fall back to the default
+       item's dropdown. */
+    children: Array.isArray(item.children)
+      ? item.children.filter(isRecord).map((child, childIndex) => ({
+          id: str(child.id, `nav-${index + 1}-${childIndex + 1}`),
+          label: str(child.label, "Untitled"),
+          href: simplifyTrekHref(str(child.href, "")),
+        }))
+      : [],
+  }));
+
+  /* Upgrade only the three original shipped nav entries. This lets an older
+     Firestore homepage document pick up the new menus without overwriting
+     genuinely custom links created in the admin editor. */
+  const legacyHeaderLabels: Record<string, string> = {
+    "nav-2": "Weekend Treks",
+    "nav-3": "Domestic Tours",
+    "nav-4": "International Holidays",
+  };
+  const headerItems = normalizedHeaderItems.map((item) => {
+    if (legacyHeaderLabels[item.id] !== item.label) return item;
+    return base.header.items.find((defaultItem) => defaultItem.id === item.id) ?? item;
+  });
+
+  /* Trust rows and feature cards are shaped alike enough to share a reader,
+     but not so alike that they share a type — description is meaningful on
+     the login strip and unused by the prompt's one-line row. */
+  const trustList = (raw: unknown, fallback: AuthTrustItem[], prefix: string) =>
+    list(raw, fallback, (item, index) => ({
+      id: str(item.id, `${prefix}-${index + 1}`),
+      icon: str(item.icon, "ShieldCheck"),
+      label: str(item.label, ""),
+      description: str(item.description, ""),
+    }));
+
+  const authPage = <Extra,>(raw: Record<string, unknown>, base: AuthPageContent & Extra) => ({
+    title: str(raw.title, base.title),
+    subtitle: str(raw.subtitle, base.subtitle),
+    navPrompt: str(raw.navPrompt, base.navPrompt),
+    navLinkLabel: str(raw.navLinkLabel, base.navLinkLabel),
+    image: str(raw.image, base.image),
+    imageAlt: str(raw.imageAlt, base.imageAlt),
+    headlineLead: str(raw.headlineLead, base.headlineLead),
+    headlineHighlight: str(raw.headlineHighlight, base.headlineHighlight),
+    imageSubcopy: str(raw.imageSubcopy, base.imageSubcopy),
+  });
+
+  const contactSteps = list(contactRaw.steps, base.contact.steps, (item, index) => ({
+    id: str(item.id, `contact-step-${index + 1}`),
+    title: str(item.title, ""),
+    description: str(item.description, ""),
+  })).map((step) => {
+    const isOriginalOperatorCopy =
+      step.id === "contact-step-2" &&
+      step.description ===
+        "Options from GST-verified operators, with inclusions and final pricing spelled out.";
+
+    return isOriginalOperatorCopy
+      ? (base.contact.steps.find((defaultStep) => defaultStep.id === step.id) ?? step)
+      : step;
+  });
+
   return {
+    contact: {
+      enabled: bool(contactRaw.enabled, base.contact.enabled),
+      eyebrow: str(contactRaw.eyebrow, base.contact.eyebrow),
+      title: str(contactRaw.title, base.contact.title),
+      description: str(contactRaw.description, base.contact.description),
+      formTitle: str(contactRaw.formTitle, base.contact.formTitle),
+      formDescription: str(contactRaw.formDescription, base.contact.formDescription),
+      sidebarTitle: str(contactRaw.sidebarTitle, base.contact.sidebarTitle),
+      steps: contactSteps,
+      directTitle: str(contactRaw.directTitle, base.contact.directTitle),
+      /* Not `list()`: an editor who clears every channel means it, and must
+         not be handed the defaults back. Same for offices below. */
+      channels: Array.isArray(contactRaw.channels)
+        ? contactRaw.channels.filter(isRecord).map((item, index) => ({
+            id: str(item.id, `contact-channel-${index + 1}`),
+            icon: str(item.icon, "Mail"),
+            label: str(item.label, ""),
+            value: str(item.value, ""),
+            kind:
+              item.kind === "phone" ? "phone" : item.kind === "text" ? "text" : "email",
+          }))
+        : base.contact.channels,
+      hours: str(contactRaw.hours, base.contact.hours),
+      browsePrompt: str(contactRaw.browsePrompt, base.contact.browsePrompt),
+      browseLabel: str(contactRaw.browseLabel, base.contact.browseLabel),
+      offices: {
+        enabled: bool(officesRaw.enabled, base.contact.offices.enabled),
+        title: str(officesRaw.title, base.contact.offices.title),
+        items: Array.isArray(officesRaw.items)
+          ? officesRaw.items.filter(isRecord).map((item, index) => ({
+              id: str(item.id, `contact-office-${index + 1}`),
+              city: str(item.city, ""),
+              note: str(item.note, ""),
+              address: str(item.address, ""),
+            }))
+          : base.contact.offices.items,
+      },
+    },
+    auth: {
+      enabled: bool(authRaw.enabled, base.auth.enabled),
+      prompt: {
+        enabled: bool(promptRaw.enabled, base.auth.prompt.enabled),
+        titleLead: str(promptRaw.titleLead, base.auth.prompt.titleLead),
+        titleHighlight: str(promptRaw.titleHighlight, base.auth.prompt.titleHighlight),
+        loginSubtitle: str(promptRaw.loginSubtitle, base.auth.prompt.loginSubtitle),
+        signupSubtitle: str(promptRaw.signupSubtitle, base.auth.prompt.signupSubtitle),
+        dismissLabel: str(promptRaw.dismissLabel, base.auth.prompt.dismissLabel),
+        trust: trustList(promptRaw.trust, base.auth.prompt.trust, "prompt-trust"),
+      },
+      login: {
+        ...authPage(loginRaw, base.auth.login),
+        trust: trustList(loginRaw.trust, base.auth.login.trust, "login-trust"),
+      },
+      signup: {
+        ...authPage(signupRaw, base.auth.signup),
+        features: list(signupRaw.features, base.auth.signup.features, (item, index) => ({
+          id: str(item.id, `signup-feature-${index + 1}`),
+          icon: str(item.icon, "Sparkles"),
+          title: str(item.title, ""),
+          description: str(item.description, ""),
+        })),
+      },
+    },
+    header: {
+      enabled: bool(headerRaw.enabled, base.header.enabled),
+      items: headerItems,
+      topBar: {
+        enabled: bool(topBarRaw.enabled, base.header.topBar.enabled),
+        offerText: str(topBarRaw.offerText, base.header.topBar.offerText),
+        couponCode: str(topBarRaw.couponCode, base.header.topBar.couponCode),
+        offerHref: str(topBarRaw.offerHref, base.header.topBar.offerHref),
+        phoneNumber: str(topBarRaw.phoneNumber, base.header.topBar.phoneNumber),
+        phoneLabel: str(topBarRaw.phoneLabel, base.header.topBar.phoneLabel),
+        tripsLabel: str(topBarRaw.tripsLabel, base.header.topBar.tripsLabel),
+        tripsHref: str(topBarRaw.tripsHref, base.header.topBar.tripsHref),
+      },
+    },
     hero: {
       enabled: bool(heroRaw.enabled, base.hero.enabled),
       copy: list(heroRaw.copy, base.hero.copy, (block, index) => ({

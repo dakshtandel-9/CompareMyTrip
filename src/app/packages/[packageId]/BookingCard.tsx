@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BadgePercent, BedDouble, Check, Flame, GitCompareArrows, Minus, Plane, Plus, ShieldCheck } from "lucide-react";
 import { getDiscountPercent, getPackageTier, type PackageDetails, type TravelPackage } from "@/lib/packageData";
 import { useCompare } from "@/lib/useCompare";
+import TrekGradeBadge from "@/components/TrekGradeBadge";
 
 /* ------------------------------------------------------------------ */
 /* The booking box on a package page: who is selling, what tier the     */
@@ -64,15 +65,12 @@ export default function BookingCard({ pkg, details, travellers, onTravellersChan
           />
         </span>
         {/* The operating partner is never named to the visitor — the header
-            carries the trip itself, and GST Verified carries the assurance. */}
+            carries the trip itself. */}
         <span className="min-w-0">
           <span className="block text-[11px] text-cmt-neutral-500">Package</span>
           <span className="block truncate text-sm font-semibold">{pkg.location}</span>
         </span>
-        <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-cmt-full border border-cmt-success-500/30 bg-cmt-success-100 px-2.5 py-1.5 text-[11px] font-semibold text-cmt-success-700">
-          <ShieldCheck className="size-3.5" strokeWidth={2.5} aria-hidden="true" />
-          GST Verified
-        </span>
+        <TrekGradeBadge pkg={pkg} className="ml-auto shrink-0 border border-cmt-neutral-200" />
       </div>
 
       <div className="space-y-5 p-4 sm:p-5">
@@ -194,7 +192,7 @@ export default function BookingCard({ pkg, details, travellers, onTravellersChan
 
         <p className="flex items-center justify-center gap-1.5 border-t border-cmt-neutral-100 pt-4 text-[11px] text-cmt-neutral-600">
           <ShieldCheck className="size-3.5 shrink-0 text-cmt-success-700" strokeWidth={2.25} aria-hidden="true" />
-          GST-verified · free cancellation
+          Free cancellation
         </p>
       </div>
     </div>

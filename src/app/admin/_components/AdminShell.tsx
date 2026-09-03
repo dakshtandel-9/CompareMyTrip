@@ -16,6 +16,7 @@ import {
   PackageSearch,
   PanelsTopLeft,
   Plane,
+  TicketPercent,
   Users,
   X,
 } from "lucide-react";
@@ -26,9 +27,10 @@ type NavItem = { href: string; label: string; hint: string; icon: LucideIcon };
    short one — new sections get added here as they are built. */
 const NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard", hint: "Overview", icon: LayoutDashboard },
-  { href: "/admin/homepage", label: "Homepage", hint: "All homepage sections", icon: PanelsTopLeft },
+  { href: "/admin/content", label: "Website content", hint: "Every page's copy and images", icon: PanelsTopLeft },
   { href: "/admin/packages", label: "Packages", hint: "Create inventory", icon: PackageSearch },
   { href: "/admin/trips", label: "Trips", hint: "Paid bookings", icon: Plane },
+  { href: "/admin/coupons", label: "Coupons", hint: "Discount codes", icon: TicketPercent },
   { href: "/admin/destinations", label: "Destinations", hint: "Cover artwork", icon: Compass },
   { href: "/admin/blog", label: "Blog", hint: "Travel guides", icon: Newspaper },
   { href: "/admin/users", label: "Users", hint: "Registered customers", icon: Users },

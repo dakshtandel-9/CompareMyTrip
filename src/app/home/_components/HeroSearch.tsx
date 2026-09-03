@@ -37,6 +37,7 @@ const TRIP_TABS: { label: string; value: TripType; icon: typeof Briefcase }[] = 
   { label: "Adventure", value: "Adventure", icon: Mountain },
   { label: "Family", value: "Family", icon: Users },
   { label: "Luxury", value: "Luxury", icon: Gem },
+  { label: "Spiritual", value: "Spiritual", icon: Sparkles },
 ];
 
 // Bands map onto the budget slider the packages catalog already uses, so a
@@ -177,7 +178,7 @@ export default function HeroSearch() {
         ? `${formatDay(startDate)} – add return`
         : "Add dates";
 
-  // Two ways to fill the shelf, chosen in /admin/homepage.
+  // Two ways to fill the shelf, chosen in /admin/content.
   //
   // Hand-picked is literal: exactly the packages named, in the order they
   // were named, whatever style pill is active — an editor who picks a shelf

@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Database, Edit3, PackagePlus, Search, Trash2
 import { deletePackage, seedPackages } from "@/lib/firebase/packages";
 import { DUMMY_PACKAGES, getPackageDetails, type TravelPackage } from "@/lib/packageData";
 import { cleanupAbandonedPackageImages, deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
+import { INDIA_STATES, toIndiaState } from "@/lib/indiaStates";
 import { usePackagesState } from "@/lib/usePackages";
 import AdminPackageBuilder from "./AdminPackageBuilder";
 
@@ -32,8 +33,22 @@ export default function AdminPackagesManager() {
   const totalPages = Math.max(1, Math.ceil(filteredPackages.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const visiblePackages = filteredPackages.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const filedUnderOptions = [...new Set(packages.map((pkg) => pkg.destination.trim()).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b));
+  /* What the builder's "Filed under" field offers, split by region. India lists
+     every state, so a state enters the public destination filter the moment a
+     package is filed under it — nothing is hardcoded on the site itself.
+     International lists the countries already in the catalogue, unchanged. */
+  const filedUnderOptions = useMemo(() => {
+    const used = (region: TravelPackage["region"]) =>
+      packages
+        .filter((pkg) => pkg.region === region)
+        .map((pkg) => pkg.destination.trim())
+        .filter(Boolean);
+    const unique = (list: string[]) => [...new Set(list)].sort((a, b) => a.localeCompare(b));
+    return {
+      India: unique([...INDIA_STATES, ...used("India").map(toIndiaState)]),
+      International: unique(used("International")),
+    };
+  }, [packages]);
 
   if (editing) {
     return <AdminPackageBuilder initialPackage={editing === "new" ? undefined : editing} filedUnderOptions={filedUnderOptions} onCancel={() => setEditing(null)} onSaved={() => setEditing(null)} />;

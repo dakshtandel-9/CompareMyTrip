@@ -120,6 +120,15 @@ service cloud.firestore {
       allow create, delete: if false;
     }
 
+    match /coupons/{couponId} {
+      // Discount codes. Deliberately not public: the checkout never reads
+      // this collection from the browser — it asks the server, which uses
+      // the Admin SDK — because a public read would hand every visitor the
+      // whole list of codes, including ones cut for one campaign or one
+      // traveller. The document id is the code itself.
+      allow read, write: if isAdmin();
+    }
+
     match /admins/{adminId} {
       // Admin membership is provisioned out-of-band in the Firebase console.
       // Client applications can neither enumerate nor change this collection.

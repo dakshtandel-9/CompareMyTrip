@@ -88,17 +88,20 @@ const slugId = (p) => p.slug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/
    and "Kerala" are all the same shelf to a visitor, and "cairns" is Australia.
    Collapsing to one headline destination keeps the filter list short enough to
    scan; anything unlisted keeps its own name. */
+/* India resolves to the state, never a town or district: the catalogue's
+   destination filter files India by state, so "Coorg" is Karnataka. Runtime
+   normalisation in src/lib/indiaStates.ts covers whatever slips through here. */
 const DESTINATION_ALIASES = {
   kochi: "Kerala", munnar: "Kerala", thekkady: "Kerala", alleppey: "Kerala",
-  srinagar: "Kashmir", gulmarg: "Kashmir", pahalgam: "Kashmir", sonamarg: "Kashmir",
+  srinagar: "Jammu & Kashmir", gulmarg: "Jammu & Kashmir", pahalgam: "Jammu & Kashmir", sonamarg: "Jammu & Kashmir",
   leh: "Ladakh", pangong: "Ladakh", nubra: "Ladakh",
-  manali: "Himachal", kasol: "Himachal", jibhi: "Himachal", shimla: "Himachal",
+  manali: "Himachal Pradesh", kasol: "Himachal Pradesh", jibhi: "Himachal Pradesh", shimla: "Himachal Pradesh",
   "north goa": "Goa", "south goa": "Goa",
   jaipur: "Rajasthan", jaisalmer: "Rajasthan", jodhpur: "Rajasthan", udaipur: "Rajasthan", bikaner: "Rajasthan",
-  gangtok: "Sikkim", darjeeling: "Sikkim",
+  gangtok: "Sikkim", darjeeling: "West Bengal",
   nainital: "Uttarakhand", mukteswar: "Uttarakhand",
-  guwahati: "North East", shillong: "Meghalaya",
-  mysore: "Karnataka", coorg: "Coorg", ooty: "Tamil Nadu",
+  guwahati: "Assam", shillong: "Meghalaya",
+  mysore: "Karnataka", coorg: "Karnataka", ooty: "Tamil Nadu",
   hanoi: "Vietnam", sapa: "Vietnam", "halong bay": "Vietnam", "da nang": "Vietnam",
   phuket: "Thailand", krabi: "Thailand", bangkok: "Thailand",
   kandy: "Sri Lanka", colombo: "Sri Lanka", bentota: "Sri Lanka", "nuwara eliya": "Sri Lanka",

@@ -9,6 +9,10 @@ import { uploadImageToCloudflare } from "@/lib/cloudflareUpload";
 import { getFirebaseAuth, getFirebaseDb } from "./client";
 
 const HOMEPAGE_COLLECTION = "siteContent";
+/* Deliberately still "homepage" even though the CRM is now the whole site's
+   content editor at /admin/content: this is where every published document
+   already lives, and renaming it would strand that content behind a key
+   nothing reads. The path is storage, not a label anyone sees. */
 const HOMEPAGE_DOCUMENT = "homepage";
 
 type StoredHomepageDocument = {

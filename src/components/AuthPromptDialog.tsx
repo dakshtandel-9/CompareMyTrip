@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, BadgePercent, Headset, Lock, Mail, ShieldCheck, User, X } from "lucide-react";
+import { ArrowRight, Lock, Mail, User, X } from "lucide-react";
 
 import TextField from "@/app/(auth)/_components/TextField";
 import Checkbox from "@/app/(auth)/_components/Checkbox";
@@ -15,6 +15,8 @@ import AuthAlert from "@/app/(auth)/_components/AuthAlert";
 import PhoneNumberField from "@/components/PhoneNumberField";
 import { getAuthErrorMessage, signInWithEmail, signInWithGoogle, signUpWithEmail } from "@/lib/firebase/auth";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
+import { Glyph } from "@/lib/adminIcons";
+import { useSiteContent } from "@/lib/useSiteContent";
 
 /* ------------------------------------------------------------------ */
 /* Signed-out prompt (design.md §Modal: 24px radius, 560px, 32px pad,   */
@@ -33,23 +35,22 @@ import { useAuthUser } from "@/lib/firebase/useAuthUser";
 /* is written to storage — that is what makes every refresh re-arm it.  */
 /* ------------------------------------------------------------------ */
 
-const PROMPT_DELAY_MS = 5000;
+const PROMPT_DELAY_MS = 12000;
 
 /* Routes where the prompt would be absurd or in the way: the auth pages
    themselves, checkout (already a conversion flow) and the CRM. */
 const SUPPRESSED_PREFIXES = ["/login", "/signup", "/forgot-password", "/admin", "/checkout"];
 
-const loginTrust = [
-  { icon: ShieldCheck, label: "Secure payments" },
-  { icon: BadgePercent, label: "Member-only deals" },
-  { icon: Headset, label: "24/7 support" },
-];
 
 type Tab = "login" | "signup";
 
 export default function AuthPromptDialog() {
   const user = useAuthUser();
   const pathname = usePathname();
+  /* Copy, icons and the dismiss label only — the tabs, fields and Firebase
+     calls below are code, not content. */
+  const { auth } = useSiteContent();
+  const copy = auth.prompt;
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const [delayElapsed, setDelayElapsed] = useState(false);
@@ -96,7 +97,14 @@ export default function AuthPromptDialog() {
   );
   /* `undefined` means Firebase has not answered yet — only an explicit
      `null` is a signed-out visitor. */
-  const open = (requested || (delayElapsed && !dismissed)) && !suppressedRoute && user === null;
+  /* Turning the prompt off in the CRM stops it appearing on its own, but a
+     component that explicitly asks for it (the "Log in" button) still gets
+     it — otherwise the switch would break sign-in, not just the nudge. */
+  const promptAllowed = auth.enabled && copy.enabled;
+  const open =
+    (requested || (delayElapsed && !dismissed && promptAllowed)) &&
+    !suppressedRoute &&
+    user === null;
 
   /* showModal() is what gives the focus trap, the inert background and Esc
      without hand-rolling any of them. The panel is painted at scale(0.98)
@@ -217,13 +225,11 @@ export default function AuthPromptDialog() {
             id="auth-prompt-title"
             className="mt-5 max-w-[22ch] font-display text-[24px] font-bold leading-[1.2] tracking-[-0.005em] sm:text-[26px]"
           >
-            Travel smarter,{" "}
-            <span className="text-cmt-primary-700">save more.</span>
+            {copy.titleLead}{" "}
+            <span className="text-cmt-primary-700">{copy.titleHighlight}</span>
           </h2>
           <p className="mt-1.5 text-[14px] leading-[1.5] text-cmt-neutral-500">
-            {tab === "login"
-              ? "Log in to save packages, compare side by side and pick up where you left off."
-              : "Create a free account for member-only prices and faster checkout."}
+            {tab === "login" ? copy.loginSubtitle : copy.signupSubtitle}
           </p>
 
           {/* Segmented control — the choice changes what the fields below mean */}
@@ -367,9 +373,9 @@ export default function AuthPromptDialog() {
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-cmt-neutral-100 pt-4">
             <ul className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              {loginTrust.map(({ icon: Icon, label }) => (
-                <li key={label} className="flex items-center gap-1.5">
-                  <Icon size={14} strokeWidth={2} className="text-cmt-primary-700" aria-hidden="true" />
+              {copy.trust.map(({ id, icon, label }) => (
+                <li key={id} className="flex items-center gap-1.5">
+                  <Glyph name={icon} className="h-3.5 w-3.5 text-cmt-primary-700" />
                   <span className="text-[12px] leading-[1.3] text-cmt-neutral-500">{label}</span>
                 </li>
               ))}
@@ -380,7 +386,7 @@ export default function AuthPromptDialog() {
               onClick={() => close()}
               className="text-[13px] font-semibold text-cmt-neutral-500 underline-offset-2 transition-colors duration-200 hover:text-cmt-neutral-900 hover:underline"
             >
-              Keep browsing
+              {copy.dismissLabel}
             </button>
           </div>
         </div>

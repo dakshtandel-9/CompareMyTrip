@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, ArrowRight, ShieldCheck, BadgeCheck, Headset, User } from "lucide-react";
+import { Mail, Lock, ArrowRight, User } from "lucide-react";
 import SplitAuthShell from "../_components/SplitAuthShell";
 import TextField from "../_components/TextField";
 import Checkbox from "../_components/Checkbox";
@@ -12,15 +12,14 @@ import Divider from "../_components/Divider";
 import GoogleIcon from "../_components/GoogleIcon";
 import AuthAlert from "../_components/AuthAlert";
 import { signInWithEmail, signInWithGoogle, getAuthErrorMessage } from "@/lib/firebase/auth";
-
-const trustItems = [
-  { icon: ShieldCheck, label: "Secure Payments", description: "Your data is protected with 256-bit encryption." },
-  { icon: BadgeCheck, label: "Best Price Guarantee", description: "Find the best deals or we make it right." },
-  { icon: Headset, label: "24/7 Support", description: "We're here to help you anytime." },
-];
+import { Glyph } from "@/lib/adminIcons";
+import { useSiteContent } from "@/lib/useSiteContent";
 
 export default function LoginPage() {
   const router = useRouter();
+  /* Copy, icons and artwork only — the form below is code, not content. */
+  const { auth } = useSiteContent();
+  const copy = auth.login;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -62,13 +61,13 @@ export default function LoginPage() {
 
   return (
     <SplitAuthShell
-      navPrompt={<>New here? <Link href="/signup" className="font-semibold text-cmt-primary-900 hover:underline">Sign up</Link></>}
-      title="Welcome back!"
-      subtitle="Log in to continue comparing and booking the best travel deals."
-      imageSrc="/auth/signup.png"
-      imageAlt="Airplane wing above the clouds at sunset"
-      headline={<>Travel Smarter,<br /><span className="text-cmt-primary-400">Save More.</span></>}
-      imageSubcopy="Compare flights, hotels and holiday packages from 500+ partners and get the best deals instantly."
+      navPrompt={<>{copy.navPrompt} <Link href="/signup" className="font-semibold text-cmt-primary-900 hover:underline">{copy.navLinkLabel}</Link></>}
+      title={copy.title}
+      subtitle={copy.subtitle}
+      imageSrc={copy.image}
+      imageAlt={copy.imageAlt}
+      headline={<>{copy.headlineLead}<br /><span className="text-cmt-primary-400">{copy.headlineHighlight}</span></>}
+      imageSubcopy={copy.imageSubcopy}
       imagePanelBottom={
         <div className="flex items-center gap-3 rounded-cmt-md border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
           <div className="flex -space-x-3">
@@ -90,9 +89,9 @@ export default function LoginPage() {
         <div className="my-1"><Divider label="or continue with" /></div>
         <Button type="button" variant="outline" leadingIcon={<GoogleIcon />} isLoading={isGoogleSubmitting} disabled={busy} onClick={handleGoogleSignIn}>Continue with Google</Button>
         <div className="mt-5 grid grid-cols-3 gap-3 border-t border-cmt-neutral-100 pt-5">
-          {trustItems.map(({ icon: Icon, label, description }) => (
-            <div key={label} className="flex flex-col items-start gap-1.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-cmt-full bg-cmt-primary-100"><Icon size={16} className="text-cmt-primary-900" aria-hidden="true" /></span>
+          {copy.trust.map(({ id, icon, label, description }) => (
+            <div key={id} className="flex flex-col items-start gap-1.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-cmt-full bg-cmt-primary-100"><Glyph name={icon} className="h-4 w-4 text-cmt-primary-900" /></span>
               <p className="text-[12px] font-semibold leading-[1.3] text-cmt-neutral-900">{label}</p>
               <p className="text-[11px] leading-[1.4] text-cmt-neutral-500">{description}</p>
             </div>

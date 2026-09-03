@@ -49,14 +49,26 @@ export function normaliseTravellers(raw: string | number | null | undefined) {
 }
 
 /** The only place an amount is ever decided. Anything posted by a browser
-    is treated as a hint about *which* package, never about the price. */
-export function priceOrder(pkg: TravelPackage, travellers: number) {
+    is treated as a hint about *which* package, never about the price — and
+    a coupon is a hint about which code to check, never about how much it
+    takes off. The discount passed here is the one the server worked out
+    itself, in @/lib/couponServer. */
+export function priceOrder(pkg: TravelPackage, travellers: number, discount = 0) {
   const count = normaliseTravellers(travellers);
+  const subtotal = pkg.price * count;
+  /* Defence in depth: the discount arrives already clamped by
+     discountFor(), and is clamped again here so no caller can drive the
+     amount below what the gateway will take. */
+  const applied = Math.max(0, Math.min(Math.floor(discount), Math.max(0, subtotal - 1)));
+  const total = subtotal - applied;
+
   return {
     travellers: count,
     perPerson: pkg.price,
-    total: pkg.price * count,
-    amount: (pkg.price * count).toFixed(2),
+    subtotal,
+    discount: applied,
+    total,
+    amount: total.toFixed(2),
   };
 }
 

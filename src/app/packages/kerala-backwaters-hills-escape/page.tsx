@@ -51,7 +51,7 @@ const highlights = [
   "Spend a night aboard a private Alleppey backwater houseboat",
   "Travel comfortably throughout in a private air-conditioned cab",
   "Choose relaxed sightseeing with room for personal recommendations",
-  "Book with a GST-verified operator and transparent inclusions",
+  "Book with a trusted operator and transparent inclusions",
 ];
 
 const itinerary = [
@@ -275,7 +275,7 @@ export default function KeralaPackagePage() {
                 <div className="mt-6 grid gap-4 sm:grid-cols-3">
                   <div className="rounded-cmt-control bg-cmt-neutral-50 p-4"><RotateCcw className="size-5 text-cmt-primary-700" /><h3 className="mt-3 text-sm font-semibold">Free cancellation</h3><p className="mt-1 text-xs leading-5 text-cmt-neutral-500">Cancel up to 15 days before departure for a full package refund.</p></div>
                   <div className="rounded-cmt-control bg-cmt-neutral-50 p-4"><CalendarDays className="size-5 text-cmt-primary-700" /><h3 className="mt-3 text-sm font-semibold">Flexible dates</h3><p className="mt-1 text-xs leading-5 text-cmt-neutral-500">Move your dates once without a change fee, subject to availability.</p></div>
-                  <div className="rounded-cmt-control bg-cmt-neutral-50 p-4"><ShieldCheck className="size-5 text-cmt-primary-700" /><h3 className="mt-3 text-sm font-semibold">Verified operator</h3><p className="mt-1 text-xs leading-5 text-cmt-neutral-500">Operator credentials and GST registration have been checked.</p></div>
+                  <div className="rounded-cmt-control bg-cmt-neutral-50 p-4"><ShieldCheck className="size-5 text-cmt-primary-700" /><h3 className="mt-3 text-sm font-semibold">Verified operator</h3><p className="mt-1 text-xs leading-5 text-cmt-neutral-500">Operator credentials have been checked before listing.</p></div>
                 </div>
               </section>
 
@@ -295,7 +295,6 @@ export default function KeralaPackagePage() {
                 <KeralaBookingActions />
 
                 <div className="mt-5 space-y-3 border-t border-cmt-neutral-200 pt-5 text-xs text-cmt-neutral-600">
-                  <p className="flex items-center gap-2"><ShieldCheck className="size-4 text-cmt-success-500" /> GST-verified travel operator</p>
                   <p className="flex items-center gap-2"><RotateCcw className="size-4 text-cmt-success-500" /> Free cancellation up to 15 days</p>
                   <p className="flex items-center gap-2"><Zap className="size-4 text-cmt-success-500" /> Confirmation within 24 hours</p>
                 </div>
@@ -328,9 +327,6 @@ export default function KeralaPackagePage() {
                       <button type="button" aria-label={`Save ${pkg.title}`} className="grid size-9 place-items-center rounded-full border border-white/70 bg-white/95 text-cmt-neutral-700 shadow-cmt-xs transition-colors hover:text-cmt-coral-700">
                         <Heart className="size-4" strokeWidth={2} />
                       </button>
-                    </div>
-                    <div className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-cmt-full border border-cmt-success-500/20 bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-cmt-success-700 shadow-cmt-xs">
-                      <ShieldCheck className="size-3.5 text-cmt-success-500" strokeWidth={2.5} /> GST Verified
                     </div>
                   </div>
 

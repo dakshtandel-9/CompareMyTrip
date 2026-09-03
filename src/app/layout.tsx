@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import WebsiteLoader from "@/components/WebsiteLoader";
 import ProfileCompletionGate from "@/components/ProfileCompletionGate";
 import AuthPromptDialog from "@/components/AuthPromptDialog";
+import FloatingActions from "@/components/FloatingActions";
 import "./globals.css";
 
 const inter = Inter({
@@ -36,6 +37,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             and living in the root layout is what keeps this timer tied to a
             document load rather than to route changes. */}
         <AuthPromptDialog />
+        {/* Rides along on every page and hides itself on the handful that
+            own the whole screen — see the component. */}
+        <FloatingActions />
       </body>
     </html>
   );
