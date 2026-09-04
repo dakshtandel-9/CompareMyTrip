@@ -10,14 +10,14 @@ import {
   type EnquiryStatus,
 } from "@/lib/firebase/enquiries";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
-import { usePackages } from "@/lib/usePackages";
+import { useAllPackages } from "@/lib/usePackages";
 
 const dateFormatter = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" });
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
 export default function AdminEnquiriesList({ kind }: { kind: "contact" | "package" }) {
   const authUser = useAuthUser();
-  const packages = usePackages();
+  const packages = useAllPackages();
   const [enquiries, setEnquiries] = useState<ContactEnquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { ArrowLeft, BedDouble, Check, Clock3, ImagePlus, MapPin, PackagePlus, Plus, Save, Sparkles, Star, Trash2, Users } from "lucide-react";
+import { ArrowLeft, BedDouble, Check, Clock3, Globe2, ImagePlus, MapPin, PackagePlus, Plus, Save, Sparkles, Star, Trash2, Users } from "lucide-react";
 import { PACKAGE_CATEGORIES, discountToPrice, getDiscountPercent, getPackageDetails, type PackageCategory, type PackageItineraryDay, type PackageStay, type TravelPackage } from "@/lib/packageData";
 import { savePackage, uploadPackageImage } from "@/lib/firebase/packages";
 import { deleteImageFromCloudflare, PACKAGE_DRAFT_IMAGE_KEY_PREFIX } from "@/lib/cloudflareUpload";
@@ -14,6 +14,7 @@ type PackageForm = {
   summary: string; places: string; highlights: string; inclusions: string; exclusions: string;
   meals: string; transfers: string; flights: string; cancellationPolicy: string;
   itinerary: PackageItineraryDay[]; stays: PackageStay[];
+  status: "draft" | "published";
 };
 
 const makeDays = (count = 5): PackageItineraryDay[] => Array.from({ length: count }, (_, index) => ({
@@ -31,6 +32,9 @@ const initialForm: PackageForm = {
   meals: "Daily breakfast", transfers: "Private transfers included", flights: "Not included",
   cancellationPolicy: "Free cancellation up to 15 days before departure. Date changes are subject to availability.",
   itinerary: makeDays(), stays: [{ name: "Comfort hotel", nights: 4, place: "", comfort: "4-star room with daily breakfast" }],
+  /* New packages start as drafts: nothing reaches the website or the sitemap
+     until somebody has read it back and chosen to publish. */
+  status: "draft",
 };
 
 function formFromPackage(pkg?: TravelPackage): PackageForm {
@@ -44,6 +48,7 @@ function formFromPackage(pkg?: TravelPackage): PackageForm {
     places: details.places.join(", "), highlights: details.highlights.join("\n"), inclusions: details.inclusions.join("\n"),
     exclusions: details.exclusions.join("\n"), meals: details.meals, transfers: details.transfers, flights: details.flights,
     cancellationPolicy: details.cancellationPolicy, itinerary: details.itinerary, stays: details.stays,
+    status: pkg.status === "draft" ? "draft" : "published",
   };
 }
 
@@ -195,7 +200,7 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
          place of the route unless one was typed explicitly. */
       destination: form.destination.trim() || splitPlaces(form.places)[0] || form.location.trim(),
       image: form.gallery[0], nights: Number(form.nights), days: Number(form.days), pax: form.pax.trim(), hotelStars: Number(form.hotelStars), tags: form.tags,
-      rating: initialPackage?.rating ?? 5, reviews: initialPackage?.reviews ?? 0, discount: Number(form.discount), originalPrice: Number(form.originalPrice), price: Number(form.price), deal: form.deal,
+      rating: initialPackage?.rating ?? 5, reviews: initialPackage?.reviews ?? 0, discount: Number(form.discount), originalPrice: Number(form.originalPrice), price: Number(form.price), deal: form.deal, status: form.status,
       details: { gallery: form.gallery, summary: form.summary.trim(), places: splitPlaces(form.places), highlights: lines(form.highlights),
         itinerary: form.itinerary.map((day) => ({ ...day, title: day.title.trim(), route: day.route.trim(), description: day.description.trim() || day.route.trim() || day.title.trim() })),
         stays: form.stays.map((stay) => ({ ...stay, name: stay.name.trim(), place: stay.place.trim() || form.destination.trim() || form.location.trim() })),
@@ -206,7 +211,11 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
       setSaving(true); await savePackage(newPackage);
       draftImagesRef.current = [];
       sessionStorage.removeItem(draftStorageKey);
-      setMessage(`“${newPackage.title}” is saved in Firebase and live on the website.`); onSaved();
+      setMessage(
+        newPackage.status === "draft"
+          ? `“${newPackage.title}” is saved as a draft and stays off the website until it is published.`
+          : `“${newPackage.title}” is saved in Firebase and live on the website.`,
+      ); onSaved();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "This package could not be saved."); }
     finally { setSaving(false); }
   };
@@ -281,9 +290,24 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
               <div className="mt-6 space-y-4">{form.stays.map((stay, index) => <article key={index} className="rounded-cmt-md border border-cmt-neutral-200 p-4"><div className="mb-4 flex items-center justify-between"><p className="font-semibold">Stay {index + 1}</p>{form.stays.length > 1 && <button type="button" onClick={() => update("stays", form.stays.filter((_, stayIndex) => stayIndex !== index))} className="text-cmt-error-700"><Trash2 className="size-4" /></button>}</div><div className="grid gap-4 sm:grid-cols-2"><label><FieldLabel>Hotel / stay name</FieldLabel><input value={stay.name} onChange={(e) => updateStay(index, "name", e.target.value)} className={inputClass} /></label><label><FieldLabel>Place</FieldLabel><input value={stay.place} onChange={(e) => updateStay(index, "place", e.target.value)} className={inputClass} /></label><label><FieldLabel>Nights</FieldLabel><input type="number" min="1" value={stay.nights} onChange={(e) => updateStay(index, "nights", Number(e.target.value))} className={inputClass} /></label><label><FieldLabel>Comfort / room details</FieldLabel><input value={stay.comfort} onChange={(e) => updateStay(index, "comfort", e.target.value)} className={inputClass} /></label></div></article>)}</div>
             </section>
 
+            <section className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
+              <SectionTitle icon={<Globe2 className="size-5" />} title="Visibility" copy="Whether travellers and search engines can see this package." />
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {([
+                  { value: "published", title: "Published", copy: "Listed in the catalogue and offered to search engines." },
+                  { value: "draft", title: "Draft", copy: "Stays in the CRM. Kept out of the website and the sitemap." },
+                ] as const).map((option) => (
+                  <label key={option.value} className={`flex cursor-pointer gap-3 rounded-cmt-md border p-4 ${form.status === option.value ? "border-cmt-primary-500 bg-cmt-primary-50" : "border-cmt-neutral-200"}`}>
+                    <input type="radio" name="package-status" value={option.value} checked={form.status === option.value} onChange={() => update("status", option.value)} className="mt-1 size-4 accent-cmt-primary-500" />
+                    <span><span className="block text-sm font-semibold">{option.title}</span><span className="mt-1 block text-xs leading-5 text-cmt-neutral-600">{option.copy}</span></span>
+                  </label>
+                ))}
+              </div>
+            </section>
+
             {error && <p role="alert" className="rounded-cmt-control border border-cmt-error-500/20 bg-cmt-error-100 px-4 py-3 text-sm font-medium text-cmt-error-700">{error}</p>}
             {message && <p role="status" className="rounded-cmt-control border border-cmt-success-500/20 bg-cmt-success-100 px-4 py-3 text-sm font-medium text-cmt-success-700">{message}</p>}
-            <button disabled={saving} type="submit" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-6 text-sm font-semibold shadow-cmt-primary hover:bg-cmt-primary-600 disabled:opacity-50 sm:w-auto"><Save className="size-4" /> {saving ? "Saving…" : initialPackage ? "Save changes" : "Create package"}</button>
+            <button disabled={saving} type="submit" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-6 text-sm font-semibold shadow-cmt-primary hover:bg-cmt-primary-600 disabled:opacity-50 sm:w-auto"><Save className="size-4" /> {saving ? "Saving…" : initialPackage ? "Save changes" : form.status === "draft" ? "Save draft" : "Create package"}</button>
           </form>
 
           <aside className="xl:sticky xl:top-6">

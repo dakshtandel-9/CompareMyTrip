@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
-import { DUMMY_PACKAGES, type TravelPackage } from "@/lib/packageData";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { DUMMY_PACKAGES, publishedPackages, type TravelPackage } from "@/lib/packageData";
 import { subscribeToPackages } from "@/lib/firebase/packages";
 
 type PackageState = { packages: TravelPackage[]; loading: boolean; error: string; databaseInitialized: boolean };
@@ -28,7 +28,9 @@ function start() {
   );
 }
 
-export function usePackagesState() {
+/** The unfiltered catalogue, drafts included. CRM only: a draft rendered on
+    the website would contradict the server HTML the crawler was given. */
+export function useAllPackagesState() {
   const state = useSyncExternalStore(
     (listener) => { listeners.add(listener); return () => { listeners.delete(listener); }; },
     () => current,
@@ -38,6 +40,19 @@ export function usePackagesState() {
     start();
   }, []);
   return state;
+}
+
+export function useAllPackages() {
+  return useAllPackagesState().packages;
+}
+
+/** What the website may show. Mirrors the server's `getPublishedPackages`, so
+    the catalogue does not change shape when the subscription hydrates over
+    the server-rendered markup. */
+export function usePackagesState() {
+  const state = useAllPackagesState();
+  const packages = useMemo(() => publishedPackages(state.packages), [state.packages]);
+  return { ...state, packages };
 }
 
 export function usePackages() {

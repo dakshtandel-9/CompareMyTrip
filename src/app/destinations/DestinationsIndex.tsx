@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ArrowRight, Compass, MapPin, Mountain, MoveRight, Plane, Search } from "lucide-react";
 
-import { buildDestinations, durationLabel } from "@/lib/destinations";
+import { buildDestinations, destinationHref, durationLabel } from "@/lib/destinations";
 import { buildWeekendTrackSummaries, trackHref, weekendTreks } from "@/lib/weekendTracks";
 import { bannerFor } from "@/lib/siteContent";
 import { useSiteContent } from "@/lib/useSiteContent";
@@ -379,7 +379,10 @@ export default function DestinationsIndex({
                 return (
                   <li key={destination.name}>
                     <Link
-                      href={`/packages?destination=${encodeURIComponent(destination.name)}`}
+                      /* The destination's own page, not the filtered
+                         catalogue: it is the crawlable landing page for the
+                         place, and it links on to the filter itself. */
+                      href={destinationHref(destination.name)}
                       className="group relative flex aspect-[4/5] w-full overflow-hidden rounded-cmt-lg bg-cmt-secondary-900 shadow-cmt-sm transition-shadow hover:shadow-cmt-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                     >
                       {destination.image ? (

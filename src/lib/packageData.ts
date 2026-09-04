@@ -67,6 +67,11 @@ export type TravelPackage = {
       can be keenly priced without being on sale — so it is set per package and
       drives the deals toggle on the catalogue and the badge on the price card. */
   deal?: boolean;
+  /** Draft packages stay inside the CRM: they are kept out of the public
+      catalogue, out of the sitemap and out of every server-rendered page.
+      Documents written before this field existed carry no status and are
+      treated as published, so adding it never retires a live package. */
+  status?: "draft" | "published";
   details?: PackageDetails;
 };
 
@@ -3752,6 +3757,33 @@ const DEFAULT_GALLERY = [
   "/popular-destinations/mumbai.png",
   "/package-gallery/kerala-houseboat.jpg",
 ];
+
+/* ------------------- Publication and index gating ------------------ */
+
+/** Firestore hands back documents written by older versions of the CRM, so
+    the status is read defensively: only an explicit "draft" withholds a
+    package. Anything else — a missing field, a legacy document, a typo —
+    keeps the package on the website, which is the safe direction to fail. */
+export function isPublishedPackage(pkg: Pick<TravelPackage, "status">): boolean {
+  return pkg.status !== "draft";
+}
+
+export function publishedPackages(packages: TravelPackage[]): TravelPackage[] {
+  return packages.filter(isPublishedPackage);
+}
+
+/* An address or a link in the title is never marketing copy — it is a record
+   somebody typed into the CRM to try the form out. Such a package still
+   renders for whoever is looking at it, but it must not reach the sitemap or
+   the index, where a stray address would be republished by search engines and
+   scraped. Correcting the title in the CRM makes it indexable again. */
+const JUNK_TITLE = /[\w.+-]+@[\w-]+\.[\w.]+|https?:\/\/|\bwww\./i;
+
+/** Whether a package may be offered to search engines: published, and free of
+    the placeholder text that marks a half-finished record. */
+export function isIndexablePackage(pkg: TravelPackage): boolean {
+  return isPublishedPackage(pkg) && Boolean(pkg.title?.trim()) && !JUNK_TITLE.test(pkg.title);
+}
 
 export function getPackageDetails(pkg: TravelPackage): PackageDetails {
   if (pkg.details) return pkg.details;

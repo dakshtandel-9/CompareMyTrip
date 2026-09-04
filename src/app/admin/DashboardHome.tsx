@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 import { SECTION_ORDER } from "@/lib/siteContent";
-import { usePackages } from "@/lib/usePackages";
+import { useAllPackages } from "@/lib/usePackages";
 import { useSiteContent } from "@/lib/useSiteContent";
 
 function Stat({
@@ -73,7 +73,7 @@ function ShortcutCard({
 }
 
 export default function DashboardHome() {
-  const packages = usePackages();
+  const packages = useAllPackages();
   const content = useSiteContent();
 
   const liveSections = SECTION_ORDER.filter((key) => content[key].enabled).length;

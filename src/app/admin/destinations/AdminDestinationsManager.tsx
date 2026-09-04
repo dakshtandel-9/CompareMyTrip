@@ -13,7 +13,7 @@ import {
 import { deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
 import { useDestinationCoversState } from "@/lib/useDestinationCovers";
-import { usePackagesState } from "@/lib/usePackages";
+import { useAllPackagesState } from "@/lib/usePackages";
 
 /* ------------------------------------------------------------------ */
 /* Destination cover artwork. The rows are exactly the destinations that */
@@ -27,7 +27,7 @@ const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
 export default function AdminDestinationsManager() {
   const authUser = useAuthUser();
-  const { packages, loading: packagesLoading } = usePackagesState();
+  const { packages, loading: packagesLoading } = useAllPackagesState();
   const { covers, loading: coversLoading, error: coversError } = useDestinationCoversState();
 
   const [search, setSearch] = useState("");

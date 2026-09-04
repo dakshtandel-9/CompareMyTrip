@@ -1,3 +1,4 @@
+import { slugify } from "@/lib/blogData";
 import type { PackageCategory, TravelPackage } from "@/lib/packageData";
 import { toIndiaState } from "@/lib/indiaStates";
 
@@ -82,4 +83,38 @@ export function durationLabel(destination: DestinationSummary) {
   if (!destination.maxDays) return "";
   if (destination.minDays === destination.maxDays) return `${destination.maxDays} days`;
   return `${destination.minDays}–${destination.maxDays} days`;
+}
+
+/* ---------------------- Destination landing pages ------------------- */
+/* A destination's own URL. The name is the catalogue's filed-under value
+   ("Kerala", "Himachal Pradesh"), so the slug is derived rather than stored
+   and a place gets its page the moment a package is filed under it. */
+
+export const destinationSlug = (name: string) => slugify(name);
+
+export const destinationHref = (name: string) => `/destinations/${destinationSlug(name)}`;
+
+/** The destination a slug refers to, or null. Matching on the slug rather
+    than the name means "Himachal Pradesh" and "himachal-pradesh" resolve to
+    the same page without a lookup table to keep in step. */
+export function findDestinationBySlug(
+  destinations: DestinationSummary[],
+  slug: string,
+): DestinationSummary | null {
+  const needle = slugify(slug);
+  return destinations.find((item) => destinationSlug(item.name) === needle) ?? null;
+}
+
+/** The packages filed under one destination, in catalogue order. Mirrors the
+    grouping `buildDestinations` uses, so a card's count and the list on the
+    destination page can never disagree. */
+export function packagesForDestination(
+  packages: TravelPackage[],
+  name: string,
+): TravelPackage[] {
+  return packages.filter((pkg) => {
+    const filed = pkg.destination?.trim();
+    if (!filed) return false;
+    return (pkg.region === "India" ? toIndiaState(filed) : filed) === name;
+  });
 }

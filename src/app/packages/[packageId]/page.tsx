@@ -4,12 +4,24 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
 import PackageDetailClient from "./PackageDetailClient";
+import { isIndexablePackage } from "@/lib/packageData";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
-import { getPublishedPackage } from "@/lib/serverContent";
+import { getPublishedPackage, getPublishedPackages } from "@/lib/serverContent";
 
 export const revalidate = 3600;
 
 type PackagePageProps = { params: Promise<{ packageId: string }> };
+
+/* Same reasoning as the blog: the catalogue is known at build time, so the
+   pages a crawler will ask for first are already built. A package added later
+   is rendered on demand. Packages that redirect elsewhere via `href` are left
+   out — prerendering a permanent redirect gains nothing. */
+export async function generateStaticParams() {
+  const packages = await getPublishedPackages();
+  return packages
+    .filter((pkg) => !pkg.href || pkg.href === `/packages/${pkg.id}`)
+    .map((pkg) => ({ packageId: pkg.id }));
+}
 
 function packageDescription(pkg: Awaited<ReturnType<typeof getPublishedPackage>>) {
   if (!pkg) return "";
@@ -30,6 +42,9 @@ export async function generateMetadata({ params }: PackagePageProps): Promise<Me
     path: canonicalPath,
     image: pkg.image,
     imageAlt: `${pkg.title} in ${pkg.location}`,
+    // The page still serves whoever holds the link; it just does not go into
+    // the index carrying a half-finished title.
+    index: isIndexablePackage(pkg),
   });
 }
 

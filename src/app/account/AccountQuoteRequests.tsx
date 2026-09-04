@@ -13,7 +13,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { subscribeToUserQuoteEnquiries, type ContactEnquiry, type EnquiryStatus } from "@/lib/firebase/enquiries";
-import { usePackages } from "@/lib/usePackages";
+import { useAllPackages } from "@/lib/usePackages";
 
 /* Quote requests, styled as a sibling of My Trips: heading outside, one
    white card per request. Status is a badge (§8.5), not a disabled button —
@@ -45,7 +45,7 @@ function Meta({ icon: Icon, label, value, suffix }: { icon: typeof Users; label:
 }
 
 export default function AccountQuoteRequests({ userId }: { userId: string }) {
-  const packages = usePackages();
+  const packages = useAllPackages();
   const [enquiries, setEnquiries] = useState<ContactEnquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

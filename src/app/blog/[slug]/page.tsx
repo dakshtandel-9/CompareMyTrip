@@ -12,6 +12,14 @@ export const revalidate = 3600;
 
 type BlogPostPageProps = { params: Promise<{ slug: string }> };
 
+/* Prerender the published articles so a crawler's first visit is served from
+   the cache rather than paying for a cold Firestore read. Anything published
+   after the build is still rendered on demand and then revalidated. */
+export async function generateStaticParams() {
+  const posts = await getPublishedBlogPosts();
+  return posts.map((post) => ({ slug: post.id }));
+}
+
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPublishedBlogPost(slug);
