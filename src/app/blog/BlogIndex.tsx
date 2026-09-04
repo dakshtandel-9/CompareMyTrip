@@ -95,8 +95,10 @@ function PostCard({ post }: { post: BlogPost }) {
   );
 }
 
-export default function BlogIndex() {
-  const { posts, loading, error } = usePublishedBlogPosts();
+export default function BlogIndex({ initialPosts }: { initialPosts: BlogPost[] }) {
+  const live = usePublishedBlogPosts();
+  const posts = live.loading || live.error ? initialPosts : live.posts;
+  const { loading, error } = live;
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [page, setPage] = useState(1);

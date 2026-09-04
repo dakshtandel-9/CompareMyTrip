@@ -2,6 +2,7 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   setPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -122,6 +123,10 @@ export async function signInWithEmail({
   await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
   const credential = await signInWithEmailAndPassword(auth, email, password);
   return credential.user;
+}
+
+export async function requestPasswordReset(email: string) {
+  await sendPasswordResetEmail(getFirebaseAuth(), email.trim().toLowerCase());
 }
 
 export async function signInWithGoogle({ remember = true }: { remember?: boolean } = {}) {

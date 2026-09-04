@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AdminPackagesManager from "./AdminPackagesManager";
 
 export const metadata: Metadata = {
-  title: "Packages | CompareMyTrip CRM",
+  title: "Packages",
   description: "Create, edit and publish travel packages.",
 };
 

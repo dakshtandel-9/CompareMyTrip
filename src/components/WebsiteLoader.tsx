@@ -37,7 +37,7 @@ export default function WebsiteLoader({ autoDismiss = false }: WebsiteLoaderProp
           alt="CompareMyTrip"
           width={1400}
           height={167}
-          priority
+          fetchPriority="high"
           className="cmt-site-loader__logo"
         />
 

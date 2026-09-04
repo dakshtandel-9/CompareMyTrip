@@ -60,6 +60,7 @@ export default function ScrollFrameSequence() {
     const wrapper = wrapperRef.current;
     const canvas = canvasRef.current;
     if (!wrapper || !canvas) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     // Last values written to the DOM, so the copy only touches style when it
     // has really moved. Rebuilt whenever the blocks themselves change.
@@ -123,7 +124,15 @@ export default function ScrollFrameSequence() {
     <div ref={wrapperRef} className="relative h-[600vh] bg-white">
       <div className="sticky top-0 flex h-screen w-full items-center justify-center p-3 sm:p-4 md:p-6">
         <div className="relative h-full w-full overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:rounded-3xl">
-          <canvas ref={canvasRef} className="absolute inset-0 block h-full w-full" />
+          <ContentImage
+            src="/images/destinations-header-banner.jpg"
+            alt=""
+            fill
+            fetchPriority="high"
+            sizes="100vw"
+            className="object-cover"
+          />
+          <canvas ref={canvasRef} aria-hidden="true" className="absolute inset-0 block h-full w-full" />
 
           {/* Weighted to the bottom so the glass search panel keeps its
               contrast over the brightest frames of the sequence. */}

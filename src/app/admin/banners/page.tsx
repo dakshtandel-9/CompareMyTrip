@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AdminBannersManager from "./AdminBannersManager";
 
 export const metadata: Metadata = {
-  title: "Banners | CompareMyTrip CRM",
+  title: "Banners",
   description: "The photography mastheads across the site.",
 };
 

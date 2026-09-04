@@ -5,22 +5,26 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowLeft, BedDouble, Car, Check, Clock3, Coffee, MapPin, Plane, ShieldCheck, Star, Users, X } from "lucide-react";
 import { getDiscountPercent, getPackageDetails } from "@/lib/packageData";
-import { usePackages } from "@/lib/usePackages";
 import PackageGallery from "../_components/PackageGallery";
 import BookingCard from "./BookingCard";
 import QuoteModal from "./QuoteModal";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
+import type { TravelPackage } from "@/lib/packageData";
+import { usePackagesState } from "@/lib/usePackages";
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
-export default function PackageDetailClient() {
+export default function PackageDetailClient({ initialPackage }: { initialPackage: TravelPackage }) {
   const { packageId } = useParams<{ packageId: string }>();
   const authUser = useAuthUser();
-  const packages = usePackages();
+  const packageState = usePackagesState();
   const [travellers, setTravellers] = useState(2);
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteWaitingForAuth, setQuoteWaitingForAuth] = useState(false);
-  const pkg = packages.find((item) => item.id === packageId);
+  const livePackage = packageState.packages.find((item) => item.id === packageId);
+  const pkg = packageState.loading || packageState.error
+    ? livePackage ?? initialPackage
+    : livePackage;
 
   useEffect(() => {
     const complete = () => {
@@ -65,7 +69,7 @@ export default function PackageDetailClient() {
     <main className="bg-cmt-neutral-50 pb-24 font-body text-cmt-neutral-900 lg:pb-0">
       <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div><nav className="mb-4 flex items-center gap-2 text-xs text-cmt-neutral-500"><Link href="/">Home</Link><span>/</span><Link href="/packages">Packages</Link><span>/</span>{pkg.destination ? <><Link href={`/packages?destination=${encodeURIComponent(pkg.destination)}`} className="hover:text-cmt-neutral-900">{pkg.destination}</Link><span>/</span></> : null}<span className="line-clamp-1">{pkg.title}</span></nav><h1 className="max-w-5xl font-display text-3xl font-semibold tracking-tight sm:text-5xl">{pkg.title}</h1><div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><span className="inline-flex items-center gap-1.5"><MapPin className="size-4" />{pkg.location}</span>{pkg.reviews > 0 && pkg.rating > 0 ? <span className="inline-flex items-center gap-1.5"><Star className="size-4 fill-cmt-primary-500 text-cmt-primary-500" /><b className="text-cmt-neutral-900">{pkg.rating}</b> {pkg.reviews} traveller reviews</span> : <span className="text-cmt-neutral-500">Newly listed &middot; no traveller reviews yet</span>}</div></div>
+          <div><nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-2 text-xs text-cmt-neutral-500"><Link href="/">Home</Link><span aria-hidden="true">/</span><Link href="/packages">Packages</Link><span aria-hidden="true">/</span>{pkg.destination ? <><Link href={`/packages?destination=${encodeURIComponent(pkg.destination)}`} className="hover:text-cmt-neutral-900">{pkg.destination}</Link><span aria-hidden="true">/</span></> : null}<span className="line-clamp-1">{pkg.title}</span></nav><h1 className="max-w-5xl font-display text-3xl font-semibold tracking-tight sm:text-5xl">{pkg.title}</h1><div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><span className="inline-flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" />{pkg.location}</span>{pkg.reviews > 0 && pkg.rating > 0 ? <span className="inline-flex items-center gap-1.5"><Star className="size-4 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" /><b className="text-cmt-neutral-900">{pkg.rating}</b> {pkg.reviews} traveller reviews</span> : <span className="text-cmt-neutral-500">Newly listed &middot; no traveller reviews yet</span>}</div></div>
           <Link href="/packages" className="inline-flex h-11 shrink-0 items-center gap-2 self-start rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 text-sm font-semibold shadow-cmt-xs"><ArrowLeft className="size-4" /> All packages</Link>
         </div>
         <div className="mt-7"><PackageGallery images={details.gallery} /></div>

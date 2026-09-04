@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 
 import { Glyph } from "@/lib/adminIcons";
@@ -7,23 +8,47 @@ import { useSiteContent } from "@/lib/useSiteContent";
 
 export default function TrainFrameBanner() {
   const { trainBanner } = useSiteContent();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [loadVideo, setLoadVideo] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || loadVideo) return;
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || connection?.saveData) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setLoadVideo(true);
+        observer.disconnect();
+      },
+      { rootMargin: "800px 0px" },
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [loadVideo, trainBanner.enabled]);
+
   if (!trainBanner.enabled) return null;
 
   return (
     <section className="flex w-full justify-center bg-white p-3 sm:p-4 md:p-6">
       <div className="relative h-auto min-h-[600px] w-full max-w-[1440px] overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:h-[72vh] sm:max-h-[660px] sm:min-h-[480px] sm:rounded-3xl">
         <video
+          ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover"
           autoPlay
           loop
           muted
           playsInline
-          preload="metadata"
+          preload={loadVideo ? "metadata" : "none"}
           poster="/videos/train-banner-poster.jpg"
           aria-hidden="true"
           tabIndex={-1}
         >
-          <source src="/videos/train-banner.mp4" type="video/mp4" />
+          {loadVideo ? <source src="/videos/train-banner.mp4" type="video/mp4" /> : null}
         </video>
 
         <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/45 to-transparent" />

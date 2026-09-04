@@ -9,9 +9,10 @@ import { ArrowRight, Compass, MapPin, Mountain, MoveRight, Plane, Search } from 
 import { buildDestinations, durationLabel } from "@/lib/destinations";
 import { buildWeekendTrackSummaries, trackHref, weekendTreks } from "@/lib/weekendTracks";
 import { bannerFor } from "@/lib/siteContent";
-import { useDestinationCovers } from "@/lib/useDestinationCovers";
 import { useSiteContent } from "@/lib/useSiteContent";
-import { usePackages } from "@/lib/usePackages";
+import { usePackagesState } from "@/lib/usePackages";
+import { useDestinationCoversState } from "@/lib/useDestinationCovers";
+import type { TravelPackage } from "@/lib/packageData";
 
 /* ------------------------------------------------------------------ */
 /* Destinations index. Every entry is derived from the live package     */
@@ -65,9 +66,19 @@ const sortOptions: { value: Sort; label: string }[] = [
   { value: "name", label: "A–Z" },
 ];
 
-export default function DestinationsIndex() {
-  const packages = usePackages();
-  const covers = useDestinationCovers();
+export default function DestinationsIndex({
+  initialPackages,
+  initialCovers,
+}: {
+  initialPackages: TravelPackage[];
+  initialCovers: Record<string, string>;
+}) {
+  const packageState = usePackagesState();
+  const coverState = useDestinationCoversState();
+  const packages = packageState.loading || packageState.error
+    ? initialPackages
+    : packageState.packages;
+  const covers = coverState.loading || coverState.error ? initialCovers : coverState.covers;
   /* Masthead copy and photography, edited in /admin/banners. */
   const banner = bannerFor(useSiteContent().banners, "destinations");
   /* Derived, not stored: the URL is the tab. A menu link or the back button
@@ -205,7 +216,7 @@ export default function DestinationsIndex() {
           <div
             role="group"
             aria-label="Filter destinations by region"
-            className="flex w-fit gap-1 rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-50 p-1"
+            className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-50 p-1"
           >
             {(
               [
@@ -220,7 +231,7 @@ export default function DestinationsIndex() {
                 type="button"
                 aria-pressed={region === value}
                 onClick={() => chooseRegion(value)}
-                className={`inline-flex h-9 items-center gap-1.5 rounded-cmt-control px-3.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 sm:px-4 ${
+                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-cmt-control px-3.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 sm:px-4 ${
                   region === value
                     ? "bg-white text-cmt-neutral-900 shadow-cmt-xs"
                     : "text-cmt-neutral-600 hover:text-cmt-neutral-900"

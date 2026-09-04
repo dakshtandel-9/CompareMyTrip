@@ -3,7 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import JsonLd from "@/components/JsonLd";
 import { DUMMY_PACKAGES } from "@/lib/packageData";
+import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import PackageGallery from "../_components/PackageGallery";
 import KeralaBookingActions from "./KeralaBookingActions";
 import {
@@ -30,11 +32,14 @@ import {
   Zap,
 } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Kerala Backwaters & Hills Escape | CompareMyTrip",
+export const metadata: Metadata = createPageMetadata({
+  title: "Kerala Backwaters and Hills Holiday Package",
   description:
-    "Explore a 4 night Kerala package through Munnar, Thekkady and Alleppey with verified stays and transfers.",
-};
+    "Explore a 4-night Kerala holiday through Munnar, Thekkady and Alleppey with stays, private transfers and a houseboat night.",
+  path: "/packages/kerala-backwaters-hills-escape",
+  image: "/package-gallery/kerala-houseboat.jpg",
+  imageAlt: "Houseboat cruising through Kerala backwaters",
+});
 
 const quickFacts = [
   { icon: Clock3, label: "Duration", value: "4 nights / 5 days" },
@@ -126,9 +131,39 @@ function SectionHeading({ eyebrow, title, copy }: { eyebrow: string; title: stri
 }
 
 export default function KeralaPackagePage() {
+  const packageUrl = absoluteUrl("/packages/kerala-backwaters-hills-escape");
   return (
     <>
       <Header />
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+              { "@type": "ListItem", position: 2, name: "Holiday packages", item: absoluteUrl("/packages") },
+              { "@type": "ListItem", position: 3, name: "Kerala Backwaters & Hills Escape", item: packageUrl },
+            ],
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: "Kerala Backwaters & Hills Escape",
+            description:
+              "A four-night Kerala journey through Munnar, Thekkady and Alleppey with stays, transfers and a houseboat night.",
+            image: absoluteUrl("/package-gallery/kerala-houseboat.jpg"),
+            category: "Travel package",
+            url: packageUrl,
+            offers: {
+              "@type": "Offer",
+              priceCurrency: "INR",
+              price: 12999,
+              url: packageUrl,
+            },
+          },
+        ]}
+      />
       <main className="bg-cmt-neutral-50 font-body text-cmt-neutral-900">
         <div className="border-b border-cmt-neutral-200 bg-white">
           <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8">

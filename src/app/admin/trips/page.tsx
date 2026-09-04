@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AdminTripsList from "./AdminTripsList";
 
 export const metadata: Metadata = {
-  title: "Trips | CompareMyTrip CRM",
+  title: "Trips",
   description: "Bookings taken through PayU checkout.",
 };
 

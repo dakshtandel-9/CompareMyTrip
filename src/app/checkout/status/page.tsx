@@ -6,7 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Payment status | CompareMyTrip",
+  title: "Payment Status",
   robots: { index: false, follow: false },
 };
 

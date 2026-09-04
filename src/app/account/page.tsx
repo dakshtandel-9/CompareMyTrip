@@ -4,8 +4,9 @@ import Footer from "@/components/Footer";
 import AccountClient from "./AccountClient";
 
 export const metadata: Metadata = {
-  title: "My Account | CompareMyTrip",
+  title: "My Account",
   description: "Manage your CompareMyTrip profile and password.",
+  robots: { index: false, follow: false },
 };
 
 export default function AccountPage() {

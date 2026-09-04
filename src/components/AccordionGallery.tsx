@@ -272,7 +272,7 @@ export default function AccordionGallery({
                   fill
                   sizes={sizes}
                   draggable={false}
-                  priority={i === defaultIndex}
+                  fetchPriority={i === defaultIndex ? "high" : "auto"}
                   /* Panels edited in /admin can carry an uploaded data URL,
                      which the optimiser has no way to fetch. */
                   unoptimized={item.image.startsWith("data:")}

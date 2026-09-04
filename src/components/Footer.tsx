@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 
+import PartnerMarquee from "@/components/PartnerMarquee";
+
 /* ------------------------------------------------------------------ */
 /* Site footer. Light on purpose: the newsletter block directly above   */
 /* is a dark card, so a dark footer here would merge with it and steal  */
@@ -41,21 +43,18 @@ const linkColumns: { heading: string; links: FooterLink[] }[] = [
     heading: "Explore",
     links: [
       { label: "All Packages", href: "/packages" },
-      { label: "Adventure Track", href: "/packages/adventure-track" },
+      { label: "Weekend Treks", href: "/packages?category=weekend-treks" },
       { label: "Domestic", href: "/packages?region=india" },
       { label: "International", href: "/packages?region=international" },
-      { label: "Flight and Hotels", href: "/flights-and-hotels" },
       { label: "Compare Packages", href: "/compare" },
     ],
   },
   {
     heading: "Company",
     links: [
-      { label: "About Us", href: "/about" },
       { label: "Contact", href: "/contact" },
-      { label: "FAQs", href: "/faqs" },
+      { label: "FAQs", href: "/#faq" },
       { label: "Travel Guide", href: "/blog" },
-      { label: "Careers", href: "/careers" },
     ],
   },
   {
@@ -64,7 +63,6 @@ const linkColumns: { heading: string; links: FooterLink[] }[] = [
       { label: "Sign In", href: "/login" },
       { label: "Create Account", href: "/signup" },
       { label: "My Bookings", href: "/account" },
-      { label: "Saved Packages", href: "/account/saved" },
     ],
   },
   {
@@ -99,106 +97,123 @@ export default function Footer({
           href: `tel:${CONTACT.phone.replace(/[^\d+]/g, "")}`,
         }
       : null,
-    CONTACT.address ? { icon: MapPin, text: CONTACT.address, href: null } : null,
+    CONTACT.address
+      ? { icon: MapPin, text: CONTACT.address, href: null }
+      : null,
   ].filter((row) => row !== null);
 
   return (
-    <footer
-      className={`w-full border-t border-cmt-neutral-200 bg-cmt-neutral-50 px-4 pt-12 sm:px-5 sm:pt-16 lg:px-6 lg:pt-20 ${
-        clearsCompareBar ? "pb-28 sm:pb-32 lg:pb-32" : "pb-12 sm:pb-16 lg:pb-20"
-      }`}
-    >
-      <div className="mx-auto w-full max-w-[1440px]">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] lg:gap-8">
-          {/* Brand */}
-          <div className="sm:col-span-2 lg:col-span-1">
-            <Link href="/" className="inline-flex">
-              <Image
-                src="/comparemytrip-logo-white-plane.png"
-                alt="CompareMyTrip"
-                width={1400}
-                height={167}
-                className="h-7 w-auto"
-              />
-            </Link>
+    <footer className="w-full border-t border-cmt-neutral-200 bg-cmt-neutral-50">
+      {/* Full bleed, so the boards run right out to both page edges — the
+          gutters below start under it. */}
+      <PartnerMarquee />
 
-            <p className="mt-5 max-w-[38ch] text-pretty text-sm leading-[1.6] text-cmt-neutral-600">
-              Compare curated travel packages side by side — full itinerary,
-              inclusions and final pricing before you book.
-            </p>
+      <div
+        className={`px-4 pt-12 sm:px-5 sm:pt-16 lg:px-6 lg:pt-20 ${
+          clearsCompareBar
+            ? "pb-28 sm:pb-32 lg:pb-32"
+            : "pb-12 sm:pb-16 lg:pb-20"
+        }`}
+      >
+        <div className="mx-auto w-full max-w-[1440px]">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] lg:gap-8">
+            {/* Brand */}
+            <div className="sm:col-span-2 lg:col-span-1">
+              <Link href="/" className="inline-flex">
+                <Image
+                  src="/comparemytrip-logo-white-plane.png"
+                  alt="CompareMyTrip"
+                  width={1400}
+                  height={167}
+                  className="h-7 w-auto"
+                />
+              </Link>
 
-            {contactRows.length > 0 ? (
-              <ul className="mt-6 space-y-3">
-                {contactRows.map((row) => (
-                  <li key={row.text} className="flex items-start gap-2.5">
-                    <row.icon
-                      className="mt-0.5 h-4 w-4 shrink-0 text-cmt-primary-700"
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    />
-                    {row.href ? (
-                      <a href={row.href} className={linkClass}>
-                        {row.text}
+              <p className="mt-5 max-w-[38ch] text-pretty text-sm leading-[1.6] text-cmt-neutral-600">
+                Compare curated travel packages side by side — full itinerary,
+                inclusions and final pricing before you book.
+              </p>
+
+              {contactRows.length > 0 ? (
+                <ul className="mt-6 space-y-3">
+                  {contactRows.map((row) => (
+                    <li key={row.text} className="flex items-start gap-2.5">
+                      <row.icon
+                        className="mt-0.5 h-4 w-4 shrink-0 text-cmt-primary-700"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
+                      {row.href ? (
+                        <a href={row.href} className={linkClass}>
+                          {row.text}
+                        </a>
+                      ) : (
+                        <span className="text-sm leading-6 text-cmt-neutral-600">
+                          {row.text}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+
+              {SOCIAL_LINKS.length > 0 ? (
+                <ul className="mt-6 flex items-center gap-2.5">
+                  {SOCIAL_LINKS.map((social) => (
+                    <li key={social.label}>
+                      <a
+                        href={social.href}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        aria-label={social.label}
+                        className="flex h-10 w-10 items-center justify-center rounded-cmt-full border border-cmt-neutral-200 bg-white text-cmt-neutral-700 transition-colors duration-150 hover:border-cmt-primary-500 hover:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="h-[18px] w-[18px]"
+                          aria-hidden="true"
+                        >
+                          <path d={social.path} fill="currentColor" />
+                        </svg>
                       </a>
-                    ) : (
-                      <span className="text-sm leading-6 text-cmt-neutral-600">
-                        {row.text}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
 
-            {SOCIAL_LINKS.length > 0 ? (
-              <ul className="mt-6 flex items-center gap-2.5">
-                {SOCIAL_LINKS.map((social) => (
-                  <li key={social.label}>
-                    <a
-                      href={social.href}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      aria-label={social.label}
-                      className="flex h-10 w-10 items-center justify-center rounded-cmt-full border border-cmt-neutral-200 bg-white text-cmt-neutral-700 transition-colors duration-150 hover:border-cmt-primary-500 hover:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
-                    >
-                      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" aria-hidden="true">
-                        <path d={social.path} fill="currentColor" />
-                      </svg>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            {/* Link columns */}
+            {linkColumns.map((column) => (
+              <nav
+                key={column.heading}
+                aria-labelledby={`footer-${column.heading}`}
+              >
+                <h2
+                  id={`footer-${column.heading}`}
+                  className="text-xs font-semibold uppercase tracking-wider text-cmt-neutral-900"
+                >
+                  {column.heading}
+                </h2>
+                <ul className="mt-4 space-y-2.5">
+                  {column.links.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href} className={linkClass}>
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
           </div>
 
-          {/* Link columns */}
-          {linkColumns.map((column) => (
-            <nav key={column.heading} aria-labelledby={`footer-${column.heading}`}>
-              <h2
-                id={`footer-${column.heading}`}
-                className="text-xs font-semibold uppercase tracking-wider text-cmt-neutral-900"
-              >
-                {column.heading}
-              </h2>
-              <ul className="mt-4 space-y-2.5">
-                {column.links.map((link) => (
-                  <li key={link.href}>
-                    <Link href={link.href} className={linkClass}>
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
-        </div>
-
-        <div className="mt-12 flex flex-col gap-3 border-t border-cmt-neutral-200 pt-6 text-xs leading-6 text-cmt-neutral-500 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <p>
-            &copy; {new Date().getFullYear()} CompareMyTrip. All rights
-            reserved.
-          </p>
-          <p>Every package listed comes from a trusted operator.</p>
+          <div className="mt-12 flex flex-col gap-3 border-t border-cmt-neutral-200 pt-6 text-xs leading-6 text-cmt-neutral-500 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <p>
+              &copy; {new Date().getFullYear()} CompareMyTrip. All rights
+              reserved.
+            </p>
+            <p>Every package listed comes from a trusted operator.</p>
+          </div>
         </div>
       </div>
     </footer>

@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { ArrowLeft, ArrowRight, CalendarDays, Clock, MapPin, Tag } from "lucide-react";
 
 import ContentImage from "@/app/home/_components/ContentImage";
@@ -12,6 +11,7 @@ import {
   readingMinutes,
   relatedBlogPosts,
   toParagraphs,
+  type BlogPost,
 } from "@/lib/blogData";
 import { usePublishedBlogPosts } from "@/lib/useBlog";
 
@@ -20,20 +20,17 @@ import { usePublishedBlogPosts } from "@/lib/useBlog";
 /* which may carry its own photograph — the same shape the CRM edits.    */
 /* ------------------------------------------------------------------ */
 
-export default function BlogArticle() {
-  const { slug } = useParams<{ slug: string }>();
-  const { posts, loading } = usePublishedBlogPosts();
-  const post = posts.find((item) => item.id === slug);
-
-  /* The document title is set here rather than in generateMetadata: posts
-     are read from Firestore in the browser, so the server has no copy of
-     the article to title the page with. */
-  useEffect(() => {
-    if (!post) return;
-    const previous = document.title;
-    document.title = `${post.seoTitle || post.title} | CompareMyTrip`;
-    return () => { document.title = previous; };
-  }, [post]);
+export default function BlogArticle({
+  initialPost,
+  initialPosts,
+}: {
+  initialPost: BlogPost;
+  initialPosts: BlogPost[];
+}) {
+  const live = usePublishedBlogPosts();
+  const posts = live.loading || live.error ? initialPosts : live.posts;
+  const loading = live.loading;
+  const post = posts.find((item) => item.id === initialPost.id);
 
   const related = useMemo(() => (post ? relatedBlogPosts(post, posts) : []), [post, posts]);
 
@@ -129,7 +126,7 @@ export default function BlogArticle() {
                   src={cover}
                   alt={post.coverAlt || post.title}
                   fill
-                  priority
+                  fetchPriority="high"
                   sizes="(max-width: 1000px) 100vw, 1000px"
                   className="object-cover"
                 />

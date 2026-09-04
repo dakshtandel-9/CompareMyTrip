@@ -36,7 +36,7 @@ export default function SplitAuthShell({
               alt="CompareMyTrip"
               width={1400}
               height={167}
-              priority
+              fetchPriority="high"
               className="h-6 w-auto lg:h-7"
             />
           </Link>
@@ -61,7 +61,7 @@ export default function SplitAuthShell({
 
       {/* Image column — 50% width on desktop, full viewport height, edge to edge */}
       <div className="relative hidden h-full overflow-hidden lg:block">
-        <Image src={imageSrc} alt={imageAlt} fill priority className="object-cover" sizes="50vw" />
+        <Image src={imageSrc} alt={imageAlt} fill fetchPriority="high" className="object-cover" sizes="50vw" />
         <div
           aria-hidden="true"
           className="absolute inset-0 bg-gradient-to-t from-cmt-neutral-900/90 via-cmt-neutral-900/10 to-cmt-neutral-900/20"

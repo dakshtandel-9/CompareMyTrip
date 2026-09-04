@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AdminBlogManager from "./AdminBlogManager";
 
 export const metadata: Metadata = {
-  title: "Blog | CompareMyTrip CRM",
+  title: "Blog",
   description: "Write, edit and publish travel guide articles.",
 };
 

@@ -8,7 +8,7 @@ import { getPayuConfig, normaliseTravellers, priceOrder, resolvePackage } from "
 import CheckoutPanels from "./CheckoutPanels";
 
 export const metadata: Metadata = {
-  title: "Checkout | CompareMyTrip",
+  title: "Checkout",
   description: "Confirm your travellers and pay securely to hold your package.",
   robots: { index: false, follow: false },
 };

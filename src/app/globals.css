@@ -270,3 +270,29 @@ body {
     animation: cmt-rise 350ms ease-out both;
   }
 }
+
+/* The footer's partner strip (@/components/PartnerMarquee): one track
+   holding the logos twice over, slid left by exactly half its width, so
+   the second run is under the cursor at the moment the first ends and the
+   loop has no seam. Sitting still is the honest answer to a reduced-motion
+   request — the strip is decorative, and stopping it loses nothing — so
+   the animation only exists inside the query below. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes cmt-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-cmt-marquee {
+    animation: cmt-marquee var(--cmt-marquee-duration, 40s) linear infinite;
+  }
+
+  /* Hovering holds the strip still so a logo can be looked at. */
+  .animate-cmt-marquee:hover {
+    animation-play-state: paused;
+  }
+}

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import DashboardHome from "./DashboardHome";
 
 export const metadata: Metadata = {
-  title: "Dashboard | CompareMyTrip CRM",
+  title: "Dashboard",
   description: "Manage homepage content and travel packages.",
 };
 

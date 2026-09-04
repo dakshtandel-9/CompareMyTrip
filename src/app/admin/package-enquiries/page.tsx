@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AdminEnquiriesList from "../enquiries/AdminEnquiriesList";
 
 export const metadata: Metadata = {
-  title: "Package Quote Requests | CompareMyTrip CRM",
+  title: "Package Quote Requests",
   description: "Manage customized package quote requests.",
 };
 

@@ -175,7 +175,7 @@ export default function PackageGallery({ images }: { images?: string[] }) {
               src={galleryImages[selectedIndex].src}
               alt={galleryImages[selectedIndex].alt}
               fill
-              priority
+              fetchPriority="high"
               sizes="100vw"
               className={`object-contain ${galleryImages[selectedIndex].position}`}
             />

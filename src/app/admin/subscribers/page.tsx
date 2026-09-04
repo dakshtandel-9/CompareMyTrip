@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AdminSubscribersList from "./AdminSubscribersList";
 
 export const metadata: Metadata = {
-  title: "Newsletter Subscribers | CompareMyTrip CRM",
+  title: "Newsletter Subscribers",
   description: "View newsletter subscribers and subscription times.",
 };
 

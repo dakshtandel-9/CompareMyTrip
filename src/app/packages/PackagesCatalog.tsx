@@ -18,7 +18,7 @@ import {
   treksOnTrack,
 } from "@/lib/weekendTracks";
 import { toIndiaState } from "@/lib/indiaStates";
-import { usePackages } from "@/lib/usePackages";
+import { usePackagesState } from "@/lib/usePackages";
 import { bannerFor, type BannerContent } from "@/lib/siteContent";
 import { useSiteContent } from "@/lib/useSiteContent";
 import TrekGradeBadge from "@/components/TrekGradeBadge";
@@ -52,6 +52,16 @@ const categories: Category[] = [
   "All packages",
   ...PACKAGE_CATEGORIES.filter((item) => item !== WEEKEND_TREKS_CATEGORY),
 ];
+
+const TYPE_CATEGORY: Record<string, PackageCategory> = {
+  honeymoon: "Honeymoon",
+  family: "Family",
+  adventure: "Adventure",
+  luxury: "Luxury",
+  beach: "Beaches",
+  weekend: "Weekend Treks",
+  cultural: "Heritage",
+};
 
 /* Region has no control of its own on this page — the site header links into
    it. It lives in the URL so /packages?region=international stays shareable.
@@ -382,7 +392,7 @@ function PackageCard({
             </p>
           </div>
             <Link
-              href={`/packages/${pkg.id}`}
+              href={pkg.href ?? `/packages/${pkg.id}`}
               className="inline-flex h-10 shrink-0 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-colors hover:bg-cmt-primary-600 focus-visible:outline-none focus-visible:shadow-[var(--cmt-focus-ring)]"
             >
               View package
@@ -422,8 +432,15 @@ function budgetBounds(packages: TravelPackage[]): [number, number] {
   return [Math.max(0, floor), Math.max(ceiling, floor + BUDGET_STEP)];
 }
 
-export default function PackagesCatalog() {
-  const packages = usePackages();
+export default function PackagesCatalog({
+  initialPackages,
+}: {
+  initialPackages: TravelPackage[];
+}) {
+  const packageState = usePackagesState();
+  const packages = packageState.loading || packageState.error
+    ? initialPackages
+    : packageState.packages;
   /* Masthead copy and photography, edited in /admin/banners. */
   const { banners } = useSiteContent();
   /* One subscription for the whole grid rather than one per card. */
@@ -433,7 +450,8 @@ export default function PackagesCatalog() {
   // destination, travel style and budget the visitor already picked.
   const searchParams = useSearchParams();
   const router = useRouter();
-  const initialCategory = searchParams.get("category");
+  const typeCategory = TYPE_CATEGORY[searchParams.get("type")?.trim().toLowerCase() ?? ""];
+  const initialCategory = searchParams.get("category") ?? typeCategory;
   const initialMinimum = Number(searchParams.get("budgetMin"));
   const initialMaximum = Number(searchParams.get("budgetMax"));
 
@@ -443,7 +461,10 @@ export default function PackagesCatalog() {
      here — the page is keyed on the query string, so arriving on a different
      track remounts this component with the new one. */
   const [track, setTrack] = useState(() =>
-    trackFromParams(searchParams.get("category"), searchParams.get("trek")),
+    trackFromParams(
+      searchParams.get("category") ?? (typeCategory === WEEKEND_TREKS_CATEGORY ? "weekend-treks" : null),
+      searchParams.get("trek"),
+    ),
   );
   const [category, setCategory] = useState<Category>(
     initialCategory &&

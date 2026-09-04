@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
 
 // Sections render in the order they appear below.
 import ScrollFrameSequence from "./home/_sections/ScrollFrameSequence";
@@ -20,11 +21,12 @@ import TravelGuides from "./home/_sections/TravelGuides";
 import Faq from "./home/_sections/Faq";
 import TrustAndNewsletter from "./home/_sections/TrustAndNewsletter";
 
-export const metadata: Metadata = {
-  title: "CompareMyTrip — Compare travel packages before you book",
+export const metadata: Metadata = createPageMetadata({
+  title: "Compare Travel Packages Before You Book | CompareMyTrip",
   description:
     "Compare curated travel packages side by side — full itineraries, inclusions and cancellation terms published up front, from trusted operators across India and beyond.",
-};
+  path: "/",
+});
 
 export default function HomePage() {
   return (

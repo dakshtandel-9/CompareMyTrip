@@ -290,7 +290,7 @@ export default function Header() {
                 alt="CompareMyTrip"
                 width={1400}
                 height={167}
-                priority
+                sizes="235px"
                 className="h-7 w-auto"
               />
             </Link>

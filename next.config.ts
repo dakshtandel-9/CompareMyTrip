@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  trailingSlash: false,
   images: {
     /* Package photography imported from tourbazaar.in is served from the
        operators' Supabase storage bucket, so next/image has to be told the
@@ -38,6 +40,26 @@ const nextConfig: NextConfig = {
         source: "/admin/homepage",
         destination: "/admin/content",
         permanent: false,
+      },
+      {
+        source: "/packages/adventure-track",
+        destination: "/packages?category=Adventure",
+        permanent: true,
+      },
+      {
+        source: "/account/saved",
+        destination: "/account",
+        permanent: true,
+      },
+      {
+        source: "/faqs",
+        destination: "/#faq",
+        permanent: true,
+      },
+      {
+        source: "/deals",
+        destination: "/packages?deals=1",
+        permanent: true,
       },
     ];
   },

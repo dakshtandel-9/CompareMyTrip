@@ -7,11 +7,23 @@ import Image, { type ImageProps } from "next/image";
 export default function ContentImage({ src, alt, ...rest }: ImageProps) {
   if (typeof src !== "string" || src.length === 0) return null;
 
-  /* Editors can paste an image URL from any host. Sending those through
-     Next's optimiser would require every possible host to be allow-listed in
-     next.config, so serve user-entered remote URLs directly instead. Local
-     library images still get the normal optimisation path. */
-  const bypassOptimizer = src.startsWith("data:") || /^https?:\/\//i.test(src);
+  /* Known storage hosts are allow-listed in next.config and should keep
+     Next's responsive optimization. Arbitrary editor-pasted hosts remain
+     unoptimized so an otherwise valid content update cannot break rendering. */
+  let bypassOptimizer = src.startsWith("data:");
+  if (/^https?:\/\//i.test(src)) {
+    try {
+      const hostname = new URL(src).hostname;
+      const configuredHost =
+        hostname === "xlmpzwkmxtabihhmgzhi.supabase.co" ||
+        hostname === "firebasestorage.googleapis.com" ||
+        hostname === "storage.googleapis.com" ||
+        hostname.endsWith(".r2.dev");
+      bypassOptimizer = !configuredHost;
+    } catch {
+      bypassOptimizer = true;
+    }
+  }
 
   return <Image src={src} alt={alt} unoptimized={bypassOptimizer} {...rest} />;
 }
