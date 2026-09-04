@@ -52,6 +52,38 @@ export async function saveHomepageContent(content: SiteContent) {
   });
 }
 
+/**
+ * Publishes one slice of the document, leaving the rest untouched.
+ *
+ * The whole-document write above is right for the content editor, which
+ * holds a draft of everything; it is wrong for a screen that owns one
+ * section — /admin/banners publishing its own copy of the homepage would
+ * quietly roll back anything edited elsewhere since it loaded. A merge
+ * write keeps each screen to its own slice.
+ */
+export async function saveSiteContentSection<Key extends keyof SiteContent>(
+  key: Key,
+  value: SiteContent[Key],
+) {
+  const auth = getFirebaseAuth();
+  await auth.authStateReady();
+
+  /* Normalised as part of a whole document and then narrowed, so a slice
+     goes through exactly the same validation as a full publish. */
+  const normalized = normalizeSiteContent({ [key]: value })[key];
+
+  await setDoc(
+    doc(getFirebaseDb(), HOMEPAGE_COLLECTION, HOMEPAGE_DOCUMENT),
+    {
+      content: { [key]: normalized },
+      updatedAt: serverTimestamp(),
+      updatedByUid: auth.currentUser?.uid ?? null,
+      schemaVersion: 1,
+    },
+    { merge: true },
+  );
+}
+
 /** Images live in Cloudflare R2; Firestore stores only their durable URL. */
 export async function uploadHomepageImage(file: File): Promise<string> {
   return uploadImageToCloudflare(file, "homepage");

@@ -2,44 +2,40 @@
 
 import { usePathname } from "next/navigation";
 
-import CompareFloatingButton from "@/components/CompareFloatingButton";
+import CompareBar from "@/components/CompareBar";
 
 /* ------------------------------------------------------------------ */
-/* The corner stack.                                                    */
+/* The bottom bar.                                                      */
 /*                                                                       */
-/* Mounted once in the root layout, so it rides along on every page       */
-/* rather than being wired into each one, and pinned bottom-right where   */
-/* it sits clear of the header and of the footer's links. Just the        */
-/* shortlist now — WhatsApp moved up to the header's offer strip, where   */
-/* it sits beside the phone number rather than covering the page.         */
+/* Mounted once in the root layout, so it rides along rather than being   */
+/* wired into a page, but it shows itself on the catalogue alone: the     */
+/* shortlist is built by picking cards out of /packages, and a way into   */
+/* the comparison is only worth the bottom of the screen where there are  */
+/* packages to pick. Every other page — the homepage, a package's own     */
+/* page, the destination lists — keeps its full height.                   */
 /*                                                                       */
-/* z-40 keeps the stack under the header's full-screen mobile menu        */
-/* (z-[100]) and under the admin shell's drawer (z-50), so an open        */
-/* overlay covers it instead of being punched through.                    */
+/* Pinned across the bottom with a gutter either side so it reads as a    */
+/* card resting on the page. z-40 keeps it under the header's             */
+/* full-screen mobile menu (z-[100]) and under the admin shell's drawer   */
+/* (z-50), so an open overlay covers it instead of being punched through. */
 /* ------------------------------------------------------------------ */
 
-/* Routes that own the whole screen and take no passengers. */
-const HIDDEN_PREFIXES = ["/login", "/signup", "/admin"];
+/* The catalogue itself, not a package's own page underneath it. Filters
+   and searches ride in the query string, which leaves the path alone. */
+const CATALOGUE_ROUTE = "/packages";
 
 export default function FloatingActions() {
   const pathname = usePathname();
 
-  if (
-    !pathname ||
-    HIDDEN_PREFIXES.some(
-      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-    )
-  ) {
-    return null;
-  }
-
-  /* A button back to the page you are already on is no button at all, and
-     the shortlist is the only thing left in the stack. */
-  if (pathname === "/compare") return null;
+  if (pathname !== CATALOGUE_ROUTE) return null;
 
   return (
-    <div className="fixed bottom-5 right-4 z-40 flex flex-col items-center gap-3 sm:bottom-6 sm:right-6">
-      <CompareFloatingButton />
+    /* The strip itself takes no clicks — only the bar inside it does — so
+       the page underneath stays reachable either side of it. */
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 sm:px-4">
+      <div className="pointer-events-auto">
+        <CompareBar />
+      </div>
     </div>
   );
 }

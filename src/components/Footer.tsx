@@ -80,7 +80,14 @@ const linkColumns: { heading: string; links: FooterLink[] }[] = [
 const linkClass =
   "rounded-cmt-sm text-sm leading-6 text-cmt-neutral-600 transition-colors duration-150 hover:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500";
 
-export default function Footer() {
+/* The catalogue carries the compare bar (@/components/FloatingActions)
+   over the bottom of the screen; only that page asks for the extra room
+   at the foot, so the bar does not land on the copyright line. */
+export default function Footer({
+  clearsCompareBar = false,
+}: {
+  clearsCompareBar?: boolean;
+} = {}) {
   const contactRows = [
     CONTACT.email
       ? { icon: Mail, text: CONTACT.email, href: `mailto:${CONTACT.email}` }
@@ -96,7 +103,11 @@ export default function Footer() {
   ].filter((row) => row !== null);
 
   return (
-    <footer className="w-full border-t border-cmt-neutral-200 bg-cmt-neutral-50 px-4 py-12 sm:px-5 sm:py-16 lg:px-6 lg:py-20">
+    <footer
+      className={`w-full border-t border-cmt-neutral-200 bg-cmt-neutral-50 px-4 pt-12 sm:px-5 sm:pt-16 lg:px-6 lg:pt-20 ${
+        clearsCompareBar ? "pb-28 sm:pb-32 lg:pb-32" : "pb-12 sm:pb-16 lg:pb-20"
+      }`}
+    >
       <div className="mx-auto w-full max-w-[1440px]">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] lg:gap-8">
           {/* Brand */}

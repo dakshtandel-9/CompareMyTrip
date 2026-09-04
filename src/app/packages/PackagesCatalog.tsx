@@ -16,10 +16,11 @@ import {
   parseTrackId,
   trackFromParams,
   treksOnTrack,
-  type WeekendTrack,
 } from "@/lib/weekendTracks";
 import { toIndiaState } from "@/lib/indiaStates";
 import { usePackages } from "@/lib/usePackages";
+import { bannerFor, type BannerContent } from "@/lib/siteContent";
+import { useSiteContent } from "@/lib/useSiteContent";
 import TrekGradeBadge from "@/components/TrekGradeBadge";
 import { useCompare } from "@/lib/useCompare";
 import {
@@ -58,26 +59,11 @@ const categories: Category[] = [
    and "abroad" all land in the same place. */
 type Region = "All" | "India" | "International";
 
-const REGION_BANNERS: Record<Exclude<Region, "All">, {
-  eyebrow: string;
-  title: string;
-  description: string;
-  image: string;
-}> = {
-  India: {
-    eyebrow: "Explore India",
-    title: "India Holiday Packages",
-    description:
-      "From Himalayan escapes to Kerala backwaters, compare curated stays and itineraries across India.",
-    image: "/destinations/kerala.jpg",
-  },
-  International: {
-    eyebrow: "Explore the world",
-    title: "International Holiday Packages",
-    description:
-      "Cross borders with confidence. Compare curated international holidays, transparent inclusions, and trusted operators.",
-    image: "/categories/international.jpg",
-  },
+/* Which banner slot each view asks the CRM for. The copy and the picture
+   live in /admin/banners; only the wiring is here. */
+const REGION_BANNER_IDS: Record<Exclude<Region, "All">, string> = {
+  India: "packages-india",
+  International: "packages-international",
 };
 
 function parseRegion(value: string | null): Region {
@@ -106,66 +92,70 @@ const durationOptions = [
 ];
 
 function CatalogBanner({
-  eyebrow,
-  title,
-  description,
-  image,
+  banner,
   stats,
 }: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  image: string;
+  banner: BannerContent;
   stats: { label: string; value: string | number }[];
 }) {
+  const { eyebrow, title, description, image } = banner;
+
+  /* Boxed rather than edge-to-edge, the way the homepage's own banners are
+     (ScrollFrameSequence, TrainFrameBanner): the same p-3/sm:p-4/md:p-6
+     gutter and the same 2xl→3xl corners, so a masthead reads as a card on
+     the page rather than as a second header bolted under the real one.
+     Every catalogue banner — track, region and deals — comes through here,
+     so they all get the box from this one place. */
   return (
-    <section className="relative isolate flex min-h-[340px] w-full items-center overflow-hidden border-b border-white/10 bg-cmt-secondary-900 px-4 py-14 sm:min-h-[400px] sm:px-5 sm:py-20 lg:px-6">
-      <Image
-        src={image}
-        alt=""
-        fill
-        sizes="100vw"
-        fetchPriority="high"
-        className="-z-20 object-cover object-center"
-      />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/65 to-black/10" />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/15" />
+    <section className="flex w-full justify-center p-3 sm:p-4 md:p-6">
+      <div className="relative isolate flex min-h-[340px] w-full max-w-[1440px] items-center overflow-hidden rounded-2xl bg-cmt-secondary-900 px-6 py-14 sm:min-h-[400px] sm:rounded-3xl sm:px-10 sm:py-20">
+        <Image
+          src={image}
+          alt=""
+          fill
+          sizes="(max-width: 1440px) 100vw, 1440px"
+          fetchPriority="high"
+          className="-z-20 object-cover object-center"
+        />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/65 to-black/10" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/15" />
 
-      <div className="mx-auto w-full max-w-[1440px]">
-        <p className="text-xs font-semibold uppercase tracking-wider text-cmt-primary-400 sm:text-sm">
-          {eyebrow}
-        </p>
-        <h1 className="mt-2 max-w-[18ch] font-display text-3xl font-semibold leading-[1.15] tracking-tight text-white [text-shadow:0_3px_18px_rgba(0,0,0,0.35)] sm:text-5xl">
-          {title}
-        </h1>
-        <p className="mt-3 max-w-xl text-pretty text-sm leading-relaxed text-white/75 [text-shadow:0_2px_12px_rgba(0,0,0,0.35)] sm:text-base">
-          {description}
-        </p>
+        <div className="w-full">
+          <p className="text-xs font-semibold uppercase tracking-wider text-cmt-primary-400 sm:text-sm">
+            {eyebrow}
+          </p>
+          <h1 className="mt-2 max-w-[18ch] font-display text-3xl font-semibold leading-[1.15] tracking-tight text-white [text-shadow:0_3px_18px_rgba(0,0,0,0.35)] sm:text-5xl">
+            {title}
+          </h1>
+          <p className="mt-3 max-w-xl text-pretty text-sm leading-relaxed text-white/75 [text-shadow:0_2px_12px_rgba(0,0,0,0.35)] sm:text-base">
+            {description}
+          </p>
 
-        {stats.length > 0 && (
-          <dl className="mt-8 flex flex-wrap items-end gap-x-10 gap-y-5">
-            {stats.map((stat) => (
-              <div key={stat.label}>
-                <dt className="text-xs font-semibold uppercase tracking-wider text-white/55">
-                  {stat.label}
-                </dt>
-                <dd className="mt-1 font-display text-2xl font-bold tabular-nums text-white sm:text-3xl">
-                  {stat.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        )}
+          {stats.length > 0 && (
+            <dl className="mt-8 flex flex-wrap items-end gap-x-10 gap-y-5">
+              {stats.map((stat) => (
+                <div key={stat.label}>
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-white/55">
+                    {stat.label}
+                  </dt>
+                  <dd className="mt-1 font-display text-2xl font-bold tabular-nums text-white sm:text-3xl">
+                    {stat.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
       </div>
     </section>
   );
 }
 
 function WeekendTrackBanner({
-  track,
+  banner,
   packages,
 }: {
-  track: WeekendTrack;
+  banner: BannerContent;
   packages: TravelPackage[];
 }) {
   const startingPrice = packages.length
@@ -189,25 +179,16 @@ function WeekendTrackBanner({
       ]
     : [];
 
-  return (
-    <CatalogBanner
-      eyebrow="Weekend treks"
-      title={track.bannerTitle}
-      description={track.tagline}
-      image={track.bannerImage}
-      stats={stats}
-    />
-  );
+  return <CatalogBanner banner={banner} stats={stats} />;
 }
 
 function RegionBanner({
-  region,
+  banner,
   packages,
 }: {
-  region: Exclude<Region, "All">;
+  banner: BannerContent;
   packages: TravelPackage[];
 }) {
-  const content = REGION_BANNERS[region];
   const destinationCount = new Set(
     packages.map(destinationKey).filter(Boolean),
   ).size;
@@ -224,10 +205,16 @@ function RegionBanner({
       ]
     : [];
 
-  return <CatalogBanner {...content} stats={stats} />;
+  return <CatalogBanner banner={banner} stats={stats} />;
 }
 
-function DealsBanner({ packages }: { packages: TravelPackage[] }) {
+function DealsBanner({
+  banner,
+  packages,
+}: {
+  banner: BannerContent;
+  packages: TravelPackage[];
+}) {
   const deals = packages.filter((pkg) => pkg.deal);
   const startingPrice = deals.length
     ? Math.min(...deals.map((pkg) => pkg.price))
@@ -247,15 +234,7 @@ function DealsBanner({ packages }: { packages: TravelPackage[] }) {
       ]
     : [];
 
-  return (
-    <CatalogBanner
-      eyebrow="Limited-time offers"
-      title="Holiday Deals Worth Packing For"
-      description="Hand-picked escapes with meaningful savings — compare the full itinerary before the offer moves on."
-      image="/images/deals-mountain-backdrop.webp"
-      stats={stats}
-    />
-  );
+  return <CatalogBanner banner={banner} stats={stats} />;
 }
 
 /* The card's one secondary action is the comparison tray, not a wishlist:
@@ -445,6 +424,8 @@ function budgetBounds(packages: TravelPackage[]): [number, number] {
 
 export default function PackagesCatalog() {
   const packages = usePackages();
+  /* Masthead copy and photography, edited in /admin/banners. */
+  const { banners } = useSiteContent();
   /* One subscription for the whole grid rather than one per card. */
   const { isCompared, toggle: toggleCompare } = useCompare();
 
@@ -908,13 +889,19 @@ export default function PackagesCatalog() {
   return (
     <main className="min-h-screen bg-cmt-neutral-50 font-body text-cmt-neutral-900">
       {activeTrackConfig && trackPackages && (
-        <WeekendTrackBanner track={activeTrackConfig} packages={trackPackages} />
+        <WeekendTrackBanner
+          banner={bannerFor(banners, `trek-${activeTrackConfig.id}`)}
+          packages={trackPackages}
+        />
       )}
       {!activeTrackConfig && region !== "All" && (
-        <RegionBanner region={region} packages={regionPackages} />
+        <RegionBanner
+          banner={bannerFor(banners, REGION_BANNER_IDS[region])}
+          packages={regionPackages}
+        />
       )}
       {!activeTrackConfig && region === "All" && dealsOnly && (
-        <DealsBanner packages={packages} />
+        <DealsBanner banner={bannerFor(banners, "packages-deals")} packages={packages} />
       )}
 
       {/* The unfiltered catalogue starts straight under the site header. Region

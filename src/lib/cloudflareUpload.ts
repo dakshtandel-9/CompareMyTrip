@@ -5,6 +5,7 @@ import { getFirebaseAuth } from "@/lib/firebase/client";
    orphaned objects behind in the bucket. */
 export const PACKAGE_DRAFT_IMAGE_KEY_PREFIX = "cmt:package-draft-images:";
 export const BLOG_DRAFT_IMAGE_KEY_PREFIX = "cmt:blog-draft-images:";
+export const BANNER_DRAFT_IMAGE_KEY_PREFIX = "cmt:banner-draft-images:";
 
 export type UploadFolder = "homepage" | "packages" | "blog" | "destinations";
 
@@ -64,5 +65,6 @@ export async function cleanupAbandonedDraftImages(prefix: string): Promise<{ fai
   return { failedCount };
 }
 
+export const cleanupAbandonedBannerImages = () => cleanupAbandonedDraftImages(BANNER_DRAFT_IMAGE_KEY_PREFIX);
 export const cleanupAbandonedPackageImages = () => cleanupAbandonedDraftImages(PACKAGE_DRAFT_IMAGE_KEY_PREFIX);
 export const cleanupAbandonedBlogImages = () => cleanupAbandonedDraftImages(BLOG_DRAFT_IMAGE_KEY_PREFIX);

@@ -43,7 +43,9 @@ export default async function PackagesPage({
       <Suspense fallback={<div className="min-h-[60vh]" />}>
         <PackagesCatalog key={catalogKey} />
       </Suspense>
-      <Footer />
+      {/* The compare bar sits over the bottom of this page alone — see
+          @/components/FloatingActions. */}
+      <Footer clearsCompareBar />
     </>
   );
 }

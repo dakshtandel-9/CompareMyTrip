@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ShieldCheck, TriangleAlert } from "lucide-react";
+import { ShieldCheck, TriangleAlert, X } from "lucide-react";
 
 import type { AppliedCoupon } from "@/lib/coupons";
 import { getFirebaseAuth } from "@/lib/firebase/client";
@@ -11,12 +11,12 @@ import CheckoutForm from "./CheckoutForm";
 import CouponCard from "./CouponCard";
 
 /* ------------------------------------------------------------------ */
-/* The three checkout panels, and the one thing they share.             */
+/* The two checkout panels, and the one thing they share.               */
 /*                                                                      */
-/* The coupon is entered in one card, shown as a line in another, and    */
-/* posted from a third, so the applied coupon is held here — one owner,  */
-/* no duplicated state, and the summary can never disagree with the      */
-/* code that is actually going to be submitted.                          */
+/* The coupon is entered and shown inside the summary, then posted by    */
+/* the buyer form, so the applied coupon is held here — one owner, no     */
+/* duplicated state, and the summary can never disagree with the code    */
+/* that is actually going to be submitted.                               */
 /*                                                                      */
 /* Everything money-related is still the server's word: this asks        */
 /* /api/coupons/validate what a code is worth and displays the answer.   */
@@ -134,8 +134,7 @@ export default function CheckoutPanels({
 
   return (
     <div className="mt-8 grid gap-6 lg:grid-cols-12 lg:gap-8">
-      {/* Buyer details, then the coupon — two separate cards, because they
-          are two separate decisions. */}
+      {/* Buyer details */}
       <section className="lg:col-span-7">
         <div className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm sm:p-8">
           <h2 className="font-display text-xl font-semibold sm:text-2xl">Who is travelling?</h2>
@@ -160,15 +159,6 @@ export default function CheckoutPanels({
             />
           </div>
         </div>
-
-        <CouponCard
-          applied={applied}
-          error={error}
-          busy={busy}
-          onApply={handleApply}
-          onRemove={handleRemove}
-          disabled={!configured}
-        />
       </section>
 
       {/* Order summary */}
@@ -206,8 +196,18 @@ export default function CheckoutPanels({
                   <dd className="tabular-nums font-medium">{formatINR(subtotal)}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <dt className="min-w-0 truncate text-cmt-success-700">
-                    Coupon {applied.code}
+                  <dt className="flex min-w-0 items-center gap-1.5 text-cmt-success-700">
+                    <span className="truncate">Coupon {applied.code}</span>
+                    <button
+                      type="button"
+                      onClick={handleRemove}
+                      disabled={busy}
+                      className="inline-flex shrink-0 items-center gap-0.5 rounded px-1 py-0.5 text-[11px] font-semibold text-cmt-neutral-500 transition-colors hover:bg-cmt-neutral-100 hover:text-cmt-neutral-900 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cmt-primary-500"
+                      aria-label={`Remove coupon ${applied.code}`}
+                    >
+                      <X className="size-3" strokeWidth={2.5} aria-hidden="true" />
+                      Remove
+                    </button>
                   </dt>
                   <dd className="tabular-nums font-medium text-cmt-success-700">
                     −{formatINR(discount)}
@@ -216,6 +216,15 @@ export default function CheckoutPanels({
               </>
             )}
           </dl>
+
+          {!applied && (
+            <CouponCard
+              error={error}
+              busy={busy}
+              onApply={handleApply}
+              disabled={!configured}
+            />
+          )}
 
           <div className="mt-5 flex items-baseline justify-between border-t border-cmt-neutral-200 pt-5">
             <span className="font-display text-base font-semibold">Total payable</span>

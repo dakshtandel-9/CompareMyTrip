@@ -1,3 +1,5 @@
+import { WEEKEND_TRACKS } from "@/lib/weekendTracks";
+
 /* ------------------------------------------------------------------ */
 /* Editable homepage content.                                          */
 /*                                                                     */
@@ -107,6 +109,128 @@ export type TrendingContent = {
   header: SectionHeaderContent;
   items: TrendingDestination[];
 };
+
+/* --------------------------- Banners ------------------------------ */
+/* The photography mastheads: the one on /destinations, and the ones the
+   catalogue swaps in for a region, for deals, and for each weekend-trek
+   track.
+
+   These are not a homepage section and are not edited with the rest of the
+   page copy — they have their own CRM screen at /admin/banners, because
+   they belong to several different pages and an editor looking for "the
+   banner on the deals page" would never think to look under a homepage
+   section.
+
+   A banner's `id` is fixed in code: it names the view the banner belongs
+   to, so an editor changes the picture and the words, never where it
+   appears. BANNER_SLOTS below is the whole list — add a slot there and it
+   shows up in the CRM with its shipped copy already in it. */
+
+export type BannerContent = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  image: string;
+};
+
+export type BannersContent = {
+  items: BannerContent[];
+};
+
+/** A banner slot: what it is called in the CRM, where it appears, and what
+    it says before anyone edits it. `name` and `where` are CRM labels and
+    are never stored — they cannot drift from the code. */
+export type BannerSlot = {
+  id: string;
+  name: string;
+  where: string;
+  banner: BannerContent;
+};
+
+export const BANNER_SLOTS: BannerSlot[] = [
+  {
+    id: "destinations",
+    name: "Destinations",
+    where: "/destinations",
+    banner: {
+      id: "destinations",
+      eyebrow: "Destinations",
+      title: "Every place we cover.",
+      description:
+        "Pick a destination and we\u2019ll open the catalogue with it already filtered — every package under it, from trusted operators.",
+      image: "/images/destinations-header-banner.jpg",
+    },
+  },
+  {
+    id: "packages-india",
+    name: "India packages",
+    where: "/packages?region=india",
+    banner: {
+      id: "packages-india",
+      eyebrow: "Explore India",
+      title: "India Holiday Packages",
+      description:
+        "From Himalayan escapes to Kerala backwaters, compare curated stays and itineraries across India.",
+      image: "/destinations/kerala.jpg",
+    },
+  },
+  {
+    id: "packages-international",
+    name: "International packages",
+    where: "/packages?region=international",
+    banner: {
+      id: "packages-international",
+      eyebrow: "Explore the world",
+      title: "International Holiday Packages",
+      description:
+        "Cross borders with confidence. Compare curated international holidays, transparent inclusions, and trusted operators.",
+      image: "/categories/international.jpg",
+    },
+  },
+  {
+    id: "packages-deals",
+    name: "Deals",
+    where: "/packages?deals=1",
+    banner: {
+      id: "packages-deals",
+      eyebrow: "Limited-time offers",
+      title: "Holiday Deals Worth Packing For",
+      description:
+        "Hand-picked escapes with meaningful savings — compare the full itinerary before the offer moves on.",
+      image: "/images/deals-mountain-backdrop.webp",
+    },
+  },
+  /* One per weekend-trek track, built from the tracks themselves so a new
+     track arrives in the CRM with a banner rather than without one. */
+  ...WEEKEND_TRACKS.map((track) => ({
+    id: `trek-${track.id}`,
+    name: track.bannerTitle,
+    where: `/packages?category=${track.id}`,
+    banner: {
+      id: `trek-${track.id}`,
+      eyebrow: "Weekend treks",
+      title: track.bannerTitle,
+      description: track.tagline,
+      image: track.bannerImage,
+    },
+  })),
+];
+
+/** The banner for a slot, falling back to what shipped — so a page always
+    has a masthead, even against a document written before the slot existed. */
+export function bannerFor(banners: BannersContent, id: string): BannerContent {
+  return (
+    banners.items.find((item) => item.id === id) ??
+    BANNER_SLOTS.find((slot) => slot.id === id)?.banner ?? {
+      id,
+      eyebrow: "",
+      title: "",
+      description: "",
+      image: "",
+    }
+  );
+}
 
 /* --------------------------- Compare ------------------------------ */
 
@@ -559,6 +683,9 @@ export type ContactContent = {
 
 export type SiteContent = {
   header: HeaderContent;
+  /* Deliberately absent from SECTION_ORDER: banners are edited on their own
+     CRM screen, not in the homepage section list. */
+  banners: BannersContent;
   auth: AuthContent;
   contact: ContactContent;
   hero: HeroContent;
@@ -609,6 +736,7 @@ export type SectionKey = (typeof SECTION_ORDER)[number];
    guess at what the copy used to say. */
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
+  banners: { items: BANNER_SLOTS.map((slot) => slot.banner) },
   contact: {
     enabled: true,
     eyebrow: "Contact",
@@ -1746,6 +1874,12 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
   const base = DEFAULT_SITE_CONTENT;
   const root = isRecord(raw) ? raw : {};
 
+  /* --- banners --- */
+  const bannersRaw = (() => {
+    const raw = section(root.banners).items;
+    return Array.isArray(raw) ? raw.filter(isRecord) : [];
+  })();
+
   /* --- header --- */
   const headerRaw = section(root.header);
   const topBarRaw = section(headerRaw.topBar);
@@ -1923,6 +2057,24 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
           description: str(item.description, ""),
         })),
       },
+    },
+    /* Stored banners are merged onto the code's slot list rather than read
+       as a list of their own: a slot added in code appears with its shipped
+       copy, and a stored banner for a slot that no longer exists drops out,
+       so the CRM can never show a banner that renders nowhere. */
+    banners: {
+      items: BANNER_SLOTS.map((slot) => {
+        const stored = bannersRaw.find(
+          (item) => str(item.id, "") === slot.id,
+        );
+        return {
+          id: slot.id,
+          eyebrow: str(stored?.eyebrow, slot.banner.eyebrow),
+          title: str(stored?.title, slot.banner.title),
+          description: str(stored?.description, slot.banner.description),
+          image: str(stored?.image, slot.banner.image),
+        };
+      }),
     },
     header: {
       enabled: bool(headerRaw.enabled, base.header.enabled),

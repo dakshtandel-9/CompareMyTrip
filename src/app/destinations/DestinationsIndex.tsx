@@ -8,7 +8,9 @@ import { ArrowRight, Compass, MapPin, Mountain, MoveRight, Plane, Search } from 
 
 import { buildDestinations, durationLabel } from "@/lib/destinations";
 import { buildWeekendTrackSummaries, trackHref, weekendTreks } from "@/lib/weekendTracks";
+import { bannerFor } from "@/lib/siteContent";
 import { useDestinationCovers } from "@/lib/useDestinationCovers";
+import { useSiteContent } from "@/lib/useSiteContent";
 import { usePackages } from "@/lib/usePackages";
 
 /* ------------------------------------------------------------------ */
@@ -66,6 +68,8 @@ const sortOptions: { value: Sort; label: string }[] = [
 export default function DestinationsIndex() {
   const packages = usePackages();
   const covers = useDestinationCovers();
+  /* Masthead copy and photography, edited in /admin/banners. */
+  const banner = bannerFor(useSiteContent().banners, "destinations");
   /* Derived, not stored: the URL is the tab. A menu link or the back button
      changes the query string, useSearchParams re-renders with it, and the
      grid follows — without remounting, so the search box and the sort keep
@@ -134,61 +138,64 @@ export default function DestinationsIndex() {
 
   return (
     <main className="w-full bg-white font-body text-cmt-neutral-900">
-      {/* Photography-led banner with a calm, shaded copy side. */}
-      <section className="relative isolate flex min-h-[360px] w-full items-center overflow-hidden border-b border-white/10 bg-cmt-secondary-900 px-4 py-14 sm:min-h-[420px] sm:px-5 sm:py-20 lg:px-6">
-        <Image
-          src="/images/destinations-header-banner.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          fetchPriority="high"
-          className="-z-20 object-cover object-center"
-        />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/65 to-black/10" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/15" />
+      {/* Photography-led banner with a calm, shaded copy side, boxed on the
+          page the way the homepage banners and the catalogue mastheads are —
+          same gutter, same corners. */}
+      <section className="flex w-full justify-center p-3 sm:p-4 md:p-6">
+        <div className="relative isolate flex min-h-[360px] w-full max-w-[1440px] items-center overflow-hidden rounded-2xl bg-cmt-secondary-900 px-6 py-14 sm:min-h-[420px] sm:rounded-3xl sm:px-10 sm:py-20">
+          <Image
+            src={banner.image}
+            alt=""
+            fill
+            sizes="(max-width: 1440px) 100vw, 1440px"
+            fetchPriority="high"
+            className="-z-20 object-cover object-center"
+          />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/65 to-black/10" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/15" />
 
-        <div className="mx-auto w-full max-w-[1440px]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-cmt-primary-400 sm:text-sm">
-            Destinations
-          </p>
-          <h1 className="mt-2 max-w-[18ch] font-display text-3xl font-semibold leading-[1.15] tracking-tight text-white [text-shadow:0_3px_18px_rgba(0,0,0,0.35)] sm:text-5xl">
-            Every place we cover.
-          </h1>
-          <p className="mt-3 max-w-xl text-pretty text-sm leading-relaxed text-white/75 [text-shadow:0_2px_12px_rgba(0,0,0,0.35)] sm:text-base">
-            Pick a destination and we&rsquo;ll open the catalogue with it already
-            filtered — every package under it, from trusted operators.
-          </p>
+          <div className="w-full">
+            <p className="text-xs font-semibold uppercase tracking-wider text-cmt-primary-400 sm:text-sm">
+              {banner.eyebrow}
+            </p>
+            <h1 className="mt-2 max-w-[18ch] font-display text-3xl font-semibold leading-[1.15] tracking-tight text-white [text-shadow:0_3px_18px_rgba(0,0,0,0.35)] sm:text-5xl">
+              {banner.title}
+            </h1>
+            <p className="mt-3 max-w-xl text-pretty text-sm leading-relaxed text-white/75 [text-shadow:0_2px_12px_rgba(0,0,0,0.35)] sm:text-base">
+              {banner.description}
+            </p>
 
-          {destinations.length > 0 && (
-            <dl className="mt-8 flex flex-wrap items-end gap-x-10 gap-y-5">
-              <div>
-                <dt className="text-xs font-semibold uppercase tracking-wider text-white/55">
-                  Destinations
-                </dt>
-                <dd className="mt-1 font-display text-2xl font-bold tabular-nums text-white sm:text-3xl">
-                  {destinations.length}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs font-semibold uppercase tracking-wider text-white/55">
-                  Packages
-                </dt>
-                <dd className="mt-1 font-display text-2xl font-bold tabular-nums text-white sm:text-3xl">
-                  {totalPackages}
-                </dd>
-              </div>
-              {lowestPrice > 0 && (
+            {destinations.length > 0 && (
+              <dl className="mt-8 flex flex-wrap items-end gap-x-10 gap-y-5">
                 <div>
                   <dt className="text-xs font-semibold uppercase tracking-wider text-white/55">
-                    Starting from
+                    Destinations
                   </dt>
                   <dd className="mt-1 font-display text-2xl font-bold tabular-nums text-white sm:text-3xl">
-                    {formatINR(lowestPrice)}
+                    {destinations.length}
                   </dd>
                 </div>
-              )}
-            </dl>
-          )}
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-white/55">
+                    Packages
+                  </dt>
+                  <dd className="mt-1 font-display text-2xl font-bold tabular-nums text-white sm:text-3xl">
+                    {totalPackages}
+                  </dd>
+                </div>
+                {lowestPrice > 0 && (
+                  <div>
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-white/55">
+                      Starting from
+                    </dt>
+                    <dd className="mt-1 font-display text-2xl font-bold tabular-nums text-white sm:text-3xl">
+                      {formatINR(lowestPrice)}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            )}
+          </div>
         </div>
       </section>
 

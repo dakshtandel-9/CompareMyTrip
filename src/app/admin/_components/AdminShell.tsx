@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   Compass,
   ExternalLink,
+  GalleryHorizontalEnd,
   LayoutDashboard,
   type LucideIcon,
   Menu,
@@ -28,6 +29,7 @@ type NavItem = { href: string; label: string; hint: string; icon: LucideIcon };
 const NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard", hint: "Overview", icon: LayoutDashboard },
   { href: "/admin/content", label: "Website content", hint: "Every page's copy and images", icon: PanelsTopLeft },
+  { href: "/admin/banners", label: "Banners", hint: "Page mastheads", icon: GalleryHorizontalEnd },
   { href: "/admin/packages", label: "Packages", hint: "Create inventory", icon: PackageSearch },
   { href: "/admin/trips", label: "Trips", hint: "Paid bookings", icon: Plane },
   { href: "/admin/coupons", label: "Coupons", hint: "Discount codes", icon: TicketPercent },
