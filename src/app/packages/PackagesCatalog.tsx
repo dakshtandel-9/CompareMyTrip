@@ -746,18 +746,15 @@ export default function PackagesCatalog({
           {visibleDestinations.length === 0 ? (
             <p className="text-xs text-cmt-neutral-500">No destination matches that.</p>
           ) : (
-            visibleDestinations.map(({ name, count }) => (
-              <label key={name} className="flex cursor-pointer items-center justify-between text-sm">
-                <span className="flex min-w-0 items-center gap-2.5 text-cmt-neutral-700">
-                  <input
-                    type="checkbox"
-                    checked={destinations.includes(name)}
-                    onChange={() => toggleDestination(name)}
-                    className="size-4 shrink-0 accent-[var(--cmt-color-primary-500)]"
-                  />
-                  <span className="truncate">{name}</span>
-                </span>
-                <span className="ml-2 shrink-0 text-xs text-cmt-neutral-400">{count}</span>
+            visibleDestinations.map(({ name }) => (
+              <label key={name} className="flex cursor-pointer items-center gap-2.5 text-sm text-cmt-neutral-700">
+                <input
+                  type="checkbox"
+                  checked={destinations.includes(name)}
+                  onChange={() => toggleDestination(name)}
+                  className="size-4 shrink-0 accent-[var(--cmt-color-primary-500)]"
+                />
+                <span className="truncate">{name}</span>
               </label>
             ))
           )}

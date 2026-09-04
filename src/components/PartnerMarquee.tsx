@@ -23,20 +23,20 @@ import Image from "next/image";
    on purpose — the strip is decorative, and fourteen board names read out
    in a row is noise to a screen reader, not information. */
 const LOGOS = [
-  { src: "/partners/visit-britain.png", width: 174, height: 151 },
-  { src: "/partners/japan.png", width: 278, height: 118 },
-  { src: "/partners/seychelles.png", width: 233, height: 134 },
-  { src: "/partners/maldives.png", width: 159, height: 167 },
-  { src: "/partners/sharjah.png", width: 167, height: 240 },
-  { src: "/partners/tourism-ireland.png", width: 287, height: 74 },
-  { src: "/partners/saudi-tourism-authority.png", width: 294, height: 92 },
-  { src: "/partners/germany.png", width: 291, height: 90 },
-  { src: "/partners/jordan.png", width: 217, height: 120 },
-  { src: "/partners/visit-victoria.png", width: 230, height: 96 },
-  { src: "/partners/mauritius.png", width: 248, height: 107 },
-  { src: "/partners/dubai.png", width: 200, height: 85 },
-  { src: "/partners/atout-france.png", width: 175, height: 99 },
-  { src: "/partners/pesona-indonesia.png", width: 295, height: 127 },
+  "/partners/visit-britain.png",
+  "/partners/japan.png",
+  "/partners/seychelles.png",
+  "/partners/maldives.png",
+  "/partners/sharjah.png",
+  "/partners/tourism-ireland.png",
+  "/partners/saudi-tourism-authority.png",
+  "/partners/germany.png",
+  "/partners/jordan.png",
+  "/partners/visit-victoria.png",
+  "/partners/mauritius.png",
+  "/partners/dubai.png",
+  "/partners/atout-france.png",
+  "/partners/pesona-indonesia.png",
 ];
 
 export default function PartnerMarquee() {
@@ -56,19 +56,21 @@ export default function PartnerMarquee() {
           <div key={copy} className="flex shrink-0 items-center">
             {LOGOS.map((logo) => (
               <span
-                key={logo.src}
+                key={logo}
                 className="grid h-14 w-32 shrink-0 place-items-center px-2 sm:h-16 sm:w-40 sm:px-4"
               >
                 {/* Every mark gets the same box and is fitted inside it,
                     so a tall crest and a long wordmark carry the same
                     weight however different their shapes. */}
-                <Image
-                  src={logo.src}
-                  alt=""
-                  width={logo.width}
-                  height={logo.height}
-                  className="h-full w-full object-contain"
-                />
+                <span className="relative block size-full">
+                  <Image
+                    src={logo}
+                    alt=""
+                    fill
+                    sizes="(min-width: 640px) 128px, 112px"
+                    className="object-contain"
+                  />
+                </span>
               </span>
             ))}
           </div>
