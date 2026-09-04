@@ -54,3 +54,4 @@ next-env.d.ts
 # deploy bundle. Regenerate locally from /media-source if you need them.
 /public/hero-frames
 /public/train-banner
+.env.vercel-check
