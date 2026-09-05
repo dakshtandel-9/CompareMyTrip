@@ -17,6 +17,7 @@ import {
   PackageSearch,
   PanelsTopLeft,
   Plane,
+  Sparkles,
   TicketPercent,
   Users,
   X,
@@ -39,6 +40,7 @@ const NAV: NavItem[] = [
   { href: "/admin/subscribers", label: "Subscribers", hint: "Newsletter sign-ups", icon: Mail },
   { href: "/admin/enquiries", label: "Contact enquiries", hint: "Contact Us form", icon: MessageSquareText },
   { href: "/admin/package-enquiries", label: "Package quotes", hint: "Customized requests", icon: MessagesSquare },
+  { href: "/admin/popup-form", label: "Pop-up Form", hint: "Trip planning leads", icon: Sparkles },
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {

@@ -52,6 +52,6 @@ next-env.d.ts
 # served from R2 — see NEXT_PUBLIC_FRAME_CDN_URL and
 # scripts/upload-frame-sequences.mjs — and must never enter the repo or the
 # deploy bundle. Regenerate locally from /media-source if you need them.
-/public/hero-frames
+/public/hero-frames*
 /public/train-banner
 .env.vercel-check

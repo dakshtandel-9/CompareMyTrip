@@ -61,6 +61,7 @@ export default function PhoneNumberField({
   invalid = false,
   describedBy,
   compactCountryCode = false,
+  labelClassName,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -70,6 +71,7 @@ export default function PhoneNumberField({
   invalid?: boolean;
   describedBy?: string;
   compactCountryCode?: boolean;
+  labelClassName?: string;
 }) {
   const generatedId = useId();
   const numberId = id ?? `${generatedId}-number`;
@@ -109,7 +111,10 @@ export default function PhoneNumberField({
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
-      <label htmlFor={numberId} className="text-[14px] font-semibold text-cmt-neutral-700">
+      <label
+        htmlFor={numberId}
+        className={labelClassName ?? "text-[14px] font-semibold text-cmt-neutral-700"}
+      >
         {label}
       </label>
       <div className={`flex h-12 overflow-hidden rounded-cmt-control border bg-white transition-colors focus-within:border-2 focus-within:border-cmt-primary-500 focus-within:shadow-[var(--cmt-focus-ring)] ${invalid ? "border-cmt-error-500" : "border-cmt-neutral-200 hover:border-cmt-neutral-300"}`}>

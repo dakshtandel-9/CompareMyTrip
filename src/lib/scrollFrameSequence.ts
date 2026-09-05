@@ -17,23 +17,34 @@
 /* So this controller works to two budgets instead:                      */
 /*                                                                       */
 /*   Bytes.  Only a stride of the source frames is used, chosen from the */
-/*     device tier — a laptop scrubs ~400 of the hero's 1191, a phone    */
-/*     ~200. The rest are never requested.                               */
+/*     device tier, and sequences that publish more than one cut are      */
+/*     matched to the pixels the canvas will really be given — a phone    */
+/*     fetches the 1280-wide frames, not the 2560-wide ones.              */
 /*                                                                       */
-/*   Memory.  At most RESIDENT frame images are alive at once, and       */
-/*     decode() is called only inside a window around the playhead,      */
-/*     biased the way the scroll is travelling. Frames are stored        */
-/*     `immutable, max-age=1y`, so re-creating a dropped one is an       */
-/*     HTTP-cache read rather than a download.                           */
+/*   Memory.  At most RESIDENT frame images are alive at once, and        */
+/*     decode() is called only inside a window around the playhead,       */
+/*     biased the way the scroll is travelling. That window is sized in   */
+/*     megabytes rather than frames, because a decoded frame costs        */
+/*     w x h x 4 — 3.7MB at 720p against 14.7MB at 1440p. Frames are      */
+/*     stored `immutable, max-age=1y`, so re-creating a dropped one is an */
+/*     HTTP-cache read rather than a download.                            */
 /*                                                                       */
-/* What stays resident is a coarse skeleton spread across the whole clip */
-/* plus a dense window that travels with the playhead. That is what      */
-/* makes a jump to any point in the scroll land on a picture: the        */
-/* skeleton is always there to draw while the detail arrives behind it.  */
+/* What stays resident is a coarse skeleton spread across the whole clip  */
+/* plus a dense window that travels with the playhead. That is what       */
+/* makes a jump to any point in the scroll land on a picture: the         */
+/* skeleton is always there to draw while the detail arrives behind it.   */
 /*                                                                       */
-/* Loading follows the same shape — a dozen frames spanning the clip     */
-/* first, so it is scrubbable end to end almost immediately, then the    */
-/* detail where the viewer actually is, then the rest of the skeleton.   */
+/* Loading follows the same shape — a dozen frames spanning the clip      */
+/* first, so it is scrubbable end to end almost immediately, then the     */
+/* detail where the viewer actually is, then the rest of the skeleton.    */
+/*                                                                       */
+/* `preloadAll` is the other mode, for a short sequence a caller is       */
+/* willing to gate behind a loading state: every frame is fetched before  */
+/* the scrub is declared ready, nothing is ever evicted, and so the       */
+/* scrub cannot stall on the network once it is moving. It is refused on  */
+/* the low tier, where the wait would be worse than the stutter, and it   */
+/* gives up waiting after PRELOAD_TIMEOUT_MS so one crawling frame can    */
+/* never hold the hero shut.                                             */
 /* ------------------------------------------------------------------ */
 
 /** How much the device is asked to carry. */
@@ -42,8 +53,15 @@ type Tier = "high" | "medium" | "low";
 export type ScrollFrameSequenceOptions = {
   wrapper: HTMLElement;
   canvas: HTMLCanvasElement;
-  /** Base path holding frame_0001.jpg …, no trailing slash. */
+  /** Base path holding frame_0001.<ext> …, no trailing slash. */
   dir: string;
+  /** A lower-resolution cut of the same sequence, same frame count and
+      numbering. Used when the canvas can never be wide enough to show the
+      full one — a phone gets a quarter of the bytes for a picture it cannot
+      tell apart. */
+  smallDir?: string;
+  /** Frame file extension, no dot. */
+  ext?: string;
   /** How many frames the sequence has on the CDN. */
   count: number;
   /** Fraction of the wrapper's scroll left over after the clip's last
@@ -55,28 +73,61 @@ export type ScrollFrameSequenceOptions = {
   /** Frames to actually use, per tier. Sequences whose frames are unusually
       heavy should pass their own; the defaults suit ~80KB frames. */
   maxFrames?: Partial<Record<Tier, number>>;
+  /** Fetch and decode the whole sequence before the scrub starts, instead of
+      streaming it in around the playhead. Every frame is then already in
+      memory when it is scrolled to, so nothing waits on the network
+      mid-scrub — at the cost of a wait up front, which is why it belongs
+      behind a loading state. */
+  preloadAll?: boolean;
+  /** Preload progress, 0 → 1, while `preloadAll` is filling. */
+  onLoadProgress?: (progress: number) => void;
+  /** Fired once when the sequence is ready to scrub. */
+  onReady?: () => void;
 };
 
-/** Requests in flight. The decoder is the bottleneck well before the socket
-    is, so this stays short of what HTTP/2 would happily allow. */
+/** Requests in flight while streaming frames in around the playhead. The
+    decoder is the bottleneck well before the socket is, so this stays short
+    of what HTTP/2 would happily allow. */
 const PARALLEL: Record<Tier, number> = { high: 8, medium: 6, low: 4 };
+
+/** And while preloading the whole sequence, where nothing is being decoded
+    yet and the socket really is the limit. */
+const PRELOAD_PARALLEL: Record<Tier, number> = { high: 16, medium: 10, low: 6 };
 
 /** Frame images alive at once — the memory ceiling. Eviction will not touch
     the skeleton or the travelling window, so the real figure sits a handful
     over this rather than exactly on it. */
 const RESIDENT: Record<Tier, number> = { high: 80, medium: 44, low: 26 };
 
-/** Frames decoded ahead of the playhead, in the direction of travel. An
-    undecoded image decodes on the thread that draws it — mid-scrub. This is
-    the number that actually costs memory: a decoded 1280x720 frame is 3.7MB,
-    against ~80KB for the same frame still compressed. */
-const DECODE_AHEAD: Record<Tier, number> = { high: 20, medium: 14, low: 8 };
+/** Memory allowed for decoded frames, in MB. An undecoded image decodes on
+    the thread that draws it — mid-scrub, for 10ms, as a dropped frame — so a
+    window either side of the playhead is decoded in advance. How many frames
+    that buys is not a constant: a decoded frame costs width x height x 4,
+    which is 3.7MB at 1280x720 but 14.7MB at 2560x1440. Fixing the frame
+    count instead of the bytes is what makes a sharper sequence quietly cost
+    four times the memory, so the count is derived from the real frame size
+    once the first one has landed. */
+const DECODE_BUDGET_MB: Record<Tier, number> = { high: 130, medium: 80, low: 45 };
 
-/** And behind it, for scrubbing back up. */
-const DECODE_BEHIND: Record<Tier, number> = { high: 6, medium: 5, low: 3 };
+/** Share of that window that sits ahead of the playhead, the way the scroll
+    is travelling. The rest sits behind it, for scrubbing back up. */
+const DECODE_AHEAD_SHARE = 0.75;
+
+/** Until the first frame lands and the real cost per frame is known. */
+const DECODE_AHEAD_FALLBACK = 6;
+const DECODE_BEHIND_FALLBACK = 2;
 
 /** Frames of the source sequence actually used. */
 const DEFAULT_MAX_FRAMES: Record<Tier, number> = { high: 400, medium: 200, low: 110 };
+
+/** Widest canvas the small cut is allowed to fill. Above this the full-size
+    frames are fetched, below it they would only be downscaled away. */
+const SMALL_CUT_MAX_WIDTH = 1400;
+
+/** Preloading gives up waiting after this and reveals the sequence anyway,
+    still loading behind the scenes. A hero that never appears because one
+    frame is crawling is worse than one that starts a little thin. */
+const PRELOAD_TIMEOUT_MS = 20000;
 
 /** Load passes that stay resident for the life of the page: every 16th of
     the frames in play, spread across the whole clip. */
@@ -123,8 +174,8 @@ const FAILED = 3;
 
 const clamp01 = (value: number) => (value < 0 ? 0 : value > 1 ? 1 : value);
 
-const frameSrc = (dir: string, sourceIndex: number) =>
-  `${dir}/frame_${String(sourceIndex + 1).padStart(4, "0")}.jpg`;
+const frameSrc = (dir: string, sourceIndex: number, ext: string) =>
+  `${dir}/frame_${String(sourceIndex + 1).padStart(4, "0")}.${ext}`;
 
 /* What the device is asked to carry. deviceMemory is Chromium-only, so its
    absence reads as "desktop unless the pointer says otherwise" rather than
@@ -157,10 +208,15 @@ export function startScrollFrameSequence({
   wrapper,
   canvas,
   dir,
+  smallDir,
+  ext = "jpg",
   count,
   tailHold = 0,
   onProgress,
   maxFrames,
+  preloadAll = false,
+  onLoadProgress,
+  onReady,
 }: ScrollFrameSequenceOptions) {
   // Opaque: the frame covers the whole box, so there is nothing behind it
   // worth blending each pixel against.
@@ -168,10 +224,34 @@ export function startScrollFrameSequence({
   if (!ctx) return () => {};
 
   const tier = deviceTier();
-  const parallel = PARALLEL[tier];
-  const resident = RESIDENT[tier];
-  const decodeAhead = DECODE_AHEAD[tier];
-  const decodeBehind = DECODE_BEHIND[tier];
+
+  /* Holding a whole sequence in memory before showing anything is a trade a
+     low-tier device cannot make: it is on save-data or a 2g connection, or
+     has the RAM of a budget phone, and the wait would be measured in tens of
+     seconds. It streams frames in around the playhead instead, which is the
+     behaviour that degrades gracefully. */
+  const preload = preloadAll && tier !== "low";
+
+  const parallel = preload ? PRELOAD_PARALLEL[tier] : PARALLEL[tier];
+
+  /* Which cut of the sequence this display can actually show. The canvas is
+     never given more pixels than the box it fills, capped at MAX_PIXEL_RATIO
+     — so on a phone the full-size frames would be downloaded only to be
+     thrown away in the downscale. Decided once, up front, because it picks
+     the URL every frame is then fetched from. */
+  const boxWidth = canvas.parentElement?.clientWidth ?? window.innerWidth;
+  const wantedWidth =
+    boxWidth * Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+  const activeDir =
+    smallDir && wantedWidth <= SMALL_CUT_MAX_WIDTH ? smallDir : dir;
+
+  /* Preloading holds the whole sequence, so nothing may be evicted from
+     under it — that is the entire point of having waited for it. */
+  const resident = preload ? count : RESIDENT[tier];
+
+  /* Rewritten from the real frame dimensions once the first one lands. */
+  let decodeAhead = DECODE_AHEAD_FALLBACK;
+  let decodeBehind = DECODE_BEHIND_FALLBACK;
 
   // A hold of the entire section would leave nothing to scrub through.
   const hold = Math.min(Math.max(tailHold, 0), 0.9);
@@ -242,6 +322,11 @@ export function startScrollFrameSequence({
   /* Learned from the first frame that lands, so the canvas is never given
      more pixels than the footage has to fill them with. */
   let sourceWidth = 0;
+
+  /* Frames that have finished, either way — what the preload gate counts. */
+  let settledCount = 0;
+  let ready = !preload;
+  let readyTimer = 0;
 
   const windowStart = () => playhead - (direction >= 0 ? behindSpan : aheadSpan);
   const windowEnd = () => playhead + (direction >= 0 ? aheadSpan : behindSpan);
@@ -395,6 +480,28 @@ export function startScrollFrameSequence({
     }
   };
 
+  /* The preload gate. Every frame has been asked for and has either arrived
+     or been written off, so from here the scrub never touches the network:
+     scrolling to any point in the clip draws a picture that is already in
+     memory. Frames that failed outright do not hold the gate shut — the
+     nearest-drawable fallback covers them. */
+  const markReady = () => {
+    if (ready) return;
+    ready = true;
+    if (readyTimer) {
+      clearTimeout(readyTimer);
+      readyTimer = 0;
+    }
+    onReady?.();
+  };
+
+  const noteSettled = () => {
+    if (!preload) return;
+    settledCount += 1;
+    onLoadProgress?.(settledCount / total);
+    if (settledCount >= total) markReady();
+  };
+
   const startLoad = (index: number) => {
     const img = new window.Image();
     img.decoding = "async";
@@ -410,9 +517,20 @@ export function startScrollFrameSequence({
       inFlight -= 1;
       status[index] = READY;
 
+      // Retries are not progress; only a frame that is done for good counts.
+      if (ok) noteSettled();
+
       if (ok) {
         if (sourceWidth === 0 && img.naturalWidth > 0) {
           sourceWidth = img.naturalWidth;
+
+          /* Now the real frame size is known, spend the decode budget in
+             bytes rather than guessing at a frame count. */
+          const frameMb = (img.naturalWidth * img.naturalHeight * 4) / 1048576;
+          const affordable = Math.max(4, Math.floor(DECODE_BUDGET_MB[tier] / frameMb));
+          decodeAhead = Math.max(3, Math.round(affordable * DECODE_AHEAD_SHARE));
+          decodeBehind = Math.max(2, affordable - decodeAhead);
+
           // First frame in: re-measure now the footage's size is known.
           measure();
         }
@@ -423,7 +541,10 @@ export function startScrollFrameSequence({
         release(index);
         // Back to IDLE unless it has failed too often, so a dropped
         // connection costs a retry rather than the frame.
-        if (attempts[index] >= MAX_ATTEMPTS) status[index] = FAILED;
+        if (attempts[index] >= MAX_ATTEMPTS) {
+          status[index] = FAILED;
+          noteSettled();
+        }
       }
 
       pump();
@@ -431,7 +552,7 @@ export function startScrollFrameSequence({
 
     img.onload = () => settled(true);
     img.onerror = () => settled(false);
-    img.src = frameSrc(dir, sourceOf(index));
+    img.src = frameSrc(activeDir, sourceOf(index), ext);
   };
 
   /* Worth requesting next, in this order: the coarsest pass, so the clip is
@@ -455,6 +576,12 @@ export function startScrollFrameSequence({
         score = 1e6 + Math.abs(i - playhead);
       } else if (isSkeleton(i)) {
         score = 2e6 + pass[i] * 4096 + Math.abs(i - playhead);
+      } else if (preload) {
+        /* Everything else still gets fetched, just last — so the clip is
+           scrubbable coarsely long before the gate opens, and the progress
+           bar reflects real work rather than a queue being drained in file
+           order. */
+        score = 3e6 + Math.abs(i - playhead);
       } else {
         continue;
       }
@@ -594,7 +721,18 @@ export function startScrollFrameSequence({
   const resizeObserver = new ResizeObserver(remeasure);
 
   measure();
-  preloadObserver.observe(wrapper);
+
+  /* Preloading does not wait to be scrolled near: the whole point is that the
+     bytes are already there by the time anyone reaches the section, and for a
+     hero that is the moment the page opens. */
+  if (preload) {
+    onLoadProgress?.(0);
+    beginLoading();
+    readyTimer = window.setTimeout(markReady, PRELOAD_TIMEOUT_MS);
+  } else {
+    preloadObserver.observe(wrapper);
+  }
+
   runObserver.observe(wrapper);
   resizeObserver.observe(wrapper);
   window.addEventListener("resize", remeasure, { passive: true });
@@ -603,6 +741,7 @@ export function startScrollFrameSequence({
   return () => {
     cancelled = true;
     stop();
+    if (readyTimer) clearTimeout(readyTimer);
     preloadObserver.disconnect();
     runObserver.disconnect();
     resizeObserver.disconnect();

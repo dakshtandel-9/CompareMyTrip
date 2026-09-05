@@ -16,6 +16,8 @@ const BASE = (process.env.NEXT_PUBLIC_FRAME_CDN_URL ?? "").replace(/\/$/, "");
 
 /** Base path for a sequence, no trailing slash — absolute when a CDN is
     configured, root-relative when it is not. */
-export function frameSequenceDir(name: "hero-frames" | "train-banner") {
+export function frameSequenceDir(
+  name: "hero-frames-v3" | "hero-frames-v3-sm" | "train-banner",
+) {
   return `${BASE}/${name}`;
 }

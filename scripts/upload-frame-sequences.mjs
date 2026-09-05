@@ -6,8 +6,11 @@
 /* belong in object storage. (Not Firestore: 1MB per document, and this  */
 /* is not document-shaped data.)                                         */
 /*                                                                      */
-/*   node --env-file=.env.local scripts/upload-frame-sequences.mjs        */
-/*   node --env-file=.env.local scripts/upload-frame-sequences.mjs --verify */
+/*   node --env-file=.env.local scripts/upload-frame-sequences.mjs <prefix> */
+/*   node --env-file=.env.local scripts/upload-frame-sequences.mjs <prefix> --verify */
+/*                                                                      */
+/* Naming a prefix limits the run to that sequence; with none named,     */
+/* every sequence below is attempted.                                    */
 /*                                                                      */
 /* Uploads are idempotent — re-running skips objects already present at  */
 /* the right size, so an interrupted run can simply be repeated. Nothing */
@@ -19,10 +22,27 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-const SEQUENCES = [
-  { dir: "public/hero-frames", prefix: "hero-frames" },
+const ALL_SEQUENCES = [
+  { dir: "public/hero-frames-v3", prefix: "hero-frames-v3" },
+  { dir: "public/hero-frames-v3-sm", prefix: "hero-frames-v3-sm" },
   { dir: "public/train-banner", prefix: "train-banner" },
 ];
+
+/* Frames are JPEG or WebP depending on when the sequence was cut. */
+const CONTENT_TYPES = { ".jpg": "image/jpeg", ".webp": "image/webp" };
+
+/* Name one or more prefixes to work on just those. Without it every sequence
+   above is attempted — which only works while all of them still have their
+   local frames, and they are deleted once verified. */
+const wanted = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
+const SEQUENCES = wanted.length
+  ? ALL_SEQUENCES.filter((sequence) => wanted.includes(sequence.prefix))
+  : ALL_SEQUENCES;
+
+if (SEQUENCES.length === 0) {
+  console.error(`Unknown sequence. Known: ${ALL_SEQUENCES.map((s) => s.prefix).join(", ")}`);
+  process.exit(1);
+}
 
 /* R2 rate-limits hard on bursts; 12 keeps it saturated without 429s. */
 const CONCURRENCY = 12;
@@ -78,7 +98,9 @@ let missing = 0;
 let failed = 0;
 
 for (const sequence of SEQUENCES) {
-  const files = (await readdir(sequence.dir)).filter((name) => name.endsWith(".jpg")).sort();
+  const files = (await readdir(sequence.dir))
+    .filter((name) => path.extname(name) in CONTENT_TYPES)
+    .sort();
   process.stdout.write(`\n${sequence.prefix}: ${files.length} frames\n`);
 
   await pooled(files, CONCURRENCY, async (name, index) => {
@@ -100,7 +122,7 @@ for (const sequence of SEQUENCES) {
             Bucket: bucket,
             Key: key,
             Body: await readFile(localPath),
-            ContentType: "image/jpeg",
+            ContentType: CONTENT_TYPES[path.extname(name)],
             // Frames never change once generated; let the CDN and browser
             // hold them forever rather than revalidating 1383 times.
             CacheControl: "public, max-age=31536000, immutable",

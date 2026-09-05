@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import { ArrowLeft, BedDouble, Car, Check, Clock3, Coffee, MapPin, Plane, ShieldCheck, Star, Users, X } from "lucide-react";
 import { getDiscountPercent, getPackageDetails } from "@/lib/packageData";
 import PackageGallery from "../_components/PackageGallery";
@@ -20,26 +20,11 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
   const packageState = usePackagesState();
   const [travellers, setTravellers] = useState(2);
   const [quoteOpen, setQuoteOpen] = useState(false);
-  const [quoteWaitingForAuth, setQuoteWaitingForAuth] = useState(false);
+  const router = useRouter();
   const livePackage = packageState.packages.find((item) => item.id === packageId);
   const pkg = packageState.loading || packageState.error
     ? livePackage ?? initialPackage
     : livePackage;
-
-  useEffect(() => {
-    const complete = () => {
-      if (!quoteWaitingForAuth) return;
-      setQuoteWaitingForAuth(false);
-      setQuoteOpen(true);
-    };
-    const dismissed = () => setQuoteWaitingForAuth(false);
-    window.addEventListener("cmt:auth-prompt-complete", complete);
-    window.addEventListener("cmt:auth-prompt-dismissed", dismissed);
-    return () => {
-      window.removeEventListener("cmt:auth-prompt-complete", complete);
-      window.removeEventListener("cmt:auth-prompt-dismissed", dismissed);
-    };
-  }, [quoteWaitingForAuth]);
 
   if (!pkg) {
     return <main className="grid min-h-[60vh] place-items-center bg-cmt-neutral-50 px-4"><div className="text-center"><h1 className="font-display text-3xl font-semibold">Package not found</h1><Link href="/packages" className="mt-5 inline-flex h-11 items-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold"><ArrowLeft className="size-4" /> All packages</Link></div></main>;
@@ -55,10 +40,11 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
     { icon: Coffee, label: "Meals", value: details.meals },
     { icon: Plane, label: "Flights", value: details.flights },
   ];
+  /* A customized quote is filed against the customer's account, so it needs a
+     real sign-in — the timed pop-up captures leads and cannot supply one. */
   const requestQuote = () => {
     if (authUser === null) {
-      setQuoteWaitingForAuth(true);
-      window.dispatchEvent(new Event("cmt:open-auth-prompt"));
+      router.push(`/login?next=${encodeURIComponent(`/packages/${packageId}`)}`);
       return;
     }
     if (authUser === undefined) return;

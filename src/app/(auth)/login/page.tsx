@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, ArrowRight, User } from "lucide-react";
 import SplitAuthShell from "../_components/SplitAuthShell";
@@ -17,6 +17,10 @@ import { useSiteContent } from "@/lib/useSiteContent";
 
 export default function LoginPage() {
   const router = useRouter();
+  /* Where to land after signing in. Only same-site paths are honoured, so a
+     crafted ?next= cannot bounce a freshly signed-in customer off-site. */
+  const nextParam = useSearchParams().get("next") ?? "";
+  const destination = nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/";
   /* Copy, icons and artwork only — the form below is code, not content. */
   const { auth } = useSiteContent();
   const copy = auth.login;
@@ -38,7 +42,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await signInWithEmail({ email, password, remember: rememberMe });
-      router.push("/");
+      router.push(destination);
     } catch (error) {
       setFormError(getAuthErrorMessage(error));
     } finally {
@@ -51,7 +55,7 @@ export default function LoginPage() {
     setIsGoogleSubmitting(true);
     try {
       await signInWithGoogle();
-      router.push("/");
+      router.push(destination);
     } catch (error) {
       setFormError(getAuthErrorMessage(error));
     } finally {

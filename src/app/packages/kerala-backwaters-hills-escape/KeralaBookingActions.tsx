@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { ArrowRight, CalendarDays, ChevronDown, Users } from "lucide-react";
 import { DUMMY_PACKAGES } from "@/lib/packageData";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
@@ -13,30 +14,16 @@ export default function KeralaBookingActions({ mobile = false }: { mobile?: bool
   const authUser = useAuthUser();
   const [travellers, setTravellers] = useState(2);
   const [quoteOpen, setQuoteOpen] = useState(false);
-  const [quoteWaitingForAuth, setQuoteWaitingForAuth] = useState(false);
-
-  useEffect(() => {
-    const complete = () => {
-      if (!quoteWaitingForAuth) return;
-      setQuoteWaitingForAuth(false);
-      setQuoteOpen(true);
-    };
-    const dismissed = () => setQuoteWaitingForAuth(false);
-    window.addEventListener("cmt:auth-prompt-complete", complete);
-    window.addEventListener("cmt:auth-prompt-dismissed", dismissed);
-    return () => {
-      window.removeEventListener("cmt:auth-prompt-complete", complete);
-      window.removeEventListener("cmt:auth-prompt-dismissed", dismissed);
-    };
-  }, [quoteWaitingForAuth]);
+  const router = useRouter();
 
   if (!pkg) return null;
 
+  /* A customized quote is filed against the customer's account, so it needs a
+     real sign-in — the timed pop-up captures leads and cannot supply one. */
   const openQuote = () => {
     if (authUser === undefined) return;
     if (authUser === null) {
-      setQuoteWaitingForAuth(true);
-      window.dispatchEvent(new Event("cmt:open-auth-prompt"));
+      router.push(`/login?next=${encodeURIComponent("/packages/kerala-backwaters-hills-escape")}`);
       return;
     }
     setQuoteOpen(true);

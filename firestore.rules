@@ -94,6 +94,52 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    match /popupLeads/{leadId} {
+      // Leads from the timed pop-up form. Anyone browsing the site can
+      // create one — that is the whole point of the form — but the contact
+      // details are readable only by the travel desk. Every field is
+      // constrained here because this is an unauthenticated write path.
+      function validNewLead() {
+        return request.resource.data.keys().hasOnly([
+          'name', 'email', 'phone', 'destinations', 'departureType',
+          'foodPreference', 'travelDate', 'travellers', 'budgetPerPerson',
+          'pagePath', 'status', 'submittedAt'
+        ])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 2
+          && request.resource.data.name.size() <= 120
+          && request.resource.data.email is string
+          && request.resource.data.email.size() <= 254
+          && request.resource.data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
+          && request.resource.data.phone is string
+          && request.resource.data.phone.size() >= 7
+          && request.resource.data.phone.size() <= 24
+          && request.resource.data.destinations is list
+          && request.resource.data.destinations.size() >= 1
+          && request.resource.data.destinations.size() <= 12
+          && request.resource.data.departureType in
+               ['group', 'fixed', 'couple', 'family', 'private', 'custom']
+          && request.resource.data.foodPreference in
+               ['veg', 'non_veg', 'both', 'jain', 'vegan']
+          && request.resource.data.travelDate is string
+          && (request.resource.data.travelDate == ''
+              || request.resource.data.travelDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
+          && request.resource.data.travellers is int
+          && request.resource.data.travellers >= 1
+          && request.resource.data.travellers <= 60
+          && request.resource.data.budgetPerPerson is int
+          && request.resource.data.budgetPerPerson >= 0
+          && request.resource.data.budgetPerPerson <= 100000000
+          && request.resource.data.pagePath is string
+          && request.resource.data.pagePath.size() <= 300
+          && request.resource.data.status == 'new'
+          && request.resource.data.submittedAt == request.time;
+      }
+
+      allow create: if validNewLead();
+      allow read, update, delete: if isAdmin();
+    }
+
     match /trips/{tripId} {
       // Bookings taken through PayU checkout. Written exclusively by the
       // server (Admin SDK, which bypasses these rules) because only the
