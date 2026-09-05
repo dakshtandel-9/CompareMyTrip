@@ -210,11 +210,7 @@ export default function TripPlanPromptDialog() {
       ref={dialogRef}
       aria-labelledby="trip-prompt-title"
       onClose={close}
-      /* A click that lands on the element itself is a click on the backdrop,
-         since the panel below covers the whole dialog box. */
-      onClick={(event) => {
-        if (event.target === dialogRef.current) close();
-      }}
+      onCancel={(event) => event.preventDefault()}
       className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[560px] overflow-hidden rounded-cmt-lg border-0 bg-transparent p-0 backdrop:bg-[rgba(15,23,42,0.48)]"
     >
       <div
@@ -288,7 +284,7 @@ export default function TripPlanPromptDialog() {
                   </p>
                 ) : null}
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4">
                   <label className="block">
                     <span className={labelClass}>Name *</span>
                     <span className="relative block">
