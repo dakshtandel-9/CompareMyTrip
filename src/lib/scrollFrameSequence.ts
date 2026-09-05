@@ -37,14 +37,6 @@
 /* Loading follows the same shape — a dozen frames spanning the clip      */
 /* first, so it is scrubbable end to end almost immediately, then the     */
 /* detail where the viewer actually is, then the rest of the skeleton.    */
-/*                                                                       */
-/* `preloadAll` is the other mode, for a short sequence a caller is       */
-/* willing to gate behind a loading state: every frame is fetched before  */
-/* the scrub is declared ready, nothing is ever evicted, and so the       */
-/* scrub cannot stall on the network once it is moving. It is refused on  */
-/* the low tier, where the wait would be worse than the stutter, and it   */
-/* gives up waiting after PRELOAD_TIMEOUT_MS so one crawling frame can    */
-/* never hold the hero shut.                                             */
 /* ------------------------------------------------------------------ */
 
 /** How much the device is asked to carry. */
@@ -73,26 +65,12 @@ export type ScrollFrameSequenceOptions = {
   /** Frames to actually use, per tier. Sequences whose frames are unusually
       heavy should pass their own; the defaults suit ~80KB frames. */
   maxFrames?: Partial<Record<Tier, number>>;
-  /** Fetch and decode the whole sequence before the scrub starts, instead of
-      streaming it in around the playhead. Every frame is then already in
-      memory when it is scrolled to, so nothing waits on the network
-      mid-scrub — at the cost of a wait up front, which is why it belongs
-      behind a loading state. */
-  preloadAll?: boolean;
-  /** Preload progress, 0 → 1, while `preloadAll` is filling. */
-  onLoadProgress?: (progress: number) => void;
-  /** Fired once when the sequence is ready to scrub. */
-  onReady?: () => void;
 };
 
 /** Requests in flight while streaming frames in around the playhead. The
     decoder is the bottleneck well before the socket is, so this stays short
     of what HTTP/2 would happily allow. */
 const PARALLEL: Record<Tier, number> = { high: 8, medium: 6, low: 4 };
-
-/** And while preloading the whole sequence, where nothing is being decoded
-    yet and the socket really is the limit. */
-const PRELOAD_PARALLEL: Record<Tier, number> = { high: 16, medium: 10, low: 6 };
 
 /** Frame images alive at once — the memory ceiling. Eviction will not touch
     the skeleton or the travelling window, so the real figure sits a handful
@@ -121,13 +99,11 @@ const DECODE_BEHIND_FALLBACK = 2;
 const DEFAULT_MAX_FRAMES: Record<Tier, number> = { high: 400, medium: 200, low: 110 };
 
 /** Widest canvas the small cut is allowed to fill. Above this the full-size
-    frames are fetched, below it they would only be downscaled away. */
-const SMALL_CUT_MAX_WIDTH = 1400;
-
-/** Preloading gives up waiting after this and reveals the sequence anyway,
-    still loading behind the scenes. A hero that never appears because one
-    frame is crawling is worse than one that starts a little thin. */
-const PRELOAD_TIMEOUT_MS = 20000;
+    frames are fetched; below it they would only be downscaled away. Set from
+    the small cut's own width, so it is never asked to fill more pixels than
+    it has — a phone at 390 CSS px and 3x asks for 780 and stays under it,
+    while the narrowest laptop clears it and gets the full cut. */
+const SMALL_CUT_MAX_WIDTH = 1000;
 
 /** Load passes that stay resident for the life of the page: every 16th of
     the frames in play, spread across the whole clip. */
@@ -214,9 +190,6 @@ export function startScrollFrameSequence({
   tailHold = 0,
   onProgress,
   maxFrames,
-  preloadAll = false,
-  onLoadProgress,
-  onReady,
 }: ScrollFrameSequenceOptions) {
   // Opaque: the frame covers the whole box, so there is nothing behind it
   // worth blending each pixel against.
@@ -224,15 +197,7 @@ export function startScrollFrameSequence({
   if (!ctx) return () => {};
 
   const tier = deviceTier();
-
-  /* Holding a whole sequence in memory before showing anything is a trade a
-     low-tier device cannot make: it is on save-data or a 2g connection, or
-     has the RAM of a budget phone, and the wait would be measured in tens of
-     seconds. It streams frames in around the playhead instead, which is the
-     behaviour that degrades gracefully. */
-  const preload = preloadAll && tier !== "low";
-
-  const parallel = preload ? PRELOAD_PARALLEL[tier] : PARALLEL[tier];
+  const parallel = PARALLEL[tier];
 
   /* Which cut of the sequence this display can actually show. The canvas is
      never given more pixels than the box it fills, capped at MAX_PIXEL_RATIO
@@ -245,9 +210,7 @@ export function startScrollFrameSequence({
   const activeDir =
     smallDir && wantedWidth <= SMALL_CUT_MAX_WIDTH ? smallDir : dir;
 
-  /* Preloading holds the whole sequence, so nothing may be evicted from
-     under it — that is the entire point of having waited for it. */
-  const resident = preload ? count : RESIDENT[tier];
+  const resident = RESIDENT[tier];
 
   /* Rewritten from the real frame dimensions once the first one lands. */
   let decodeAhead = DECODE_AHEAD_FALLBACK;
@@ -323,10 +286,6 @@ export function startScrollFrameSequence({
      more pixels than the footage has to fill them with. */
   let sourceWidth = 0;
 
-  /* Frames that have finished, either way — what the preload gate counts. */
-  let settledCount = 0;
-  let ready = !preload;
-  let readyTimer = 0;
 
   const windowStart = () => playhead - (direction >= 0 ? behindSpan : aheadSpan);
   const windowEnd = () => playhead + (direction >= 0 ? aheadSpan : behindSpan);
@@ -480,28 +439,6 @@ export function startScrollFrameSequence({
     }
   };
 
-  /* The preload gate. Every frame has been asked for and has either arrived
-     or been written off, so from here the scrub never touches the network:
-     scrolling to any point in the clip draws a picture that is already in
-     memory. Frames that failed outright do not hold the gate shut — the
-     nearest-drawable fallback covers them. */
-  const markReady = () => {
-    if (ready) return;
-    ready = true;
-    if (readyTimer) {
-      clearTimeout(readyTimer);
-      readyTimer = 0;
-    }
-    onReady?.();
-  };
-
-  const noteSettled = () => {
-    if (!preload) return;
-    settledCount += 1;
-    onLoadProgress?.(settledCount / total);
-    if (settledCount >= total) markReady();
-  };
-
   const startLoad = (index: number) => {
     const img = new window.Image();
     img.decoding = "async";
@@ -516,9 +453,6 @@ export function startScrollFrameSequence({
 
       inFlight -= 1;
       status[index] = READY;
-
-      // Retries are not progress; only a frame that is done for good counts.
-      if (ok) noteSettled();
 
       if (ok) {
         if (sourceWidth === 0 && img.naturalWidth > 0) {
@@ -541,10 +475,7 @@ export function startScrollFrameSequence({
         release(index);
         // Back to IDLE unless it has failed too often, so a dropped
         // connection costs a retry rather than the frame.
-        if (attempts[index] >= MAX_ATTEMPTS) {
-          status[index] = FAILED;
-          noteSettled();
-        }
+        if (attempts[index] >= MAX_ATTEMPTS) status[index] = FAILED;
       }
 
       pump();
@@ -576,12 +507,6 @@ export function startScrollFrameSequence({
         score = 1e6 + Math.abs(i - playhead);
       } else if (isSkeleton(i)) {
         score = 2e6 + pass[i] * 4096 + Math.abs(i - playhead);
-      } else if (preload) {
-        /* Everything else still gets fetched, just last — so the clip is
-           scrubbable coarsely long before the gate opens, and the progress
-           bar reflects real work rather than a queue being drained in file
-           order. */
-        score = 3e6 + Math.abs(i - playhead);
       } else {
         continue;
       }
@@ -721,18 +646,7 @@ export function startScrollFrameSequence({
   const resizeObserver = new ResizeObserver(remeasure);
 
   measure();
-
-  /* Preloading does not wait to be scrolled near: the whole point is that the
-     bytes are already there by the time anyone reaches the section, and for a
-     hero that is the moment the page opens. */
-  if (preload) {
-    onLoadProgress?.(0);
-    beginLoading();
-    readyTimer = window.setTimeout(markReady, PRELOAD_TIMEOUT_MS);
-  } else {
-    preloadObserver.observe(wrapper);
-  }
-
+  preloadObserver.observe(wrapper);
   runObserver.observe(wrapper);
   resizeObserver.observe(wrapper);
   window.addEventListener("resize", remeasure, { passive: true });
@@ -741,7 +655,6 @@ export function startScrollFrameSequence({
   return () => {
     cancelled = true;
     stop();
-    if (readyTimer) clearTimeout(readyTimer);
     preloadObserver.disconnect();
     runObserver.disconnect();
     resizeObserver.disconnect();

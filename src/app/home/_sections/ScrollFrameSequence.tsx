@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import ContentImage from "../_components/ContentImage";
 import HeroSearch from "../_components/HeroSearch";
 import { frameSequenceDir } from "@/lib/frameSequenceSource";
@@ -11,18 +11,34 @@ import { useSiteContent } from "@/lib/useSiteContent";
 // scrubbed end to end by scroll. The frames are served from R2 rather than
 // /public; see frameSequenceSource.
 //
-// Two cuts of the same 362 frames are published: 2560x1440 (~105KB a frame)
-// and 1280x720 (~50KB). The controller picks between them from how many
+// Two cuts of the same 362 frames are published: 1920x1080 (~54KB a frame)
+// and 960x540 (~23KB). The controller picks between them from how many
 // pixels the canvas is actually going to be given, so a phone is never made
 // to download a picture it has no way of showing.
+//
+// 1920 rather than anything larger because the canvas is capped at 2x DPR:
+// on a retina laptop it lands on 1920 exactly and draws these 1:1. A 2560
+// cut measured 65% heavier for pixels that never survive the downscale.
+// Encoded at WebP q64 with -sharp_yuv, which came in a quarter smaller than
+// q78 with no difference visible at 1:1.
 const FRAME_COUNT = 362;
 const FRAMES_DIR = frameSequenceDir("hero-frames-v3");
 const FRAMES_DIR_SMALL = frameSequenceDir("hero-frames-v3-sm");
 
-// Every frame, on anything but a save-data connection. Striding the sequence
-// is what makes a scrub step rather than glide, and at 362 frames there is
-// little enough to drop that the smoothness is worth the bytes.
-const MAX_FRAMES = { high: FRAME_COUNT, medium: FRAME_COUNT, low: 180 };
+// How many of the 362 are actually fetched. Not all of them, and the reason
+// is latency rather than bytes: the frames come from R2's public
+// pub-*.r2.dev endpoint, which speaks only http/1.1 — so a browser keeps six
+// requests to it in the air and queues the rest — and is not CDN-cached,
+// ~790ms to first byte against ~170ms for cloudflare.com. Frames therefore
+// arrive at roughly a dozen a second whatever we do, and the sequence is
+// filling in while it is being scrolled through. Asking for fewer is what
+// makes the ones you are actually looking at show up in time.
+//
+// Put a custom domain in front of the bucket and this stops being true:
+// http/2 multiplexing and a real cache edge, at which point high can go back
+// to the full 362 for the smoothest scrub the footage can give.
+const MAX_FRAMES = { high: 240, medium: 160, low: 100 };
+
 
 // The slice of the hero's scroll that comes after the clip's last frame,
 // holding it on screen before the section unpins. Without it the sequence
@@ -42,16 +58,13 @@ const COPY_FADE = 0.12;
 
 const clamp01 = (value: number) => (value < 0 ? 0 : value > 1 ? 1 : value);
 
+
 const smoothstep = (t: number) => t * t * (3 - 2 * t);
 
 export default function ScrollFrameSequence() {
   const { hero } = useSiteContent();
   const heroCopy = hero.copy;
 
-  // The sequence is held behind a loading state until every frame is in
-  // memory, so the scrub never waits on the network once it is moving.
-  const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(0);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -75,12 +88,7 @@ export default function ScrollFrameSequence() {
     const canvas = canvasRef.current;
     if (!wrapper || !canvas) return;
 
-    // Nothing is going to move, so there is nothing to wait for: leave the
-    // still behind the canvas showing and take the loader away.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setLoading(false);
-      return;
-    }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     // Last values written to the DOM, so the copy only touches style when it
     // has really moved. Rebuilt whenever the blocks themselves change.
@@ -131,10 +139,7 @@ export default function ScrollFrameSequence() {
       count: FRAME_COUNT,
       tailHold: TAIL_HOLD,
       maxFrames: MAX_FRAMES,
-      preloadAll: true,
       onProgress: drawCopy,
-      onLoadProgress: setProgress,
-      onReady: () => setLoading(false),
     });
   }, []);
 
@@ -163,30 +168,6 @@ export default function ScrollFrameSequence() {
           {/* Weighted to the bottom so the glass search panel keeps its
               contrast over the brightest frames of the sequence. */}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-black/70" />
-
-          {/* Over the sequence until every frame is in memory. It sits under
-              the copy and the search panel rather than over them, so the
-              hero is readable and bookable while the clip is still filling —
-              the wait costs the animation, not the page. Kept mounted for
-              the length of the fade so it does not vanish mid-transition. */}
-          <div
-            aria-hidden={!loading}
-            className={`pointer-events-none absolute inset-0 z-[5] flex items-end justify-center bg-cmt-secondary-900/35 backdrop-blur-[2px] transition-opacity duration-700 ${
-              loading ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <div className="mb-6 flex w-[min(220px,60%)] flex-col items-center gap-2">
-              <div className="h-[3px] w-full overflow-hidden rounded-cmt-full bg-white/25">
-                <div
-                  className="h-full rounded-cmt-full bg-white/90 transition-[width] duration-300 ease-out"
-                  style={{ width: `${Math.round(progress * 100)}%` }}
-                />
-              </div>
-              <p className="font-body text-[11px] uppercase tracking-[0.18em] text-white/70">
-                Loading
-              </p>
-            </div>
-          </div>
 
           {/* The sticky site header takes 64px of flow above this box, so at
               rest its last 64px sit under the fold — the symmetric vertical
