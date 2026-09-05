@@ -43,7 +43,7 @@ import {
 /* Nothing is written to storage — that is what re-arms it each refresh. */
 /* ------------------------------------------------------------------ */
 
-const PROMPT_DELAY_MS = 12000;
+const PROMPT_DELAY_MS = 1000;
 
 /* Routes where the prompt would be in the way: the auth pages, checkout
    (already a conversion flow) and the CRM. */
