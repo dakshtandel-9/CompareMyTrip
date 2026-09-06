@@ -669,6 +669,8 @@ export type ContactContent = {
   browseLabel: string;
 
   offices: {
+    /** Marks the sample-office migration so later intentional deletions persist. */
+    version: number;
     enabled: boolean;
     title: string;
     items: ContactOffice[];
@@ -776,9 +778,17 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     browsePrompt: "Would rather look around first?",
     browseLabel: "Browse packages",
     offices: {
+      version: 1,
       enabled: true,
       title: "Where we are",
-      items: [],
+      items: [
+        {
+          id: "contact-office-sample",
+          city: "Bengaluru",
+          note: "Sample address — replace with our office location",
+          address: "123 Example Road, Bengaluru, Karnataka 560001, India",
+        },
+      ],
     },
   },
   auth: {
@@ -2021,9 +2031,13 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
       browsePrompt: str(contactRaw.browsePrompt, base.contact.browsePrompt),
       browseLabel: str(contactRaw.browseLabel, base.contact.browseLabel),
       offices: {
+        version: 1,
         enabled: bool(officesRaw.enabled, base.contact.offices.enabled),
         title: str(officesRaw.title, base.contact.offices.title),
-        items: Array.isArray(officesRaw.items)
+        // Seed previously empty office sections once; an editor can then
+        // change or remove the sample without it being restored on save.
+        items: Array.isArray(officesRaw.items) &&
+          (officesRaw.items.length > 0 || officesRaw.version === 1)
           ? officesRaw.items.filter(isRecord).map((item, index) => ({
               id: str(item.id, `contact-office-${index + 1}`),
               city: str(item.city, ""),

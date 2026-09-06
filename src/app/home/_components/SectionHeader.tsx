@@ -68,7 +68,7 @@ export default function SectionHeader({
       {!action && actionLabel && actionHref && (
         <Link
           href={actionHref}
-          className={`group hidden shrink-0 items-center gap-1.5 rounded-cmt-control text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 sm:inline-flex ${
+          className={`group inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-cmt-control text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 sm:min-h-0 ${
             isDark
               ? "text-white hover:text-cmt-primary-400"
               : "text-cmt-neutral-900 hover:text-cmt-primary-900"

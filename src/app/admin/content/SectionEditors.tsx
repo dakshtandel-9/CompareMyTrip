@@ -60,6 +60,7 @@ import {
   SelectField,
 } from "../_components/EditorParts";
 import { Button, Card, FieldLabel, TextArea, TextField, Toggle } from "../_components/ui";
+import GoogleBusinessPanel from "./GoogleBusinessPanel";
 
 /* ------------------------------------------------------------------ */
 /* One editor per homepage section.                                    */
@@ -272,7 +273,7 @@ export function ContactEditor({
       <Card
         icon={<MapPin className="size-5" />}
         title={`Offices (${value.offices.items.length})`}
-        description="The band of address cards. It stays off the page until at least one office is added."
+        description="Office addresses and Google Maps on the contact page. Replace the sample address with your real office location; each map updates automatically."
       >
         <Toggle
           label="Show the offices band"
@@ -1900,6 +1901,12 @@ export function ReviewsEditor({
           )}
         </ListEditor>
       </Card>
+
+      {/* Google's reviews are pulled in, not edited here, so the panel sits
+          below the hand-written ones — the same order they appear in on the
+          page. It saves through its own endpoints rather than this editor's
+          draft, because credentials must not travel with homepage content. */}
+      <GoogleBusinessPanel />
     </div>
   );
 }

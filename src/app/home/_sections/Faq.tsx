@@ -97,15 +97,15 @@ export default function Faq() {
                 open={index === 0}
                 className="cmt-faq group rounded-cmt-md border border-cmt-neutral-200 bg-white transition-[border-color,box-shadow] duration-300 open:border-cmt-primary-400 open:shadow-cmt-sm"
               >
-                <summary className="group/row flex cursor-pointer list-none items-start gap-4 p-5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 sm:p-6 [&::-webkit-details-marker]:hidden">
+                <summary className="group/row flex cursor-pointer list-none items-start gap-2.5 p-4 sm:gap-4 sm:p-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 [&::-webkit-details-marker]:hidden">
                   <span
-                    className="mt-0.5 w-8 shrink-0 font-display text-sm font-semibold tabular-nums text-cmt-primary-700"
+                    className="mt-0.5 w-5 shrink-0 sm:w-8 font-display text-sm font-semibold tabular-nums text-cmt-primary-700"
                     aria-hidden="true"
                   >
                     {String(index + 1).padStart(2, "0")}
                   </span>
 
-                  <h3 className="flex-1 font-display text-base font-semibold leading-snug text-cmt-neutral-900 transition-colors group-hover/row:text-cmt-primary-900 sm:text-lg">
+                  <h3 className="min-w-0 flex-1 font-display text-base font-semibold leading-snug text-cmt-neutral-900 transition-colors group-hover/row:text-cmt-primary-900 sm:text-lg">
                     {item.question}
                   </h3>
 

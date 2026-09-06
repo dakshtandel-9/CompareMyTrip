@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ArrowLeft, BedDouble, Car, Check, Clock3, Coffee, MapPin, Plane, ShieldCheck, Star, Users, X } from "lucide-react";
 import { getDiscountPercent, getPackageDetails } from "@/lib/packageData";
 import PackageGallery from "../_components/PackageGallery";
+import CompareButton from "@/components/CompareButton";
 import BookingCard from "./BookingCard";
 import QuoteModal from "./QuoteModal";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
@@ -19,6 +20,10 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
   const authUser = useAuthUser();
   const packageState = usePackagesState();
   const [travellers, setTravellers] = useState(2);
+  /* Asked once in the booking card and carried from there into the quote
+     form and the checkout, so the traveller states their dates a single
+     time however they choose to go on. */
+  const [travelDate, setTravelDate] = useState("");
   const [quoteOpen, setQuoteOpen] = useState(false);
   const router = useRouter();
   const livePackage = packageState.packages.find((item) => item.id === packageId);
@@ -55,12 +60,18 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
     <main className="bg-cmt-neutral-50 pb-24 font-body text-cmt-neutral-900 lg:pb-0">
       <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div><nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-2 text-xs text-cmt-neutral-500"><Link href="/">Home</Link><span aria-hidden="true">/</span><Link href="/packages">Packages</Link><span aria-hidden="true">/</span>{pkg.destination ? <><Link href={`/packages?destination=${encodeURIComponent(pkg.destination)}`} className="hover:text-cmt-neutral-900">{pkg.destination}</Link><span aria-hidden="true">/</span></> : null}<span className="line-clamp-1">{pkg.title}</span></nav><h1 className="max-w-5xl font-display text-3xl font-semibold tracking-tight sm:text-5xl">{pkg.title}</h1><div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><span className="inline-flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" />{pkg.location}</span>{pkg.reviews > 0 && pkg.rating > 0 ? <span className="inline-flex items-center gap-1.5"><Star className="size-4 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" /><b className="text-cmt-neutral-900">{pkg.rating}</b> {pkg.reviews} traveller reviews</span> : <span className="text-cmt-neutral-500">Newly listed &middot; no traveller reviews yet</span>}</div></div>
-          <Link href="/packages" className="inline-flex h-11 shrink-0 items-center gap-2 self-start rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 text-sm font-semibold shadow-cmt-xs"><ArrowLeft className="size-4" /> All packages</Link>
+          <div className="min-w-0"><nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-cmt-neutral-500"><Link href="/">Home</Link><span aria-hidden="true">/</span><Link href="/packages">Packages</Link><span aria-hidden="true">/</span>{pkg.destination ? <><Link href={`/packages?destination=${encodeURIComponent(pkg.destination)}`} className="hover:text-cmt-neutral-900">{pkg.destination}</Link><span aria-hidden="true">/</span></> : null}<span className="line-clamp-1">{pkg.title}</span></nav><h1 className="max-w-5xl font-display text-3xl font-semibold tracking-tight sm:text-5xl">{pkg.title}</h1><div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><span className="inline-flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" />{pkg.location}</span>{pkg.reviews > 0 && pkg.rating > 0 ? <span className="inline-flex items-center gap-1.5"><Star className="size-4 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" /><b className="text-cmt-neutral-900">{pkg.rating}</b> {pkg.reviews} traveller reviews</span> : <span className="text-cmt-neutral-500">Newly listed &middot; no traveller reviews yet</span>}</div></div>
+          {/* The booking box carries the same control, but it sits below the
+              fold behind the gallery — this is the one a visitor sees while
+              they are still deciding whether this trip is worth comparing. */}
+          <div className="flex shrink-0 flex-wrap items-center gap-2 self-start">
+            <CompareButton packageId={pkg.id} className="h-11 px-4 shadow-cmt-xs" labels={{ added: "Added to compare", idle: "Compare" }} />
+            <Link href="/packages" className="inline-flex h-11 shrink-0 items-center gap-2 rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 text-sm font-semibold shadow-cmt-xs"><ArrowLeft className="size-4" /> All packages</Link>
+          </div>
         </div>
         <div className="mt-7"><PackageGallery images={details.gallery} /></div>
 
-        <section className="mt-6 grid gap-3 rounded-cmt-md border border-cmt-neutral-200 bg-white p-4 shadow-cmt-sm sm:grid-cols-2 lg:grid-cols-6 lg:p-5">
+        <section className="mt-6 grid grid-cols-2 gap-3 rounded-cmt-md border border-cmt-neutral-200 bg-white p-4 shadow-cmt-sm sm:grid-cols-2 lg:grid-cols-6 lg:p-5">
           {facts.map(({ icon: Icon, label, value }) => <div key={label} className="rounded-cmt-control bg-cmt-neutral-50 p-3"><Icon className="size-5 text-cmt-primary-700" /><p className="mt-2 text-[10px] uppercase tracking-wider text-cmt-neutral-400">{label}</p><p className="mt-1 text-xs font-semibold leading-5">{value}</p></div>)}
         </section>
 
@@ -75,24 +86,24 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-24">
-            <BookingCard pkg={pkg} details={details} travellers={travellers} onTravellersChange={setTravellers} onRequestQuote={requestQuote} />
+            <BookingCard pkg={pkg} details={details} travelDate={travelDate} onTravelDateChange={setTravelDate} travellers={travellers} onTravellersChange={setTravellers} onRequestQuote={requestQuote} />
             <div className="rounded-cmt-md bg-cmt-neutral-900 p-5 text-white"><p className="font-semibold">Why book here</p><p className="mt-1 text-xs leading-5 text-cmt-neutral-300">Your request is shared securely with our partners, so you can compare quotes before you pay.</p></div>
           </aside>
         </div>
       </div>
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-cmt-neutral-200 bg-white/95 p-3 backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-cmt-neutral-200 bg-white/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-lg flex-wrap items-center justify-between gap-2 sm:flex-nowrap sm:gap-3">
           <div className="min-w-0">
             <p className="text-[10px] text-cmt-neutral-500">Per person</p>
             <p className="mt-0.5 flex items-baseline gap-1.5"><span className="font-display text-lg font-bold">{formatINR(pkg.price)}</span>{discount > 0 && <span className="rounded-cmt-full bg-cmt-success-100 px-2 py-0.5 text-[10px] font-semibold text-cmt-success-700">{discount}% off</span>}</p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Link href={`/checkout?pkg=${encodeURIComponent(pkg.id)}&travellers=${travellers}`} className="flex h-11 items-center rounded-cmt-control border border-cmt-neutral-300 px-4 text-sm font-semibold">Book</Link>
-            <button type="button" onClick={requestQuote} className="flex h-11 items-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold">Get customized quote</button>
+          <div className="flex items-center gap-2">
+            <Link href={`/checkout?pkg=${encodeURIComponent(pkg.id)}&travellers=${travellers}${travelDate ? `&date=${travelDate}` : ""}`} className="flex h-11 items-center rounded-cmt-control border border-cmt-neutral-300 px-4 text-sm font-semibold">Book</Link>
+            <button type="button" onClick={requestQuote} className="flex h-11 items-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold"><span className="sm:hidden">Get quote</span><span className="hidden sm:inline">Get customized quote</span></button>
           </div>
         </div>
       </div>
-      {quoteOpen ? <QuoteModal pkg={pkg} initialTravellers={travellers} onClose={() => setQuoteOpen(false)} /> : null}
+      {quoteOpen ? <QuoteModal pkg={pkg} initialTravellers={travellers} initialTravelDate={travelDate} onClose={() => setQuoteOpen(false)} /> : null}
     </main>
   );
 }

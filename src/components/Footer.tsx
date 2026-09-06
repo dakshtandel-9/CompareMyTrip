@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 import PartnerMarquee from "@/components/PartnerMarquee";
+import SupportPhones from "@/components/SupportPhones";
 
 /* ------------------------------------------------------------------ */
 /* Site footer. Light on purpose: the newsletter block directly above   */
@@ -116,16 +117,16 @@ export default function Footer({
         }`}
       >
         <div className="mx-auto w-full max-w-[1440px]">
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] lg:gap-8">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:gap-10 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] lg:gap-8">
             {/* Brand */}
-            <div className="sm:col-span-2 lg:col-span-1">
+            <div className="col-span-2 lg:col-span-1">
               <Link href="/" className="inline-flex">
                 <Image
                   src="/comparemytrip-logo-white-plane.png"
                   alt="CompareMyTrip"
                   width={1400}
                   height={167}
-                  className="h-7 w-auto"
+                  className="h-auto w-[235px] max-w-full"
                 />
               </Link>
 
@@ -133,6 +134,8 @@ export default function Footer({
                 Compare curated travel packages side by side — full itinerary,
                 inclusions and final pricing before you book.
               </p>
+
+              <SupportPhones compact />
 
               {contactRows.length > 0 ? (
                 <ul className="mt-6 space-y-3">

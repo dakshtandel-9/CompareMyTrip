@@ -7,6 +7,7 @@ import { Glyph } from "@/lib/adminIcons";
 import { useSiteContent } from "@/lib/useSiteContent";
 import Faq from "@/app/home/_sections/Faq";
 import EnquiryForm from "./EnquiryForm";
+import SupportPhones from "@/components/SupportPhones";
 
 /* ------------------------------------------------------------------ */
 /* Contact — built to the Page blueprints entry in the design system:   */
@@ -169,6 +170,18 @@ export default function ContactBody() {
         </div>
       </section>
 
+      <section className="w-full border-t border-cmt-neutral-100 px-4 py-12 sm:px-5 sm:py-16 lg:px-6">
+        <div className="mx-auto w-full max-w-[1440px]">
+          <h2 className="font-display text-2xl font-semibold leading-[1.2] tracking-tight text-cmt-neutral-900 sm:text-[32px]">
+            Call our team
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-cmt-neutral-600 sm:text-base">
+            Get help with your travel plans, booking support or weekend treks.
+          </p>
+          <SupportPhones />
+        </div>
+      </section>
+
       {/* Offices */}
       {showOffices ? (
         <section className="w-full border-t border-cmt-neutral-100 px-4 py-12 sm:px-5 sm:py-16 lg:px-6">
@@ -176,26 +189,49 @@ export default function ContactBody() {
             <h2 className="font-display text-2xl font-semibold leading-[1.2] tracking-tight text-cmt-neutral-900 sm:text-[32px]">
               {contact.offices.title}
             </h2>
-            <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-8 grid gap-6">
               {offices.map((office) => (
                 <li
                   key={office.id}
-                  className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm"
+                  className="grid gap-6 rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm md:grid-cols-2 md:items-center"
                 >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-cmt-full bg-cmt-primary-100">
-                    <MapPin className="h-6 w-6 text-cmt-neutral-900" strokeWidth={2} aria-hidden="true" />
-                  </span>
-                  <h3 className="mt-5 font-display text-lg font-semibold leading-[1.3] text-cmt-neutral-900">
-                    {office.city}
-                  </h3>
-                  {office.note ? (
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-cmt-primary-700">
-                      {office.note}
-                    </p>
+                  <div>
+                    <span className="flex h-12 w-12 items-center justify-center rounded-cmt-full bg-cmt-primary-100">
+                      <MapPin className="h-6 w-6 text-cmt-neutral-900" strokeWidth={2} aria-hidden="true" />
+                    </span>
+                    <h3 className="mt-5 font-display text-lg font-semibold leading-[1.3] text-cmt-neutral-900">
+                      {office.city}
+                    </h3>
+                    {office.note ? (
+                      <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-cmt-primary-700">
+                        {office.note}
+                      </p>
+                    ) : null}
+                    <address className="mt-2 whitespace-pre-line text-pretty text-sm not-italic leading-[1.55] text-cmt-neutral-600">
+                      {office.address}
+                    </address>
+                    {office.address.trim() ? (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${office.address}, ${office.city}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 inline-flex items-center gap-2 rounded-cmt-sm text-sm font-semibold text-cmt-primary-700 hover:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                      >
+                        Open in Google Maps
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      </a>
+                    ) : null}
+                  </div>
+                  {office.address.trim() ? (
+                    <iframe
+                      title={`Google map for ${office.city || "our office"}: ${office.address}`}
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(`${office.address}, ${office.city}`)}&output=embed`}
+                      className="h-64 w-full rounded-cmt-md border-0 bg-cmt-neutral-50"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      allowFullScreen
+                    />
                   ) : null}
-                  <p className="mt-2 text-pretty text-sm leading-[1.55] text-cmt-neutral-600">
-                    {office.address}
-                  </p>
                 </li>
               ))}
             </ul>

@@ -3,11 +3,13 @@ import { NextResponse } from "next/server";
 import { uidFromIdToken } from "@/lib/firebase/admin";
 import { createPendingTrip } from "@/lib/firebase/serverTrips";
 import { resolveCoupon } from "@/lib/couponServer";
+import { isDepartureAllowed } from "@/lib/packageData";
 import { normaliseCode } from "@/lib/coupons";
 import {
   buildRequestHash,
   getPayuConfig,
   newTransactionId,
+  normaliseTravelDate,
   normaliseTravellers,
   priceOrder,
   resolvePackage,
@@ -65,6 +67,20 @@ export async function POST(request: Request) {
 
   const travellers = normaliseTravellers(read("travellers"));
 
+  /* The requested departure day. Not something the payment depends on, so a
+     date that fails the check costs the traveller nothing here — the
+     booking simply reaches the desk with its date open, exactly as it did
+     before this was asked for. */
+  const travelDate = normaliseTravelDate(read("travelDate"));
+
+  /* A weekday the trip does not run is different from a malformed date: it
+     is a departure we cannot actually operate, so it stops the payment
+     rather than being quietly dropped. Reaching here means the URL was
+     edited or the package's days changed under an open tab. */
+  if (travelDate && !isDepartureAllowed(pkg, travelDate)) {
+    return fail(origin, "date-unavailable");
+  }
+
   // Tie the booking to the buyer's account when the browser supplied a
   // usable ID token. A missing or bad token loses the link to My Trips, but
   // must never stop the payment — the CRM still gets the record.
@@ -118,6 +134,7 @@ export async function POST(request: Request) {
     name: firstname,
     email,
     phone,
+    tripDate: travelDate,
   }).catch((cause) => {
     console.error("pending trip could not be recorded", cause);
   });

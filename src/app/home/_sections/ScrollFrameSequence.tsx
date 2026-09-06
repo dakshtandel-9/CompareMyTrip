@@ -88,7 +88,7 @@ export default function ScrollFrameSequence() {
     const canvas = canvasRef.current;
     if (!wrapper || !canvas) return;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const animatedLayout = window.matchMedia("(min-width: 768px) and (prefers-reduced-motion: no-preference)");
 
     // Last values written to the DOM, so the copy only touches style when it
     // has really moved. Rebuilt whenever the blocks themselves change.
@@ -130,7 +130,13 @@ export default function ScrollFrameSequence() {
       }
     };
 
-    return startScrollFrameSequence({
+    let stopSequence: (() => void) | undefined;
+    const syncLayout = () => {
+      stopSequence?.();
+      stopSequence = undefined;
+      copyDirtyRef.current = true;
+      if (!animatedLayout.matches) return;
+      stopSequence = startScrollFrameSequence({
       wrapper,
       canvas,
       dir: FRAMES_DIR,
@@ -140,8 +146,15 @@ export default function ScrollFrameSequence() {
       tailHold: TAIL_HOLD,
       maxFrames: MAX_FRAMES,
       onProgress: drawCopy,
-    });
-  }, []);
+      });
+    };
+    syncLayout();
+    animatedLayout.addEventListener("change", syncLayout);
+    return () => {
+      stopSequence?.();
+      animatedLayout.removeEventListener("change", syncLayout);
+    };
+  }, [hero.enabled]);
 
   /* After the frame-loading effect, never before — an early bail would
      change the hook order between an enabled and a disabled hero. */
@@ -152,9 +165,9 @@ export default function ScrollFrameSequence() {
     // the sequence and the last of them holds its closing frame. The clip is
     // shorter than the one this replaced, but it is also no longer strided
     // down on a laptop, so the scroll per drawn frame is about what it was.
-    <div ref={wrapperRef} className="relative h-[600vh] bg-white">
-      <div className="sticky top-0 flex h-screen w-full items-center justify-center p-3 sm:p-4 md:p-6">
-        <div className="relative h-full w-full overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:rounded-3xl">
+    <div ref={wrapperRef} className="cmt-hero relative h-[600vh] bg-white">
+      <div className="cmt-hero-stage sticky top-0 flex h-screen w-full items-center justify-center p-3 sm:p-4 md:p-6">
+        <div className="cmt-hero-surface relative h-full w-full overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:rounded-3xl">
           <ContentImage
             src="/images/destinations-header-banner.jpg"
             alt=""
@@ -172,8 +185,8 @@ export default function ScrollFrameSequence() {
           {/* The sticky site header takes 64px of flow above this box, so at
               rest its last 64px sit under the fold — the symmetric vertical
               padding keeps the search panel and picks clear of both edges. */}
-          <div className="relative z-10 flex h-full flex-col px-4 py-[72px] sm:px-6 lg:px-10 [@media(max-height:820px)]:py-14">
-            <div className="flex min-h-0 flex-1 flex-col justify-center">
+          <div className="cmt-hero-content relative z-10 flex h-full flex-col px-4 py-[72px] sm:px-6 lg:px-10 [@media(max-height:820px)]:py-14">
+            <div className="cmt-hero-intro flex min-h-0 flex-1 flex-col justify-center">
               {/* Every block shares one grid cell, so the cell is as tall as
                   the longest of them and the search panel below never shifts
                   as the copy swaps. */}
@@ -191,7 +204,7 @@ export default function ScrollFrameSequence() {
                          before it gets there, and after a content edit
                          remounts them. */
                       style={{ opacity: index === 0 ? 1 : 0 }}
-                      className="col-start-1 row-start-1 flex flex-col items-start text-left will-change-transform"
+                      className="cmt-hero-copy col-start-1 row-start-1 flex flex-col items-start text-left will-change-transform"
                     >
                       <Heading className="font-display text-3xl font-semibold leading-[1.1] tracking-tight text-white sm:text-4xl md:text-5xl lg:text-[56px]">
                         {copy.titleLine1}
@@ -214,7 +227,7 @@ export default function ScrollFrameSequence() {
               {/* Static under the rotating copy — it's true of every clip. */}
               {hero.trust.enabled && (
                 <div className="mt-5 flex items-center gap-3 sm:mt-6">
-                  <div className="flex -space-x-2">
+                  <div className="flex shrink-0 -space-x-2">
                     {hero.trust.faces.map((face, index) => (
                       <span
                         key={index}

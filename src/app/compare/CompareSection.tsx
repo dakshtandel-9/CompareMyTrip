@@ -397,7 +397,7 @@ export default function CompareSection() {
         />
 
         {/* The decision layer: identity, duration, price, action. */}
-        <ul className="mt-8 grid list-none grid-cols-1 gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-4">
+        <ul className="cmt-mobile-rail mt-8 grid list-none grid-cols-1 gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-4">
           {columns.map((pkg, index) => {
             if (!pkg) {
               /* An emptied slot keeps its place rather than closing the

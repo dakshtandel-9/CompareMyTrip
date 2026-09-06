@@ -31,6 +31,9 @@ export type NewTrip = {
   name: string;
   email: string;
   phone: string;
+  /** The day the traveller asked to depart, YYYY-MM-DD, or "" if they left
+      it open. Already normalised by the caller. */
+  tripDate: string;
 };
 
 /** Records the booking as pending, before the buyer is sent to PayU. */
@@ -39,11 +42,12 @@ export async function createPendingTrip(trip: NewTrip) {
   if (!db) return false;
 
   await db.collection("trips").doc(trip.txnid).set({
+    // tripDate rides in on `trip`: it is the date the traveller picked on
+    // the package page. Left empty when they did not choose one, which is
+    // the case the travel desk fills in from the admin list as before.
     ...trip,
     paymentStatus: "pending" satisfies PaymentStatus,
     tripStatus: "awaiting_confirmation",
-    // Scheduled by the travel desk once the booking is confirmed.
-    tripDate: "",
     payuPaymentId: "",
     paymentMode: "",
     failureReason: "",

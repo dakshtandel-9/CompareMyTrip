@@ -4,7 +4,8 @@ import { ArrowLeft, TriangleAlert } from "lucide-react";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { getPayuConfig, normaliseTravellers, priceOrder, resolvePackage } from "@/lib/payu";
+import { isDepartureAllowed } from "@/lib/packageData";
+import { getPayuConfig, normaliseTravelDate, normaliseTravellers, priceOrder, resolvePackage } from "@/lib/payu";
 import CheckoutPanels from "./CheckoutPanels";
 
 export const metadata: Metadata = {
@@ -49,7 +50,7 @@ function Notice({ title, body }: { title: string; body: string }) {
 export default async function CheckoutPage({
   searchParams,
 }: {
-  searchParams: Promise<{ pkg?: string; travellers?: string }>;
+  searchParams: Promise<{ pkg?: string; travellers?: string; date?: string }>;
 }) {
   const params = await searchParams;
   const pkg = resolvePackage(params.pkg ?? "");
@@ -66,6 +67,12 @@ export default async function CheckoutPage({
   }
 
   const order = priceOrder(pkg, normaliseTravellers(params.travellers));
+  /* Chosen back on the package page. Re-checked here rather than trusted:
+     it arrives in a URL anyone can edit, and the package may only run on
+     certain weekdays. A date that fails either test is dropped, so the
+     summary never shows a departure this trip cannot make. */
+  const requestedDate = normaliseTravelDate(params.date);
+  const travelDate = isDepartureAllowed(pkg, requestedDate) ? requestedDate : "";
   const configured = getPayuConfig() !== null;
 
   return (
@@ -93,6 +100,7 @@ export default async function CheckoutPage({
         days={pkg.days}
         perPerson={order.perPerson}
         travellers={order.travellers}
+        travelDate={travelDate}
         subtotal={order.subtotal}
         configured={configured}
       />

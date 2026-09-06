@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BadgePercent, BedDouble, Check, Flame, GitCompareArrows, Minus, Plane, Plus, ShieldCheck } from "lucide-react";
-import { getDiscountPercent, getPackageTier, type PackageDetails, type TravelPackage } from "@/lib/packageData";
+import { departureDays, departureDaysLabel, getDiscountPercent, getPackageTier, type PackageDetails, type TravelPackage } from "@/lib/packageData";
+import DepartureDatePicker from "@/components/DepartureDatePicker";
 import { useCompare } from "@/lib/useCompare";
 import TrekGradeBadge from "@/components/TrekGradeBadge";
 
@@ -29,12 +30,14 @@ const hash = (value: string) => {
 type Props = {
   pkg: TravelPackage;
   details: PackageDetails;
+  travelDate: string;
+  onTravelDateChange: (value: string) => void;
   travellers: number;
   onTravellersChange: (value: number) => void;
   onRequestQuote: () => void;
 };
 
-export default function BookingCard({ pkg, details, travellers, onTravellersChange, onRequestQuote }: Props) {
+export default function BookingCard({ pkg, details, travelDate, onTravelDateChange, travellers, onTravellersChange, onRequestQuote }: Props) {
   const { toggle, isCompared } = useCompare();
   const compared = isCompared(pkg.id);
 
@@ -49,7 +52,15 @@ export default function BookingCard({ pkg, details, travellers, onTravellersChan
 
   const step = (delta: number) => onTravellersChange(Math.min(Math.max(travellers + delta, 1), 20));
 
-  const checkoutHref = `/checkout?pkg=${encodeURIComponent(pkg.id)}&travellers=${travellers}`;
+  /* Which days this trip actually runs, and how that reads to a traveller.
+     Empty when it departs any day, in which case the picker offers the whole
+     calendar and no caveat is shown. */
+  const runsOn = departureDays(pkg);
+  const runsOnLabel = departureDaysLabel(pkg);
+
+  const checkoutHref = `/checkout?pkg=${encodeURIComponent(pkg.id)}&travellers=${travellers}${
+    travelDate ? `&date=${travelDate}` : ""
+  }`;
 
   return (
     <div className="overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-md">
@@ -118,6 +129,38 @@ export default function BookingCard({ pkg, details, travellers, onTravellersChan
           <p className="mt-2.5 flex items-center gap-1.5 text-sm font-medium text-cmt-coral-700">
             <Flame className="size-4 shrink-0" strokeWidth={2.25} aria-hidden="true" />
             Available on request · {viewers} viewing now
+          </p>
+        </div>
+
+        {/* Asked before the head count, because it is the question that
+            decides whether the trip is on at all — and the travel desk
+            cannot quote a season without it. Carried into the quote form
+            and the checkout so nobody is asked for it twice. */}
+        <div className="rounded-cmt-control border border-cmt-neutral-200 p-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <label htmlFor="booking-travel-date" className="text-xs font-semibold">
+              When do you want to go?
+            </label>
+            {/* Said before the calendar is opened, so the greyed-out days are
+                explained rather than looking broken. */}
+            {runsOnLabel ? (
+              <span className="shrink-0 rounded-cmt-full bg-cmt-primary-100 px-2 py-0.5 text-[11px] font-semibold text-cmt-neutral-800">
+                {runsOnLabel}
+              </span>
+            ) : null}
+          </div>
+          <div className="mt-2">
+            <DepartureDatePicker
+              id="booking-travel-date"
+              value={travelDate}
+              onChange={onTravelDateChange}
+              allowedDays={runsOn}
+            />
+          </div>
+          <p className="mt-2 text-xs text-cmt-neutral-500">
+            {travelDate
+              ? "We'll check availability for this date."
+              : "Not fixed yet? Leave it blank and we'll suggest dates."}
           </p>
         </div>
 

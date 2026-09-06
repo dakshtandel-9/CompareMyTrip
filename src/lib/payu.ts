@@ -48,6 +48,35 @@ export function normaliseTravellers(raw: string | number | null | undefined) {
   return Math.min(parsed, MAX_TRAVELLERS);
 }
 
+/** A calendar day in YYYY-MM-DD, or "" when the browser sent nothing
+    usable. Stored as a plain day rather than a timestamp for the reason
+    given on Trip.tripDate: the 14th is the 14th wherever it is read.
+
+    A day's grace on the lower bound is deliberate. The server may be running
+    in UTC while the traveller is a day ahead of it, and refusing the date
+    someone just picked out of a calendar — because it is still yesterday in
+    Greenwich — would be an error they cannot act on. The travel desk sees
+    the requested date and confirms it either way, so leniency here costs
+    nothing and a false rejection costs the booking. */
+export function normaliseTravelDate(raw: string | null | undefined) {
+  const value = String(raw ?? "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "";
+
+  const [year, month, day] = value.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  // Rejects the 31st of a 30-day month, which Date would roll into the 1st.
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return "";
+  }
+
+  const floor = Date.now() - 24 * 60 * 60 * 1000;
+  return parsed.getTime() < floor ? "" : value;
+}
+
 /** The only place an amount is ever decided. Anything posted by a browser
     is treated as a hint about *which* package, never about the price — and
     a coupon is a hint about which code to check, never about how much it

@@ -977,7 +977,7 @@ export default function PackagesCatalog({
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
             <button
               type="button"
               onClick={() => setMobileFiltersOpen(true)}
@@ -990,13 +990,13 @@ export default function PackagesCatalog({
                 </span>
               )}
             </button>
-            <label className="relative">
+            <label className="relative min-w-0 flex-1 sm:flex-none">
               <span className="sr-only">Sort packages</span>
               <ArrowDownUp className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-500" />
               <select
                 value={sort}
                 onChange={(event) => setSort(event.target.value)}
-                className="h-11 appearance-none rounded-cmt-control border border-cmt-neutral-200 bg-white pl-9 pr-9 text-sm font-semibold text-cmt-neutral-700 shadow-cmt-xs outline-none focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]"
+                className="h-11 w-full min-w-0 appearance-none rounded-cmt-control border border-cmt-neutral-200 bg-white pl-9 pr-9 text-sm font-semibold text-cmt-neutral-700 shadow-cmt-xs outline-none focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]"
               >
                 <option value="recommended">Recommended</option>
                 <option value="price-low">Price: Low to high</option>
@@ -1087,8 +1087,8 @@ export default function PackagesCatalog({
                 <X className="size-4" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-5 py-5">{filtersContent}</div>
-            <div className="grid grid-cols-2 gap-3 border-t border-cmt-neutral-200 bg-white p-4">
+            <div className="min-h-0 flex-1 overscroll-contain overflow-y-auto px-5 py-5">{filtersContent}</div>
+            <div className="grid grid-cols-2 gap-3 border-t border-cmt-neutral-200 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <button
                 type="button"
                 onClick={clearFilters}

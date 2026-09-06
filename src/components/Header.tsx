@@ -39,6 +39,7 @@ export default function Header() {
   const [isHidden, setIsHidden] = useState(false);
 
   const headerRef = useRef<HTMLElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   // ---- Scroll: sticky shadow + hide-on-scroll-down ----------------------
   useEffect(() => {
@@ -114,9 +115,38 @@ export default function Header() {
 
   // ---- Lock body scroll when mobile menu is open --------------------------
   useEffect(() => {
-    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
+    if (!isMobileMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    document.body.style.overflow = "hidden";
+    const menu = mobileMenuRef.current;
+    menu?.querySelector<HTMLButtonElement>("button")?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMobileMenuOpen(false);
+      if (event.key !== "Tab" || !menu) return;
+      const focusable = Array.from(menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'))
+        .filter((element) => element.getClientRects().length > 0);
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+    const desktop = window.matchMedia("(min-width: 1400px)");
+    const onLayoutChange = () => {
+      if (desktop.matches) setIsMobileMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    desktop.addEventListener("change", onLayoutChange);
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+      desktop.removeEventListener("change", onLayoutChange);
+      previousFocus?.focus();
     };
   }, [isMobileMenuOpen]);
 
@@ -278,20 +308,20 @@ export default function Header() {
           </div>
         )}
 
-        <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-6">
+        <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-3 px-4 sm:gap-4 sm:px-6">
           {/* Logo. flex-1 here and on the right actions gives both flanks equal
               width, which centres the nav between them without taking it out of
               flow — an absolutely centred nav overlaps the actions once the menu
               grows past the space either side of centre. */}
-          <div className="flex flex-1 items-center justify-start">
-            <Link href="/" className="flex shrink-0 items-center">
+          <div className="flex min-w-0 flex-1 items-center justify-start">
+            <Link href="/" className="flex min-w-0 items-center">
               <Image
                 src="/comparemytrip-logo-white-plane.png"
                 alt="CompareMyTrip"
                 width={1400}
                 height={167}
                 sizes="235px"
-                className="h-7 w-auto"
+                className="h-auto w-[190px] max-w-full sm:h-7 sm:w-auto"
               />
             </Link>
           </div>
@@ -451,18 +481,19 @@ export default function Header() {
       {/* Mobile / tablet drawer */}
       {isMobileMenuOpen && (
         <div
+          ref={mobileMenuRef}
           className="fixed inset-0 z-[100] flex flex-col overflow-y-auto bg-white min-[1400px]:hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
         >
-          <div className="flex items-center justify-between border-b border-cmt-neutral-200 px-6 py-4">
+          <div className="flex items-center justify-between gap-3 border-b border-cmt-neutral-200 px-4 py-4 sm:px-6">
             <Image
               src="/comparemytrip-logo-white-plane.png"
               alt="CompareMyTrip"
               width={1400}
               height={167}
-              className="h-6 w-auto"
+              className="h-auto w-[190px] max-w-[calc(100%-3.5rem)] sm:h-6 sm:w-auto"
             />
             <button
               type="button"
@@ -488,6 +519,7 @@ export default function Header() {
                         onClick={() =>
                           setExpandedMobileItem((v) => (v === item.id ? null : item.id))
                         }
+                        aria-expanded={isExpanded}
                         className="flex w-full items-center justify-between py-4 font-display text-[17px] font-semibold text-cmt-neutral-900"
                       >
                         {item.label}
@@ -527,7 +559,7 @@ export default function Header() {
             })}
           </nav>
 
-          <div className="mt-auto flex flex-col gap-3 border-t border-cmt-neutral-200 px-6 pb-8 pt-4">
+          <div className="mt-auto flex flex-col gap-3 border-t border-cmt-neutral-200 px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4">
             {/* The strip's right half only fits from sm up, so the drawer
                 carries the number and the trips link at this width. */}
             {showTopBar && (phoneNumber || chatHref || showTrips) && (

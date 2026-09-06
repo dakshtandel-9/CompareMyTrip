@@ -42,7 +42,7 @@ export default function WhyTravelWithUs() {
   return (
     <section
       id="why-travel-with-us"
-      className="w-full bg-[#fffcf5] px-4 py-16 sm:px-5 lg:px-6 lg:py-24"
+      className="w-full bg-[#fffcf5] px-4 py-12 sm:px-5 sm:py-16 lg:px-6 lg:py-24"
     >
       <div className="mx-auto grid w-full max-w-[1440px] gap-y-10 lg:grid-cols-12 lg:gap-x-10 xl:gap-x-14">
         <div className="lg:col-span-7">
@@ -105,9 +105,9 @@ export default function WhyTravelWithUs() {
           </Link>
         </div>
 
-        <div className="relative min-h-[440px] lg:col-span-5 lg:min-h-0">
+        <div className="relative min-h-[280px] sm:min-h-[440px] lg:col-span-5 lg:min-h-0">
           <TravelPath />
-          <div className="relative z-10 h-full min-h-[440px] overflow-hidden rounded-cmt-lg bg-cmt-neutral-100 shadow-cmt-sm sm:min-h-[560px] lg:absolute lg:inset-0">
+          <div className="relative z-10 h-full min-h-[280px] sm:min-h-[440px] overflow-hidden rounded-cmt-lg bg-cmt-neutral-100 shadow-cmt-sm sm:min-h-[560px] lg:absolute lg:inset-0">
             <ContentImage
               src={whyUs.image}
               alt={whyUs.imageAlt}

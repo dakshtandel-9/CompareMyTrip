@@ -35,7 +35,7 @@ export default function TrainFrameBanner() {
 
   return (
     <section className="flex w-full justify-center bg-white p-3 sm:p-4 md:p-6">
-      <div className="relative h-auto min-h-[600px] w-full max-w-[1440px] overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:h-[72vh] sm:max-h-[660px] sm:min-h-[480px] sm:rounded-3xl">
+      <div className="relative h-auto min-h-0 w-full max-w-[1440px] overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:h-[72vh] sm:max-h-[660px] sm:min-h-[480px] sm:rounded-3xl">
         <video
           ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover"
@@ -53,7 +53,7 @@ export default function TrainFrameBanner() {
 
         <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/45 to-transparent" />
 
-        <div className="absolute inset-0 flex flex-col justify-center px-6 py-8 sm:px-12 sm:py-12 md:px-16">
+        <div className="relative flex flex-col justify-center sm:absolute sm:inset-0 px-6 py-8 sm:px-12 sm:py-12 md:px-16">
           <div className="flex items-center gap-2 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-cmt-primary-400 sm:text-xs">
             <Sparkles className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden="true" />
             {trainBanner.eyebrow}

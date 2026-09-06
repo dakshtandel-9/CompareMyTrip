@@ -45,7 +45,7 @@ export default function InternationalHolidays() {
           actionHref={header.actionHref}
         />
 
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:mt-10 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="cmt-mobile-rail mt-8 grid grid-cols-1 gap-6 sm:mt-10 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((country) => (
             <article
               key={country.id}
@@ -70,7 +70,7 @@ export default function InternationalHolidays() {
 
               <dl className="mt-5 space-y-2.5 border-t border-cmt-neutral-100 pt-4 text-sm">
                 <div className="flex items-start gap-2">
-                  <dt className="flex w-[104px] shrink-0 items-center gap-1.5 text-xs font-medium text-cmt-neutral-500">
+                  <dt className="flex w-[84px] sm:w-[104px] shrink-0 items-center gap-1.5 text-xs font-medium text-cmt-neutral-500">
                     <Plane className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
                     Visa
                   </dt>
@@ -78,7 +78,7 @@ export default function InternationalHolidays() {
                 </div>
 
                 <div className="flex items-start gap-2">
-                  <dt className="flex w-[104px] shrink-0 items-center gap-1.5 text-xs font-medium text-cmt-neutral-500">
+                  <dt className="flex w-[84px] sm:w-[104px] shrink-0 items-center gap-1.5 text-xs font-medium text-cmt-neutral-500">
                     <Sun className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
                     Best season
                   </dt>
@@ -86,7 +86,7 @@ export default function InternationalHolidays() {
                 </div>
 
                 <div className="flex items-start gap-2">
-                  <dt className="flex w-[104px] shrink-0 items-center gap-1.5 text-xs font-medium text-cmt-neutral-500">
+                  <dt className="flex w-[84px] sm:w-[104px] shrink-0 items-center gap-1.5 text-xs font-medium text-cmt-neutral-500">
                     <Clock className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
                     Flight time
                   </dt>
@@ -96,7 +96,7 @@ export default function InternationalHolidays() {
                 </div>
 
                 <div className="flex items-start gap-2">
-                  <dt className="flex w-[104px] shrink-0 items-center gap-1.5 text-xs font-medium text-cmt-neutral-500">
+                  <dt className="flex w-[84px] sm:w-[104px] shrink-0 items-center gap-1.5 text-xs font-medium text-cmt-neutral-500">
                     <Wallet className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
                     Currency
                   </dt>
@@ -104,12 +104,12 @@ export default function InternationalHolidays() {
                 </div>
               </dl>
 
-              <div className="mt-auto flex items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">
+              <div className="mt-auto flex flex-wrap items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">
                 <Price price={country.price} qualifier="/person" />
 
                 <Link
                   href={country.href}
-                  className="group/cta inline-flex h-9 shrink-0 items-center gap-1.5 rounded-cmt-control px-2 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:text-cmt-primary-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                  className="group/cta inline-flex h-11 shrink-0 sm:h-9 items-center gap-1.5 rounded-cmt-control px-2 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:text-cmt-primary-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                 >
                   See packages
                   <ArrowRight

@@ -77,14 +77,14 @@ export default function PackageGallery({ images }: { images?: string[] }) {
     <>
       <div
         className={`grid gap-3 overflow-hidden rounded-cmt-lg sm:gap-4 ${
-          sideImages.length > 0 ? "sm:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]" : ""
+          sideImages.length > 0 ? "sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" : ""
         }`}
       >
         <button
           type="button"
           onClick={() => setSelectedIndex(0)}
           aria-label="Open package gallery at image 1"
-          className="relative aspect-[16/10] overflow-hidden rounded-cmt-lg bg-cmt-neutral-100 sm:aspect-auto sm:min-h-[520px]"
+          className="relative aspect-[16/10] overflow-hidden rounded-cmt-lg bg-cmt-neutral-100 sm:aspect-auto sm:min-h-[360px] lg:min-h-[520px]"
         >
           <Image
             src={hero.src}
@@ -109,7 +109,7 @@ export default function PackageGallery({ images }: { images?: string[] }) {
               return (
                 <div
                   key={`${image.src}-${index}`}
-                  className="relative min-h-[150px] overflow-hidden rounded-cmt-lg bg-cmt-neutral-100"
+                  className="relative min-h-[110px] sm:min-h-[150px] overflow-hidden rounded-cmt-lg bg-cmt-neutral-100"
                 >
                   <button
                     type="button"
@@ -133,9 +133,9 @@ export default function PackageGallery({ images }: { images?: string[] }) {
                     <button
                       type="button"
                       onClick={() => setSelectedIndex(index + 1)}
-                      className="absolute bottom-3 right-3 z-10 inline-flex h-9 items-center gap-2 rounded-cmt-control bg-white/95 px-3.5 text-xs font-semibold text-cmt-neutral-900 shadow-cmt-md transition-colors hover:bg-white"
+                      className="absolute bottom-2 right-2 z-10 inline-flex min-h-11 max-w-[calc(100%-1rem)] items-center justify-center gap-1.5 sm:bottom-3 sm:right-3 sm:h-9 sm:min-h-0 sm:gap-2 rounded-cmt-control bg-white/95 px-3.5 text-xs font-semibold text-cmt-neutral-900 shadow-cmt-md transition-colors hover:bg-white"
                     >
-                      <Images className="size-4" /> Show more images
+                      <Images className="size-4 shrink-0" /><span className="sm:hidden">All photos</span><span className="hidden sm:inline">Show more images</span>
                     </button>
                   )}
                 </div>

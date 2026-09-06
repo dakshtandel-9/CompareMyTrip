@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, BedDouble, Check, Clock3, Globe2, ImagePlus, MapPin, PackagePlus, Plus, Save, Sparkles, Star, Trash2, Users } from "lucide-react";
-import { PACKAGE_CATEGORIES, discountToPrice, getDiscountPercent, getPackageDetails, type PackageCategory, type PackageItineraryDay, type PackageStay, type TravelPackage } from "@/lib/packageData";
+import { PACKAGE_CATEGORIES, WEEKDAYS, departureDays, departureDaysLabel, discountToPrice, getDiscountPercent, getPackageDetails, type PackageCategory, type PackageItineraryDay, type PackageStay, type TravelPackage } from "@/lib/packageData";
 import { savePackage, uploadPackageImage } from "@/lib/firebase/packages";
 import { deleteImageFromCloudflare, PACKAGE_DRAFT_IMAGE_KEY_PREFIX } from "@/lib/cloudflareUpload";
 
@@ -15,6 +15,9 @@ type PackageForm = {
   meals: string; transfers: string; flights: string; cancellationPolicy: string;
   itinerary: PackageItineraryDay[]; stays: PackageStay[];
   status: "draft" | "published";
+  /** Weekdays the trip departs on. All seven selected means no restriction,
+      which is what a package that runs daily should have. */
+  departureDays: number[];
 };
 
 const makeDays = (count = 5): PackageItineraryDay[] => Array.from({ length: count }, (_, index) => ({
@@ -32,6 +35,8 @@ const initialForm: PackageForm = {
   meals: "Daily breakfast", transfers: "Private transfers included", flights: "Not included",
   cancellationPolicy: "Free cancellation up to 15 days before departure. Date changes are subject to availability.",
   itinerary: makeDays(), stays: [{ name: "Comfort hotel", nights: 4, place: "", comfort: "4-star room with daily breakfast" }],
+  // Every day, until somebody narrows it.
+  departureDays: [0, 1, 2, 3, 4, 5, 6],
   /* New packages start as drafts: nothing reaches the website or the sitemap
      until somebody has read it back and chosen to publish. */
   status: "draft",
@@ -49,6 +54,10 @@ function formFromPackage(pkg?: TravelPackage): PackageForm {
     exclusions: details.exclusions.join("\n"), meals: details.meals, transfers: details.transfers, flights: details.flights,
     cancellationPolicy: details.cancellationPolicy, itinerary: details.itinerary, stays: details.stays,
     status: pkg.status === "draft" ? "draft" : "published",
+    /* An empty list on the package means "no restriction", which shows here
+       as every day ticked — the form is the editable view of the rule, not a
+       copy of how it is stored. */
+    departureDays: departureDays(pkg).length ? departureDays(pkg) : [0, 1, 2, 3, 4, 5, 6],
   };
 }
 
@@ -193,6 +202,8 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
     if (!form.itinerary.length || form.itinerary.some((day) => !day.title.trim())) return setError("Add a title for every itinerary day.");
     if (!form.stays.length || form.stays.some((stay) => !stay.name.trim())) return setError("Add at least one stay name.");
     if (!form.tags.length) return setError("Select at least one package category.");
+    // Nothing ticked would leave a package nobody can pick a date for.
+    if (!form.departureDays.length) return setError("Choose at least one departure day.");
     const newPackage: TravelPackage = {
       id: initialPackage?.id ?? `${form.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${Date.now().toString(36)}`,
       title: form.title.trim(), location: form.location.trim(), operator: initialPackage?.operator || "CompareMyTrip", region: form.region,
@@ -201,6 +212,9 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
       destination: form.destination.trim() || splitPlaces(form.places)[0] || form.location.trim(),
       image: form.gallery[0], nights: Number(form.nights), days: Number(form.days), pax: form.pax.trim(), hotelStars: Number(form.hotelStars), tags: form.tags,
       rating: initialPackage?.rating ?? 5, reviews: initialPackage?.reviews ?? 0, discount: Number(form.discount), originalPrice: Number(form.originalPrice), price: Number(form.price), deal: form.deal, status: form.status,
+      /* Stored empty when every day is ticked: "departs any day" is the
+         absence of a rule, not a list of seven. */
+      departureDays: form.departureDays.length === 7 ? [] : [...form.departureDays].sort((a, b) => a - b),
       details: { gallery: form.gallery, summary: form.summary.trim(), places: splitPlaces(form.places), highlights: lines(form.highlights),
         itinerary: form.itinerary.map((day) => ({ ...day, title: day.title.trim(), route: day.route.trim(), description: day.description.trim() || day.route.trim() || day.title.trim() })),
         stays: form.stays.map((stay) => ({ ...stay, name: stay.name.trim(), place: stay.place.trim() || form.destination.trim() || form.location.trim() })),
@@ -256,6 +270,52 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
               {/* Flags the package into the catalogue's "Best deals" toggle and
                   puts a badge on its price card. */}
               <label className="mt-5 flex cursor-pointer items-center gap-2.5 text-sm text-cmt-neutral-700"><input type="checkbox" checked={form.deal} onChange={(e) => update("deal", e.target.checked)} className="size-4 accent-[var(--cmt-color-primary-500)]" />Mark as a best deal</label>
+
+              {/* Which days this trip actually leaves on. A Sundays-only trek
+                  ticks Sun alone, and every other day is then greyed out in
+                  the traveller's calendar rather than being bookable and
+                  refused later. Leave all seven ticked for a trip that runs
+                  any day — that is stored as no rule at all. */}
+              <div className="mt-6 border-t border-cmt-neutral-200 pt-5">
+                <FieldLabel>Departure days</FieldLabel>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {WEEKDAYS.map((day) => {
+                    const on = form.departureDays.includes(day.value);
+                    return (
+                      <button
+                        key={day.value}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() =>
+                          update(
+                            "departureDays",
+                            on
+                              ? form.departureDays.filter((value) => value !== day.value)
+                              : [...form.departureDays, day.value],
+                          )
+                        }
+                        className={`h-10 min-w-[52px] rounded-cmt-sm border px-2.5 text-sm font-semibold transition-colors ${
+                          on
+                            ? "border-cmt-neutral-900 bg-cmt-neutral-900 text-white"
+                            : "border-cmt-neutral-200 bg-white text-cmt-neutral-500 hover:border-cmt-neutral-300"
+                        }`}
+                      >
+                        {day.short}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                  <button type="button" onClick={() => update("departureDays", [0, 1, 2, 3, 4, 5, 6])} className="text-xs font-semibold text-cmt-neutral-600 underline-offset-2 hover:underline">Every day</button>
+                  <button type="button" onClick={() => update("departureDays", [0, 6])} className="text-xs font-semibold text-cmt-neutral-600 underline-offset-2 hover:underline">Weekends</button>
+                  <button type="button" onClick={() => update("departureDays", [0])} className="text-xs font-semibold text-cmt-neutral-600 underline-offset-2 hover:underline">Sundays</button>
+                  <p className={`text-xs font-medium ${form.departureDays.length === 0 ? "text-cmt-error-700" : "text-cmt-neutral-500"}`}>
+                    {form.departureDays.length === 0
+                      ? "Pick at least one day, or no date can ever be booked."
+                      : departureDaysLabel({ departureDays: form.departureDays }) || "Departs any day"}
+                  </p>
+                </div>
+              </div>
             </section>
 
             <section className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">

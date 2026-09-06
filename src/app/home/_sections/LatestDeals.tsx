@@ -41,7 +41,7 @@ const pad = (value: number) => String(value).padStart(2, "0");
 
 function CountdownBox({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex min-w-[62px] flex-col items-center rounded-cmt-control border border-white/15 bg-white/10 px-3 py-2.5 backdrop-blur-sm">
+    <div className="flex min-w-0 flex-1 sm:min-w-[62px] flex-col items-center rounded-cmt-control border border-white/15 bg-white/10 px-2 py-2.5 backdrop-blur-sm sm:px-3">
       <span className="font-display text-2xl font-semibold tabular-nums leading-none text-white">
         {value}
       </span>
@@ -154,7 +154,7 @@ export default function LatestDeals() {
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="cmt-mobile-rail mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {deals.map((pkg) => (
             <PackageCard
               key={pkg.id}

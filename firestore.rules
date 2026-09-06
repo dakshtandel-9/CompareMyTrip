@@ -13,6 +13,25 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /siteContent/googleReviews {
+      // Reviews pulled from the Google Business Profile. Public for the
+      // same reason the homepage document is: the rail renders them in the
+      // browser. Written only by the server (Admin SDK), because the sync
+      // is the only thing entitled to say what Google returned.
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /integrations/{integrationId} {
+      // OAuth client secrets and refresh tokens. Denied to every client,
+      // reads included — an admin session is still a browser session, and
+      // a refresh token pulled from one would let its holder act as the
+      // business on Google indefinitely. Only the Admin SDK, which bypasses
+      // these rules, may touch this collection; the CRM sees it exclusively
+      // through /api/integrations/*, which returns status and never secrets.
+      allow read, write: if false;
+    }
+
     match /users/{userId} {
       allow create, update, delete: if request.auth != null
         && request.auth.uid == userId;

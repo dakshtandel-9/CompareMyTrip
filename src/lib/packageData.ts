@@ -72,8 +72,69 @@ export type TravelPackage = {
       Documents written before this field existed carry no status and are
       treated as published, so adding it never retires a live package. */
   status?: "draft" | "published";
+  /** Weekdays this trip actually departs on, as JS day numbers — 0 Sunday
+      through 6 Saturday. A Sundays-only trek is [0]; a weekend trek [0, 6].
+
+      Undefined or empty means every day, which is how every package written
+      before this field existed behaves and why it is optional: adding it
+      cannot accidentally close a running package's calendar. */
+  departureDays?: number[];
   details?: PackageDetails;
 };
+
+/** Day numbers in the order a calendar shows them. */
+export const WEEKDAYS = [
+  { value: 0, short: "Sun", letter: "S" },
+  { value: 1, short: "Mon", letter: "M" },
+  { value: 2, short: "Tue", letter: "T" },
+  { value: 3, short: "Wed", letter: "W" },
+  { value: 4, short: "Thu", letter: "T" },
+  { value: 5, short: "Fri", letter: "F" },
+  { value: 6, short: "Sat", letter: "S" },
+] as const;
+
+/** The departure days a package really runs, de-duplicated and in week
+    order. An empty array means "no restriction" rather than "never": a
+    package with nothing selected departs any day, which is the only reading
+    that keeps older packages working. */
+export function departureDays(pkg: Pick<TravelPackage, "departureDays">): number[] {
+  const raw = pkg.departureDays;
+  if (!Array.isArray(raw)) return [];
+  const days = [...new Set(raw.filter((day) => Number.isInteger(day) && day >= 0 && day <= 6))];
+  // Every day selected is the same as no restriction, and saying so here
+  // keeps "Departs daily" out of the UI as a pointless caveat.
+  return days.length === 7 ? [] : days.sort((a, b) => a - b);
+}
+
+/** Whether a YYYY-MM-DD day is one this package can depart on. Anything
+    unparseable is left for the date normaliser to reject. */
+export function isDepartureAllowed(
+  pkg: Pick<TravelPackage, "departureDays">,
+  date: string,
+): boolean {
+  const allowed = departureDays(pkg);
+  if (allowed.length === 0) return true;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return true;
+  const [year, month, day] = date.split("-").map(Number);
+  return allowed.includes(new Date(year, month - 1, day).getDay());
+}
+
+/** How the rule reads to a traveller: "Departs Sundays only", "Weekends
+    only", "Mon, Wed & Fri". Empty when the package departs any day. */
+export function departureDaysLabel(pkg: Pick<TravelPackage, "departureDays">): string {
+  const allowed = departureDays(pkg);
+  if (allowed.length === 0) return "";
+
+  const isWeekend = allowed.length === 2 && allowed.includes(0) && allowed.includes(6);
+  if (isWeekend) return "Weekends only";
+
+  const weekdaysOnly = allowed.length === 5 && !allowed.includes(0) && !allowed.includes(6);
+  if (weekdaysOnly) return "Weekdays only";
+
+  const names = allowed.map((day) => WEEKDAYS[day].short);
+  if (names.length === 1) return `${names[0]}days only`;
+  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]} only`;
+}
 
 export const PACKAGE_CATEGORIES: PackageCategory[] = [
   "Honeymoon",

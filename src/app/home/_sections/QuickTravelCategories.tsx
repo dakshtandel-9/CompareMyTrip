@@ -113,13 +113,13 @@ export default function QuickTravelCategories() {
 
       <ul
         ref={railRef}
-        className="mt-8 flex w-full gap-5 overflow-x-auto px-3 pb-4 pt-1 sm:mt-10 sm:px-4 md:px-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        className="mt-8 flex w-full snap-x snap-mandatory scroll-px-3 gap-5 overflow-x-auto px-3 pb-4 pt-1 sm:mt-10 sm:px-4 md:px-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
         {categories.cards.map((card) => {
           const { id, label, tagline, href, image, alt } = card;
 
           return (
-          <li key={id} className="w-[236px] shrink-0 sm:w-[260px]">
+          <li key={id} className="w-[236px] shrink-0 snap-start sm:w-[260px]">
             <Link
               href={href}
               className="group flex h-full flex-col rounded-cmt-lg border border-cmt-neutral-200 bg-white p-2.5 shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-1 hover:border-cmt-neutral-300 hover:shadow-cmt-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"

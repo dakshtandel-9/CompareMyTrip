@@ -5,6 +5,7 @@ import { FirebaseError } from "firebase/app";
 import {
   BadgeIndianRupee,
   CalendarClock,
+  CalendarHeart,
   Mail,
   Phone,
   Plane,
@@ -16,6 +17,7 @@ import {
   TRIP_STATUS_LABELS,
   countdownLabel,
   daysUntilTrip,
+  formatTripDate,
   subscribeToTrips,
   updateTripDate,
   updateTripStatus,
@@ -206,6 +208,22 @@ export default function AdminTripsList() {
                     <CalendarClock className="size-4" />
                     {trip.createdAt ? dateFormatter.format(trip.createdAt) : "Saving…"}
                   </span>
+                  {/* The traveller picks their date on the package page, so
+                      most bookings now arrive with one. It is repeated here
+                      because the editable field to the right is locked until
+                      the payment succeeds — on a pending booking this is the
+                      only place the desk can see what was asked for. */}
+                  {trip.tripDate ? (
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-cmt-neutral-900">
+                      <CalendarHeart className="size-4 text-cmt-neutral-400" />
+                      Wants {formatTripDate(trip.tripDate)}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-cmt-neutral-400">
+                      <CalendarHeart className="size-4" />
+                      Dates open
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -219,8 +237,8 @@ export default function AdminTripsList() {
                   onChange={(event) => void changeDate(trip, event.target.value)}
                   title={
                     trip.paymentStatus === "successful"
-                      ? "Departure date shown to the traveller"
-                      : "Available once the payment succeeds."
+                      ? "Departure date shown to the traveller — prefilled with the date they asked for, change it to what was confirmed"
+                      : "The date the traveller asked for. Editable once the payment succeeds."
                   }
                   className="h-10 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 text-sm font-semibold text-cmt-neutral-900 outline-none focus:border-cmt-primary-500 focus:ring-2 focus:ring-cmt-primary-500/20 disabled:cursor-not-allowed disabled:bg-cmt-neutral-100 disabled:text-cmt-neutral-400"
                 />

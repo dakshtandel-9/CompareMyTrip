@@ -26,6 +26,42 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Phone layouts use normal document flow, including when the keyboard opens.
+   Keep the cinematic, pinned hero for larger screens. */
+@media (max-width: 767px), (prefers-reduced-motion: reduce) {
+  .cmt-hero { height: auto; }
+  .cmt-hero-stage { position: relative; height: auto; }
+  .cmt-hero-surface { height: auto; }
+  .cmt-hero-content { height: auto; gap: 2rem; padding-block: 2rem; }
+  .cmt-hero-intro { flex: none; }
+  .cmt-hero-copy { opacity: 1 !important; transform: none !important; }
+  .cmt-hero-copy:not(:first-child) { display: none; }
+}
+
+@media (max-width: 639px) {
+  /* A partial next card and native scrolling make homepage collections
+     browsable without several screens of repeated cards. */
+  .cmt-mobile-rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-auto-columns: min(88%, 340px);
+    gap: 1rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    padding: 0.25rem 0.125rem 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--cmt-color-primary-500) var(--cmt-color-neutral-100);
+  }
+  .cmt-mobile-rail > * { min-width: 0; scroll-snap-align: start; }
+
+  /* Prevent Safari from zooming the page when a phone form is focused. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea { font-size: 16px; }
+}
+
 /* Branded first-load and route-transition screen. */
 .cmt-site-loader {
   position: fixed;

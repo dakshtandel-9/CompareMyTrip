@@ -26,10 +26,10 @@ export default function SplitAuthShell({
   imagePanelBottom: ReactNode;
 }) {
   return (
-    <main className="grid h-screen w-full font-body lg:grid-cols-2">
+    <main className="grid min-h-dvh w-full lg:h-screen font-body lg:grid-cols-2">
       {/* Form column — 50% width on desktop, full height, scrolls internally if content is taller than the viewport */}
-      <div className="flex h-full flex-col overflow-y-auto bg-cmt-white px-6 py-5 sm:px-10 sm:py-6 lg:px-14 lg:py-6">
-        <div className="flex items-center justify-between gap-4">
+      <div className="flex min-w-0 flex-col bg-cmt-white px-4 py-5 lg:h-full lg:overflow-y-auto sm:px-10 sm:py-6 lg:px-14 lg:py-6">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
           <Link href="/">
             <Image
               src="/logo.png"
@@ -37,7 +37,7 @@ export default function SplitAuthShell({
               width={1400}
               height={167}
               fetchPriority="high"
-              className="h-6 w-auto lg:h-7"
+              className="h-auto w-[190px] max-w-full sm:h-6 sm:w-auto lg:h-7"
             />
           </Link>
           <p className="text-[14px] text-cmt-neutral-500">{navPrompt}</p>

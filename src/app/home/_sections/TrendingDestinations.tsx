@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, MoveRight, Plane, TrendingUp } from "lucide-react";
+import { MoveRight, Plane, TrendingUp } from "lucide-react";
 
 import { useSiteContent } from "@/lib/useSiteContent";
 import type { SiteContent } from "@/lib/siteContent";
@@ -118,7 +118,7 @@ export default function TrendingDestinations() {
     const tick = (now: number) => {
       const elapsed = now - last;
       last = now;
-      if (!pausedRef.current && !reduceMotion.matches && setWidthRef.current) {
+      if (!pausedRef.current && !reduceMotion.matches && window.matchMedia("(hover: hover) and (pointer: fine)").matches && setWidthRef.current) {
         scroller.scrollLeft += (DRIFT_PX_PER_SECOND * elapsed) / 1000;
       }
       raf = requestAnimationFrame(tick);
@@ -188,17 +188,7 @@ export default function TrendingDestinations() {
         </div>
       </div>
 
-      {header.actionLabel && header.actionHref && (
-        <div className="mt-6 px-3 sm:hidden">
-          <Link
-            href={header.actionHref}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-cmt-neutral-900"
-          >
-            {header.actionLabel}
-            <ArrowRight className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
-          </Link>
-        </div>
-      )}
+
     </section>
   );
 }

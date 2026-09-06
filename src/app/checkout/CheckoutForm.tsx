@@ -25,6 +25,7 @@ import { useUserProfile } from "@/lib/firebase/useUserProfile";
 type Props = {
   packageId: string;
   travellers: number;
+  travelDate: string;
   /** The coupon the traveller has applied, owned by CheckoutPanels. Posted
       as a code only — what it is worth is decided again on the server. */
   couponCode: string;
@@ -39,6 +40,7 @@ const LABEL = "block font-body text-sm font-semibold text-cmt-neutral-900";
 export default function CheckoutForm({
   packageId,
   travellers,
+  travelDate,
   couponCode,
   disabled,
 }: Props) {
@@ -119,6 +121,9 @@ export default function CheckoutForm({
     <form action="/api/payu/initiate" method="post" onSubmit={handleSubmit} noValidate>
       <input type="hidden" name="packageId" value={packageId} />
       <input type="hidden" name="travellers" value={travellers} />
+      {/* Re-validated server-side in the initiate route before it reaches
+          the booking; this only carries it across the redirect. */}
+      <input type="hidden" name="travelDate" value={travelDate} />
       <input type="hidden" name="coupon" value={couponCode} />
       {/* Filled in by handleSubmit just before the POST, so the token is
           always fresh rather than minted on render and possibly expired. */}

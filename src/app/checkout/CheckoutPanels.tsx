@@ -7,6 +7,7 @@ import { ShieldCheck, TriangleAlert, X } from "lucide-react";
 import type { AppliedCoupon } from "@/lib/coupons";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
+import { formatTripDate } from "@/lib/firebase/trips";
 import CheckoutForm from "./CheckoutForm";
 import CouponCard from "./CouponCard";
 
@@ -35,6 +36,7 @@ type Props = {
   days: number;
   perPerson: number;
   travellers: number;
+  travelDate: string;
   subtotal: number;
   configured: boolean;
 };
@@ -48,6 +50,7 @@ export default function CheckoutPanels({
   days,
   perPerson,
   travellers,
+  travelDate,
   subtotal,
   configured,
 }: Props) {
@@ -154,6 +157,7 @@ export default function CheckoutPanels({
             <CheckoutForm
               packageId={packageId}
               travellers={travellers}
+              travelDate={travelDate}
               couponCode={applied?.code ?? ""}
               disabled={!configured}
             />
@@ -188,6 +192,14 @@ export default function CheckoutPanels({
               <dt className="text-cmt-neutral-600">Travellers</dt>
               <dd className="tabular-nums font-medium">{travellers}</dd>
             </div>
+            {/* Only when the traveller actually picked one — an empty row
+                reads as missing information rather than an open date. */}
+            {travelDate ? (
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-cmt-neutral-600">Travel date</dt>
+                <dd className="font-medium">{formatTripDate(travelDate)}</dd>
+              </div>
+            ) : null}
 
             {applied && (
               <>

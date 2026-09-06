@@ -174,7 +174,7 @@ export default function TrustAndNewsletter() {
         id="why-book-with-us"
         className="w-full border-t border-cmt-neutral-100 bg-white px-4 py-12 sm:px-5 sm:py-16 lg:px-6 lg:py-20"
       >
-        <ul className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="mx-auto grid w-full max-w-[1440px] grid-cols-2 gap-x-4 gap-y-7 sm:gap-x-8 sm:gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
           {newsletter.points.map((point, index) => (
             <li
               key={point.id}
@@ -186,7 +186,7 @@ export default function TrustAndNewsletter() {
               </span>
 
               {/* H3 (§4.3): 18 / 20px, Space Grotesk 600. */}
-              <h3 className="mt-5 text-balance font-display text-lg font-semibold leading-[1.3] text-cmt-neutral-900 sm:text-xl">
+              <h3 className="mt-4 text-balance font-display text-base sm:mt-5 font-semibold leading-[1.3] text-cmt-neutral-900 sm:text-xl">
                 {point.title}
               </h3>
 
@@ -206,7 +206,7 @@ export default function TrustAndNewsletter() {
         className="w-full bg-white px-4 pb-12 sm:px-5 sm:pb-16 lg:px-6 lg:pb-24"
       >
         <div className="mx-auto w-full max-w-[1440px]">
-          <div className="animate-cmt-rise relative isolate overflow-hidden rounded-cmt-lg bg-cmt-secondary-900 px-6 py-14 sm:px-10 sm:py-16 lg:px-16 lg:py-20">
+          <div className="animate-cmt-rise relative isolate overflow-hidden rounded-cmt-lg bg-cmt-secondary-900 px-5 py-9 sm:px-10 sm:py-16 lg:px-16 lg:py-20">
             {/* Single soft gold wash behind the headline — decoration budget
                 (§12.3) spent here rather than on borders or extra rules. */}
             <div
@@ -233,7 +233,7 @@ export default function TrustAndNewsletter() {
                 noValidate
                 className="mt-9 flex w-full max-w-[560px] flex-col gap-3 sm:flex-row"
               >
-                <div className="relative flex-1">
+                <div className="relative min-w-0 flex-1">
                   <label htmlFor="newsletter-email" className="sr-only">
                     Email address
                   </label>

@@ -51,7 +51,7 @@ export default function WeekendTreks() {
           actionHref={header.actionHref}
         />
 
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:mt-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="cmt-mobile-rail mt-8 grid grid-cols-1 gap-6 sm:mt-10 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((trek) => (
             <article
               key={trek.id}
@@ -128,7 +128,7 @@ export default function WeekendTreks() {
                   {trek.note}
                 </p>
 
-                <div className="mt-auto flex items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">
+                <div className="mt-auto flex flex-wrap items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">
                   <Price
                     price={trek.price}
                     originalPrice={trek.originalPrice}
@@ -137,7 +137,7 @@ export default function WeekendTreks() {
 
                   <Link
                     href={trek.href}
-                    className="inline-flex h-9 shrink-0 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                    className="inline-flex h-11 shrink-0 sm:h-9 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                   >
                     {ctaLabel}
                   </Link>

@@ -55,7 +55,7 @@ export default function TravelGuides() {
           actionHref={header.actionHref}
         />
 
-        <ul className="mt-8 grid grid-cols-1 gap-6 sm:mt-10 md:grid-cols-3">
+        <ul className="cmt-mobile-rail mt-8 grid grid-cols-1 gap-6 sm:mt-10 md:grid-cols-3">
           {items.map((guide) => (
             <li key={guide.id}>
               <article className="group h-full">

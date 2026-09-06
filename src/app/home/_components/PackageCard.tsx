@@ -43,7 +43,7 @@ export default function PackageCard({
 
   return (
     <article
-      className={`group flex h-full flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md ${className}`}
+      className={`group flex h-full min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md ${className}`}
     >
       <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden">
         <Image
@@ -114,12 +114,12 @@ export default function PackageCard({
         </p>
 
         {/* Price and action pinned to the bottom so cards in a row align. */}
-        <div className="mt-auto flex items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">
+        <div className="mt-auto flex flex-wrap items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">
           <Price price={pkg.price} originalPrice={pkg.originalPrice} qualifier="/person" />
 
           <Link
             href={pkg.href ?? `/packages/${pkg.id}`}
-            className="inline-flex h-9 shrink-0 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+            className="inline-flex h-11 shrink-0 sm:h-9 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
           >
             View
           </Link>

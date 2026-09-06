@@ -23,6 +23,8 @@ const REASONS: Record<string, string> = {
   "hash-mismatch":
     "The response signature did not match, so we did not treat it as paid. If money left your account, contact us with the transaction id and we will trace it.",
   "no-result": "No payment result was received.",
+  "date-unavailable":
+    "That package does not depart on the date selected, so we stopped before charging you. Open the package again and pick one of its departure days.",
   "coupon-rejected":
     "That coupon is no longer valid for this order, so we stopped before charging you. Open the checkout again to see the current total.",
 };

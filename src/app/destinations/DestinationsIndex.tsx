@@ -259,12 +259,12 @@ export default function DestinationsIndex({
               />
             </label>
 
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex min-w-0 items-center gap-2 text-sm">
               <span className="shrink-0 text-cmt-neutral-600">Sort</span>
               <select
                 value={sort}
                 onChange={(event) => setSort(event.target.value as Sort)}
-                className="h-11 rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 text-sm font-semibold outline-none transition-colors focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]"
+                className="h-11 min-w-0 flex-1 rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 text-sm font-semibold outline-none transition-colors focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]"
               >
                 {sortOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -282,7 +282,7 @@ export default function DestinationsIndex({
         <div className="mx-auto w-full max-w-[1440px]">
           {showTracks ? (
             visibleTracks.length > 0 ? (
-              <ul className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+              <ul className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
                 {visibleTracks.map((track) => {
                   const duration =
                     track.minDays === 0
@@ -295,7 +295,7 @@ export default function DestinationsIndex({
                     <li key={track.id}>
                       <Link
                         href={trackHref(track.id)}
-                        className="group relative flex aspect-[4/5] w-full overflow-hidden rounded-cmt-lg bg-cmt-secondary-900 shadow-cmt-sm transition-shadow hover:shadow-cmt-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                        className="group relative flex aspect-[4/3] w-full min-[420px]:aspect-[3/5] sm:aspect-[4/5] overflow-hidden rounded-cmt-lg bg-cmt-secondary-900 shadow-cmt-sm transition-shadow hover:shadow-cmt-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                       >
                         {track.image ? (
                           <Image
@@ -373,7 +373,7 @@ export default function DestinationsIndex({
               </div>
             )
           ) : visible.length > 0 ? (
-            <ul className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+            <ul className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
               {visible.map((destination) => {
                 const duration = durationLabel(destination);
                 return (
@@ -383,7 +383,7 @@ export default function DestinationsIndex({
                          catalogue: it is the crawlable landing page for the
                          place, and it links on to the filter itself. */
                       href={destinationHref(destination.name)}
-                      className="group relative flex aspect-[4/5] w-full overflow-hidden rounded-cmt-lg bg-cmt-secondary-900 shadow-cmt-sm transition-shadow hover:shadow-cmt-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                      className="group relative flex aspect-[4/3] w-full min-[420px]:aspect-[3/5] sm:aspect-[4/5] overflow-hidden rounded-cmt-lg bg-cmt-secondary-900 shadow-cmt-sm transition-shadow hover:shadow-cmt-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                     >
                       {destination.image ? (
                         <Image

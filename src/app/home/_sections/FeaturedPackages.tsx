@@ -76,7 +76,7 @@ export default function FeaturedPackages() {
           })}
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:mt-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="cmt-mobile-rail mt-8 grid grid-cols-1 gap-6 sm:mt-10 sm:grid-cols-2 lg:grid-cols-4">
           {visible.map((pkg) => (
             <PackageCard key={pkg.id} pkg={pkg} />
           ))}

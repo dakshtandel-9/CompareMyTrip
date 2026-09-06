@@ -135,6 +135,29 @@ export default function TripPlanPromptDialog() {
     return () => cancelAnimationFrame(frame);
   }, [open]);
 
+  /* Keep the page behind the modal completely still. The form retains its
+     own scroll container, and the previous page styles are restored when the
+     visitor closes the prompt. */
+  useEffect(() => {
+    if (!open) return;
+
+    const root = document.documentElement;
+    const body = document.body;
+    const previousRootOverflow = root.style.overflow;
+    const previousRootOverscroll = root.style.overscrollBehavior;
+    const previousBodyOverflow = body.style.overflow;
+
+    root.style.overflow = "hidden";
+    root.style.overscrollBehavior = "none";
+    body.style.overflow = "hidden";
+
+    return () => {
+      root.style.overflow = previousRootOverflow;
+      root.style.overscrollBehavior = previousRootOverscroll;
+      body.style.overflow = previousBodyOverflow;
+    };
+  }, [open]);
+
   const close = () => {
     setRequested(false);
     setDismissed(true);
