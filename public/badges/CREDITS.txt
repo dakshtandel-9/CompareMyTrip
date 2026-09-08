@@ -1,0 +1,7 @@
+google.svg
+  Google wordmark, used in the footer's Google Reviews mark.
+  Source: https://commons.wikimedia.org/wiki/File:Google_2015_logo.svg
+
+The IATA, ISO 9001:2015, PCI DSS and 100% Secure badges beside it are drawn
+in-house in src/components/TrustStrip.tsx rather than copied — those bodies
+license their certification marks to holders under their own brand rules.

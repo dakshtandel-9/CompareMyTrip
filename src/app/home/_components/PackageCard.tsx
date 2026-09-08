@@ -43,7 +43,7 @@ export default function PackageCard({
 
   return (
     <article
-      className={`group flex h-full min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md ${className}`}
+      className={`group relative flex h-full min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md ${className}`}
     >
       <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden">
         <Image
@@ -119,12 +119,29 @@ export default function PackageCard({
 
           <Link
             href={pkg.href ?? `/packages/${pkg.id}`}
-            className="inline-flex h-11 shrink-0 sm:h-9 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+            className="relative z-10 inline-flex h-11 shrink-0 sm:h-9 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
           >
             View
           </Link>
         </div>
       </div>
+
+      {/* Click anywhere on the card to open the package.
+
+          A transparent link of its own rather than an ::after on the View
+          button: that button lifts on hover, and a transform makes an element
+          the containing block for its own pseudo-element, so the overlay would
+          collapse onto the button the moment it was hovered, flicker, and fire
+          its click on a common ancestor that is not a link.
+
+          Hidden from assistive tech and taken out of the tab order — the View
+          link above is the real one, and this must not double it up. */}
+      <Link
+        href={pkg.href ?? `/packages/${pkg.id}`}
+        aria-hidden="true"
+        tabIndex={-1}
+        className="absolute inset-0"
+      />
     </article>
   );
 }

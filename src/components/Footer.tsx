@@ -4,6 +4,7 @@ import { Mail, MapPin, Phone } from "lucide-react";
 
 import PartnerMarquee from "@/components/PartnerMarquee";
 import SupportPhones from "@/components/SupportPhones";
+import TrustStrip from "@/components/TrustStrip";
 
 /* ------------------------------------------------------------------ */
 /* Site footer. Light on purpose: the newsletter block directly above   */
@@ -210,7 +211,9 @@ export default function Footer({
             ))}
           </div>
 
-          <div className="mt-12 flex flex-col gap-3 border-t border-cmt-neutral-200 pt-6 text-xs leading-6 text-cmt-neutral-500 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <TrustStrip />
+
+          <div className="mt-8 flex flex-col gap-3 border-t border-cmt-neutral-200 pt-6 text-xs leading-6 text-cmt-neutral-500 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
             <p>
               &copy; {new Date().getFullYear()} CompareMyTrip. All rights
               reserved.

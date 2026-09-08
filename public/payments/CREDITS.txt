@@ -1,0 +1,26 @@
+Payment-method marks shown in the site footer to say which methods PayU
+accepts at checkout. Each remains the trademark of its owner; they are
+reproduced unmodified except where noted.
+
+visa.svg, mastercard.svg, amex.svg
+  Source: https://github.com/aaronfagan/svg-credit-card-payment-icons (flat set)
+  License: MIT
+
+upi.svg
+  Unified Payments Interface (NPCI) logo.
+  Source: https://commons.wikimedia.org/wiki/File:UPI-Logo-vector.svg
+
+google-pay.svg
+  Source: https://commons.wikimedia.org/wiki/File:Google_Pay_Logo.svg
+
+paytm.svg
+  Source: https://commons.wikimedia.org/wiki/File:Paytm_Logo_(standalone).svg
+
+phonepe.svg
+  Source: https://github.com/simple-icons/simple-icons (icons/phonepe.svg)
+  License: CC0 1.0
+  Modified: fill set to PhonePe's brand purple #5F259F.
+
+RuPay, BHIM and MobiKwik are not shipped — no cleanly licensed vector of
+either exists. Drop the files here and add them to PAYMENT_METHODS in
+src/components/TrustStrip.tsx to switch them on.

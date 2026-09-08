@@ -308,6 +308,10 @@ export type DomesticPanel = {
   label: string;
   description: string;
   alt: string;
+  /** Where the open panel goes when it is clicked — usually a package or a
+      destination page, picked in the CRM. Empty leaves the panel inert, so
+      it stays a photo rather than a link that goes nowhere. */
+  link: string;
 };
 
 export type DomesticContent = {
@@ -334,6 +338,13 @@ export type CountryCard = {
   country: string;
   region: string;
   hook: string;
+  /** Optional photo above the card's facts — a public path or an uploaded
+      data URL. Ships empty: the card is data-led and reads correctly with
+      no photo at all, so a country only gets one once an editor adds it. */
+  image: string;
+  /** Alt text for the photo — described, not decorative. Unused while
+      `image` is empty. */
+  alt: string;
   visa: VisaType;
   visaNote: string;
   bestMonths: string;
@@ -477,6 +488,9 @@ export type NewsletterContent = {
   titleLine1: string;
   titleLine2: string;
   description: string;
+  /** Photograph behind the dark panel, held under two scrims. Purely
+      decorative — clear it and the panel falls back to its flat dark fill. */
+  backgroundImage: string;
   placeholder: string;
   ctaLabel: string;
   /** Shown under the field until the visitor submits. */
@@ -923,6 +937,16 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         ],
       },
       { id: "nav-5", label: "Deals", href: "/packages?deals=1", children: [] },
+      {
+        id: "nav-addon",
+        label: "Add On",
+        href: "/add-on",
+        children: [
+          { id: "nav-addon-1", label: "Flights", href: "/add-on?service=flights" },
+          { id: "nav-addon-2", label: "Hotels", href: "/add-on?service=hotels" },
+          { id: "nav-addon-3", label: "Visa", href: "/add-on?service=visa" },
+        ],
+      },
       { id: "nav-6", label: "Travel Guides", href: "/blog", children: [] },
     ],
   },
@@ -1327,6 +1351,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Ladakh",
         description: "Pangong's blue water at 4,350m, held in by bare Himalayan ridges.",
         alt: "Pangong Tso lake in eastern Ladakh",
+        link: "",
       },
       {
         id: "dom-rajasthan",
@@ -1334,6 +1359,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Rajasthan",
         description: "Pink-city palaces, desert forts and bazaars that never quite go quiet.",
         alt: "The east facade of Hawa Mahal in Jaipur, Rajasthan",
+        link: "",
       },
       {
         id: "dom-goa",
@@ -1341,6 +1367,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Goa",
         description: "Palm-backed sand down south, where the evenings run slow.",
         alt: "Palolem Beach in South Goa",
+        link: "",
       },
       {
         id: "dom-meghalaya",
@@ -1348,6 +1375,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Meghalaya",
         description: "Root bridges the Khasi grow, live, across rain-fed gorges.",
         alt: "The double-decker living root bridge near Nongriat, Meghalaya",
+        link: "",
       },
       {
         id: "dom-kerala",
@@ -1355,6 +1383,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Kerala",
         description: "Houseboats drifting the backwater channels behind Alappuzha.",
         alt: "A houseboat cruising the Kerala backwaters",
+        link: "",
       },
       {
         id: "dom-spiti",
@@ -1362,6 +1391,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Spiti Valley",
         description: "A cold desert of whitewashed monasteries and very high passes.",
         alt: "Pin Valley in Spiti, Himachal Pradesh",
+        link: "",
       },
       {
         id: "dom-andaman",
@@ -1369,6 +1399,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Andaman Islands",
         description: "Radhanagar's shallow turquoise shelf, out on Havelock.",
         alt: "Radhanagar Beach on Havelock Island, Andaman Islands",
+        link: "",
       },
     ],
   },
@@ -1391,6 +1422,8 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         country: "Thailand",
         region: "Southeast Asia",
         hook: "Bangkok's street food, then the Andaman islands.",
+        image: "",
+        alt: "",
         visa: "Visa free",
         visaNote: "Up to 60 days for Indian passports",
         bestMonths: "Nov – Mar",
@@ -1404,6 +1437,8 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         country: "Indonesia",
         region: "Southeast Asia",
         hook: "Ubud's rice terraces and the Bukit cliffs.",
+        image: "",
+        alt: "",
         visa: "Visa on arrival",
         visaNote: "30 days, extendable once",
         bestMonths: "Apr – Oct",
@@ -1417,6 +1452,8 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         country: "Vietnam",
         region: "Southeast Asia",
         hook: "Hạ Long's limestone bay and Da Nang's coast.",
+        image: "",
+        alt: "",
         visa: "e-Visa",
         visaNote: "Applied online before travel",
         bestMonths: "Feb – Apr",
@@ -1430,6 +1467,8 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         country: "Sri Lanka",
         region: "South Asia",
         hook: "Kandy's hill country by rail, Bentota by sea.",
+        image: "",
+        alt: "",
         visa: "e-Visa",
         visaNote: "Free ETA for Indian passports",
         bestMonths: "Dec – Mar",
@@ -1443,6 +1482,8 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         country: "United Arab Emirates",
         region: "Middle East",
         hook: "Dubai's skyline and the Liwa desert beyond it.",
+        image: "",
+        alt: "",
         visa: "e-Visa",
         visaNote: "14, 30 or 60-day tourist visa",
         bestMonths: "Nov – Mar",
@@ -1456,6 +1497,8 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         country: "Maldives",
         region: "Indian Ocean",
         hook: "One island, one resort, nothing else to decide.",
+        image: "",
+        alt: "",
         visa: "Visa on arrival",
         visaNote: "30 days, free on landing",
         bestMonths: "Nov – Apr",
@@ -1800,6 +1843,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     titleLine1: "Your next trip",
     titleLine2: "starts here.",
     description: "Get handpicked destinations and exclusive travel deals.",
+    backgroundImage: "/images/destinations-header-banner.jpg",
     placeholder: "Enter your email address",
     ctaLabel: "Subscribe",
     note: "No spam, just good trips. Unsubscribe anytime.",
@@ -1935,6 +1979,7 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     label: str(item.label, "Untitled"),
     description: str(item.description, ""),
     alt: str(item.alt, ""),
+    link: str(item.link, ""),
   }));
 
   const normalizedHeaderItems = list(headerRaw.items, base.header.items, (item, index) => ({
@@ -1961,10 +2006,30 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     "nav-3": "Domestic Tours",
     "nav-4": "International Holidays",
   };
-  const headerItems = normalizedHeaderItems.map((item) => {
+  const upgradedHeaderItems = normalizedHeaderItems.map((item) => {
     if (legacyHeaderLabels[item.id] !== item.label) return item;
     return base.header.items.find((defaultItem) => defaultItem.id === item.id) ?? item;
   });
+
+  /* Nav entries shipped after the CRM went live. A stored `items` array wins
+     outright, so a menu added in code would never reach a site that has ever
+     published its header — these are spliced in after the entry they belong
+     behind, unless the editor has already made one with the same id (they may
+     have renamed or moved it, and that choice stands). Dropping the item in
+     /admin/content removes it for good; only a document that has never seen
+     the id gets it. */
+  const addedHeaderItems: { id: string; after: string }[] = [
+    { id: "nav-addon", after: "nav-5" },
+  ];
+  const headerItems = addedHeaderItems.reduce((items, added) => {
+    if (items.some((item) => item.id === added.id)) return items;
+    const shipped = base.header.items.find((item) => item.id === added.id);
+    if (!shipped) return items;
+    const at = items.findIndex((item) => item.id === added.after);
+    const next = [...items];
+    next.splice(at < 0 ? next.length : at + 1, 0, shipped);
+    return next;
+  }, upgradedHeaderItems);
 
   /* Trust rows and feature cards are shaped alike enough to share a reader,
      but not so alike that they share a type — description is meaningful on
@@ -2230,6 +2295,8 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
         country: str(item.country, "Untitled"),
         region: str(item.region, ""),
         hook: str(item.hook, ""),
+        image: str(item.image, ""),
+        alt: str(item.alt, ""),
         visa: (VISA_TYPES as readonly string[]).includes(str(item.visa, ""))
           ? (item.visa as VisaType)
           : "e-Visa",
@@ -2337,6 +2404,7 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
       titleLine1: str(newsRaw.titleLine1, base.newsletter.titleLine1),
       titleLine2: str(newsRaw.titleLine2, base.newsletter.titleLine2),
       description: str(newsRaw.description, base.newsletter.description),
+      backgroundImage: str(newsRaw.backgroundImage, base.newsletter.backgroundImage),
       placeholder: str(newsRaw.placeholder, base.newsletter.placeholder),
       ctaLabel: str(newsRaw.ctaLabel, base.newsletter.ctaLabel),
       note: str(newsRaw.note, base.newsletter.note),

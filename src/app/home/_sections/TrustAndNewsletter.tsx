@@ -6,6 +6,7 @@ import { AlertCircle, ArrowRight, CheckCircle2, Mail } from "lucide-react";
 import { Glyph } from "@/lib/adminIcons";
 import { useSiteContent } from "@/lib/useSiteContent";
 import { saveNewsletterSubscription } from "@/lib/firebase/newsletter";
+import ContentImage from "../_components/ContentImage";
 
 /* ------------------------------------------------------------------ */
 /* Two-tone trust icons (design.md §9.5)                               */
@@ -207,6 +208,24 @@ export default function TrustAndNewsletter() {
       >
         <div className="mx-auto w-full max-w-[1440px]">
           <div className="animate-cmt-rise relative isolate overflow-hidden rounded-cmt-lg bg-cmt-secondary-900 px-5 py-9 sm:px-10 sm:py-16 lg:px-16 lg:py-20">
+            {/* Photograph behind the panel, the same treatment as the deals
+                card: never a flat tint over it, but two scrims — one overall,
+                one heavier through the middle where the headline and the form
+                sit, so the horizon survives at the edges. */}
+            {newsletter.backgroundImage ? (
+              <>
+                <ContentImage
+                  src={newsletter.backgroundImage}
+                  alt=""
+                  fill
+                  sizes="(max-width: 1440px) 100vw, 1440px"
+                  className="-z-10 object-cover object-center"
+                />
+                <div className="pointer-events-none absolute inset-0 -z-10 bg-cmt-secondary-900/60" />
+                <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_70%_75%_at_50%_50%,rgba(2,6,23,0.8),rgba(2,6,23,0.15)_78%)]" />
+              </>
+            ) : null}
+
             {/* Single soft gold wash behind the headline — decoration budget
                 (§12.3) spent here rather than on borders or extra rules. */}
             <div

@@ -20,9 +20,15 @@ import Image from "next/image";
 /* ------------------------------------------------------------------ */
 
 /* Cut from the tourism-board sheet in public/partners. Alt text is empty
-   on purpose — the strip is decorative, and fourteen board names read out
+   on purpose — the strip is decorative, and eighteen board names read out
    in a row is noise to a screen reader, not information. */
 const LOGOS = [
+  /* The Indian bodies lead: this is an India-facing site, and they are the
+     accreditations a traveller here recognises first. */
+  "/partners/ministry-of-tourism-india.png",
+  "/partners/incredible-india.png",
+  "/partners/karnataka-tourism.png",
+  "/partners/kstdc.png",
   "/partners/visit-britain.png",
   "/partners/japan.png",
   "/partners/seychelles.png",

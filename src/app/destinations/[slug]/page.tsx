@@ -155,60 +155,71 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
       />
 
       <main className="bg-white">
-        <section className="relative isolate overflow-hidden bg-cmt-neutral-900 text-white">
-          {destination.image && (
-            <Image
-              src={destination.image}
-              alt=""
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover opacity-45"
-            />
-          )}
-          <div className="relative mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-            <nav aria-label="Breadcrumb" className="text-xs font-medium text-white/70">
-              <ol className="flex flex-wrap items-center gap-1.5">
-                <li><Link href="/" className="hover:text-white">Home</Link></li>
-                <li aria-hidden="true">/</li>
-                <li><Link href="/destinations" className="hover:text-white">Destinations</Link></li>
-                <li aria-hidden="true">/</li>
-                <li aria-current="page" className="text-white">{destination.name}</li>
-              </ol>
-            </nav>
-
-            <h1 className="mt-5 font-display text-3xl font-bold tracking-tight sm:text-5xl">
-              {destination.name} Tour Packages
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/85 sm:text-base">
-              {describe(destination)}
-            </p>
-
-            <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-4">
-              {facts.map((fact) => (
-                <div key={fact.label} className="flex items-center gap-2.5">
-                  <fact.icon className="size-5 shrink-0 text-cmt-primary-500" strokeWidth={2} />
-                  <div>
-                    <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/60">{fact.label}</dt>
-                    <dd className="font-display text-base font-semibold">{fact.value}</dd>
-                  </div>
-                </div>
-              ))}
-            </dl>
-
-            {destination.styles.length > 0 && (
-              <ul className="mt-7 flex flex-wrap gap-2">
-                {destination.styles.map((style) => (
-                  <li key={style} className="rounded-cmt-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium">
-                    {style}
-                  </li>
-                ))}
-              </ul>
+        {/* Boxed, not edge-to-edge — the same masthead card the catalogue
+            banners use (PackagesCatalog's CatalogBanner), down to the
+            p-3/sm:p-4/md:p-6 gutter and the 2xl→3xl corners, so a
+            destination page and a filtered catalogue read as one family.
+            Two scrims rather than a flat opacity drop: the copy sits on the
+            heavier left one, the photo keeps its own contrast at the edge. */}
+        <section className="flex w-full justify-center p-3 text-white sm:p-4 md:p-6">
+          <div className="relative isolate w-full max-w-[1440px] overflow-hidden rounded-2xl bg-cmt-secondary-900 px-6 py-14 sm:rounded-3xl sm:px-10 sm:py-20">
+            {destination.image && (
+              <Image
+                src={destination.image}
+                alt=""
+                fill
+                priority
+                sizes="(max-width: 1440px) 100vw, 1440px"
+                className="-z-20 object-cover object-center"
+              />
             )}
+            <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/65 to-black/10" />
+            <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/15" />
+
+            <div className="relative w-full">
+              <nav aria-label="Breadcrumb" className="text-xs font-medium text-white/70">
+                <ol className="flex flex-wrap items-center gap-1.5">
+                  <li><Link href="/" className="hover:text-white">Home</Link></li>
+                  <li aria-hidden="true">/</li>
+                  <li><Link href="/destinations" className="hover:text-white">Destinations</Link></li>
+                  <li aria-hidden="true">/</li>
+                  <li aria-current="page" className="text-white">{destination.name}</li>
+                </ol>
+              </nav>
+
+              <h1 className="mt-5 font-display text-3xl font-bold tracking-tight [text-shadow:0_3px_18px_rgba(0,0,0,0.35)] sm:text-5xl">
+                {destination.name} Tour Packages
+              </h1>
+              <p className="mt-4 max-w-2xl text-pretty text-sm leading-6 text-white/85 [text-shadow:0_2px_12px_rgba(0,0,0,0.35)] sm:text-base">
+                {describe(destination)}
+              </p>
+
+              <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-4">
+                {facts.map((fact) => (
+                  <div key={fact.label} className="flex items-center gap-2.5">
+                    <fact.icon className="size-5 shrink-0 text-cmt-primary-500" strokeWidth={2} />
+                    <div>
+                      <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/60">{fact.label}</dt>
+                      <dd className="font-display text-base font-semibold">{fact.value}</dd>
+                    </div>
+                  </div>
+                ))}
+              </dl>
+
+              {destination.styles.length > 0 && (
+                <ul className="mt-7 flex flex-wrap gap-2">
+                  {destination.styles.map((style) => (
+                    <li key={style} className="rounded-cmt-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium">
+                      {style}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+        <section className="mx-auto w-full max-w-[1440px] px-4 py-12 sm:px-6 lg:px-8 sm:py-16">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 className="font-display text-2xl font-bold tracking-tight text-cmt-neutral-900 sm:text-3xl">
               {destination.count === 1
@@ -223,12 +234,12 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
             </Link>
           </div>
 
-          <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {packages.map((pkg) => (
               <PackageCard
                 key={pkg.id}
                 pkg={pkg}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
               />
             ))}
           </div>
@@ -236,11 +247,11 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
 
         {guides.length > 0 && (
           <section className="border-t border-cmt-neutral-200 bg-cmt-neutral-50">
-            <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+            <div className="mx-auto w-full max-w-[1440px] px-4 py-12 sm:px-6 lg:px-8 sm:py-16">
               <h2 className="font-display text-2xl font-bold tracking-tight text-cmt-neutral-900 sm:text-3xl">
                 {destination.name} travel guides
               </h2>
-              <ul className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {guides.map((post) => (
                   <li key={post.id}>
                     <Link

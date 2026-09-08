@@ -53,6 +53,7 @@ import {
 import IconPicker from "../_components/IconPicker";
 import AvatarField from "../_components/AvatarField";
 import ImageField from "../_components/ImageField";
+import LinkField from "../_components/LinkField";
 import {
   ListEditor,
   NumberField,
@@ -1409,6 +1410,7 @@ export function DomesticEditor({
             label: "New place",
             description: "",
             alt: "",
+            link: "",
           }}
         >
           {(item, patch) => (
@@ -1433,6 +1435,12 @@ export function DomesticEditor({
                 label="Photo description (alt text)"
                 value={item.alt}
                 onChange={(alt) => patch({ alt })}
+              />
+              <LinkField
+                label="Opens"
+                value={item.link}
+                onChange={(link) => patch({ link })}
+                hint="Clicking the open panel goes here. Leave it on “Not clickable” and the panel stays a photo."
               />
             </div>
           )}
@@ -1486,6 +1494,8 @@ export function InternationalEditor({
             country: "New country",
             region: "",
             hook: "",
+            image: "",
+            alt: "",
             visa: "e-Visa" as VisaType,
             visaNote: "",
             bestMonths: "",
@@ -1517,6 +1527,21 @@ export function InternationalEditor({
                 onChange={(hook) => patch({ hook })}
                 placeholder="Bangkok's street food, then the Andaman islands."
               />
+
+              <ImageField
+                label="Photo (optional)"
+                value={item.image}
+                aspect="aspect-[16/9]"
+                onChange={(image) => patch({ image })}
+              />
+              {item.image ? (
+                <TextArea
+                  label="Photo description (alt text)"
+                  value={item.alt}
+                  onChange={(alt) => patch({ alt })}
+                  placeholder="Long-tail boats moored off a limestone island in Krabi, Thailand"
+                />
+              ) : null}
 
               <div className={grid2}>
                 <SelectField
@@ -2168,6 +2193,13 @@ export function NewsletterEditor({
             label="Description"
             value={value.description}
             onChange={(description) => onChange({ ...value, description })}
+          />
+
+          <ImageField
+            label="Background photo"
+            value={value.backgroundImage}
+            aspect="aspect-[2/1]"
+            onChange={(backgroundImage) => onChange({ ...value, backgroundImage })}
           />
 
           <div className={grid2}>

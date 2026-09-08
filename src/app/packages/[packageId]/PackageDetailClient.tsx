@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, BedDouble, Car, Check, Clock3, Coffee, MapPin, Plane, ShieldCheck, Star, Users, X } from "lucide-react";
+import { ArrowLeft, BedDouble, Car, Check, Clock3, MapPin, Plane, ShieldCheck, Star, Users, X } from "lucide-react";
 import { getDiscountPercent, getPackageDetails } from "@/lib/packageData";
 import PackageGallery from "../_components/PackageGallery";
 import CompareButton from "@/components/CompareButton";
@@ -14,6 +14,31 @@ import type { TravelPackage } from "@/lib/packageData";
 import { usePackagesState } from "@/lib/usePackages";
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
+
+/* A place setting rather than lucide's Coffee cup: the row says what meals
+   the price covers, not that tea is served. Drawn here because lucide has no
+   plate — same 24 viewBox, 2px round-capped stroke and currentColor as the
+   five icons beside it, so it sits in the row without looking imported. */
+function PlateAndCup({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M1.6 11.8h11.6a5.8 4.4 0 0 1-11.6 0Z" />
+      <path d="M15.8 8.6h6.4v4.6a3.2 3.2 0 0 1-6.4 0Z" />
+      <path d="M22.2 9.8a2 2 0 0 1 0 3.6" />
+      <path d="M2.6 19.4h18.8" />
+    </svg>
+  );
+}
+
 
 export default function PackageDetailClient({ initialPackage }: { initialPackage: TravelPackage }) {
   const { packageId } = useParams<{ packageId: string }>();
@@ -42,7 +67,7 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
     { icon: Users, label: "Group size", value: pkg.pax },
     { icon: BedDouble, label: "Stay", value: `${pkg.hotelStars}★ verified stays` },
     { icon: Car, label: "Transfers", value: details.transfers },
-    { icon: Coffee, label: "Meals", value: details.meals },
+    { icon: PlateAndCup, label: "Meals", value: details.meals },
     { icon: Plane, label: "Flights", value: details.flights },
   ];
   /* A customized quote is filed against the customer's account, so it needs a

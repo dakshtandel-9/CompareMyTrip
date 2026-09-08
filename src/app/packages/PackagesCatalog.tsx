@@ -263,7 +263,7 @@ function PackageCard({
   const hasReviews = pkg.reviews > 0 && pkg.rating > 0;
 
   return (
-    <article className="group flex min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md">
+    <article className="group relative flex min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md">
       <div className="relative aspect-[4/3] overflow-hidden bg-cmt-neutral-100">
         <Image
           src={pkg.image}
@@ -291,7 +291,7 @@ function PackageCard({
                 : `Add ${pkg.title} to the comparison`
             }
             onClick={() => onToggleCompare(pkg.id)}
-            className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-cmt-full border px-3 text-[11px] font-semibold shadow-cmt-xs transition-colors ${
+            className={`relative z-10 inline-flex h-9 shrink-0 items-center gap-1.5 rounded-cmt-full border px-3 text-[11px] font-semibold shadow-cmt-xs transition-colors ${
               isCompared
                 ? "border-cmt-primary-600 bg-cmt-primary-500 text-cmt-neutral-900"
                 : "border-white/70 bg-white/95 text-cmt-neutral-700 hover:border-cmt-neutral-300 hover:text-cmt-neutral-900"
@@ -393,7 +393,7 @@ function PackageCard({
           </div>
             <Link
               href={pkg.href ?? `/packages/${pkg.id}`}
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-colors hover:bg-cmt-primary-600 focus-visible:outline-none focus-visible:shadow-[var(--cmt-focus-ring)]"
+              className="inline-flex h-10 shrink-0 after:absolute after:inset-0 after:content-[''] items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-colors hover:bg-cmt-primary-600 focus-visible:outline-none focus-visible:shadow-[var(--cmt-focus-ring)]"
             >
               View package
             </Link>
