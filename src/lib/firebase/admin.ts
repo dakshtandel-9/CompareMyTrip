@@ -13,7 +13,7 @@
 
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import { initializeFirestore } from "firebase-admin/firestore";
 
 let app: App | undefined;
 
@@ -53,7 +53,8 @@ export function getAdminAuth() {
 
 export function getAdminDb() {
   const instance = getAdminApp();
-  return instance ? getFirestore(instance) : null;
+  // Workers supports HTTP transport; Firestore gRPC is not required here.
+  return instance ? initializeFirestore(instance, { preferRest: true }) : null;
 }
 
 /**

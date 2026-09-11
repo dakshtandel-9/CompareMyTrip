@@ -1,0 +1,14 @@
+# Copy to .dev.vars for local Workers preview. Never commit real values.
+# Application runtime secrets are listed in .env.example.
+NEXTJS_ENV=development
+FIREBASE_SERVICE_ACCOUNT_KEY_BASE64=
+PAYU_MERCHANT_KEY=
+PAYU_SALT=
+PAYU_MODE=test
+CRON_SECRET=
+CLOUDFLARE_R2_ACCOUNT_ID=
+CLOUDFLARE_R2_ACCESS_KEY_ID=
+CLOUDFLARE_R2_SECRET_ACCESS_KEY=
+CLOUDFLARE_R2_BUCKET_NAME=comparemytrip-images
+CLOUDFLARE_R2_PUBLIC_URL=
+CLOUDFLARE_R2_QUOTE_BUCKET_NAME=

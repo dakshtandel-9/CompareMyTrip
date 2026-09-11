@@ -1,0 +1,5 @@
+# Source master is retained in Git but is not a runtime asset.
+/videos/1.mp4
+# Old image sequences are served from R2 and must not enter Workers Assets.
+/hero-frames*
+/train-banner
