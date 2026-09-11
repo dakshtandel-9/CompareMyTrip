@@ -199,10 +199,13 @@ export default function AccordionGallery({
   );
 
   const handleEnter = (i: number) => {
-    if (trigger === "hover") setActive(i);
+    // Touch browsers can synthesize hover while a swipe starts. Expanding a
+    // vertical phone panel there changes the page height under the gesture.
+    if (trigger === "hover" && !window.matchMedia("(max-width: 767px)").matches) setActive(i);
   };
 
   const handleClick = (i: number, e: MouseEvent) => {
+    if (items[i].link && window.matchMedia("(max-width: 767px)").matches) return;
     if (i !== active) {
       // Linked photos navigate on the first tap, including collapsed panels.
       if (!items[i].link) e.preventDefault();
@@ -253,7 +256,9 @@ export default function AccordionGallery({
             href={item.link || undefined}
             onClick={(e: MouseEvent) => handleClick(i, e)}
             onMouseEnter={() => handleEnter(i)}
-            onFocus={() => setActive(i)}
+            onFocus={() => {
+              if (!item.link || !window.matchMedia("(max-width: 767px)").matches) setActive(i);
+            }}
             onKeyDown={(e: KeyboardEvent) => handleKeyDown(i, e)}
             role={item.link ? undefined : "listitem"}
             tabIndex={0}

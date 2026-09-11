@@ -30,7 +30,40 @@ export function lockPageScroll({ root: lockRoot = false }: ScrollLockOptions = {
   // Keep the existing desktop overlay behavior.
   if (!phone && phoneLocks === 0) return acquire(lockRoot);
 
-  if (phoneLocks === 0) restorePhoneScroll = acquire(true);
+  if (phoneLocks === 0) {
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const bodyStyles = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    const rootOverflow = root.style.overflow;
+    const overscroll = root.style.overscrollBehavior;
+
+    // Overflow alone still allows the background to move on touch browsers.
+    // Fix it at its current offset, without creating a horizontal scroll box.
+    Object.assign(body.style, {
+      position: "fixed",
+      top: `${-scrollY}px`,
+      left: "0",
+      right: "0",
+      width: "100%",
+      overflow: "clip",
+    });
+    root.style.overflow = "clip";
+    root.style.overscrollBehavior = "none";
+
+    restorePhoneScroll = () => {
+      Object.assign(body.style, bodyStyles);
+      root.style.overflow = rootOverflow;
+      root.style.overscrollBehavior = overscroll;
+      window.scrollTo({ left: scrollX, top: scrollY, behavior: "instant" });
+    };
+  }
   phoneLocks++;
   let released = false;
   return () => {

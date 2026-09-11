@@ -284,7 +284,7 @@ export default function TripPlanPromptDialog() {
               noValidate
               className="flex min-h-0 flex-1 flex-col"
             >
-              <div className="min-h-0 overflow-y-auto overscroll-contain px-5 py-5 sm:px-8 sm:py-6">
+              <div className="cmt-trip-prompt-fields min-h-0 overflow-y-auto overscroll-contain px-5 py-5 sm:px-8 sm:py-6">
                 {error ? (
                   <p
                     id="trip-prompt-error"
@@ -348,9 +348,9 @@ export default function TripPlanPromptDialog() {
                       {destinations.map((destination) => (
                         <span
                           key={destination}
-                          className="inline-flex items-center gap-1 rounded-cmt-full bg-cmt-primary-100 py-1 pl-3 pr-1.5 text-[12px] font-semibold text-cmt-neutral-900"
+                          className="cmt-trip-prompt-destination inline-flex items-center gap-1 rounded-cmt-full bg-cmt-primary-100 py-1 pl-3 pr-1.5 text-[12px] font-semibold text-cmt-neutral-900"
                         >
-                          {destination}
+                          <span>{destination}</span>
                           <button
                             type="button"
                             onClick={() => removeDestination(destination)}
