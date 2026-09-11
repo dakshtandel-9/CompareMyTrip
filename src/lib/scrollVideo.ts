@@ -9,10 +9,11 @@ type ScrollVideoOptions = {
   src: string;
   tailHold?: number;
   onProgress?: (progress: number) => void;
+  scrollDistance?: () => number;
 };
 
 /** Seek a paused video from scroll progress. Never queue overlapping seeks. */
-export function startScrollVideo({ wrapper, video, src, tailHold = 0.13, onProgress }: ScrollVideoOptions) {
+export function startScrollVideo({ wrapper, video, src, tailHold = 0.13, onProgress, scrollDistance }: ScrollVideoOptions) {
   gsap.registerPlugin(ScrollTrigger);
   const position = { progress: 0 };
   let disposed = false;
@@ -38,11 +39,14 @@ export function startScrollVideo({ wrapper, video, src, tailHold = 0.13, onProgr
     primed = true;
     const started = video.play();
     if (started && typeof started.then === "function") {
-      started.then(() => video.pause()).catch(() => {});
+      started.then(() => { video.pause(); seek(); }).catch(() => { primed = false; });
     } else {
       video.pause();
     }
   };
+  // If Safari declines the first muted play (for example in low-power mode),
+  // the next real tap can unlock decoding instead of leaving a permanent poster.
+  if (!primed) wrapper.addEventListener("pointerdown", prime, { passive: true });
 
   const reveal = () => {
     if (disposed || failed) return;
@@ -76,11 +80,16 @@ export function startScrollVideo({ wrapper, video, src, tailHold = 0.13, onProgr
     scrollTrigger: {
       trigger: wrapper,
       start: "top top",
-      end: () => `+=${Math.max(1, (wrapper.offsetHeight - window.innerHeight) * (1 - hold))}`,
+      end: () => `+=${Math.max(1, (scrollDistance?.() ?? wrapper.offsetHeight - window.innerHeight) * (1 - hold))}`,
       scrub: 0.35,
       invalidateOnRefresh: true,
     },
   });
+  // Mobile copy, font loading and the measured search panel can settle after
+  // the trigger is created. Refresh its distance when the section changes,
+  // otherwise the entire clip can finish on the first swipe.
+  const sizeObserver = new ResizeObserver(() => tween.scrollTrigger?.refresh());
+  sizeObserver.observe(wrapper);
   // Metadata may arrive after scroll restoration; seek() uses the latest
   // tween position rather than restarting at the opening frame.
   onProgress?.(position.progress);
@@ -88,6 +97,8 @@ export function startScrollVideo({ wrapper, video, src, tailHold = 0.13, onProgr
 
   return () => {
     disposed = true;
+    sizeObserver.disconnect();
+    wrapper.removeEventListener("pointerdown", prime);
     tween.scrollTrigger?.kill();
     tween.kill();
     video.removeEventListener("loadedmetadata", seek);

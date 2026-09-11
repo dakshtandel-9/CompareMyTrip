@@ -157,7 +157,7 @@
   overflow: hidden;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 767px) {
   .accordion-gallery {
     flex-direction: column;
     perspective: none;
@@ -181,10 +181,19 @@
     width: 100%;
     height: 100%;
     transform: none !important;
+    /* Touch screens have no hover to reveal a destination's real colours. */
+    filter: none;
   }
   .ag-panel__label {
     width: calc(100% - 40px);
   }
+  .ag-panel__text {
+    opacity: 1 !important;
+    transform: none !important;
+    color: #fff;
+  }
+  .ag-panel:not(.ag-panel--active) .ag-panel__desc { display: none; }
+  .ag-panel__desc { color: #f1f5f9; }
 }
 
 @media (prefers-reduced-motion: reduce) {

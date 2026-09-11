@@ -34,7 +34,7 @@ export default function SectionHeader({
   const isDark = tone === "dark";
 
   return (
-    <div className={`cmt-section-heading flex flex-wrap items-end justify-between gap-x-6 gap-y-4 ${className}`}>
+    <div data-tone={tone} className={`cmt-section-heading flex flex-wrap items-end justify-between gap-x-6 gap-y-4 ${className}`}>
       <div className="min-w-0">
         <p
           className={`text-xs font-semibold uppercase tracking-wider sm:text-sm ${

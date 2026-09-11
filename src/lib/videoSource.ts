@@ -3,11 +3,12 @@ export function videoSource(path: string): string {
   return base ? `${base}${path}` : path;
 }
 
-export function shouldLoadVideo(): boolean {
+export function shouldLoadVideo({ allowMobile = false }: { allowMobile?: boolean } = {}): boolean {
   const connection = (navigator as Navigator & {
     connection?: { saveData?: boolean; effectiveType?: string };
   }).connection;
-  return window.matchMedia("(min-width: 768px) and (prefers-reduced-motion: no-preference)").matches
+  return (allowMobile || window.matchMedia("(min-width: 768px)").matches)
+    && window.matchMedia("(prefers-reduced-motion: no-preference)").matches
     && !window.matchMedia("(prefers-reduced-data: reduce)").matches
     && !connection?.saveData
     && !["slow-2g", "2g", "3g"].includes(connection?.effectiveType ?? "");

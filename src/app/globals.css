@@ -39,43 +39,6 @@ body {
   .cmt-hero-copy:not(:first-child) { display: none; }
 }
 
-/* Phones scrub the same sequence over a third of the desktop journey, so the
-   clip runs out in three or four swipes instead of a dozen.
-
-   Every height here is svh rather than vh or dvh, and deliberately so. On a
-   phone vh is the *tall* viewport — the one you only have once the URL bar has
-   scrolled away — so a vh-sized pin hangs the search panel below the fold at
-   rest, which is exactly when a visitor wants it. dvh tracks that bar instead
-   of ignoring it, which is worse here: the pin would resize mid-scrub and
-   ScrollTrigger would recompute the very distance it is scrubbing against,
-   jumping the clip under the reader's thumb. svh is the one height of the
-   three that the collapsing bar cannot move. */
-@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
-  .cmt-hero { height: 300svh; }
-  .cmt-hero-stage { height: 100svh; }
-  /* Two things change inside the pinned box. It is the whole screen now, so
-     the desktop's 72px band at top and bottom is more than a phone can spare.
-     And where a wide layout pushes the search panel to the foot of the hero
-     and lets the copy float above it, a phone cannot: at rest the promo strip
-     and the header sit above the hero, so a panel measured from the bottom of
-     a full-screen box lands below the fold — and the one control this section
-     exists for is the part you cannot see. Centring copy and panel as a single
-     group lifts it back into view, and the group is the same height whichever
-     block of copy is showing — they share one grid cell — so nothing shifts as
-     the sequence scrubs. */
-  .cmt-hero-content { padding-block: 1.25rem; justify-content: center; gap: 1.5rem; }
-  .cmt-hero-intro { flex: none; }
-}
-
-/* Short phones — an SE, or any handset in landscape — cannot take the full
-   type scale and the search panel in one screen. Tighten the copy rather than
-   drop any of it: the panel is the reason the hero exists. */
-@media (max-width: 767px) and (max-height: 720px) and (prefers-reduced-motion: no-preference) {
-  .cmt-hero-content { padding-block: 0.75rem; }
-  .cmt-hero-copy > :first-child { font-size: 1.625rem; }
-  .cmt-hero-copy > :last-child { margin-top: 0.5rem; font-size: 0.8125rem; }
-}
-
 @media (max-width: 639px) {
   /* A partial next card and native scrolling make homepage collections
      browsable without several screens of repeated cards. */
@@ -376,21 +339,16 @@ body {
 .cmt-hero-static .cmt-hero-stage { position: relative; height: auto; min-height: 85svh; }
 .cmt-hero-static .cmt-hero-surface { min-height: 85svh; }
 .cmt-hero-static .cmt-hero-copy:not(:first-child) { display: none; }
-@media (max-width: 767px) {
-  .cmt-hero { height: auto; }
-  .cmt-hero-stage { position: relative; height: auto; }
-  .cmt-hero-surface { height: auto; min-height: 85svh; }
-  .cmt-hero-content { min-height: 85svh; }
-}
-
 /* Phone layouts are deliberately isolated: tablet/desktop composition is retained. */
 @media (max-width: 767px) {
+  /* These pages use light surfaces. OS dark mode must not turn inherited
+     labels, footer headings or unstyled form values white on those surfaces. */
+  :root { --background: #ffffff; --foreground: #0f172a; color-scheme: light; }
   .cmt-header-row { height: 64px; gap: 8px; padding-inline: 16px; }
   .cmt-header-row > div:first-child { flex: 1 1 auto; }
   .cmt-header-row > div:last-child { flex: 0 0 auto; }
   .cmt-header-row > div:first-child a > span { width: 174px; }
   .cmt-header-row img { width: 100%; height: auto; }
-  .cmt-hero video { display: none; }
   .cmt-header-row button[aria-expanded] { width: 44px; height: 44px; border-radius: 50%; }
   .cmt-promo-strip > div { height: 30px; padding-inline: 16px; }
   .cmt-promo-strip > div > div:first-child { width: 100%; justify-content: center; }
@@ -414,37 +372,44 @@ body {
   .cmt-mobile-nav-count { position: absolute; top: -7px; right: -10px; min-width: 17px; height: 17px; padding-inline: 3px; display: grid; place-items: center; background: #facc15; color: #0f172a; border-radius: 50%; font-size: 10px; font-weight: 700; }
   .cmt-mobile-nav-link:focus-visible { outline: 2px solid #d69e00; outline-offset: -2px; }
 
-  .cmt-hero, .cmt-hero-static { height: auto; background: #fff; }
-  .cmt-hero .cmt-hero-stage, .cmt-hero-static .cmt-hero-stage { position: relative; height: auto; min-height: 0; padding: 0; }
+  .cmt-hero { --cmt-hero-visual-height: clamp(270px, 36svh, 330px); height: auto; background: #fff; }
+  .cmt-hero .cmt-hero-stage { position: relative; height: auto; min-height: 0; padding: 0; align-items: start; }
   .cmt-hero .cmt-hero-surface, .cmt-hero-static .cmt-hero-surface { height: auto; min-height: 0; overflow: visible; border-radius: 0; background: #fff; }
-  .cmt-hero .cmt-hero-poster { height: 324px !important; border-radius: 0 0 28px 28px; object-position: center 40%; }
-  .cmt-hero .cmt-hero-overlay { height: 324px; border-radius: 0 0 28px 28px; background: linear-gradient(180deg,#0f172a65,#0f172ab3); }
+  .cmt-hero .cmt-hero-poster, .cmt-hero video { height: calc(var(--cmt-hero-visual-height) + 30px) !important; border-radius: 0 0 28px 28px; object-position: center; }
+  .cmt-hero .cmt-hero-overlay { height: calc(var(--cmt-hero-visual-height) + 30px); border-radius: 0 0 28px 28px; background: linear-gradient(180deg, #02061780, #02061766 45%, #020617b8); }
   .cmt-hero .cmt-hero-content { height: auto; min-height: 0; padding: 0; gap: 0; }
-  .cmt-hero .cmt-hero-intro { flex: none; min-height: 280px; padding: 30px 24px 46px; justify-content: center; }
-  .cmt-hero .cmt-hero-copy { opacity: 1 !important; transform: none !important; }
-  .cmt-hero .cmt-hero-copy:not(:first-child) { display: none; }
-  .cmt-hero-copy > :first-child { max-width: 15ch; font-size: clamp(28px,8.1vw,36px); line-height: 1.12; letter-spacing: -.035em; }
-  .cmt-hero-copy > :last-child { margin-top: 12px; max-width: 34ch; font-size: 14px; line-height: 1.5; }
+  .cmt-hero .cmt-hero-intro { position: relative; flex: none; min-height: var(--cmt-hero-visual-height); padding: 24px 22px 48px; justify-content: center; }
+  .cmt-hero-copy > :first-child { max-width: 18ch; font-size: clamp(27px,7.7vw,36px); line-height: 1.12; letter-spacing: -.035em; color: #fff; text-shadow: 0 2px 16px #02061755; }
+  .cmt-hero-copy > :last-child { margin-top: 12px; max-width: 36ch; font-size: 14px; line-height: 1.55; color: #f1f5f9; }
+  .cmt-hero-scroll-hint { position: absolute; left: 22px; bottom: 24px; display: flex; align-items: center; gap: 8px; margin: 0; color: #fff; font-size: 11px; font-weight: 500; }
+  .cmt-hero-scroll-hint > span { width: 6px; height: 6px; border-radius: 50%; background: #ffc40c; box-shadow: 0 0 0 4px #ffc40c26; }
+  .cmt-hero-static .cmt-hero-scroll-hint { display: none; }
   .cmt-hero-proof { display: none; }
-  .cmt-hero-content > div:last-child { width: auto; margin: -18px 16px 24px; }
+  .cmt-hero-content > div:last-child { position: relative; width: auto; margin: -8px 16px 20px; }
   .cmt-hero-search { border: 1px solid #e2e8f0; border-radius: 22px; padding: 16px; background: #fff; box-shadow: 0 10px 30px #0f172a10; backdrop-filter: none; }
   .cmt-search-tabs { gap: 6px; padding-bottom: 14px; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; }
   .cmt-search-tabs button { min-height: 40px; padding: 9px 12px; font-size: 12px; }
+  .cmt-search-tabs button[aria-pressed="true"] { background: #ffc40c; color: #0f172a; box-shadow: none; }
   .cmt-search-tabs button[aria-pressed="false"] { background: #f1f5f9; color: #475569; }
   .cmt-search-fields { padding: 0; border: 0; background: none; }
   .cmt-search-fields > div { gap: 14px 10px; }
-  .cmt-search-field > span { margin: 0 0 6px; padding: 0 2px; color: #64748b; font-size: 12px; }
+  .cmt-search-field > span { margin: 0 0 6px; padding: 0 2px; color: #475569; font-size: 12px; }
   .cmt-search-control { height: 48px; border: 1px solid #e2e8f0; background: #f8fafc; color: #0f172a; border-radius: 12px; padding-inline: 10px; }
   .cmt-search-control:hover { background: #f1f5f9; border-color: #cbd5e1; }
   .cmt-search-control > svg, .cmt-search-control > span { color: #475569; }
-  .cmt-search-control input::placeholder { color: #94a3b8; }
-  .cmt-search-fields button[type="submit"] { height: 50px; border-radius: 12px; font-size: 15px; box-shadow: none; }
+  .cmt-search-control input { color: #0f172a; }
+  .cmt-search-control input::placeholder { color: #64748b; opacity: 1; }
+  .cmt-search-control:focus-within { border-color: #a37600; box-shadow: 0 0 0 3px #ffc40c33; }
+  .cmt-search-fields button[type="submit"] { height: 50px; border-radius: 12px; font-size: 15px; box-shadow: none; background: #ffc40c; color: #0f172a; }
+  .cmt-search-popover { width: min(288px, calc(100vw - 68px)); padding: 16px; }
+  .cmt-search-popover button[aria-label] { width: 40px; height: 40px; }
 
   .cmt-home > section { padding-block: 32px; padding-inline: 16px; }
   .cmt-home .cmt-section-heading { gap: 12px; align-items: start; }
   .cmt-section-heading > div:first-child { width: 100%; }
   .cmt-section-heading h2 { font-size: 27px; line-height: 1.16; letter-spacing: -.025em; text-wrap: pretty; }
   .cmt-section-heading > div > p:first-child { font-size: 11px; letter-spacing: .12em; }
+  .cmt-section-heading[data-tone="light"] > div > p:first-child { color: #7a5800; }
   .cmt-section-heading h2 + p { margin-top: 10px; font-size: 14px; line-height: 1.6; }
   .cmt-section-heading > a { min-height: 36px; font-size: 13px; }
   .cmt-home [role="tablist"] { margin-top: 20px; gap: 20px; }
@@ -497,6 +462,7 @@ body {
   .cmt-trip-facts > div { display: grid; grid-template-columns: 22px minmax(0,1fr); column-gap: 8px; align-content: start; padding: 10px; }
   .cmt-trip-facts svg { grid-row: span 2; width: 18px; margin-top: 2px; }
   .cmt-trip-facts p { margin-top: 0; font-size: 12px; letter-spacing: 0; }
+  .cmt-trip-facts p:first-of-type { color: #475569; }
   .cmt-trip-facts p:last-child { margin-top: 3px; line-height: 1.4; }
   .cmt-booking-dock { padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 24px #0f172a0a; }
   .cmt-booking-dock > div { flex-wrap: nowrap; gap: 8px; }
@@ -533,7 +499,7 @@ body {
   .cmt-footer > div > div > div:first-child > div:first-child { padding-bottom: 28px; }
   .cmt-footer-group { border-top: 1px solid #e2e8f0; }
   .cmt-footer-group:last-of-type { border-bottom: 1px solid #e2e8f0; }
-  .cmt-footer-group > summary { min-height: 56px; display: flex; align-items: center; justify-content: space-between; list-style: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .cmt-footer-group > summary { min-height: 56px; display: flex; align-items: center; justify-content: space-between; list-style: none; font-size: 14px; font-weight: 600; cursor: pointer; color: #0f172a; }
   .cmt-footer-group > summary::-webkit-details-marker { display: none; }
   .cmt-footer-group > summary span { font-size: 22px; color: #64748b; }
   .cmt-footer-group[open] > summary span { transform: rotate(45deg); }
@@ -549,6 +515,7 @@ body {
   .cmt-home #trending-destinations { padding-inline: 0; }
   .cmt-home #trending-destinations > div:first-child { padding-inline: 16px; }
   .cmt-home #trending-destinations a { width: 216px; aspect-ratio: 4 / 5; }
+  .cmt-home #trending-destinations .cmt-section-heading > a { width: auto; aspect-ratio: auto; }
   .cmt-home #why-travel-with-us h2 { font-size: 28px; }
   .cmt-home #why-travel-with-us header > p:last-child { margin-top: 14px; font-size: 14px; }
   .cmt-home #why-travel-with-us header + div { margin-top: 24px; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -561,7 +528,7 @@ body {
   .cmt-destinations > section:first-child > div { min-height: 240px; padding: 28px 22px; border-radius: 22px; }
   .cmt-destinations h1 { font-size: 28px; }
   .cmt-destinations dl { margin-top: 20px; gap: 20px; }
-  .cmt-destinations dl dt { font-size: 11px; }
+  .cmt-destinations dl dt { font-size: 11px; color: #e2e8f0; }
   .cmt-destinations dl dd { font-size: 22px; }
   .cmt-destinations > section:nth-child(2) { padding-block: 20px; }
   .cmt-destinations [aria-label="Filter destinations by region"] { width: 100%; border-radius: 14px; }
@@ -600,7 +567,35 @@ body {
 }
 
 @media (max-width: 767px) {
-  .cmt-catalog h1.sr-only { position: static; width: auto; height: auto; margin: 0 0 14px; padding: 0; overflow: visible; clip: auto; white-space: normal; font-family: var(--font-display); font-size: 28px; font-weight: 600; line-height: 1.2; }
+  .cmt-catalog h1.sr-only { position: static; width: auto; height: auto; margin: 0 0 14px; padding: 0; overflow: visible; clip: auto; clip-path: none; white-space: normal; font-family: var(--font-display); font-size: 28px; font-weight: 600; line-height: 1.2; }
   .cmt-package-columns { grid-template-columns: minmax(0, 1fr); }
   .cmt-package-columns > * { min-width: 0; }
+  :is(.cmt-contact, .cmt-checkout, .cmt-auth, .cmt-addon, .cmt-phone-dialog, .cmt-catalog, .cmt-destinations, .cmt-blog) :is(input, textarea)::placeholder { color: #64748b; opacity: 1; }
+  .cmt-home #faq > div { gap: 24px; }
+  .cmt-home #faq .cmt-faq summary > span:first-child { color: #7a5800; }
+  .cmt-home #travel-guides article p { margin-bottom: 16px; }
+  .cmt-home #newsletter h2 { font-size: 30px; }
+  .cmt-home #newsletter h2 + p { margin-top: 16px; font-size: 14px; color: #e2e8f0; }
+  .cmt-home #newsletter form { margin-top: 24px; }
+  .cmt-home #newsletter input::placeholder { color: #cbd5e1; opacity: 1; }
+  .cmt-home #newsletter-status:not(:has(svg)) { color: #cbd5e1; }
+}
+
+/* Keep one phone animation rule, after the shared/static layout. svh keeps
+   the scrub distance steady when the browser's address bar folds away. */
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  .cmt-hero:not(.cmt-hero-static) { height: calc(var(--cmt-hero-stage-height, 620px) + 160svh); }
+  .cmt-hero:not(.cmt-hero-static) .cmt-hero-stage {
+    position: sticky;
+    top: min(0px, calc(100svh - var(--cmt-hero-stage-height, 620px) - 76px - env(safe-area-inset-bottom)));
+  }
+}
+
+@media (max-width: 767px) and (max-height: 700px) {
+  .cmt-hero { --cmt-hero-visual-height: 260px; }
+  .cmt-hero-copy > :first-child { font-size: 27px; }
+  .cmt-hero-copy > :last-child { margin-top: 10px; font-size: 13px; }
+  .cmt-hero-search { padding: 12px; }
+  .cmt-search-tabs { padding-bottom: 10px; margin-bottom: 10px; }
+  .cmt-search-fields > div { gap: 10px; }
 }

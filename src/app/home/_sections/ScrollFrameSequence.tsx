@@ -41,6 +41,7 @@ export default function ScrollFrameSequence() {
 
 
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const copyRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -60,9 +61,22 @@ export default function ScrollFrameSequence() {
   useEffect(() => {
     const wrapper = wrapperRef.current;
     const video = videoRef.current;
-    if (!wrapper || !video) return;
+    const stage = stageRef.current;
+    if (!wrapper || !video || !stage) return;
 
-    const animatedLayout = window.matchMedia("(min-width: 768px) and (prefers-reduced-motion: no-preference)");
+    const motion = window.matchMedia("(prefers-reduced-motion: no-preference)");
+    const phone = window.matchMedia("(max-width: 767px)");
+    const reducedData = window.matchMedia("(prefers-reduced-data: reduce)");
+    // Measure the real panel, including edited copy and larger system fonts.
+    // Short phones can scroll its top away before pinning, keeping Search
+    // reachable above the bottom navigation throughout the sequence.
+    const measureStage = () => {
+      if (phone.matches) wrapper.style.setProperty("--cmt-hero-stage-height", `${stage.offsetHeight}px`);
+      else wrapper.style.removeProperty("--cmt-hero-stage-height");
+    };
+    const stageObserver = new ResizeObserver(measureStage);
+    stageObserver.observe(stage);
+    measureStage();
 
     // Last values written to the DOM, so the copy only touches style when it
     // has really moved. Rebuilt whenever the blocks themselves change.
@@ -109,8 +123,9 @@ export default function ScrollFrameSequence() {
       stopSequence?.();
       stopSequence = undefined;
       copyDirtyRef.current = true;
-      const enabled = shouldLoadVideo();
+      const enabled = shouldLoadVideo({ allowMobile: true });
       wrapper.classList.toggle("cmt-hero-static", !enabled);
+      measureStage();
       if (!enabled) { drawCopy(0); return; }
       stopSequence = startScrollVideo({
         wrapper,
@@ -118,13 +133,18 @@ export default function ScrollFrameSequence() {
         src: VIDEO_SRC,
         tailHold: TAIL_HOLD,
         onProgress: drawCopy,
+        scrollDistance: () => phone.matches
+          ? wrapper.offsetHeight - stage.offsetHeight
+          : wrapper.offsetHeight - window.innerHeight,
       });
     };
     syncLayout();
-    animatedLayout.addEventListener("change", syncLayout);
+    const queries = [motion, phone, reducedData];
+    queries.forEach(query => query.addEventListener("change", syncLayout));
     return () => {
       stopSequence?.();
-      animatedLayout.removeEventListener("change", syncLayout);
+      stageObserver.disconnect();
+      queries.forEach(query => query.removeEventListener("change", syncLayout));
     };
   }, [hero.enabled]);
 
@@ -135,7 +155,7 @@ export default function ScrollFrameSequence() {
   return (
     // A shorter scroll journey, with a pause on the closing frame.
     <div ref={wrapperRef} className="cmt-hero relative h-[450vh] bg-white">
-      <div className="cmt-hero-stage sticky top-0 flex h-screen w-full items-center justify-center p-3 sm:p-4 md:p-6">
+      <div ref={stageRef} className="cmt-hero-stage sticky top-0 flex h-screen w-full items-center justify-center p-3 sm:p-4 md:p-6">
         <div className="cmt-hero-surface relative h-full w-full overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:rounded-3xl">
           <ContentImage
             src={POSTER_SRC}
@@ -202,6 +222,8 @@ export default function ScrollFrameSequence() {
                   );
                 })}
               </div>
+
+              <p className="cmt-hero-scroll-hint hidden" aria-hidden="true"><span /> Scroll to discover your next trip</p>
 
               {/* Static under the rotating copy — it's true of every clip. */}
               {hero.trust.enabled && (

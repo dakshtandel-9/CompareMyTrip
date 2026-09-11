@@ -54,7 +54,7 @@ const CONTROL =
   "cmt-search-control flex h-11 w-full min-w-0 items-center gap-2 rounded-cmt-control border border-white/10 bg-white/10 px-3 text-left font-body text-sm text-white outline-none transition-colors hover:border-white/25 hover:bg-white/[0.18] focus-visible:border-cmt-primary-500 focus-visible:ring-2 focus-visible:ring-cmt-primary-500/40";
 
 const POPOVER =
-  "absolute bottom-full z-30 mb-2 w-[min(260px,calc(100vw-3rem))] rounded-cmt-md border border-cmt-neutral-200 bg-white p-3 font-body text-cmt-neutral-900 shadow-cmt-xl";
+  "cmt-search-popover absolute bottom-full z-30 mb-2 w-[min(260px,calc(100vw-3rem))] rounded-cmt-md border border-cmt-neutral-200 bg-white p-3 font-body text-cmt-neutral-900 shadow-cmt-xl";
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
