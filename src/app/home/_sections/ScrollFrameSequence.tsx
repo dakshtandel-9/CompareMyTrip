@@ -108,22 +108,42 @@ export default function ScrollFrameSequence() {
     };
 
     let stopSequence: (() => void) | undefined;
+    let stopPhoneMeasure: (() => void) | undefined;
     const syncLayout = () => {
       stopSequence?.();
+      stopPhoneMeasure?.();
       stopSequence = undefined;
+      stopPhoneMeasure = undefined;
       copyDirtyRef.current = true;
       const enabled = shouldLoadVideo({ allowMobile: true });
       wrapper.classList.toggle("cmt-hero-static", !enabled);
       if (!enabled) { drawCopy(0); return; }
+      if (phone.matches) {
+        // The panel can be taller than a small phone. Measure its real height
+        // so the sticky runway ends exactly where the next section begins.
+        const search = stage.querySelector<HTMLElement>(".cmt-hero-search");
+        const measure = () => {
+          if (search) wrapper.style.setProperty("--cmt-phone-search-height", `${search.offsetHeight}px`);
+          wrapper.style.setProperty("--cmt-phone-stage-height", `${stage.offsetHeight}px`);
+        };
+        measure();
+        const observer = new ResizeObserver(measure);
+        observer.observe(stage);
+        if (search) observer.observe(search);
+        stopPhoneMeasure = () => {
+          observer.disconnect();
+          wrapper.style.removeProperty("--cmt-phone-stage-height");
+          wrapper.style.removeProperty("--cmt-phone-search-height");
+        };
+      }
       stopSequence = startScrollVideo({
         wrapper,
         video,
         src: VIDEO_SRC,
         tailHold: TAIL_HOLD,
-        // Phone copy stays legible as the unpinned hero scrolls out of view.
-        onProgress: (progress) => drawCopy(phone.matches ? 0 : progress),
+        onProgress: drawCopy,
         scrollDistance: () => phone.matches
-          ? stage.offsetHeight
+          ? wrapper.offsetHeight - stage.offsetHeight
           : wrapper.offsetHeight - window.innerHeight,
       });
     };
@@ -132,6 +152,7 @@ export default function ScrollFrameSequence() {
     queries.forEach(query => query.addEventListener("change", syncLayout));
     return () => {
       stopSequence?.();
+      stopPhoneMeasure?.();
       queries.forEach(query => query.removeEventListener("change", syncLayout));
     };
   }, [hero.enabled]);

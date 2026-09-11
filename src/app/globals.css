@@ -615,12 +615,26 @@ body {
   }
   .cmt-mobile-nav-link { min-width: 0; line-height: 1.2; white-space: nowrap; }
 
-  /* The hero leaves with the page instead of pinning a short panel above
-     several blank screens. Only its background is scrubbed on phones. */
-  .cmt-hero-copy:not(:first-child) { display: none; }
-  .cmt-hero-copy:first-child { opacity: 1 !important; transform: none !important; }
-  .cmt-hero-scroll-hint { display: none; }
-  .cmt-hero .cmt-hero-intro { padding-bottom: 32px; }
+  /* The sticky panel occupies the scroll runway, then leaves with the page.
+     Stable viewport units keep the sequence steady as phone chrome changes. */
+  .cmt-hero:not(.cmt-hero-static) {
+    /* Let the image fill the space above the search card, instead of leaving
+       the unused part of a tall phone as a white gap beneath the button. */
+    --cmt-hero-visual-height: max(270px, calc(100svh - 64px - env(safe-area-inset-bottom) - var(--cmt-phone-search-height, 320px) - 4px));
+    height: calc(var(--cmt-phone-stage-height, 100svh) + 160svh);
+  }
+  .cmt-hero:not(.cmt-hero-static) .cmt-hero-stage {
+    position: sticky;
+    top: 0;
+    min-height: calc(100svh - 64px - env(safe-area-inset-bottom));
+    background: #fff;
+  }
+  .cmt-hero-static .cmt-hero-copy:not(:first-child) { display: none; }
+  .cmt-hero-static .cmt-hero-copy:first-child { opacity: 1 !important; transform: none !important; }
+  @media (prefers-reduced-motion: reduce) {
+    .cmt-hero:not(.cmt-hero-static) { --cmt-hero-visual-height: clamp(270px, 36svh, 330px); height: auto; }
+    .cmt-hero:not(.cmt-hero-static) .cmt-hero-stage { position: relative; min-height: 0; }
+  }
   .cmt-hero-content > div:last-child { margin-bottom: 12px; }
   .cmt-search-field, .cmt-catalog-toolbar > div:last-child > label { min-width: 0; }
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea {
