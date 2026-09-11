@@ -20,7 +20,7 @@ function Questions({ items }: { items: GuaranteeQuestion[] }) {
   );
 }
 
-export default function QuoteGuarantee() {
+export default function QuoteGuarantee({ onOpenQuote }: { onOpenQuote: () => void }) {
   return (
     <section id="quote-guarantee" aria-labelledby="quote-guarantee-title" className="scroll-mt-28 border-t border-cmt-neutral-200 bg-cmt-neutral-50 px-4 py-12 font-body text-cmt-neutral-900 sm:px-5 sm:py-16 lg:px-6">
       <div className="mx-auto max-w-[1440px]">
@@ -40,7 +40,7 @@ export default function QuoteGuarantee() {
             </div>
           </div>
           <div id="quote-process" className="scroll-mt-28 p-6 sm:p-9">
-            <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="font-display text-xl font-semibold">How it works</h3><a href="#add-on-enquiry" className="inline-flex min-h-11 items-center rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500">Attach a PDF to your enquiry ↑</a></div>
+            <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="font-display text-xl font-semibold">How it works</h3><button type="button" onClick={onOpenQuote} className="inline-flex min-h-11 items-center rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500">Attach a PDF to your enquiry ↑</button></div>
             <ol className="mt-6 grid gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
               {QUOTE_STEPS.map((step, index) => (
                 <li key={step.title} className="flex items-start gap-3">

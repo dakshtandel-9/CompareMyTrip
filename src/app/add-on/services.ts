@@ -1,8 +1,8 @@
-import { BedDouble, PlaneTakeoff, Stamp, type LucideIcon } from "lucide-react";
+import { BedDouble, PlaneTakeoff, Stamp, FileCheck2, type LucideIcon } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
-/* The three add-on enquiries, in the order the page offers them:       */
-/* flights, then hotels, then a visa.                                   */
+/* The four add-on enquiries, in the order the page offers them:       */
+/* flights, hotels, visa and Bring Your Quote.                                   */
 /*                                                                      */
 /* Each is the same form with a different middle: the contact block and  */
 /* the notes box are shared by AddOnForm, and everything specific to a   */
@@ -16,12 +16,12 @@ import { BedDouble, PlaneTakeoff, Stamp, type LucideIcon } from "lucide-react";
 /* in the message instead, which is what the desk reads anyway.          */
 /* ------------------------------------------------------------------ */
 
-export type ServiceId = "flights" | "hotels" | "visa";
+export type ServiceId = "flights" | "hotels" | "visa" | "byq";
 
 export type FieldOption = { value: string; label: string };
 
 /** One service-specific field. `kind` picks the control; everything else is
-    the same handling for all three forms. */
+    the same handling for all forms. */
 export type FieldSpec = {
   name: string;
   label: string;
@@ -287,6 +287,35 @@ export const SERVICES: ServiceSpec[] = [
       destination: clamp(values.country, 160),
       departure: clamp(values.travelDate, 20),
       travellers: clamp(values.applicants, 20),
+    }),
+  },
+  {
+    id: "byq",
+    label: "Bring Your Quote",
+    icon: FileCheck2,
+    title: "Bring Your Quote",
+    description:
+      "Already have a travel quote? Share your trip details and attach the quote so our desk can compare the same itinerary, inclusions and price.",
+    fields: [
+      { name: "destination", label: "Destination", kind: "text", required: true, placeholder: "Bali, Indonesia" },
+      { name: "travelDate", label: "Departure date", kind: "date", required: true },
+      { name: "travellers", label: "Travellers", kind: "select", required: true, options: TRAVELLER_OPTIONS },
+      { name: "quoteAmount", label: "Quoted price and currency", kind: "text", required: true, placeholder: "₹80,000 total for 2 travellers", hint: "Include whether the price is per person or for the whole trip." },
+      { name: "provider", label: "Quote provider", kind: "text", placeholder: "Travel company or agent" },
+      { name: "duration", label: "Trip duration", kind: "text", placeholder: "5 nights / 6 days" },
+    ],
+    notesLabel: "Itinerary and inclusions",
+    notesPlaceholder: "Hotels, room type, meals, transfers and activities included in your quote.",
+    promises: [
+      "A comparison of the same destination and itinerary",
+      "A clear breakdown of inclusions and the quoted price",
+      "Next steps and the applicable price-beat guarantee terms",
+    ],
+    sentNote: "Our quote comparison desk will review your trip and contact you with the next steps.",
+    summary: (values) => ({
+      destination: clamp(values.destination, 160),
+      departure: clamp(values.travelDate, 20),
+      travellers: clamp(values.travellers, 20),
     }),
   },
 ];

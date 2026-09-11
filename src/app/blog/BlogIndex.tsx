@@ -137,7 +137,7 @@ export default function BlogIndex({ initialPosts }: { initialPosts: BlogPost[] }
   };
 
   return (
-    <main className="w-full bg-white font-body text-cmt-neutral-900">
+    <main className="cmt-blog w-full bg-white font-body text-cmt-neutral-900">
       <section className="w-full border-b border-cmt-neutral-100 bg-cmt-neutral-50 px-4 py-12 sm:px-5 sm:py-16 lg:px-6">
         <div className="mx-auto w-full max-w-[1440px]">
           <p className="text-xs font-semibold uppercase tracking-wider text-cmt-primary-700 sm:text-sm">

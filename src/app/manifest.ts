@@ -10,7 +10,7 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#facc15",
-    icons: [{ src: "/favicon.ico", sizes: "any", type: "image/x-icon" }],
+    icons: [{ src: "/comparemytrip-logo.png", sizes: "2172x724", type: "image/png" }],
   };
 }
 

@@ -82,7 +82,7 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
   };
 
   return (
-    <main className="bg-cmt-neutral-50 pb-24 font-body text-cmt-neutral-900 lg:pb-0">
+    <main className="cmt-package-detail bg-cmt-neutral-50 pb-24 font-body text-cmt-neutral-900 lg:pb-0">
       <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0"><nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-cmt-neutral-500"><Link href="/">Home</Link><span aria-hidden="true">/</span><Link href="/packages">Packages</Link><span aria-hidden="true">/</span>{pkg.destination ? <><Link href={`/packages?destination=${encodeURIComponent(pkg.destination)}`} className="hover:text-cmt-neutral-900">{pkg.destination}</Link><span aria-hidden="true">/</span></> : null}<span className="line-clamp-1">{pkg.title}</span></nav><h1 className="max-w-5xl font-display text-3xl font-semibold tracking-tight sm:text-5xl">{pkg.title}</h1><div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><span className="inline-flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" />{pkg.location}</span>{pkg.reviews > 0 && pkg.rating > 0 ? <span className="inline-flex items-center gap-1.5"><Star className="size-4 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" /><b className="text-cmt-neutral-900">{pkg.rating}</b> {pkg.reviews} traveller reviews</span> : <span className="text-cmt-neutral-500">Newly listed &middot; no traveller reviews yet</span>}</div></div>
@@ -96,11 +96,11 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
         </div>
         <div className="mt-7"><PackageGallery images={details.gallery} /></div>
 
-        <section className="mt-6 grid grid-cols-2 gap-3 rounded-cmt-md border border-cmt-neutral-200 bg-white p-4 shadow-cmt-sm sm:grid-cols-2 lg:grid-cols-6 lg:p-5">
+        <section className="cmt-trip-facts mt-6 grid grid-cols-2 gap-3 rounded-cmt-md border border-cmt-neutral-200 bg-white p-4 shadow-cmt-sm sm:grid-cols-2 lg:grid-cols-6 lg:p-5">
           {facts.map(({ icon: Icon, label, value }) => <div key={label} className="rounded-cmt-control bg-cmt-neutral-50 p-3"><Icon className="size-5 text-cmt-primary-700" /><p className="mt-2 text-xs uppercase tracking-wider text-cmt-neutral-400">{label}</p><p className="mt-1 text-xs font-semibold leading-5">{value}</p></div>)}
         </section>
 
-        <div className="mt-7 grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_370px]">
+        <div className="cmt-package-columns mt-7 grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_370px]">
           <div className="space-y-6">
             <Section title="About this trip"><p className="text-sm leading-7 text-cmt-neutral-600">{details.summary}</p><div className="mt-5 flex flex-wrap gap-2">{details.places.map((place) => <span key={place} className="rounded-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-3 py-1.5 text-xs font-semibold"><MapPin className="mr-1 inline size-3.5 text-cmt-primary-700" />{place}</span>)}</div></Section>
             <Section title="Trip highlights"><div className="grid gap-3 sm:grid-cols-2">{details.highlights.map((item) => <div key={item} className="flex gap-3 rounded-cmt-control bg-cmt-primary-50 p-4 text-sm font-medium"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-cmt-primary-500"><Check className="size-3.5" /></span>{item}</div>)}</div></Section>
@@ -110,13 +110,13 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
             <Section title="Cancellation policy"><div className="flex gap-3 rounded-cmt-control bg-cmt-success-100 p-4"><ShieldCheck className="size-5 shrink-0 text-cmt-success-700" /><p className="text-sm leading-6 text-cmt-neutral-700">{details.cancellationPolicy}</p></div></Section>
           </div>
 
-          <aside className="space-y-4 lg:sticky lg:top-24">
+          <aside id="booking-options" className="cmt-booking-panel space-y-4 lg:sticky lg:top-24">
             <BookingCard pkg={pkg} details={details} travelDate={travelDate} onTravelDateChange={setTravelDate} travellers={travellers} onTravellersChange={setTravellers} onRequestQuote={requestQuote} />
             <div className="rounded-cmt-md bg-cmt-neutral-900 p-5 text-white"><p className="font-semibold">Why book here</p><p className="mt-1 text-xs leading-5 text-cmt-neutral-300">Your request is shared securely with our partners, so you can compare quotes before you pay.</p></div>
           </aside>
         </div>
       </div>
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-cmt-neutral-200 bg-white/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
+      <div className="cmt-booking-dock fixed inset-x-0 bottom-0 z-40 border-t border-cmt-neutral-200 bg-white/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-lg flex-wrap items-center justify-between gap-2 sm:flex-nowrap sm:gap-3">
           <div className="min-w-0">
             <p className="text-xs text-cmt-neutral-500">Per person</p>

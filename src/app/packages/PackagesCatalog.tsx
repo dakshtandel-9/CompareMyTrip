@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   PACKAGE_CATEGORIES,
   getDiscountPercent,
@@ -118,7 +118,7 @@ function CatalogBanner({
      so they all get the box from this one place. */
   return (
     <section className="flex w-full justify-center p-3 sm:p-4 md:p-6">
-      <div className="relative isolate flex min-h-[340px] w-full max-w-[1440px] items-center overflow-hidden rounded-2xl bg-cmt-secondary-900 px-6 py-14 sm:min-h-[400px] sm:rounded-3xl sm:px-10 sm:py-20">
+      <div className="cmt-catalog-banner relative isolate flex min-h-[340px] w-full max-w-[1440px] items-center overflow-hidden rounded-2xl bg-cmt-secondary-900 px-6 py-14 sm:min-h-[400px] sm:rounded-3xl sm:px-10 sm:py-20">
         <Image
           src={image}
           alt=""
@@ -263,7 +263,7 @@ function PackageCard({
   const hasReviews = pkg.reviews > 0 && pkg.rating > 0;
 
   return (
-    <article className="group relative flex min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md">
+    <article className="cmt-catalog-card group relative flex min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md">
       <div className="relative aspect-[4/3] overflow-hidden bg-cmt-neutral-100">
         <Image
           src={pkg.image}
@@ -513,6 +513,26 @@ export function CatalogContent({
   const [hotelCategories, setHotelCategories] = useState<number[]>([]);
   const [minimumRating, setMinimumRating] = useState<number | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const filterDialog = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!mobileFiltersOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const panel = filterDialog.current;
+    const targets = () => Array.from(panel?.querySelectorAll<HTMLElement>('button, input, select, [href], [tabindex="0"]') ?? []).filter(el => el.getClientRects().length > 0);
+    targets()[0]?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileFiltersOpen(false);
+      if (event.key !== "Tab") return;
+      const list = targets();
+      const first = list[0], last = list.at(-1);
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = overflow; document.removeEventListener("keydown", onKey); previous?.focus(); };
+  }, [mobileFiltersOpen]);
 
   const dealCount = useMemo(
     () => regionPackages.filter((pkg) => pkg.deal).length,
@@ -907,7 +927,7 @@ export function CatalogContent({
   );
 
   return (
-    <main className="min-h-screen bg-cmt-neutral-50 font-body text-cmt-neutral-900">
+    <main className="cmt-catalog min-h-screen bg-cmt-neutral-50 font-body text-cmt-neutral-900">
       {activeTrackConfig && trackPackages && (
         <WeekendTrackBanner
           banner={bannerFor(banners, `trek-${activeTrackConfig.id}`)}
@@ -931,7 +951,7 @@ export function CatalogContent({
           <h1 className="sr-only">{regionHeading}</h1>
         )}
 
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="cmt-catalog-toolbar mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-cmt-neutral-900">
               {visiblePackages.length} holiday packages
@@ -1072,10 +1092,12 @@ export function CatalogContent({
           <button
             type="button"
             aria-label="Close filters"
+            tabIndex={-1}
+            aria-hidden="true"
             onClick={() => setMobileFiltersOpen(false)}
             className="absolute inset-0 bg-cmt-neutral-900/45"
           />
-          <div className="absolute inset-y-0 right-0 flex w-[min(90vw,380px)] flex-col bg-white shadow-cmt-xl">
+          <div ref={filterDialog} className="cmt-filter-sheet absolute inset-y-0 right-0 flex w-[min(90vw,380px)] flex-col bg-white shadow-cmt-xl">
             <div className="flex items-center justify-between border-b border-cmt-neutral-200 px-5 py-4">
               <h2 className="inline-flex items-center gap-2 font-display text-lg font-semibold">
                 <SlidersHorizontal className="size-4" /> Filters

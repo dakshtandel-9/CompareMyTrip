@@ -382,3 +382,225 @@ body {
   .cmt-hero-surface { height: auto; min-height: 85svh; }
   .cmt-hero-content { min-height: 85svh; }
 }
+
+/* Phone layouts are deliberately isolated: tablet/desktop composition is retained. */
+@media (max-width: 767px) {
+  .cmt-header-row { height: 64px; gap: 8px; padding-inline: 16px; }
+  .cmt-header-row > div:first-child { flex: 1 1 auto; }
+  .cmt-header-row > div:last-child { flex: 0 0 auto; }
+  .cmt-header-row > div:first-child a > span { width: 174px; }
+  .cmt-header-row img { width: 100%; height: auto; }
+  .cmt-hero video { display: none; }
+  .cmt-header-row button[aria-expanded] { width: 44px; height: 44px; border-radius: 50%; }
+  .cmt-promo-strip > div { height: 30px; padding-inline: 16px; }
+  .cmt-promo-strip > div > div:first-child { width: 100%; justify-content: center; }
+  .cmt-promo-strip > div > div:last-child:not(:first-child) { display: none; }
+  .cmt-promo-strip a, .cmt-promo-strip button { font-size: 11px; }
+  .cmt-promo-strip button { padding: 3px 7px; }
+  .cmt-menu { overscroll-behavior: contain; }
+  .cmt-menu > nav { padding-inline: 20px; }
+  .cmt-menu > nav > div > button, .cmt-menu > nav > div > a { min-height: 56px; }
+  .cmt-menu > div:last-child { padding-inline: 20px; background: #f8fafc; }
+
+  .cmt-mobile-nav {
+    position: fixed; inset: auto 0 0; z-index: 45; display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+    border-top: 1px solid #e2e8f0; background: rgba(255,255,255,.97);
+    box-shadow: 0 -4px 24px #0f172a08; backdrop-filter: blur(16px);
+  }
+  .cmt-mobile-nav-link { display: flex; min-height: 48px; align-items: center; justify-content: center; flex-direction: column; gap: 4px; border-radius: 12px; font-size: 11px; font-weight: 500; color: #64748b; }
+  .cmt-mobile-nav-link[aria-current] { color: #0f172a; background: #fff7d6; font-weight: 700; }
+  .cmt-mobile-nav-count { position: absolute; top: -7px; right: -10px; min-width: 17px; height: 17px; padding-inline: 3px; display: grid; place-items: center; background: #facc15; color: #0f172a; border-radius: 50%; font-size: 10px; font-weight: 700; }
+  .cmt-mobile-nav-link:focus-visible { outline: 2px solid #d69e00; outline-offset: -2px; }
+
+  .cmt-hero, .cmt-hero-static { height: auto; background: #fff; }
+  .cmt-hero .cmt-hero-stage, .cmt-hero-static .cmt-hero-stage { position: relative; height: auto; min-height: 0; padding: 0; }
+  .cmt-hero .cmt-hero-surface, .cmt-hero-static .cmt-hero-surface { height: auto; min-height: 0; overflow: visible; border-radius: 0; background: #fff; }
+  .cmt-hero .cmt-hero-poster { height: 324px !important; border-radius: 0 0 28px 28px; object-position: center 40%; }
+  .cmt-hero .cmt-hero-overlay { height: 324px; border-radius: 0 0 28px 28px; background: linear-gradient(180deg,#0f172a65,#0f172ab3); }
+  .cmt-hero .cmt-hero-content { height: auto; min-height: 0; padding: 0; gap: 0; }
+  .cmt-hero .cmt-hero-intro { flex: none; min-height: 280px; padding: 30px 24px 46px; justify-content: center; }
+  .cmt-hero .cmt-hero-copy { opacity: 1 !important; transform: none !important; }
+  .cmt-hero .cmt-hero-copy:not(:first-child) { display: none; }
+  .cmt-hero-copy > :first-child { max-width: 15ch; font-size: clamp(28px,8.1vw,36px); line-height: 1.12; letter-spacing: -.035em; }
+  .cmt-hero-copy > :last-child { margin-top: 12px; max-width: 34ch; font-size: 14px; line-height: 1.5; }
+  .cmt-hero-proof { display: none; }
+  .cmt-hero-content > div:last-child { width: auto; margin: -18px 16px 24px; }
+  .cmt-hero-search { border: 1px solid #e2e8f0; border-radius: 22px; padding: 16px; background: #fff; box-shadow: 0 10px 30px #0f172a10; backdrop-filter: none; }
+  .cmt-search-tabs { gap: 6px; padding-bottom: 14px; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; }
+  .cmt-search-tabs button { min-height: 40px; padding: 9px 12px; font-size: 12px; }
+  .cmt-search-tabs button[aria-pressed="false"] { background: #f1f5f9; color: #475569; }
+  .cmt-search-fields { padding: 0; border: 0; background: none; }
+  .cmt-search-fields > div { gap: 14px 10px; }
+  .cmt-search-field > span { margin: 0 0 6px; padding: 0 2px; color: #64748b; font-size: 12px; }
+  .cmt-search-control { height: 48px; border: 1px solid #e2e8f0; background: #f8fafc; color: #0f172a; border-radius: 12px; padding-inline: 10px; }
+  .cmt-search-control:hover { background: #f1f5f9; border-color: #cbd5e1; }
+  .cmt-search-control > svg, .cmt-search-control > span { color: #475569; }
+  .cmt-search-control input::placeholder { color: #94a3b8; }
+  .cmt-search-fields button[type="submit"] { height: 50px; border-radius: 12px; font-size: 15px; box-shadow: none; }
+
+  .cmt-home > section { padding-block: 32px; padding-inline: 16px; }
+  .cmt-home .cmt-section-heading { gap: 12px; align-items: start; }
+  .cmt-section-heading > div:first-child { width: 100%; }
+  .cmt-section-heading h2 { font-size: 27px; line-height: 1.16; letter-spacing: -.025em; text-wrap: pretty; }
+  .cmt-section-heading > div > p:first-child { font-size: 11px; letter-spacing: .12em; }
+  .cmt-section-heading h2 + p { margin-top: 10px; font-size: 14px; line-height: 1.6; }
+  .cmt-section-heading > a { min-height: 36px; font-size: 13px; }
+  .cmt-home [role="tablist"] { margin-top: 20px; gap: 20px; }
+  .cmt-mobile-rail { display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: min(86%, 320px); gap: 14px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; padding: 2px 2px 14px; margin-top: 22px; scrollbar-width: thin; scrollbar-color: #facc15 #f1f5f9; }
+  .cmt-mobile-rail > * { min-width: 0; scroll-snap-align: start; }
+  .cmt-home #travel-categories { padding-inline: 0; background: #fff; }
+  .cmt-home #travel-categories > div { padding-inline: 16px; }
+  .cmt-style-rail { gap: 12px; padding-inline: 16px; margin-top: 20px; }
+  .cmt-style-rail > li { width: 124px; }
+  .cmt-style-rail > li > a { padding: 5px; border-radius: 18px; box-shadow: none; }
+  .cmt-style-rail > li > a > div:first-child > div { aspect-ratio: 1.3; border-radius: 13px; }
+  .cmt-style-rail > li > a > div:first-child > span { width: 32px; height: 32px; }
+  .cmt-style-rail > li > a > div:first-child > span svg { width: 16px; height: 16px; }
+  .cmt-style-rail > li > a > div:last-child { padding: 23px 3px 10px; }
+  .cmt-style-rail h3 { font-size: 13px; }
+  .cmt-style-rail p { display: none; }
+  .cmt-home #compare .cmt-section-heading > a { display: none; }
+
+  .cmt-catalog-banner { min-height: 236px; padding: 28px 22px; border-radius: 22px; }
+  .cmt-catalog-banner h1 { font-size: 28px; line-height: 1.12; }
+  .cmt-catalog-banner p { font-size: 13px; }
+  .cmt-catalog > section:last-of-type { padding: 20px 16px 32px; }
+  .cmt-catalog-toolbar { gap: 16px; margin-bottom: 20px; }
+  .cmt-catalog-toolbar > div:last-child { width: 100%; padding: 8px; border-radius: 16px; background: #e9eef4; }
+  .cmt-catalog-toolbar > div:last-child > button { flex: 0 0 38%; justify-content: center; border: 0; border-radius: 10px; }
+  .cmt-catalog-toolbar > div:last-child > label { flex: 1; }
+  .cmt-catalog-toolbar select { padding-right: 24px; border: 0; border-radius: 10px; font-size: 13px; }
+  .cmt-catalog-card { border-radius: 20px; box-shadow: 0 3px 12px #0f172a06; }
+  .cmt-catalog-card > div:first-child { aspect-ratio: 16 / 9; }
+  .cmt-catalog-card > div:last-child { padding: 16px; }
+  .cmt-catalog-card h2 { font-size: 18px; min-height: 0; line-height: 1.35; }
+  .cmt-catalog-card a { min-height: 44px; }
+  .cmt-filter-sheet { inset: auto 0 0; width: 100%; max-height: 90dvh; border-radius: 24px 24px 0 0; padding-top: 8px; }
+  .cmt-filter-sheet::before { content: ""; width: 38px; height: 4px; border-radius: 9px; background: #cbd5e1; align-self: center; margin-bottom: 4px; flex-shrink: 0; }
+  .cmt-filter-sheet > div:first-of-type { padding: 12px 20px; }
+  .cmt-filter-sheet button[aria-label] { min-width: 44px; min-height: 44px; }
+
+  .cmt-package-detail > div:first-child { padding: 20px 16px 28px; }
+  .cmt-package-detail h1 { font-size: 28px; line-height: 1.18; }
+  .cmt-package-detail nav[aria-label="Breadcrumb"] { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; margin-bottom: 14px; }
+  .cmt-package-detail nav[aria-label="Breadcrumb"] > * { flex-shrink: 0; }
+  .cmt-package-detail nav[aria-label="Breadcrumb"] > span:last-child { overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; }
+  .cmt-package-detail section > h2 { font-size: 22px; margin-bottom: 16px; }
+  .cmt-package-detail section { border-radius: 18px; }
+  .cmt-package-gallery { display: flex; gap: 10px; overflow-x: auto; border-radius: 18px; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding-bottom: 8px; scrollbar-width: thin; }
+  .cmt-package-gallery > div { display: contents; }
+  .cmt-package-gallery > button, .cmt-package-gallery > div > div { flex: 0 0 88%; height: 225px; min-height: 0; scroll-snap-align: start; border-radius: 16px; }
+  .cmt-package-gallery > button:only-child { flex-basis: 100%; }
+  .cmt-trip-facts { padding: 12px; gap: 8px; }
+  .cmt-trip-facts > div { display: grid; grid-template-columns: 22px minmax(0,1fr); column-gap: 8px; align-content: start; padding: 10px; }
+  .cmt-trip-facts svg { grid-row: span 2; width: 18px; margin-top: 2px; }
+  .cmt-trip-facts p { margin-top: 0; font-size: 12px; letter-spacing: 0; }
+  .cmt-trip-facts p:last-child { margin-top: 3px; line-height: 1.4; }
+  .cmt-booking-dock { padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 24px #0f172a0a; }
+  .cmt-booking-dock > div { flex-wrap: nowrap; gap: 8px; }
+  .cmt-booking-dock a, .cmt-booking-dock button { height: 44px; padding-inline: 14px; font-size: 13px; border-radius: 12px; }
+  .cmt-booking-dock p > span:last-child:not(:first-child) { display: none; }
+  .cmt-booking-panel { scroll-margin-top: 90px; }
+
+  .cmt-checkout > div { padding: 24px 16px 36px; }
+  .cmt-checkout-panels { margin-top: 22px; gap: 20px; }
+  .cmt-order-summary { order: -1; }
+  .cmt-checkout-panels > * > div { padding: 20px; border-radius: 20px; }
+  .cmt-order-summary dl { margin-top: 16px; }
+  .cmt-checkout h1 { font-size: 28px; }
+  .cmt-contact > section { padding: 28px 16px; }
+  .cmt-contact > section:first-child h1 { font-size: 32px; line-height: 1.15; }
+  .cmt-contact > section:nth-child(2) > div { gap: 24px; }
+  .cmt-contact aside > div { padding: 20px; border-radius: 20px; }
+  .cmt-contact form { gap: 20px; }
+  .cmt-auth { background: #f8fafc; }
+  .cmt-auth > div:first-child { padding: 24px 20px 32px; background: #f8fafc; }
+  .cmt-auth > div:first-child > div:first-child { gap: 18px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
+  .cmt-auth > div:first-child > div:nth-child(2) { padding-top: 28px; }
+  .cmt-auth input:not([type="checkbox"]) { min-height: 48px; border-radius: 12px; }
+  .cmt-auth form button[type="submit"] { min-height: 48px; border-radius: 12px; }
+  .cmt-phone-dialog { inset: auto 0 0; margin: 0; width: 100%; max-width: none; max-height: 94dvh; border-radius: 24px 24px 0 0; }
+  .cmt-phone-dialog > div { max-height: 94dvh; border-radius: 24px 24px 0 0; }
+  .cmt-phone-dialog header { padding: 22px 64px 22px 20px; }
+  .cmt-phone-dialog header h2 { font-size: 22px; line-height: 1.25; }
+  .cmt-phone-dialog header p { font-size: 13px; }
+
+  .cmt-footer { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+  .cmt-footer > div { padding-top: 32px; padding-bottom: 28px; }
+  .cmt-footer > div > div > div:first-child { row-gap: 0; }
+  .cmt-footer > div > div > div:first-child > div:first-child { padding-bottom: 28px; }
+  .cmt-footer-group { border-top: 1px solid #e2e8f0; }
+  .cmt-footer-group:last-of-type { border-bottom: 1px solid #e2e8f0; }
+  .cmt-footer-group > summary { min-height: 56px; display: flex; align-items: center; justify-content: space-between; list-style: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .cmt-footer-group > summary::-webkit-details-marker { display: none; }
+  .cmt-footer-group > summary span { font-size: 22px; color: #64748b; }
+  .cmt-footer-group[open] > summary span { transform: rotate(45deg); }
+  .cmt-footer-group nav { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; padding-bottom: 16px; }
+  .cmt-footer-group a { min-height: 44px; display: flex; align-items: center; font-size: 13px; color: #475569; }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px; }
+}
+
+@media (max-width: 767px) {
+  .cmt-header-row > div:last-child > a:not([aria-label="Call travel support"]),
+  .cmt-header-row > div:last-child > div { display: none; }
+  .cmt-mobile-nav-link { font-size: 12px; }
+  .cmt-home #trending-destinations { padding-inline: 0; }
+  .cmt-home #trending-destinations > div:first-child { padding-inline: 16px; }
+  .cmt-home #trending-destinations a { width: 216px; aspect-ratio: 4 / 5; }
+  .cmt-home #why-travel-with-us h2 { font-size: 28px; }
+  .cmt-home #why-travel-with-us header > p:last-child { margin-top: 14px; font-size: 14px; }
+  .cmt-home #why-travel-with-us header + div { margin-top: 24px; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .cmt-home #why-travel-with-us header + div > div { padding: 20px 0; }
+  .cmt-home #why-travel-with-us header + div > div p { font-size: 12px; letter-spacing: 0; }
+  .cmt-home #why-travel-with-us header + div > div > p:first-of-type { font-size: 24px; }
+  .cmt-home #why-travel-with-us > div > div:last-child,
+  .cmt-home #why-travel-with-us > div > div:last-child > div { min-height: 250px; }
+  .cmt-destinations > section:first-child { padding: 12px 16px 0; }
+  .cmt-destinations > section:first-child > div { min-height: 240px; padding: 28px 22px; border-radius: 22px; }
+  .cmt-destinations h1 { font-size: 28px; }
+  .cmt-destinations dl { margin-top: 20px; gap: 20px; }
+  .cmt-destinations dl dt { font-size: 11px; }
+  .cmt-destinations dl dd { font-size: 22px; }
+  .cmt-destinations > section:nth-child(2) { padding-block: 20px; }
+  .cmt-destinations [aria-label="Filter destinations by region"] { width: 100%; border-radius: 14px; }
+  .cmt-destinations [aria-label="Filter destinations by region"] button { min-height: 44px; padding-inline: 12px; font-size: 13px; }
+  .cmt-destinations [aria-label="Filter destinations by region"] button > span { display: none; }
+  .cmt-destinations > section:last-child ul { gap: 14px; }
+  .cmt-destinations > section:last-child ul a { aspect-ratio: 4 / 3; border-radius: 20px; }
+  .cmt-blog > section, .cmt-addon > section { padding: 28px 16px; }
+  .cmt-blog h1, .cmt-addon h1 { font-size: 30px; }
+  .cmt-blog [role="group"] { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px; }
+  .cmt-blog [role="group"] button { flex-shrink: 0; min-height: 44px; }
+  .cmt-blog article > a { border-radius: 20px; }
+  .cmt-blog article > a > div:first-child { aspect-ratio: 16 / 9; }
+  .cmt-blog article > a > div:last-child { padding: 18px; }
+  .cmt-addon [role="tablist"] { border-radius: 16px; }
+  .cmt-addon [role="tablist"] button { flex: 1; justify-content: center; min-width: 0; font-size: 13px; }
+  .cmt-addon aside > div { padding: 20px; border-radius: 20px; }
+  .cmt-account { padding: 28px 16px; }
+  .cmt-account nav { flex-wrap: nowrap; overflow-x: auto; }
+  .cmt-account nav button, .cmt-account nav a { flex-shrink: 0; min-height: 44px; }
+  .cmt-policy { padding: 24px 16px; }
+  .cmt-policy article { border: 0; padding: 20px 4px; box-shadow: none; background: transparent; }
+  .cmt-policy h1 { font-size: 28px; }
+  .cmt-policy article > section { margin-top: 28px; }
+  .cmt-compare > section { padding: 28px 16px; }
+  .cmt-compare table { min-width: 720px; }
+  .cmt-compare table th:first-child { width: 110px; padding: 12px; font-size: 11px; }
+  .cmt-compare table td { padding: 12px; }
+}
+
+@media (max-width: 767px) {
+  .cmt-summary-toggle { display: flex; width: 100%; gap: 16px; align-items: center; justify-content: space-between; padding: 18px 20px; border: 1px solid #e2e8f0; border-radius: 18px; text-align: left; background: #fff; }
+  .cmt-summary-toggle > span:first-child { min-width: 0; }
+  .cmt-order-summary[data-expanded="false"] > div { display: none; }
+  .cmt-order-summary[data-expanded="true"] > div { margin-top: 10px; }
+}
+
+@media (max-width: 767px) {
+  .cmt-catalog h1.sr-only { position: static; width: auto; height: auto; margin: 0 0 14px; padding: 0; overflow: visible; clip: auto; white-space: normal; font-family: var(--font-display); font-size: 28px; font-weight: 600; line-height: 1.2; }
+  .cmt-package-columns { grid-template-columns: minmax(0, 1fr); }
+  .cmt-package-columns > * { min-width: 0; }
+}

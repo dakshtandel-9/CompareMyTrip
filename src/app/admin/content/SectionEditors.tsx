@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 
 import { PACKAGE_CATEGORIES } from "@/lib/packageData";
+import { usePackages } from "@/lib/usePackages";
 import {
   VISA_TYPES,
   type CompareContent,
@@ -53,7 +54,6 @@ import {
 import IconPicker from "../_components/IconPicker";
 import AvatarField from "../_components/AvatarField";
 import ImageField from "../_components/ImageField";
-import LinkField from "../_components/LinkField";
 import {
   ListEditor,
   NumberField,
@@ -1371,6 +1371,7 @@ export function DomesticEditor({
   value: DomesticContent;
   onChange: (next: DomesticContent) => void;
 }) {
+  const packages = usePackages();
   return (
     <div className="space-y-5">
       <Card
@@ -1397,7 +1398,7 @@ export function DomesticEditor({
       <Card
         icon={<Layers className="size-5" />}
         title={`Panels (${value.items.length})`}
-        description="Each panel is one photo, one place and one line about it."
+        description="Upload each place photo and choose the package details page it opens. Publish your changes to update the homepage."
       >
         <ListEditor
           items={value.items}
@@ -1436,12 +1437,27 @@ export function DomesticEditor({
                 value={item.alt}
                 onChange={(alt) => patch({ alt })}
               />
-              <LinkField
-                label="Opens"
-                value={item.link}
-                onChange={(link) => patch({ link })}
-                hint="Clicking the open panel goes here. Leave it on “Not clickable” and the panel stays a photo."
-              />
+              <label className="block">
+                <FieldLabel>Package details page</FieldLabel>
+                <select
+                  value={item.link}
+                  onChange={(event) => patch({ link: event.target.value })}
+                  className="w-full rounded-cmt-sm border border-cmt-neutral-200 bg-white px-3 py-2 text-sm text-cmt-neutral-900 focus:border-cmt-primary-500 focus:outline-none"
+                >
+                  <option value="" disabled>Select a package</option>
+                  {item.link && !packages.some((pkg) => `/packages/${pkg.id}` === item.link) && (
+                    <option value={item.link}>Current selection: {item.link}</option>
+                  )}
+                  {packages.map((pkg) => (
+                    <option key={pkg.id} value={`/packages/${pkg.id}`}>
+                      {pkg.destination} — {pkg.title}
+                    </option>
+                  ))}
+                </select>
+                <span className="mt-1 block text-[11px] text-cmt-neutral-500">
+                  Clicking or tapping this photo opens the selected package immediately.
+                </span>
+              </label>
             </div>
           )}
         </ListEditor>

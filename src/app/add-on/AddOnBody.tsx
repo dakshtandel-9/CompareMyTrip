@@ -1,18 +1,20 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import Image from "next/image";
 import { Check, Clock3, ShieldCheck } from "lucide-react";
 
 import AddOnForm from "./AddOnForm";
+import QuoteGuarantee from "./QuoteGuarantee";
 import { SERVICES, toServiceId, type ServiceId } from "./services";
 
 /* ------------------------------------------------------------------ */
-/* Add On — the three things people book around a trip: a flight, a     */
-/* hotel, a visa. One page, one tab each, in that order.                */
+/* Add On — flights, hotels, visas and Bring Your Quote (BYQ).     */
+/* One page, one tab each, in that order.                              */
 /*                                                                      */
 /* Split out of page.tsx so that file stays a server component and keeps */
-/* exporting `metadata`. All three panels are mounted at once and the    */
+/* exporting `metadata`. All four panels are mounted at once and the    */
 /* inactive ones are `hidden`: that is the ARIA tabs pattern, and it     */
 /* means opening Hotels to check a date and coming back to Flights does  */
 /* not wipe what was already typed.                                     */
@@ -74,15 +76,26 @@ const SERVICE_LOGOS = {
   visa: { title: "Destinations", logos: VISA_LOGOS },
 };
 
-export default function AddOnBody({ initialService, children }: { initialService: ServiceId; children?: ReactNode }) {
+export default function AddOnBody({ initialService }: { initialService: ServiceId }) {
   const [active, setActive] = useState<ServiceId>(() => toServiceId(initialService));
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const open = (id: ServiceId) => {
     setActive(id);
     /* Supported by the App Router, and unlike a route change it leaves the
-       other two panels mounted with whatever is typed in them. */
+       other panels mounted with whatever is typed in them. */
     window.history.replaceState(null, "", `/add-on?service=${id}`);
+  };
+
+  const openQuoteForm = () => {
+    // Reveal the panel before scrolling, keeping every form's current values.
+    flushSync(() => open("byq"));
+    const panel = document.getElementById("add-on-panel-byq");
+    panel?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      block: "start",
+    });
+    panel?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
   };
 
   /* Arrow keys move between tabs, Home and End jump to the ends — the
@@ -98,7 +111,7 @@ export default function AddOnBody({ initialService, children }: { initialService
   };
 
   return (
-    <main className="w-full bg-white font-body text-cmt-neutral-900">
+    <main className="cmt-addon w-full bg-white font-body text-cmt-neutral-900">
       {/* Compact hero */}
       <section className="w-full border-b border-cmt-neutral-100 bg-cmt-neutral-50 px-4 py-12 sm:px-5 sm:py-16 lg:px-6">
         <div className="mx-auto w-full max-w-[1440px]">
@@ -106,13 +119,13 @@ export default function AddOnBody({ initialService, children }: { initialService
             Add On
           </p>
           <h1 className="mt-2 max-w-[20ch] font-display text-3xl font-semibold leading-[1.15] tracking-tight text-cmt-neutral-900 sm:text-5xl">
-            Flights, hotels and visas — asked for in one place.
+            Flights, hotels, visas and Bring Your Quote — all in one place.
           </h1>
           <p className="mt-3 max-w-2xl text-pretty text-sm leading-relaxed text-cmt-neutral-600 sm:text-base">
             Book them alongside a package or entirely on their own. Tell us what
             you need and our desk comes back with options you can actually
             compare — the fare, the rate, the visa route, and what each one
-            leaves out.
+            leaves out. Already have a quote? Choose Bring Your Quote to compare it with us.
           </p>
         </div>
       </section>
@@ -146,7 +159,7 @@ export default function AddOnBody({ initialService, children }: { initialService
                   tabIndex={isActive ? 0 : -1}
                   onClick={() => open(service.id)}
                   onKeyDown={(event) => onTabKeyDown(event, index)}
-                  className={`flex h-11 shrink-0 items-center gap-2 rounded-cmt-control px-4 font-body text-[15px] font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 sm:px-5 ${
+                  className={`flex h-11 shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-cmt-control px-2 font-body text-sm font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 sm:flex-none sm:gap-2 sm:px-5 sm:text-[15px] ${
                     isActive
                       ? "bg-white text-cmt-neutral-900 shadow-cmt-xs"
                       : "text-cmt-neutral-600 hover:bg-white/70 hover:text-cmt-neutral-900"
@@ -171,7 +184,7 @@ export default function AddOnBody({ initialService, children }: { initialService
               id={`add-on-panel-${service.id}`}
               aria-labelledby={`add-on-tab-${service.id}`}
               hidden={service.id !== active}
-              className="mt-8 sm:mt-10"
+              className="mt-8 scroll-mt-28 sm:mt-10"
             >
               {/* The blueprint's 7 + 5 split: the form, and what we come back
                   with beside it. */}
@@ -185,6 +198,12 @@ export default function AddOnBody({ initialService, children }: { initialService
                   </p>
 
                   <div className="mt-8">
+                    {service.id === "byq" && (
+                      <p className="mb-5 text-sm leading-6 text-cmt-neutral-600">
+                        The quote-beating service uses a Token of Interest, adjustable against your final booking.
+                        {" "}<a href="#quote-guarantee" className="font-semibold underline underline-offset-4">See the process and guarantee terms</a>.
+                      </p>
+                    )}
                     <AddOnForm service={service} />
                   </div>
                 </div>
@@ -208,7 +227,7 @@ export default function AddOnBody({ initialService, children }: { initialService
                     </ul>
 
                     <div className="mt-8 space-y-5 border-t border-cmt-neutral-200 pt-6">
-                      {REASSURANCE.map((item) => (
+                      {REASSURANCE.filter((item) => service.id !== "byq" || item.title !== "No booking, no fee").map((item) => (
                         <div key={item.title} className="flex gap-3">
                           <item.icon
                             size={16}
@@ -228,7 +247,7 @@ export default function AddOnBody({ initialService, children }: { initialService
                       ))}
                     </div>
                   </div>
-                    <section aria-labelledby={`${service.id}-brands-heading`} className="mt-6 rounded-cmt-lg border border-cmt-neutral-200 bg-cmt-neutral-50 p-6 sm:p-8">
+                    {service.id !== "byq" && <section aria-labelledby={`${service.id}-brands-heading`} className="mt-6 rounded-cmt-lg border border-cmt-neutral-200 bg-cmt-neutral-50 p-6 sm:p-8">
                       <h3 id={`${service.id}-brands-heading`} className="font-display text-xl font-semibold leading-[1.25] text-cmt-neutral-900 sm:text-2xl">
                         {SERVICE_LOGOS[service.id].title}
                       </h3>
@@ -246,14 +265,14 @@ export default function AddOnBody({ initialService, children }: { initialService
                           </li>
                         ))}
                       </ul>
-                    </section>
+                    </section>}
                 </aside>
               </div>
             </div>
           ))}
         </div>
       </section>
-      {children}
+      <QuoteGuarantee onOpenQuote={openQuoteForm} />
     </main>
   );
 }

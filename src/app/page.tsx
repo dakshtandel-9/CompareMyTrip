@@ -33,7 +33,7 @@ export default function HomePage() {
     <>
       <Header />
 
-      <main className="w-full bg-white font-body text-cmt-neutral-900">
+      <main className="cmt-home w-full bg-white font-body text-cmt-neutral-900">
         <ScrollFrameSequence />
         <QuickTravelCategories />
         <TrendingDestinations />

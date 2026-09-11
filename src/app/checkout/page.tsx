@@ -18,7 +18,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header />
-      <main className="w-full bg-cmt-neutral-50 font-body text-cmt-neutral-900">
+      <main className="cmt-checkout w-full bg-cmt-neutral-50 font-body text-cmt-neutral-900">
         <div className="mx-auto w-full max-w-[1440px] px-4 py-10 sm:px-5 sm:py-14 lg:px-6">
           {children}
         </div>

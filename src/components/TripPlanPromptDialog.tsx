@@ -234,7 +234,7 @@ export default function TripPlanPromptDialog() {
       aria-labelledby="trip-prompt-title"
       onClose={close}
       onCancel={(event) => event.preventDefault()}
-      className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[560px] overflow-hidden rounded-cmt-lg border-0 bg-transparent p-0 backdrop:bg-[rgba(15,23,42,0.48)]"
+      className="cmt-phone-dialog m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[560px] overflow-hidden rounded-cmt-lg border-0 bg-transparent p-0 backdrop:bg-[rgba(15,23,42,0.48)]"
     >
       <div
         className={`relative flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-cmt-lg bg-cmt-white font-body text-cmt-neutral-900 shadow-cmt-xl transition-[opacity,transform] duration-[400ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${

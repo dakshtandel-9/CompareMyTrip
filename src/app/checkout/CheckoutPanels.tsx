@@ -59,6 +59,7 @@ export default function CheckoutPanels({
   const [applied, setApplied] = useState<AppliedCoupon | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   /* An auto-applied offer that the traveller took off stays off, rather
      than reappearing the next time this component asks the server. */
   const dismissedAuto = useRef(false);
@@ -136,9 +137,9 @@ export default function CheckoutPanels({
   const total = subtotal - discount;
 
   return (
-    <div className="mt-8 grid gap-6 lg:grid-cols-12 lg:gap-8">
+    <div className="cmt-checkout-panels mt-8 grid gap-6 lg:grid-cols-12 lg:gap-8">
       {/* Buyer details */}
-      <section className="lg:col-span-7">
+      <section className="cmt-checkout-form lg:col-span-7">
         <div className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm sm:p-8">
           <h2 className="font-display text-xl font-semibold sm:text-2xl">Who is travelling?</h2>
           <p className="mt-2 max-w-[52ch] text-sm leading-[1.6] text-cmt-neutral-600">
@@ -166,8 +167,12 @@ export default function CheckoutPanels({
       </section>
 
       {/* Order summary */}
-      <aside className="lg:col-span-5">
-        <div className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm sm:p-8">
+      <aside className="cmt-order-summary lg:col-span-5" data-expanded={summaryOpen}>
+        <button type="button" aria-expanded={summaryOpen} aria-controls="checkout-order-summary" onClick={() => setSummaryOpen(value => !value)} className="cmt-summary-toggle md:hidden">
+          <span><span className="block text-xs font-medium text-cmt-neutral-500">Your trip total</span><strong className="mt-1 block text-xl">{formatINR(total)}</strong><span className="mt-1 block line-clamp-1 text-xs text-cmt-neutral-600">{packageTitle}</span></span>
+          <span className="shrink-0 text-xs font-semibold">{summaryOpen ? "Hide details −" : "View details +"}</span>
+        </button>
+        <div id="checkout-order-summary" className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm sm:p-8">
           <h2 className="font-display text-xl font-semibold">Order summary</h2>
 
           <div className="mt-5 flex gap-4">

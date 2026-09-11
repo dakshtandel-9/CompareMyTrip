@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import BrandLogo from "@/components/BrandLogo";
 import { useEffect, useState } from "react";
 
 type WebsiteLoaderProps = {
@@ -32,15 +32,7 @@ export default function WebsiteLoader({ autoDismiss = false }: WebsiteLoaderProp
       className={`cmt-site-loader ${phase === "leaving" ? "cmt-site-loader--leaving" : ""}`}
     >
       <div className="cmt-site-loader__content">
-        <Image
-          src="/logo.png"
-          alt="CompareMyTrip"
-          width={1400}
-          height={167}
-          sizes="190px"
-          fetchPriority="high"
-          className="cmt-site-loader__logo"
-        />
+        <BrandLogo className="cmt-site-loader__logo" sizes="(max-width: 372px) 78vw, 290px" fetchPriority="high" />
 
         <div className="cmt-site-loader__track" aria-hidden="true">
           <span className="cmt-site-loader__progress" />

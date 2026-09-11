@@ -55,7 +55,7 @@ export default function WeekendTreks() {
           {items.map((trek) => (
             <article
               key={trek.id}
-              className="group flex flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md"
+              className="group relative flex flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md"
             >
               <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-cmt-neutral-100">
                 <ContentImage
@@ -137,7 +137,7 @@ export default function WeekendTreks() {
 
                   <Link
                     href={trek.href}
-                    className="inline-flex h-11 shrink-0 sm:h-9 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                    className="inline-flex h-11 shrink-0 sm:h-9 items-center justify-center rounded-cmt-control bg-cmt-primary-500 after:absolute after:inset-0 after:content-[''] px-5 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                   >
                     {ctaLabel}
                   </Link>

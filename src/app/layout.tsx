@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import MobileNavigation from "@/components/MobileNavigation";
 import { Inter, Space_Grotesk } from "next/font/google";
 import WebsiteLoader from "@/components/WebsiteLoader";
 import ProfileCompletionGate from "@/components/ProfileCompletionGate";
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
   category: "travel",
   referrer: "origin-when-cross-origin",
   formatDetection: { email: false, address: false, telephone: false },
-  icons: { icon: "/favicon.ico" },
+  icons: { icon: "/comparemytrip-logo.png" },
   verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
     ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
     : undefined,
@@ -92,7 +93,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 "@id": absoluteUrl("/#organization"),
                 name: SITE_NAME,
                 url: absoluteUrl("/"),
-                logo: absoluteUrl("/logo.png"),
+                logo: absoluteUrl("/comparemytrip-logo.png"),
               },
               {
                 "@type": "WebSite",
@@ -117,6 +118,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Rides along on every page and hides itself on the handful that
             own the whole screen — see the component. */}
         <FloatingActions />
+        <MobileNavigation />
       </body>
     </html>
   );

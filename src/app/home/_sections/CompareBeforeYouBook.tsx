@@ -394,7 +394,7 @@ export default function CompareBeforeYouBook() {
         />
 
         {/* The decision layer: identity, duration, price, action. */}
-        <ul className="mt-8 grid list-none grid-cols-1 gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-4">
+        <ul className="cmt-mobile-rail mt-8 grid list-none grid-cols-1 gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-4">
           {columns.map((pkg, index) => {
             if (!pkg) {
               /* An emptied slot keeps its place rather than closing the
@@ -540,7 +540,7 @@ export default function CompareBeforeYouBook() {
             Pick at least two packages to see them side by side.
           </p>
         ) : (
-          <div className="relative mt-4 rounded-cmt-lg border border-cmt-neutral-200 bg-white sm:mt-5">
+          <div className="max-md:hidden relative mt-4 rounded-cmt-lg border border-cmt-neutral-200 bg-white sm:mt-5">
             {/* Scrolls sideways on small screens with the attribute column
               pinned; from lg the table fits, so the container stops being a
               scroll box and the header row can stick under the site header. */}
@@ -656,7 +656,8 @@ export default function CompareBeforeYouBook() {
           </div>
         )}
 
-        <p className="mt-3 text-xs leading-relaxed text-cmt-neutral-500">
+        <Link href="/compare" className="mt-4 flex min-h-14 items-center justify-between gap-4 rounded-2xl bg-cmt-secondary-900 p-4 text-white md:hidden"><span><b className="block text-sm">Compare your shortlist</b><span className="text-xs text-white/70">Prices, stays &amp; inclusions, side by side</span></span><ArrowRight className="size-5 shrink-0 text-cmt-primary-500" /></Link>
+        <p className="mt-3 text-xs leading-relaxed text-cmt-neutral-500 max-md:hidden">
           Highlights are computed from the packages shown, never sponsored: best
           value is the lowest cost per night.
           <span className="lg:hidden">

@@ -42,8 +42,8 @@ import SectionHeader from "../_components/SectionHeader";
    that the rail continues. */
 const CARDS_PER_PRESS = 2;
 
-/* Slow enough to read a card as it passes, rather than a ticker. */
-const DRIFT_PX_PER_SECOND = 24;
+/* Brisk automatic scrolling; hover or focus pauses the rail for reading. */
+const DRIFT_PX_PER_SECOND = 60;
 
 /* How long a deliberate move (arrow, swipe) owns the rail before the
    drift picks it back up. Long enough to finish reading the card you

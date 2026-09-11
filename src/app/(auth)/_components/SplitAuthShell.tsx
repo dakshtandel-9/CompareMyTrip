@@ -1,3 +1,4 @@
+import BrandLogo from "@/components/BrandLogo";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -26,19 +27,12 @@ export default function SplitAuthShell({
   imagePanelBottom: ReactNode;
 }) {
   return (
-    <main className="grid min-h-dvh w-full lg:h-screen font-body lg:grid-cols-2">
+    <main className="cmt-auth grid min-h-dvh w-full lg:h-screen font-body lg:grid-cols-2">
       {/* Form column — 50% width on desktop, full height, scrolls internally if content is taller than the viewport */}
       <div className="flex min-w-0 flex-col bg-cmt-white px-4 py-5 lg:h-full lg:overflow-y-auto sm:px-10 sm:py-6 lg:px-14 lg:py-6">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
           <Link href="/">
-            <Image
-              src="/logo.png"
-              alt="CompareMyTrip"
-              width={1400}
-              height={167}
-              fetchPriority="high"
-              className="h-auto w-[190px] max-w-full sm:h-6 sm:w-auto lg:h-7"
-            />
+            <BrandLogo className="w-[190px] max-w-full sm:w-[201px] lg:w-[235px]" fetchPriority="high" />
           </Link>
           <p className="text-[14px] text-cmt-neutral-500">{navPrompt}</p>
         </div>

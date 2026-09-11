@@ -75,8 +75,9 @@ export default function PackageGallery({ images }: { images?: string[] }) {
 
   return (
     <>
+      {galleryImages.length > 1 && <p className="mb-2 text-xs text-cmt-neutral-500 md:hidden">Swipe to explore · Tap a photo to view</p>}
       <div
-        className={`grid gap-3 overflow-hidden rounded-cmt-lg sm:gap-4 ${
+        className={`cmt-package-gallery grid gap-3 overflow-hidden rounded-cmt-lg sm:gap-4 ${
           sideImages.length > 0 ? "sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" : ""
         }`}
       >

@@ -1351,7 +1351,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Ladakh",
         description: "Pangong's blue water at 4,350m, held in by bare Himalayan ridges.",
         alt: "Pangong Tso lake in eastern Ladakh",
-        link: "",
+        link: "/packages/ladakh-land-of-lamas-e6ff",
       },
       {
         id: "dom-rajasthan",
@@ -1359,7 +1359,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Rajasthan",
         description: "Pink-city palaces, desert forts and bazaars that never quite go quiet.",
         alt: "The east facade of Hawa Mahal in Jaipur, Rajasthan",
-        link: "",
+        link: "/packages/royalty-in-rajasthan-6-nights-7-days-39b8",
       },
       {
         id: "dom-goa",
@@ -1367,7 +1367,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Goa",
         description: "Palm-backed sand down south, where the evenings run slow.",
         alt: "Palolem Beach in South Goa",
-        link: "",
+        link: "/packages/discover-the-best-of-goa-scenic-sightseeing-tour-8366",
       },
       {
         id: "dom-meghalaya",
@@ -1375,7 +1375,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Meghalaya",
         description: "Root bridges the Khasi grow, live, across rain-fed gorges.",
         alt: "The double-decker living root bridge near Nongriat, Meghalaya",
-        link: "",
+        link: "/packages/sikkim-darjeeling-delight-4-nights-5-days-69c9",
       },
       {
         id: "dom-kerala",
@@ -1383,7 +1383,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Kerala",
         description: "Houseboats drifting the backwater channels behind Alappuzha.",
         alt: "A houseboat cruising the Kerala backwaters",
-        link: "",
+        link: "/packages/kerala-escape-5-nights-6-days-kochi-munnar-thekkady-alleppey-houseboat-9b49",
       },
       {
         id: "dom-spiti",
@@ -1391,7 +1391,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Spiti Valley",
         description: "A cold desert of whitewashed monasteries and very high passes.",
         alt: "Pin Valley in Spiti, Himachal Pradesh",
-        link: "",
+        link: "/packages/jibhi-jalori-pass-tour-package-4-nights-5-days-from-delhi-serolsar-lake-trek-tirthan-valley-3917",
       },
       {
         id: "dom-andaman",
@@ -1399,7 +1399,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         label: "Andaman Islands",
         description: "Radhanagar's shallow turquoise shelf, out on Havelock.",
         alt: "Radhanagar Beach on Havelock Island, Andaman Islands",
-        link: "",
+        link: "/packages/lakshadweep-ed5b",
       },
     ],
   },
@@ -1979,7 +1979,8 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     label: str(item.label, "Untitled"),
     description: str(item.description, ""),
     alt: str(item.alt, ""),
-    link: str(item.link, ""),
+    link: str(item.link, "").trim() ||
+      base.domestic.items.find((panel) => panel.id === item.id)?.link || "",
   }));
 
   const normalizedHeaderItems = list(headerRaw.items, base.header.items, (item, index) => ({

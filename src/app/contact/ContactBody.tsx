@@ -42,7 +42,7 @@ export default function ContactBody() {
   const showDirect = channels.length > 0 || contact.hours.trim() !== "";
 
   return (
-    <main className="w-full bg-white font-body text-cmt-neutral-900">
+    <main className="cmt-contact w-full bg-white font-body text-cmt-neutral-900">
       {/* Compact hero */}
       <section className="w-full border-b border-cmt-neutral-100 bg-cmt-neutral-50 px-4 py-12 sm:px-5 sm:py-16 lg:px-6">
         <div className="mx-auto w-full max-w-[1440px]">

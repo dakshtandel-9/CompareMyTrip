@@ -40,7 +40,7 @@ export default function FloatingActions() {
 
        Justified to the end because that square rests in the right-hand
        corner; the open bar sets its own full width and so ignores it. */
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 sm:px-4">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 max-md:hidden sm:px-4">
       <div className="flex justify-end">
         <CompareBar />
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import Image from "next/image";
+import BrandLogo from "@/components/BrandLogo";
 import Link from "next/link";
 import { signOut } from "firebase/auth";
 import {
@@ -223,13 +223,13 @@ export default function Header() {
       {/* Main sticky header */}
       <header
         ref={headerRef}
-        className={`sticky top-0 z-50 bg-white font-body transition-[transform,box-shadow] duration-300 ease-out ${
+        className={`cmt-header sticky top-0 z-50 bg-white font-body transition-[transform,box-shadow] duration-300 ease-out ${
           isScrolled ? "shadow-[0_2px_12px_rgba(15,23,42,0.08)]" : "border-b border-cmt-neutral-200"
         }`}
         style={{ transform: isHidden ? "translateY(-100%)" : "translateY(0)" }}
       >
         {showTopBar && (
-          <div className="border-b border-cmt-neutral-200 bg-cmt-neutral-50">
+          <div className="cmt-promo-strip border-b border-cmt-neutral-200 bg-cmt-neutral-50">
             <div className="mx-auto flex h-9 max-w-[1440px] items-center justify-between gap-4 px-6">
               {/* Left — the offer running right now, and the code for it */}
               <div className="flex min-w-0 items-center gap-2">
@@ -308,21 +308,14 @@ export default function Header() {
           </div>
         )}
 
-        <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-3 px-4 sm:gap-4 sm:px-6">
+        <div className="cmt-header-row mx-auto flex h-16 max-w-[1440px] items-center gap-3 px-4 sm:gap-4 sm:px-6">
           {/* Logo. flex-1 here and on the right actions gives both flanks equal
               width, which centres the nav between them without taking it out of
               flow — an absolutely centred nav overlaps the actions once the menu
               grows past the space either side of centre. */}
           <div className="flex min-w-0 flex-1 items-center justify-start">
             <Link href="/" className="flex min-w-0 items-center">
-              <Image
-                src="/comparemytrip-logo-white-plane.png"
-                alt="CompareMyTrip"
-                width={1400}
-                height={167}
-                sizes="235px"
-                className="h-auto w-[190px] max-w-full sm:h-7 sm:w-auto"
-              />
+              <BrandLogo className="w-[190px] max-w-full sm:w-[235px]" />
             </Link>
           </div>
 
@@ -396,6 +389,7 @@ export default function Header() {
 
           {/* Right actions */}
           <div className="flex flex-1 shrink-0 items-center justify-end gap-2">
+            {phoneNumber && <a href={telHref} aria-label="Call travel support" className="grid size-11 shrink-0 place-items-center rounded-full bg-cmt-primary-100 text-cmt-neutral-900 md:hidden"><Phone size={19} aria-hidden="true" /></a>}
             {user === undefined ? (
               <div className="hidden sm:block h-10 w-20 animate-pulse rounded-cmt-control bg-cmt-neutral-100" aria-hidden="true" />
             ) : user ? (
@@ -482,19 +476,13 @@ export default function Header() {
       {isMobileMenuOpen && (
         <div
           ref={mobileMenuRef}
-          className="fixed inset-0 z-[100] flex flex-col overflow-y-auto bg-white min-[1400px]:hidden"
+          className="cmt-menu fixed inset-0 z-[100] flex flex-col overflow-y-auto bg-white min-[1400px]:hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
         >
           <div className="flex items-center justify-between gap-3 border-b border-cmt-neutral-200 px-4 py-4 sm:px-6">
-            <Image
-              src="/comparemytrip-logo-white-plane.png"
-              alt="CompareMyTrip"
-              width={1400}
-              height={167}
-              className="h-auto w-[190px] max-w-[calc(100%-3.5rem)] sm:h-6 sm:w-auto"
-            />
+            <BrandLogo className="w-[190px] max-w-[calc(100%-3.5rem)] sm:w-[201px]" />
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(false)}

@@ -241,7 +241,7 @@ function AccountForms({ user, profile }: { user: User; profile: UserProfile }) {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1140px] px-4 py-10 sm:px-5 sm:py-12 lg:px-6 lg:py-16">
+    <div className="cmt-account mx-auto w-full max-w-[1140px] px-4 py-10 sm:px-5 sm:py-12 lg:px-6 lg:py-16">
       {/* ---------------------------------------------------------------- */}
       {/* Page head                                                         */}
       {/* ---------------------------------------------------------------- */}

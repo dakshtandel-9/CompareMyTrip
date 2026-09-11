@@ -157,7 +157,7 @@ export function DestinationsContent({
   const lowestPrice = packages.length ? Math.min(...packages.map((pkg) => pkg.price)) : 0;
 
   return (
-    <main className="w-full bg-white font-body text-cmt-neutral-900">
+    <main className="cmt-destinations w-full bg-white font-body text-cmt-neutral-900">
       {/* Photography-led banner with a calm, shaded copy side, boxed on the
           page the way the homepage banners and the catalogue mastheads are —
           same gutter, same corners. */}

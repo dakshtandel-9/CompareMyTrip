@@ -21,7 +21,7 @@ export default function ComparePage() {
     <>
       <Header />
 
-      <main className="w-full bg-white font-body text-cmt-neutral-900">
+      <main className="cmt-compare w-full bg-white font-body text-cmt-neutral-900">
         <h1 className="sr-only">Compare holiday packages side by side</h1>
         <CompareSection />
       </main>

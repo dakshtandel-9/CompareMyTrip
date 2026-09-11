@@ -1,4 +1,5 @@
-import Image from "next/image";
+import BrandLogo from "@/components/BrandLogo";
+import { Fragment } from "react";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 
@@ -105,7 +106,7 @@ export default function Footer({
   ].filter((row) => row !== null);
 
   return (
-    <footer className="w-full border-t border-cmt-neutral-200 bg-cmt-neutral-50">
+    <footer className="cmt-footer w-full border-t border-cmt-neutral-200 bg-cmt-neutral-50">
       {/* Full bleed, so the boards run right out to both page edges — the
           gutters below start under it. */}
       <PartnerMarquee />
@@ -122,13 +123,7 @@ export default function Footer({
             {/* Brand */}
             <div className="col-span-2 lg:col-span-1">
               <Link href="/" className="inline-flex">
-                <Image
-                  src="/comparemytrip-logo-white-plane.png"
-                  alt="CompareMyTrip"
-                  width={1400}
-                  height={167}
-                  className="h-auto w-[235px] max-w-full"
-                />
+                <BrandLogo className="w-[235px] max-w-full" />
               </Link>
 
               <p className="mt-5 max-w-[38ch] text-pretty text-sm leading-[1.6] text-cmt-neutral-600">
@@ -188,8 +183,15 @@ export default function Footer({
 
             {/* Link columns */}
             {linkColumns.map((column) => (
+              <Fragment key={column.heading}>
+              <details className="cmt-footer-group col-span-2 md:hidden">
+                <summary>{column.heading}<span aria-hidden="true">+</span></summary>
+                <nav aria-label={`${column.heading} links`}>
+                  {column.links.map(link => <Link key={link.href} href={link.href}>{link.label}</Link>)}
+                </nav>
+              </details>
               <nav
-                key={column.heading}
+                className="max-md:hidden"
                 aria-labelledby={`footer-${column.heading}`}
               >
                 <h2
@@ -208,6 +210,7 @@ export default function Footer({
                   ))}
                 </ul>
               </nav>
+              </Fragment>
             ))}
           </div>
 

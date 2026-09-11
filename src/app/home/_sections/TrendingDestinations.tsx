@@ -21,8 +21,8 @@ import SectionHeader from "../_components/SectionHeader";
 /* over. Only the first copy is exposed to assistive tech.               */
 /* ------------------------------------------------------------------ */
 
-/** Idle drift speed, px/s — slow enough to read a card while it moves. */
-const DRIFT_PX_PER_SECOND = 26;
+/** Idle drift speed, px/s — brisk, but a card still stays readable. */
+const DRIFT_PX_PER_SECOND = 60;
 /** How long after a wheel/drag before the drift picks back up. */
 const RESUME_DELAY_MS = 2000;
 

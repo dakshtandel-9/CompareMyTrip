@@ -204,7 +204,8 @@ export default function AccordionGallery({
 
   const handleClick = (i: number, e: MouseEvent) => {
     if (i !== active) {
-      e.preventDefault();
+      // Linked photos navigate on the first tap, including collapsed panels.
+      if (!items[i].link) e.preventDefault();
       setActive(i);
     }
   };
@@ -254,7 +255,7 @@ export default function AccordionGallery({
             onMouseEnter={() => handleEnter(i)}
             onFocus={() => setActive(i)}
             onKeyDown={(e: KeyboardEvent) => handleKeyDown(i, e)}
-            role="listitem"
+            role={item.link ? undefined : "listitem"}
             tabIndex={0}
             aria-current={isActive ? "true" : undefined}
             aria-label={item.label}

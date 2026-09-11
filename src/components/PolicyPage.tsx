@@ -7,7 +7,7 @@ export default function PolicyPage({ policy }: { policy: keyof typeof LEGAL_POLI
   const document = LEGAL_POLICIES[policy];
   return <>
     <Header />
-    <main className="bg-cmt-neutral-50 px-4 py-12 font-body text-cmt-neutral-900 sm:py-16">
+    <main className="cmt-policy bg-cmt-neutral-50 px-4 py-12 font-body text-cmt-neutral-900 sm:py-16">
       <article className="mx-auto max-w-3xl rounded-cmt-lg border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm sm:p-10">
         <h1 className="font-display text-3xl font-semibold sm:text-4xl">{document.title}</h1>
         <p className="mt-3 text-sm text-cmt-neutral-600">CompareMyTrip · comparemytrip.in</p>

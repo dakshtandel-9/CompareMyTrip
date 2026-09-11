@@ -6,7 +6,7 @@ import SectionHeader from "../_components/SectionHeader";
 
 /* ------------------------------------------------------------------ */
 /* Domestic holidays — the seven-panel image showcase carried over from  */
-/* the existing homepage, unchanged in behaviour. Each panel carries the  */
+/* the existing homepage. Panels link to matching packages and carry a  */
 /* photo, the place and one line about it: no price, badge or CTA, so the */
 /* photography does the work (design.md §9).                             */
 /* Photos live in /public/destinations (see CREDITS.txt for sourcing).    */

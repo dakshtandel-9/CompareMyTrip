@@ -143,7 +143,7 @@ export default function ScrollFrameSequence() {
             fill
             preload
             sizes="100vw"
-            className="object-cover"
+            className="cmt-hero-poster object-cover"
           />
           <video
             ref={videoRef}
@@ -159,7 +159,7 @@ export default function ScrollFrameSequence() {
 
           {/* Weighted to the bottom so the glass search panel keeps its
               contrast over the brightest frames of the sequence. */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-black/70" />
+          <div className="cmt-hero-overlay pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-black/70" />
 
           {/* The sticky site header takes 64px of flow above this box, so at
               rest its last 64px sit under the fold — the symmetric vertical
@@ -205,7 +205,7 @@ export default function ScrollFrameSequence() {
 
               {/* Static under the rotating copy — it's true of every clip. */}
               {hero.trust.enabled && (
-                <div className="mt-5 flex items-center gap-3 sm:mt-6">
+                <div className="cmt-hero-proof mt-5 flex items-center gap-3 sm:mt-6">
                   <div className="flex shrink-0 -space-x-2">
                     {hero.trust.faces.map((face, index) => (
                       <span

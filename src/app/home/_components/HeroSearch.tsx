@@ -51,7 +51,7 @@ const BUDGET_BANDS: { label: string; min: number | null; max: number }[] = [
 ];
 
 const CONTROL =
-  "flex h-11 w-full min-w-0 items-center gap-2 rounded-cmt-control border border-white/10 bg-white/10 px-3 text-left font-body text-sm text-white outline-none transition-colors hover:border-white/25 hover:bg-white/[0.18] focus-visible:border-cmt-primary-500 focus-visible:ring-2 focus-visible:ring-cmt-primary-500/40";
+  "cmt-search-control flex h-11 w-full min-w-0 items-center gap-2 rounded-cmt-control border border-white/10 bg-white/10 px-3 text-left font-body text-sm text-white outline-none transition-colors hover:border-white/25 hover:bg-white/[0.18] focus-visible:border-cmt-primary-500 focus-visible:ring-2 focus-visible:ring-cmt-primary-500/40";
 
 const POPOVER =
   "absolute bottom-full z-30 mb-2 w-[min(260px,calc(100vw-3rem))] rounded-cmt-md border border-cmt-neutral-200 bg-white p-3 font-body text-cmt-neutral-900 shadow-cmt-xl";
@@ -74,7 +74,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`min-w-0 flex-col justify-end ${className}`}>
+    <div className={`cmt-search-field min-w-0 flex-col justify-end ${className}`}>
       <span className="mb-1.5 block px-1 font-body text-xs font-medium text-white/55">
         {label}
       </span>
@@ -235,10 +235,10 @@ export default function HeroSearch() {
     <div ref={rootRef} className="w-full">
       <form
         onSubmit={handleSubmit}
-        className="w-full rounded-cmt-lg border border-white/15 bg-black/30 p-2.5 shadow-[0_24px_60px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-3"
+        className="cmt-hero-search w-full rounded-cmt-lg border border-white/15 bg-black/30 p-2.5 shadow-[0_24px_60px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-3"
       >
         {/* Travel style — doubles as the trip-type filter carried into search */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:pb-3 [&::-webkit-scrollbar]:hidden">
+        <div className="cmt-search-tabs flex items-center gap-2 overflow-x-auto pb-2.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:pb-3 [&::-webkit-scrollbar]:hidden">
           {TRIP_TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = tripType === tab.value;
@@ -261,7 +261,7 @@ export default function HeroSearch() {
           })}
         </div>
 
-        <div className="rounded-cmt-md border border-white/10 bg-white/5 p-2.5">
+        <div className="cmt-search-fields rounded-cmt-md border border-white/10 bg-white/5 p-2.5">
           <div className="grid grid-cols-2 items-stretch gap-2.5 md:grid-cols-3 xl:grid-cols-[repeat(4,minmax(0,1fr))_auto]">
             <Field label="Destination" className="col-span-2 flex md:col-span-1">
               <div className={CONTROL}>

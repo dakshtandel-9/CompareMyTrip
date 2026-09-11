@@ -336,7 +336,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
         />
       </div>
 
-      <div className="rounded-cmt-md border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 p-5 sm:col-span-2">
+      {service.id === "byq" && <div className="rounded-cmt-md border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 p-5 sm:col-span-2">
         <label htmlFor={fieldId("quote")} className={LABEL}>Already have a quote? Attach your PDF <span className="font-normal text-cmt-neutral-500">(optional)</span></label>
         <p id={`${fieldId("quote")}-hint`} className="mt-2 text-sm leading-6 text-cmt-neutral-600">PDF only, maximum 10 MB. Your attachment expires after 72 hours and is automatically deleted. Your enquiry details stay with our travel desk.</p>
         <input ref={fileRef} id={fieldId("quote")} name="quote" type="file" accept=".pdf,application/pdf" aria-invalid={Boolean(errors.quote)} aria-describedby={`${fieldId("quote")}-hint${errors.quote ? ` ${fieldId("quote")}-error` : ""}`}
@@ -350,7 +350,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           className="mt-3 block w-full min-w-0 rounded-lg text-sm text-cmt-neutral-600 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-4 file:py-3 file:font-semibold file:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-cmt-primary-500" />
         <FieldError id={`${fieldId("quote")}-error`} message={errors.quote} />
         {(quoteFile || errors.quote) && <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-cmt-neutral-600">{quoteFile && <span className="break-all">{quoteFile.name} · {(quoteFile.size / 1_000_000).toFixed(2)} MB · uploaded when you send</span>}<button type="button" onClick={() => { setQuoteFile(null); setErrors(current => { const next = { ...current }; delete next.quote; return next; }); if (fileRef.current) fileRef.current.value = ""; }} className="min-h-9 rounded px-2 font-semibold underline focus-visible:outline-2 focus-visible:outline-cmt-primary-500">Remove PDF</button></div>}
-      </div>
+      </div>}
 
       <div className="sm:col-span-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-6">
         {submissionError ? (

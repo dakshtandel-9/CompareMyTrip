@@ -55,7 +55,7 @@ export default function InternationalHolidays() {
           {items.map((country) => (
             <article
               key={country.id}
-              className="group flex flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md"
+              className="group relative flex flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md"
             >
               {country.image && (
                 <div className="relative aspect-[16/9] w-full overflow-hidden bg-cmt-neutral-100">
@@ -128,7 +128,7 @@ export default function InternationalHolidays() {
 
                   <Link
                     href={country.href}
-                    className="group/cta inline-flex h-11 shrink-0 sm:h-9 items-center gap-1.5 rounded-cmt-control px-2 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:text-cmt-primary-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                    className="group/cta inline-flex h-11 shrink-0 sm:h-9 items-center gap-1.5 rounded-cmt-control after:absolute after:inset-0 after:content-[''] px-2 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:text-cmt-primary-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                   >
                     See packages
                     <ArrowRight
