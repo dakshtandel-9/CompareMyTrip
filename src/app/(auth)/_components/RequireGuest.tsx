@@ -14,7 +14,7 @@ export default function RequireGuest({ children }: { children: React.ReactNode }
     if (user) router.replace("/");
   }, [user, router]);
 
-  if (user === undefined || user) return null;
+  if (user) return null;
 
   return <>{children}</>;
 }

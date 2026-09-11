@@ -1,13 +1,18 @@
 "use client";
 
+import { shouldLoadVideo, videoSource } from "@/lib/videoSource";
 import { useEffect, useRef } from "react";
 import ContentImage from "../_components/ContentImage";
 import HeroSearch from "../_components/HeroSearch";
 import { startScrollVideo } from "@/lib/scrollVideo";
 import { useSiteContent } from "@/lib/useSiteContent";
 
-// Derived from public/videos/1.mp4 with frequent keyframes for scroll seeking.
-const VIDEO_SRC = "/videos/1-scroll.mp4";
+// Encoded with frequent keyframes (roughly one every five frames) so a scroll
+// seek always lands on a decodable frame rather than the nearest one behind it.
+// Named for the job rather than the clip, so swapping the footage is a matter
+// of replacing these two files.
+const VIDEO_SRC = videoSource("/videos/hero-scroll.mp4");
+const POSTER_SRC = "/videos/hero-poster.jpg";
 
 // The slice of the hero's scroll that comes after the clip's last frame,
 // holding it on screen before the section unpins. Without it the sequence
@@ -104,7 +109,9 @@ export default function ScrollFrameSequence() {
       stopSequence?.();
       stopSequence = undefined;
       copyDirtyRef.current = true;
-      if (!animatedLayout.matches) return;
+      const enabled = shouldLoadVideo();
+      wrapper.classList.toggle("cmt-hero-static", !enabled);
+      if (!enabled) { drawCopy(0); return; }
       stopSequence = startScrollVideo({
         wrapper,
         video,
@@ -131,10 +138,10 @@ export default function ScrollFrameSequence() {
       <div className="cmt-hero-stage sticky top-0 flex h-screen w-full items-center justify-center p-3 sm:p-4 md:p-6">
         <div className="cmt-hero-surface relative h-full w-full overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:rounded-3xl">
           <ContentImage
-            src="/videos/1-poster.jpg"
+            src={POSTER_SRC}
             alt=""
             fill
-            fetchPriority="high"
+            preload
             sizes="100vw"
             className="object-cover"
           />
@@ -143,7 +150,7 @@ export default function ScrollFrameSequence() {
             muted
             playsInline
             preload="none"
-            poster="/videos/1-poster.jpg"
+            poster={POSTER_SRC}
             aria-hidden="true"
             tabIndex={-1}
             style={{ opacity: 0 }}

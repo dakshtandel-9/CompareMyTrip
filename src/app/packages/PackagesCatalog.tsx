@@ -276,7 +276,7 @@ function PackageCard({
           {/* Imported operator listings carry no pre-discount price, so the
               pill is dropped rather than showing an invented "0% off". */}
           {discountPercent > 0 ? (
-            <span className="rounded-cmt-full border border-cmt-coral-500/30 bg-cmt-coral-100 px-2.5 py-1 text-[11px] font-semibold text-cmt-coral-700">
+            <span className="rounded-cmt-full border border-cmt-coral-500/30 bg-cmt-coral-100 px-2.5 py-1 text-xs font-semibold text-cmt-coral-700">
               {discountPercent}% off
             </span>
           ) : (
@@ -291,7 +291,7 @@ function PackageCard({
                 : `Add ${pkg.title} to the comparison`
             }
             onClick={() => onToggleCompare(pkg.id)}
-            className={`relative z-10 inline-flex h-9 shrink-0 items-center gap-1.5 rounded-cmt-full border px-3 text-[11px] font-semibold shadow-cmt-xs transition-colors ${
+            className={`relative z-10 inline-flex h-9 shrink-0 items-center gap-1.5 rounded-cmt-full border px-3 text-xs font-semibold shadow-cmt-xs transition-colors ${
               isCompared
                 ? "border-cmt-primary-600 bg-cmt-primary-500 text-cmt-neutral-900"
                 : "border-white/70 bg-white/95 text-cmt-neutral-700 hover:border-cmt-neutral-300 hover:text-cmt-neutral-900"
@@ -308,7 +308,7 @@ function PackageCard({
         <div className="absolute inset-x-3 bottom-3 flex flex-wrap items-center gap-1.5">
           <TrekGradeBadge pkg={pkg} />
           {pkg.deal && (
-            <span className="inline-flex items-center gap-1 rounded-cmt-full bg-cmt-neutral-900 px-2.5 py-1 text-[11px] font-semibold text-cmt-primary-400 shadow-cmt-xs">
+            <span className="inline-flex items-center gap-1 rounded-cmt-full bg-cmt-neutral-900 px-2.5 py-1 text-xs font-semibold text-cmt-primary-400 shadow-cmt-xs">
               <BadgePercent className="size-3.5" strokeWidth={2.5} />
               Best deal
             </span>
@@ -360,7 +360,7 @@ function PackageCard({
           {pkg.tags.slice(0, 3).map((tag) => (
             <span
               key={tag}
-              className="rounded-cmt-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-2 py-0.5 text-[11px] font-medium text-cmt-neutral-700"
+              className="rounded-cmt-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-2 py-0.5 text-xs font-medium text-cmt-neutral-700"
             >
               {tag}
             </span>
@@ -368,7 +368,7 @@ function PackageCard({
         </div>
 
         {/* The operating partner is deliberately not named on the card. */}
-        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-cmt-neutral-500">
+        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-cmt-neutral-500">
           <span className="inline-flex items-center gap-1">
             <RotateCcw className="size-3" /> Free cancellation
           </span>
@@ -386,7 +386,7 @@ function PackageCard({
             )}
             <p className="whitespace-nowrap font-display text-lg font-bold text-cmt-neutral-900">
               {formatINR(pkg.price)}
-              <span className="ml-1 font-body text-[11px] font-normal text-cmt-neutral-500">
+              <span className="ml-1 font-body text-xs font-normal text-cmt-neutral-500">
                 /person
               </span>
             </p>
@@ -432,10 +432,12 @@ function budgetBounds(packages: TravelPackage[]): [number, number] {
   return [Math.max(0, floor), Math.max(ceiling, floor + BUDGET_STEP)];
 }
 
-export default function PackagesCatalog({
+export function CatalogContent({
   initialPackages,
+  search = "",
 }: {
   initialPackages: TravelPackage[];
+  search?: string;
 }) {
   const packageState = usePackagesState();
   const packages = packageState.loading || packageState.error
@@ -448,7 +450,7 @@ export default function PackagesCatalog({
 
   // Seeded from the URL so the homepage hero search lands here with the
   // destination, travel style and budget the visitor already picked.
-  const searchParams = useSearchParams();
+  const searchParams = new URLSearchParams(search);
   const router = useRouter();
   const typeCategory = TYPE_CATEGORY[searchParams.get("type")?.trim().toLowerCase() ?? ""];
   const initialCategory = searchParams.get("category") ?? typeCategory;
@@ -747,7 +749,7 @@ export default function PackagesCatalog({
             <p className="text-xs text-cmt-neutral-500">No destination matches that.</p>
           ) : (
             visibleDestinations.map(({ name }) => (
-              <label key={name} className="flex cursor-pointer items-center gap-2.5 text-sm text-cmt-neutral-700">
+              <label key={name} className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-cmt-neutral-700">
                 <input
                   type="checkbox"
                   checked={destinations.includes(name)}
@@ -797,11 +799,11 @@ export default function PackagesCatalog({
       <FilterGroup title="Budget per person">
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-cmt-sm border border-cmt-neutral-200 px-3 py-2">
-            <span className="block text-[10px] uppercase tracking-wide text-cmt-neutral-400">Min</span>
+            <span className="block text-xs uppercase tracking-wide text-cmt-neutral-400">Min</span>
             <span className="text-sm font-medium">{formatINR(activeBudget[0])}</span>
           </div>
           <div className="rounded-cmt-sm border border-cmt-neutral-200 px-3 py-2">
-            <span className="block text-[10px] uppercase tracking-wide text-cmt-neutral-400">Max</span>
+            <span className="block text-xs uppercase tracking-wide text-cmt-neutral-400">Max</span>
             <span className="text-sm font-medium">{formatINR(activeBudget[1])}</span>
           </div>
         </div>
@@ -851,7 +853,7 @@ export default function PackagesCatalog({
 
       <FilterGroup title="Duration">
         {durationOptions.map((option) => (
-          <label key={option.value} className="mb-3 flex cursor-pointer items-center justify-between text-sm last:mb-0">
+          <label key={option.value} className="mb-3 flex min-h-11 cursor-pointer items-center justify-between text-sm last:mb-0">
             <span className="flex items-center gap-2.5 text-cmt-neutral-700">
               <input
                 type="checkbox"
@@ -870,7 +872,7 @@ export default function PackagesCatalog({
 
       <FilterGroup title="Hotel category">
         {[3, 4, 5].map((stars) => (
-          <label key={stars} className="mb-3 flex cursor-pointer items-center justify-between text-sm last:mb-0">
+          <label key={stars} className="mb-3 flex min-h-11 cursor-pointer items-center justify-between text-sm last:mb-0">
             <span className="flex items-center gap-2.5 text-cmt-neutral-700">
               <input
                 type="checkbox"
@@ -889,7 +891,7 @@ export default function PackagesCatalog({
 
       <FilterGroup title="Traveller rating">
         {[4.5, 4].map((rating) => (
-          <label key={rating} className="mb-3 flex cursor-pointer items-center gap-2.5 text-sm text-cmt-neutral-700 last:mb-0">
+          <label key={rating} className="mb-3 flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-cmt-neutral-700 last:mb-0">
             <input
               name="rating"
               type="radio"
@@ -985,7 +987,7 @@ export default function PackagesCatalog({
             >
               <SlidersHorizontal className="size-4" /> Filters
               {activeFilterCount > 0 && (
-                <span className="grid size-5 place-items-center rounded-full bg-cmt-neutral-900 text-[10px] text-white">
+                <span className="grid size-5 place-items-center rounded-full bg-cmt-neutral-900 text-xs text-white">
                   {activeFilterCount}
                 </span>
               )}
@@ -1109,4 +1111,10 @@ export default function PackagesCatalog({
       )}
     </main>
   );
+}
+
+// Remount query-seeded filters on client navigation without making the server route dynamic.
+export default function PackagesCatalog(props: { initialPackages: TravelPackage[] }) {
+  const params = useSearchParams();
+  return <CatalogContent key={params.toString()} search={params.toString()} {...props} />;
 }

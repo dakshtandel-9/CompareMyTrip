@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 
 import { BLOG_SEED_POSTS } from "@/lib/blogSeed";
 import {
@@ -35,7 +36,7 @@ const seedCatalogue = (): PackageCatalogue => ({
   updatedAt: new Map(),
 });
 
-const loadPackageCatalogue = cache(async (): Promise<PackageCatalogue> => {
+const readPackageCatalogue = async (): Promise<PackageCatalogue> => {
   const db = getAdminDb();
   if (!db) return seedCatalogue();
 
@@ -73,9 +74,26 @@ const loadPackageCatalogue = cache(async (): Promise<PackageCatalogue> => {
     // server-rendered page, metadata block or sitemap entry can leak one.
     return { packages: publishedPackages(catalogue), updatedAt };
   } catch (error) {
-    console.error("Unable to load packages for server rendering", error);
+    console.error("Unable to load packages for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return seedCatalogue();
   }
+};
+
+// The existing OpenNext incremental cache persists JSON. Encode Map/Date explicitly.
+// Keep Cache Components off: the routes use ISR and must return real HTTP 404s.
+const readCachedCatalogue = unstable_cache(async () => {
+  const catalogue = await readPackageCatalogue();
+  return {
+    packages: catalogue.packages,
+    updatedAt: Array.from(catalogue.updatedAt, ([id, date]) => [id, date.toISOString()]),
+  };
+}, ["published-catalogue-v1"], { revalidate: 3600 });
+const loadPackageCatalogue = cache(async (): Promise<PackageCatalogue> => {
+  const catalogue = await readCachedCatalogue();
+  return {
+    packages: catalogue.packages,
+    updatedAt: new Map(catalogue.updatedAt.map(([id, date]) => [id, new Date(date)])),
+  };
 });
 
 /** Public catalogue data for server-rendered HTML, metadata and sitemap. */
@@ -96,7 +114,7 @@ export const getPublishedPackage = cache(async (id: string) => {
 });
 
 /** Published-only blog data; drafts must never be emitted in public HTML. */
-export const getPublishedBlogPosts = cache(async (): Promise<BlogPost[]> => {
+export const getPublishedBlogPosts = cache(unstable_cache(async (): Promise<BlogPost[]> => {
   const db = getAdminDb();
   if (!db) return seedBlogPosts();
 
@@ -110,17 +128,17 @@ export const getPublishedBlogPosts = cache(async (): Promise<BlogPost[]> => {
         .filter((post) => post.status === "published"),
     );
   } catch (error) {
-    console.error("Unable to load blog posts for server rendering", error);
+    console.error("Unable to load blog posts for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return seedBlogPosts();
   }
-});
+}, ["published-blog-v1"], { revalidate: 3600 }));
 
 export const getPublishedBlogPost = cache(async (slug: string) => {
   const posts = await getPublishedBlogPosts();
   return posts.find((item) => item.id === slug) ?? null;
 });
 
-export const getDestinationCovers = cache(async (): Promise<Record<string, string>> => {
+export const getDestinationCovers = cache(unstable_cache(async (): Promise<Record<string, string>> => {
   const db = getAdminDb();
   if (!db) return {};
 
@@ -135,7 +153,7 @@ export const getDestinationCovers = cache(async (): Promise<Record<string, strin
     }
     return covers;
   } catch (error) {
-    console.error("Unable to load destination covers for server rendering", error);
+    console.error("Unable to load destination covers for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return {};
   }
-});
+}, ["destination-covers-v1"], { revalidate: 3600 }));

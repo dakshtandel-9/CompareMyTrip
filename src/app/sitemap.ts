@@ -25,11 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl("/compare"), changeFrequency: "monthly", priority: 0.7 },
     { url: absoluteUrl("/blog"), changeFrequency: "weekly", priority: 0.8 },
     { url: absoluteUrl("/contact"), changeFrequency: "yearly", priority: 0.5 },
-    /* Indexable, linked from every page's footer, and the pages a traveller
-       checks before paying — they belong in the sitemap like anything else. */
-    { url: absoluteUrl("/terms"), changeFrequency: "yearly", priority: 0.3 },
-    { url: absoluteUrl("/privacy"), changeFrequency: "yearly", priority: 0.3 },
-    { url: absoluteUrl("/refund-policy"), changeFrequency: "yearly", priority: 0.3 },
+    // Legal pages remain noindex until approved business policies are published.
   ];
 
   const seen = new Set(staticPages.map((entry) => entry.url));

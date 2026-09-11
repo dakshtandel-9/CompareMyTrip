@@ -220,7 +220,7 @@ function TrendingCard({
 
       {/* The one marker this card carries beyond its price pill: why
           it ranks where it does. Text, not colour alone (§17.5). */}
-      <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-cmt-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-cmt-neutral-900 backdrop-blur-sm">
+      <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-cmt-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-cmt-neutral-900 backdrop-blur-sm">
         <TrendingUp className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />
         <span className="tabular-nums">#{rank}</span>
         <span className="text-cmt-neutral-500">·</span>

@@ -60,7 +60,7 @@ const FALLBACK_DESTINATIONS = [
 const fieldClass =
   "h-12 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 font-body text-[16px] text-cmt-neutral-900 shadow-cmt-xs outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-cmt-neutral-400 hover:border-cmt-neutral-300 focus:border-2 focus:border-cmt-primary-500 focus:ring-[3px] focus:ring-cmt-primary-500/20";
 const labelClass =
-  "mb-2 block text-[11px] font-semibold uppercase leading-[1.4] tracking-[0.008em] text-cmt-neutral-500";
+  "mb-2 block text-xs font-semibold uppercase leading-[1.4] tracking-[0.008em] text-cmt-neutral-500";
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -277,7 +277,7 @@ export default function TripPlanPromptDialog() {
         ) : (
           <>
             <header className="shrink-0 bg-cmt-neutral-900 px-6 py-6 pr-20 text-white sm:px-8 sm:pr-20">
-              <span className="inline-flex items-center gap-1.5 rounded-cmt-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-cmt-primary-400">
+              <span className="inline-flex items-center gap-1.5 rounded-cmt-full bg-white/10 px-3 py-1 text-xs font-semibold text-cmt-primary-400">
                 <Sparkles className="size-3.5" aria-hidden="true" /> Free trip planning
               </span>
               <h2

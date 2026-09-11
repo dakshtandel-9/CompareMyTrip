@@ -45,7 +45,7 @@ function CountdownBox({ value, label }: { value: string; label: string }) {
       <span className="font-display text-2xl font-semibold tabular-nums leading-none text-white">
         {value}
       </span>
-      <span className="mt-1 text-[11px] text-cmt-neutral-400">{label}</span>
+      <span className="mt-1 text-xs text-cmt-neutral-400">{label}</span>
     </div>
   );
 }
@@ -105,7 +105,7 @@ export default function LatestDeals() {
           <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-cmt-neutral-900 via-cmt-neutral-900/70 to-cmt-neutral-900/30" />
           <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
             <div className="lg:max-w-[520px]">
-              <span className="inline-flex items-center gap-1.5 rounded-cmt-full bg-cmt-primary-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-cmt-neutral-900">
+              <span className="inline-flex items-center gap-1.5 rounded-cmt-full bg-cmt-primary-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cmt-neutral-900">
                 <BadgePercent className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />
                 {promo.badge}
               </span>

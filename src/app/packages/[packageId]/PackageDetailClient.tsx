@@ -97,7 +97,7 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
         <div className="mt-7"><PackageGallery images={details.gallery} /></div>
 
         <section className="mt-6 grid grid-cols-2 gap-3 rounded-cmt-md border border-cmt-neutral-200 bg-white p-4 shadow-cmt-sm sm:grid-cols-2 lg:grid-cols-6 lg:p-5">
-          {facts.map(({ icon: Icon, label, value }) => <div key={label} className="rounded-cmt-control bg-cmt-neutral-50 p-3"><Icon className="size-5 text-cmt-primary-700" /><p className="mt-2 text-[10px] uppercase tracking-wider text-cmt-neutral-400">{label}</p><p className="mt-1 text-xs font-semibold leading-5">{value}</p></div>)}
+          {facts.map(({ icon: Icon, label, value }) => <div key={label} className="rounded-cmt-control bg-cmt-neutral-50 p-3"><Icon className="size-5 text-cmt-primary-700" /><p className="mt-2 text-xs uppercase tracking-wider text-cmt-neutral-400">{label}</p><p className="mt-1 text-xs font-semibold leading-5">{value}</p></div>)}
         </section>
 
         <div className="mt-7 grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_370px]">
@@ -119,8 +119,8 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-cmt-neutral-200 bg-white/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-lg flex-wrap items-center justify-between gap-2 sm:flex-nowrap sm:gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] text-cmt-neutral-500">Per person</p>
-            <p className="mt-0.5 flex items-baseline gap-1.5"><span className="font-display text-lg font-bold">{formatINR(pkg.price)}</span>{discount > 0 && <span className="rounded-cmt-full bg-cmt-success-100 px-2 py-0.5 text-[10px] font-semibold text-cmt-success-700">{discount}% off</span>}</p>
+            <p className="text-xs text-cmt-neutral-500">Per person</p>
+            <p className="mt-0.5 flex items-baseline gap-1.5"><span className="font-display text-lg font-bold">{formatINR(pkg.price)}</span>{discount > 0 && <span className="rounded-cmt-full bg-cmt-success-100 px-2 py-0.5 text-xs font-semibold text-cmt-success-700">{discount}% off</span>}</p>
           </div>
           <div className="flex items-center gap-2">
             <Link href={`/checkout?pkg=${encodeURIComponent(pkg.id)}&travellers=${travellers}${travelDate ? `&date=${travelDate}` : ""}`} className="flex h-11 items-center rounded-cmt-control border border-cmt-neutral-300 px-4 text-sm font-semibold">Book</Link>

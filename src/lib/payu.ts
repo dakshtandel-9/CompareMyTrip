@@ -7,6 +7,9 @@
 /* components only.                                                     */
 /* ------------------------------------------------------------------ */
 
+import { getSiteUrl } from "@/lib/seo";
+import { LEGAL_POLICIES_APPROVED } from "@/lib/legalPolicies";
+
 import { createHash, randomUUID } from "node:crypto";
 
 import { DUMMY_PACKAGES, type TravelPackage } from "@/lib/packageData";
@@ -30,6 +33,12 @@ export function getPayuConfig(): PayuConfig | null {
   if (!key || !salt) return null;
 
   const mode = process.env.PAYU_MODE === "live" ? "live" : "test";
+  // Never accept production money with placeholder policies or sandbox settings.
+  if (mode === "live" && (
+    !LEGAL_POLICIES_APPROVED ||
+    process.env.PAYU_LIVE_PAYMENTS_ENABLED !== "true" ||
+    process.env.NEXT_PUBLIC_SITE_URL !== "https://comparemytrip.in"
+  )) return null;
   return { key, salt, mode, endpoint: ENDPOINTS[mode] };
 }
 
@@ -185,12 +194,8 @@ export function hashesMatch(a: string, b: string) {
 /** PayU needs absolute surl/furl. Prefer the configured site URL, fall back
     to whatever host the request actually arrived on. */
 export function siteOrigin(request: Request) {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL;
-  if (configured) return configured.replace(/\/$/, "");
-
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  const proto =
-    request.headers.get("x-forwarded-proto") ??
-    (host?.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}`;
+  if (process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_SITE_URL) {
+    return getSiteUrl().origin;
+  }
+  return new URL(request.url).origin;
 }

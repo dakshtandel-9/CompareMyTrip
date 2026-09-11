@@ -190,6 +190,7 @@ export default function EnquiryForm() {
         <input
           id="enquiry-name"
           name="name"
+          aria-required="true"
           autoComplete="name"
           placeholder="Priya Sharma"
           value={values.name}
@@ -208,6 +209,7 @@ export default function EnquiryForm() {
         <input
           id="enquiry-email"
           name="email"
+          aria-required="true"
           type="email"
           autoComplete="email"
           placeholder="you@example.com"
@@ -301,6 +303,7 @@ export default function EnquiryForm() {
         <textarea
           id="enquiry-message"
           name="message"
+          aria-required="true"
           rows={5}
           placeholder="Dates you have in mind, the kind of pace you want, anything the trip has to include."
           value={values.message}

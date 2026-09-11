@@ -218,7 +218,7 @@ export default function KeralaPackagePage() {
                 {quickFacts.map(({ icon: Icon, label, value }) => (
                   <div key={label} className="bg-white p-4 sm:p-5">
                     <Icon className="size-5 text-cmt-primary-700" />
-                    <p className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-cmt-neutral-400">{label}</p>
+                    <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-cmt-neutral-400">{label}</p>
                     <p className="mt-1 text-sm font-semibold text-cmt-neutral-800">{value}</p>
                   </div>
                 ))}
@@ -252,7 +252,7 @@ export default function KeralaPackagePage() {
                   {itinerary.map((item, index) => (
                     <details key={item.day} open={index === 0} className="group py-1">
                       <summary className="flex cursor-pointer list-none items-center gap-4 py-4 [&::-webkit-details-marker]:hidden">
-                        <span className="grid size-11 shrink-0 place-items-center rounded-cmt-control bg-cmt-neutral-900 text-[11px] font-bold text-white">{item.day.replace("Day ", "D")}</span>
+                        <span className="grid size-11 shrink-0 place-items-center rounded-cmt-control bg-cmt-neutral-900 text-xs font-bold text-white">{item.day.replace("Day ", "D")}</span>
                         <span className="min-w-0 flex-1">
                           <span className="block font-display text-base font-semibold text-cmt-neutral-900 sm:text-lg">{item.title}</span>
                           <span className="mt-0.5 block truncate text-xs text-cmt-neutral-500">{item.route}</span>
@@ -358,7 +358,7 @@ export default function KeralaPackagePage() {
                   <div className="relative aspect-[4/3] overflow-hidden bg-cmt-neutral-100">
                     <Image src={pkg.image} alt={pkg.location} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover transition-transform duration-500 group-hover:scale-[1.035]" />
                     <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
-                      <span className="rounded-cmt-full border border-cmt-coral-500/30 bg-cmt-coral-100 px-2.5 py-1 text-[11px] font-semibold text-cmt-coral-700">{pkg.discount}% off</span>
+                      <span className="rounded-cmt-full border border-cmt-coral-500/30 bg-cmt-coral-100 px-2.5 py-1 text-xs font-semibold text-cmt-coral-700">{pkg.discount}% off</span>
                       <button type="button" aria-label={`Save ${pkg.title}`} className="grid size-9 place-items-center rounded-full border border-white/70 bg-white/95 text-cmt-neutral-700 shadow-cmt-xs transition-colors hover:text-cmt-coral-700">
                         <Heart className="size-4" strokeWidth={2} />
                       </button>
@@ -377,15 +377,15 @@ export default function KeralaPackagePage() {
                       <span className="inline-flex items-center gap-1"><BedDouble className="size-3.5" />{pkg.hotelStars}★ hotels</span>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-1.5">
-                      {pkg.tags.map((tag) => <span key={tag} className="rounded-cmt-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-2 py-0.5 text-[11px] font-medium text-cmt-neutral-700">{tag}</span>)}
+                      {pkg.tags.map((tag) => <span key={tag} className="rounded-cmt-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-2 py-0.5 text-xs font-medium text-cmt-neutral-700">{tag}</span>)}
                     </div>
                     {/* Operating partner deliberately not named — see BookingCard. */}
-                    <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-cmt-neutral-500">
+                    <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-cmt-neutral-500">
                       <span className="inline-flex items-center gap-1"><RotateCcw className="size-3" /> Free cancellation</span>
                       <span className="inline-flex items-center gap-1"><Zap className="size-3" /> Instant confirm</span>
                     </div>
                     <div className="mt-4 flex items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">
-                      <div className="min-w-0"><p className="text-xs text-cmt-neutral-400 line-through">{formatINR(pkg.originalPrice)}</p><p className="whitespace-nowrap font-display text-lg font-bold text-cmt-neutral-900">{formatINR(pkg.price)}<span className="ml-1 font-body text-[11px] font-normal text-cmt-neutral-500">/person</span></p></div>
+                      <div className="min-w-0"><p className="text-xs text-cmt-neutral-400 line-through">{formatINR(pkg.originalPrice)}</p><p className="whitespace-nowrap font-display text-lg font-bold text-cmt-neutral-900">{formatINR(pkg.price)}<span className="ml-1 font-body text-xs font-normal text-cmt-neutral-500">/person</span></p></div>
                       <Link href={`/packages/${pkg.id}`} className="inline-flex h-10 shrink-0 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-colors hover:bg-cmt-primary-600">View package</Link>
                     </div>
                   </div>
@@ -397,7 +397,7 @@ export default function KeralaPackagePage() {
 
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-cmt-neutral-200 bg-white/95 p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
-            <div><p className="text-[10px] text-cmt-neutral-500">Starting from</p><p className="font-display text-lg font-bold">₹12,999 <span className="font-body text-[10px] font-normal text-cmt-neutral-500">/person</span></p></div>
+            <div><p className="text-xs text-cmt-neutral-500">Starting from</p><p className="font-display text-lg font-bold">₹12,999 <span className="font-body text-xs font-normal text-cmt-neutral-500">/person</span></p></div>
             <KeralaBookingActions mobile />
           </div>
         </div>

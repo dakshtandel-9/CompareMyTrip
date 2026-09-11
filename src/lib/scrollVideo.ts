@@ -27,8 +27,26 @@ export function startScrollVideo({ wrapper, video, src, tailHold = 0.13, onProgr
     const tolerance = position.progress === 0 || position.progress === 1 ? 0.001 : 1 / 30;
     if (Math.abs(video.currentTime - target) > tolerance) video.currentTime = target;
   };
+  // Mobile Safari treats a video that has never played as having nothing to
+  // paint: it holds the poster and ignores currentTime until the element has
+  // run at least once. One muted play(), paused again on the next tick, is
+  // what gets a frame on screen — after which seeking behaves normally.
+  // Desktop needs none of this and is left alone, hence the pointer check.
+  let primed = !window.matchMedia("(pointer: coarse)").matches;
+  const prime = () => {
+    if (primed || disposed || failed) return;
+    primed = true;
+    const started = video.play();
+    if (started && typeof started.then === "function") {
+      started.then(() => video.pause()).catch(() => {});
+    } else {
+      video.pause();
+    }
+  };
+
   const reveal = () => {
     if (disposed || failed) return;
+    prime();
     video.style.opacity = "1";
     seek();
   };

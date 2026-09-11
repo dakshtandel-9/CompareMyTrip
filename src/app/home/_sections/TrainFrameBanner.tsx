@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { shouldLoadVideo, videoSource } from "@/lib/videoSource";
 import { Sparkles } from "lucide-react";
 
 import { Glyph } from "@/lib/adminIcons";
@@ -14,10 +15,7 @@ export default function TrainFrameBanner() {
   useEffect(() => {
     const video = videoRef.current;
     if (!video || loadVideo) return;
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || connection?.saveData) {
-      return;
-    }
+    if (!shouldLoadVideo()) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -67,13 +65,19 @@ export default function TrainFrameBanner() {
           aria-hidden="true"
           tabIndex={-1}
         >
-          {loadVideo ? <source src="/videos/trainvideo1.0.mp4" type="video/mp4" /> : null}
+          {loadVideo ? <source src={videoSource("/videos/train.mp4")} type="video/mp4" /> : null}
         </video>
 
-        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/45 to-transparent" />
+        {/* The wide layout darkens left-to-right, because the copy sits in
+            the left third and the train should stay visible on the right. A
+            phone has no left third — the copy runs the full width, and the
+            same horizontal ramp leaves its right-hand half sitting on bare
+            snow. Below sm the ramp turns vertical and keeps a floor under
+            every line of it. */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/70 to-black/90 sm:bg-gradient-to-r sm:from-black/95 sm:via-black/45 sm:to-transparent" />
 
         <div className="relative flex flex-col justify-center sm:absolute sm:inset-0 px-6 py-8 sm:px-12 sm:py-10 md:px-16">
-          <div className="flex items-center gap-2 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-cmt-primary-400 sm:text-xs">
+          <div className="flex items-center gap-2 font-body text-xs font-semibold uppercase tracking-[0.14em] text-cmt-primary-400 sm:text-xs">
             <Sparkles className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden="true" />
             {trainBanner.eyebrow}
           </div>

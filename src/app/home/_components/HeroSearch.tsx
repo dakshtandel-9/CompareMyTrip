@@ -75,7 +75,7 @@ function Field({
 }) {
   return (
     <div className={`min-w-0 flex-col justify-end ${className}`}>
-      <span className="mb-1.5 block px-1 font-body text-[11px] font-medium text-white/55">
+      <span className="mb-1.5 block px-1 font-body text-xs font-medium text-white/55">
         {label}
       </span>
       {children}
@@ -104,7 +104,7 @@ function PickCard({ pkg }: { pkg: TravelPackage }) {
           <p className="truncate font-body text-sm font-semibold text-white">
             {pkg.title}
           </p>
-          <span className="shrink-0 font-body text-[11px] text-white/55">From</span>
+          <span className="shrink-0 font-body text-xs text-white/55">From</span>
         </div>
 
         <div className="mt-0.5 flex items-baseline justify-between gap-2">
@@ -117,12 +117,12 @@ function PickCard({ pkg }: { pkg: TravelPackage }) {
         </div>
 
         <div className="mt-1 flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1 font-body text-[11px] font-medium text-white/85">
+          <span className="inline-flex items-center gap-1 font-body text-xs font-medium text-white/85">
             <Star className="size-3 fill-cmt-primary-500 text-cmt-primary-500" />
             {pkg.rating}
             <span className="text-white/50">({pkg.reviews})</span>
           </span>
-          <span className="shrink-0 font-body text-[11px] text-white/55">/person</span>
+          <span className="shrink-0 font-body text-xs text-white/55">/person</span>
         </div>
       </div>
     </Link>
@@ -472,7 +472,7 @@ function Stepper({
     <div className="flex items-center justify-between gap-4">
       <span className="text-sm font-medium text-cmt-neutral-900">
         {label}
-        <span className="block text-[11px] font-normal text-cmt-neutral-500">{hint}</span>
+        <span className="block text-xs font-normal text-cmt-neutral-500">{hint}</span>
       </span>
       <span className="flex items-center gap-2.5">
         <button

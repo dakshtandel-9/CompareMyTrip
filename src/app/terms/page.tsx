@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import PendingPolicyPage from "@/components/PendingPolicyPage";
+import PolicyPage from "@/components/PolicyPage";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
@@ -11,6 +11,6 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function TermsPage() {
-  return <PendingPolicyPage title="Terms and Conditions" />;
+  return <PolicyPage policy="terms" />;
 }
 

@@ -41,7 +41,7 @@ export default function TrekGradeBadge({
           />
         ))}
       </span>
-      <span className="text-[11px] font-semibold text-cmt-neutral-700">
+      <span className="text-xs font-semibold text-cmt-neutral-700">
         {TREK_GRADE_LABELS[grade]}
       </span>
     </span>

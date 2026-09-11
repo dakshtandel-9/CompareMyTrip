@@ -218,7 +218,7 @@ export default function DepartureDatePicker({
               <abbr
                 key={day.value}
                 title={day.short}
-                className="pb-1 text-[11px] font-semibold uppercase text-cmt-neutral-400 no-underline"
+                className="pb-1 text-xs font-semibold uppercase text-cmt-neutral-400 no-underline"
               >
                 {day.letter}
               </abbr>

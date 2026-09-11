@@ -144,7 +144,7 @@ function IsoMark() {
         <span className="block font-display text-sm font-bold text-cmt-secondary-900">
           ISO 9001:2015
         </span>
-        <span className="block text-[10px] font-semibold uppercase tracking-wider text-cmt-neutral-500">
+        <span className="block text-xs font-semibold uppercase tracking-wider text-cmt-neutral-500">
           Quality certified
         </span>
       </span>
@@ -158,7 +158,7 @@ function PciMark() {
       <span className="block font-display text-sm font-bold tracking-tight text-cmt-secondary-900">
         PCI DSS
       </span>
-      <span className="block text-[10px] font-semibold uppercase tracking-wider text-cmt-neutral-500">
+      <span className="block text-xs font-semibold uppercase tracking-wider text-cmt-neutral-500">
         Compliant
       </span>
     </span>

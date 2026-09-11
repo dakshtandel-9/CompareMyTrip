@@ -13,9 +13,11 @@
 
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { initializeFirestore } from "firebase-admin/firestore";
+import { initializeFirestore, type Firestore } from "firebase-admin/firestore";
+import { firestoreFetch } from "./prepareTransport";
 
 let app: App | undefined;
+let db: Firestore | undefined;
 
 /** Null when the service account key has not been supplied yet. */
 function getAdminApp(): App | null {
@@ -52,9 +54,22 @@ export function getAdminAuth() {
 }
 
 export function getAdminDb() {
+  if (db) return db;
   const instance = getAdminApp();
+  if (!instance) return null;
   // Workers supports HTTP transport; Firestore gRPC is not required here.
-  return instance ? initializeFirestore(instance, { preferRest: true }) : null;
+  db = initializeFirestore(instance, { preferRest: true });
+  if ("WebSocketPair" in globalThis) db.settings({
+    clientOptions: {
+      transporterOptions: {
+        // Gaxios otherwise imports node-fetch, whose Node HTTP decompression
+        // path is incompatible with Workers. Native fetch handles it correctly.
+        fetchImplementation: (url: string | URL, init?: RequestInit) =>
+          firestoreFetch(url, { ...init, cache: "no-store" }),
+      },
+    },
+  });
+  return db;
 }
 
 /**

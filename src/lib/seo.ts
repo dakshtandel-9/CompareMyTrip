@@ -18,7 +18,7 @@ export function getSiteUrl(): URL {
   try {
     const parsed = new URL(configured || (process.env.NODE_ENV === "production" ? PRODUCTION_URL : LOCAL_URL));
     const url =
-      process.env.NODE_ENV === "production" && ["localhost", "127.0.0.1"].includes(parsed.hostname)
+      process.env.NODE_ENV === "production" && (parsed.protocol !== "https:" || parsed.hostname !== "comparemytrip.in")
         ? new URL(PRODUCTION_URL)
         : parsed;
     url.pathname = "/";

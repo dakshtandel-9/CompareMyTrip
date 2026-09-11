@@ -79,7 +79,7 @@ export default function InternationalHolidays() {
                   </div>
 
                   <span
-                    className={`shrink-0 rounded-cmt-full border px-2.5 py-1 text-[11px] font-semibold ${VISA_TONES[country.visa]}`}
+                    className={`shrink-0 rounded-cmt-full border px-2.5 py-1 text-xs font-semibold ${VISA_TONES[country.visa]}`}
                   >
                     {country.visa}
                   </span>

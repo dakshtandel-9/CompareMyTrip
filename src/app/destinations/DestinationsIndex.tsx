@@ -43,6 +43,14 @@ const REGION_TABS: { region: Region; slugs: string[] }[] = [
   { region: "All", slugs: ["all"] },
 ];
 
+export default function DestinationsIndex(props: {
+  initialPackages: TravelPackage[];
+  initialCovers: Record<string, string>;
+}) {
+  const params = useSearchParams();
+  return <DestinationsContent search={params.toString()} {...props} />;
+}
+
 const regionSlug = (region: Region) =>
   REGION_TABS.find((tab) => tab.region === region)?.slugs[0] ?? "all";
 
@@ -66,12 +74,14 @@ const sortOptions: { value: Sort; label: string }[] = [
   { value: "name", label: "A–Z" },
 ];
 
-export default function DestinationsIndex({
+export function DestinationsContent({
   initialPackages,
   initialCovers,
+  search = "",
 }: {
   initialPackages: TravelPackage[];
   initialCovers: Record<string, string>;
+  search?: string;
 }) {
   const packageState = usePackagesState();
   const coverState = useDestinationCoversState();
@@ -85,9 +95,8 @@ export default function DestinationsIndex({
      changes the query string, useSearchParams re-renders with it, and the
      grid follows — without remounting, so the search box and the sort keep
      what the visitor put in them. */
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const region = regionFromParams(new URLSearchParams(searchParams.toString()));
+  const region = regionFromParams(new URLSearchParams(search));
 
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>("packages");

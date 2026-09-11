@@ -36,7 +36,7 @@ export default function ContactBody() {
      them still hides itself until it is filled in. */
   const channels = contact.channels.filter((channel) => channel.value.trim() !== "");
   const offices = contact.offices.items.filter(
-    (office) => office.city.trim() !== "" || office.address.trim() !== "",
+    (office) => office.id !== "contact-office-sample" && (office.city.trim() !== "" || office.address.trim() !== ""),
   );
   const showOffices = contact.offices.enabled && offices.length > 0;
   const showDirect = channels.length > 0 || contact.hours.trim() !== "";

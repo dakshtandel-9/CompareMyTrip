@@ -73,10 +73,16 @@ export default async function CheckoutPage({
      summary never shows a departure this trip cannot make. */
   const requestedDate = normaliseTravelDate(params.date);
   const travelDate = isDepartureAllowed(pkg, requestedDate) ? requestedDate : "";
-  const configured = getPayuConfig() !== null;
+  const paymentConfig = getPayuConfig();
+  const configured = paymentConfig !== null;
 
   return (
     <Shell>
+      {paymentConfig?.mode === "test" && (
+        <p role="status" className="mb-6 rounded-cmt-md border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+          Test checkout — no real booking will be confirmed. Use PayU sandbox credentials only.
+        </p>
+      )}
       <Link
         href={`/packages/${pkg.id}`}
         className="inline-flex items-center gap-2 text-sm font-semibold text-cmt-neutral-700 transition-colors hover:text-cmt-neutral-900"

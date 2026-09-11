@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import PendingPolicyPage from "@/components/PendingPolicyPage";
+import PolicyPage from "@/components/PolicyPage";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
@@ -11,6 +11,6 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function PrivacyPage() {
-  return <PendingPolicyPage title="Privacy Policy" />;
+  return <PolicyPage policy="privacy" />;
 }
 

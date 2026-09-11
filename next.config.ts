@@ -1,7 +1,33 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  serverExternalPackages: ["google-gax", "protobufjs", "@google-cloud/firestore"],
+  webpack(config) {
+    // Client components also render on the server. Firebase's Node client entry
+    // imports gRPC/protobuf code generation, which workerd forbids during requests.
+    // Use the browser transport for the client SDK; Firebase Admin stays server-only.
+    config.resolve.alias["@firebase/firestore$"] = path.join(
+      process.cwd(), "node_modules/@firebase/firestore/dist/index.esm.js",
+    );
+    return config;
+  },
+  // Node tracing otherwise omits jose's workerd/browser export used by Firebase Admin.
+  outputFileTracingIncludes: {
+    "/*": ["node_modules/jwks-rsa/node_modules/jose/dist/browser/**/*"],
+  },
+  async headers() {
+    return [{ source: "/:path*", headers: [
+      { key: "Strict-Transport-Security", value: "max-age=31536000" },
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+      { key: "Content-Security-Policy", value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
+      { key: "Content-Security-Policy-Report-Only", value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google.com https://www.gstatic.com https://www.recaptcha.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https:; font-src 'self'; connect-src 'self' https:; frame-src https://*.firebaseapp.com https://www.google.com https://www.recaptcha.net; form-action 'self' https://secure.payu.in https://test.payu.in; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
+    ] }];
+  },
   trailingSlash: false,
   images: {
     /* Package photography imported from tourbazaar.in is served from the

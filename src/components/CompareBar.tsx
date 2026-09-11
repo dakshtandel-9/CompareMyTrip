@@ -140,7 +140,7 @@ export default function CompareBar() {
         {/* What is waiting inside, so the square is not a mystery. */}
         {count > 0 && (
           <span
-            className="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-cmt-full bg-cmt-primary-500 font-display text-[11px] font-bold text-cmt-neutral-900 shadow-cmt-xs"
+            className="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-cmt-full bg-cmt-primary-500 font-display text-xs font-bold text-cmt-neutral-900 shadow-cmt-xs"
             aria-hidden="true"
           >
             {count}

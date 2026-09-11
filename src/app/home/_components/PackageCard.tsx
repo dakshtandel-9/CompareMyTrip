@@ -56,7 +56,7 @@ export default function PackageCard({
 
         {marker && (
           <div
-            className={`absolute left-3 top-3 rounded-cmt-full border px-2.5 py-1 text-[11px] font-semibold ${BADGE_TONES[marker.tone]}`}
+            className={`absolute left-3 top-3 rounded-cmt-full border px-2.5 py-1 text-xs font-semibold ${BADGE_TONES[marker.tone]}`}
           >
             {marker.label}
           </div>
@@ -100,7 +100,7 @@ export default function PackageCard({
           {pkg.tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-cmt-full border border-cmt-neutral-200 bg-white px-2 py-0.5 text-[11px] font-medium text-cmt-neutral-700"
+              className="rounded-cmt-full border border-cmt-neutral-200 bg-white px-2 py-0.5 text-xs font-medium text-cmt-neutral-700"
             >
               {tag}
             </span>
@@ -108,7 +108,7 @@ export default function PackageCard({
         </div>
 
         {/* The operating partner is deliberately not named on the card. */}
-        <p className="mt-3 inline-flex items-center gap-1 text-[11px] text-cmt-neutral-500">
+        <p className="mt-3 inline-flex items-center gap-1 text-xs text-cmt-neutral-500">
           <RotateCcw className="h-3 w-3" strokeWidth={2} />
           Free cancellation
         </p>

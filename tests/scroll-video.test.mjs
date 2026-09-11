@@ -21,7 +21,7 @@ function setup() {
   };
   const exports = {};
   vm.runInNewContext(code, {
-    exports, window: { innerHeight: 1000 },
+    exports, window: { innerHeight: 1000, matchMedia: () => ({ matches: false }) },
     require: id => id === 'gsap' ? { gsap: {
       registerPlugin() {}, to(target, options) {
         position = target; config = options;

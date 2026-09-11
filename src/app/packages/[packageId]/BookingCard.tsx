@@ -78,7 +78,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
         {/* The operating partner is never named to the visitor — the header
             carries the trip itself. */}
         <span className="min-w-0">
-          <span className="block text-[11px] text-cmt-neutral-500">Package</span>
+          <span className="block text-xs text-cmt-neutral-500">Package</span>
           <span className="block truncate text-sm font-semibold">{pkg.location}</span>
         </span>
         <TrekGradeBadge pkg={pkg} className="ml-auto shrink-0 border border-cmt-neutral-200" />
@@ -144,7 +144,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
             {/* Said before the calendar is opened, so the greyed-out days are
                 explained rather than looking broken. */}
             {runsOnLabel ? (
-              <span className="shrink-0 rounded-cmt-full bg-cmt-primary-100 px-2 py-0.5 text-[11px] font-semibold text-cmt-neutral-800">
+              <span className="shrink-0 rounded-cmt-full bg-cmt-primary-100 px-2 py-0.5 text-xs font-semibold text-cmt-neutral-800">
                 {runsOnLabel}
               </span>
             ) : null}
@@ -233,7 +233,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           </button>
         </div>
 
-        <p className="flex items-center justify-center gap-1.5 border-t border-cmt-neutral-100 pt-4 text-[11px] text-cmt-neutral-600">
+        <p className="flex items-center justify-center gap-1.5 border-t border-cmt-neutral-100 pt-4 text-xs text-cmt-neutral-600">
           <ShieldCheck className="size-3.5 shrink-0 text-cmt-success-700" strokeWidth={2.25} aria-hidden="true" />
           Free cancellation
         </p>

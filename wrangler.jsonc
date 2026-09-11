@@ -5,6 +5,7 @@
   "compatibility_date": "2026-08-27",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "workers_dev": true,
+  "vars": { "NEXT_PUBLIC_SITE_URL": "https://comparemytrip.in", "PAYU_MODE": "test" },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
@@ -20,6 +21,6 @@
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DOQueueHandler"] }],
   "images": { "binding": "IMAGES" },
-  "triggers": { "crons": ["* * * * *"] },
+  "triggers": { "crons": ["0 * * * *"] },
   "observability": { "enabled": true }
 }

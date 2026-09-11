@@ -67,7 +67,7 @@ export default function WeekendTreks() {
                 />
 
                 {badgeLabel && (
-                  <span className="absolute left-3 top-3 rounded-cmt-full border border-cmt-primary-500/30 bg-cmt-primary-100 px-2.5 py-1 text-[11px] font-semibold text-cmt-neutral-800">
+                  <span className="absolute left-3 top-3 rounded-cmt-full border border-cmt-primary-500/30 bg-cmt-primary-100 px-2.5 py-1 text-xs font-semibold text-cmt-neutral-800">
                     {badgeLabel}
                   </span>
                 )}
@@ -89,7 +89,7 @@ export default function WeekendTreks() {
 
                 <dl className="mt-3 grid grid-cols-3 gap-3 text-cmt-neutral-700">
                   <div>
-                    <dt className="flex items-center gap-1 text-[11px] font-medium text-cmt-neutral-500">
+                    <dt className="flex items-center gap-1 text-xs font-medium text-cmt-neutral-500">
                       <Clock className="h-3 w-3" strokeWidth={2} aria-hidden="true" />
                       Duration
                     </dt>
@@ -99,7 +99,7 @@ export default function WeekendTreks() {
                   </div>
 
                   <div>
-                    <dt className="flex items-center gap-1 text-[11px] font-medium text-cmt-neutral-500">
+                    <dt className="flex items-center gap-1 text-xs font-medium text-cmt-neutral-500">
                       <Route className="h-3 w-3" strokeWidth={2} aria-hidden="true" />
                       Distance
                     </dt>
@@ -109,7 +109,7 @@ export default function WeekendTreks() {
                   </div>
 
                   <div>
-                    <dt className="flex items-center gap-1 text-[11px] font-medium text-cmt-neutral-500">
+                    <dt className="flex items-center gap-1 text-xs font-medium text-cmt-neutral-500">
                       <MountainSnow className="h-3 w-3" strokeWidth={2} aria-hidden="true" />
                       Summit
                     </dt>

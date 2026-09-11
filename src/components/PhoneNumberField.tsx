@@ -145,6 +145,7 @@ export default function PhoneNumberField({
             inputMode="tel"
             autoComplete="tel-national"
             required={required}
+            aria-required={required}
             aria-invalid={invalid}
             aria-describedby={describedBy}
             value={number}

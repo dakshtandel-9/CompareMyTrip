@@ -3,6 +3,8 @@ import { getAuth, GoogleAuthProvider, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
+
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -16,10 +18,21 @@ const firebaseConfig: FirebaseOptions = {
 // is lazy so importing this module (e.g. during SSR of the auth pages) never crashes the page before
 // NEXT_PUBLIC_FIREBASE_* is actually configured — the throw only happens when a sign-in is attempted,
 // where the caller's try/catch turns it into a normal on-page error instead of a 500.
+let appCheckInitialized = false;
 let app: FirebaseApp | undefined;
 function getFirebaseApp(): FirebaseApp {
   if (!app) {
     app = getApps().length ? getApps()[0]! : initializeApp(firebaseConfig);
+  }
+  if (typeof window !== "undefined" && !appCheckInitialized) {
+    const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY;
+    if (siteKey) {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(siteKey),
+        isTokenAutoRefreshEnabled: true,
+      });
+      appCheckInitialized = true;
+    }
   }
   return app;
 }

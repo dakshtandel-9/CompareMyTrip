@@ -73,7 +73,7 @@ export default function TravelGuides() {
                     />
 
                     {guide.category && (
-                      <span className="absolute left-3 top-3 rounded-cmt-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-cmt-neutral-700 backdrop-blur-sm">
+                      <span className="absolute left-3 top-3 rounded-cmt-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-cmt-neutral-700 backdrop-blur-sm">
                         {guide.category}
                       </span>
                     )}

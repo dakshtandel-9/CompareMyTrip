@@ -214,7 +214,7 @@ function YesNo({
 /* The winning cell in a row worth winning. */
 function BestTag({ label }: { label: string }) {
   return (
-    <span className="shrink-0 rounded-cmt-full bg-cmt-primary-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-cmt-neutral-900">
+    <span className="shrink-0 rounded-cmt-full bg-cmt-primary-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-cmt-neutral-900">
       {label}
     </span>
   );
@@ -459,7 +459,7 @@ export default function CompareBeforeYouBook() {
 
                     {badge && (
                       <span
-                        className={`absolute left-4 top-4 rounded-cmt-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                        className={`absolute left-4 top-4 rounded-cmt-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ${
                           badge.promoted
                             ? "bg-cmt-primary-500 text-cmt-neutral-900"
                             : "border border-cmt-neutral-200 bg-white/95 text-cmt-neutral-700 backdrop-blur-sm"
@@ -479,7 +479,7 @@ export default function CompareBeforeYouBook() {
                       {pkg.title}
                     </h3>
 
-                    <p className="mt-2.5 inline-flex w-fit items-center gap-1.5 rounded-cmt-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-2.5 py-1 text-[11px] font-semibold tabular-nums text-cmt-neutral-700">
+                    <p className="mt-2.5 inline-flex w-fit items-center gap-1.5 rounded-cmt-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-2.5 py-1 text-xs font-semibold tabular-nums text-cmt-neutral-700">
                       <Clock
                         className="h-3.5 w-3.5"
                         strokeWidth={2}
@@ -755,7 +755,7 @@ export default function CompareBeforeYouBook() {
                     </span>
 
                     {isCurrent && (
-                      <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold text-cmt-neutral-600">
+                      <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold text-cmt-neutral-600">
                         <Check
                           className="size-3"
                           strokeWidth={3}
@@ -766,7 +766,7 @@ export default function CompareBeforeYouBook() {
                     )}
 
                     {inAnotherColumn && (
-                      <span className="mt-0.5 block text-[11px] text-cmt-neutral-500">
+                      <span className="mt-0.5 block text-xs text-cmt-neutral-500">
                         Already compared
                       </span>
                     )}
