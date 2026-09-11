@@ -51,10 +51,10 @@ export function lockPageScroll({ root: lockRoot = false }: ScrollLockOptions = {
       top: `${-scrollY}px`,
       left: "0",
       right: "0",
-      width: "100%",
+      width: "100vw",
       overflow: "clip",
     });
-    root.style.overflow = "clip";
+    root.style.overflow = "hidden";
     root.style.overscrollBehavior = "none";
 
     restorePhoneScroll = () => {

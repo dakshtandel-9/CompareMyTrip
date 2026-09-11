@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import MobileNavigation from "@/components/MobileNavigation";
 import { Inter, Space_Grotesk } from "next/font/google";
 import WebsiteLoader from "@/components/WebsiteLoader";
@@ -26,6 +26,14 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   display: "swap",
 });
+
+// Keep the phone layout at device width during scrolling. No maximum scale
+// is set, so users can still pinch to zoom in.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  minimumScale: 1,
+};
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),

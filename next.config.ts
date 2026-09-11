@@ -2,6 +2,8 @@ import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The default bottom-left badge covers the phone navigation links.
+  devIndicators: { position: "top-left" },
   poweredByHeader: false,
   serverExternalPackages: ["google-gax", "protobufjs", "@google-cloud/firestore"],
   webpack(config) {

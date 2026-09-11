@@ -363,7 +363,7 @@ body {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     grid-template-rows: 48px;
     height: calc(64px + env(safe-area-inset-bottom));
-    min-width: 0; max-width: 100%; overflow: clip;
+    width: 100vw; min-width: 0; max-width: 100vw; overflow: clip;
     align-content: start; touch-action: pinch-zoom;
     padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
     border-top: 1px solid #e2e8f0; background: #fff;
@@ -600,9 +600,9 @@ body {
 }
 
 @media (max-width: 767px) {
-  /* Keep text and the viewport stable as browser chrome expands/collapses.
-     clip contains decorative overflow without creating a new scroll parent. */
-  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overflow-x: clip; }
+  /* Keep horizontal overflow hidden on the root scroll container;
+     body uses clip so sticky sections still follow the document scroll. */
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overflow-x: hidden; }
   body { overflow-x: clip; }
   body:has(.cmt-mobile-nav) {
     padding-bottom: calc(64px + env(safe-area-inset-bottom));

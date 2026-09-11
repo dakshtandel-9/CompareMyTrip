@@ -37,7 +37,7 @@ for (const closeOuterFirst of [false, true]) {
     assert.equal(body.style.position, 'fixed');
     assert.equal(body.style.top, '-640px');
     assert.equal(body.style.overflow, 'clip');
-    assert.equal(root.style.overflow, 'clip');
+    assert.equal(root.style.overflow, 'hidden');
     assert.equal(scrolls.length, 0);
     last();
     assert.equal(body.style.overflow, '');
@@ -76,7 +76,7 @@ test('phone unlock restores existing body layout styles', () => {
   Object.assign(body.style, { position: 'relative', top: '4px', left: '2px', right: 'auto', width: '95%', overflow: 'visible' });
   const before = { ...body.style };
   const unlock = lock();
-  assert.equal(body.style.width, '100%');
+  assert.equal(body.style.width, '100vw');
   unlock();
   assert.deepEqual(body.style, before);
 });
