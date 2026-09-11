@@ -1,5 +1,7 @@
 "use client";
 
+import { lockPageScroll } from "@/lib/lockPageScroll";
+
 import { useEffect, useState } from "react";
 import { CheckCircle2, LoaderCircle, Mail, MessageSquareText, UserRound, Users, X } from "lucide-react";
 import DepartureDatePicker from "@/components/DepartureDatePicker";
@@ -15,14 +17,13 @@ export default function QuoteModal({ pkg, initialTravellers, initialTravelDate =
   const profileState = useUserProfile();
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockPageScroll();
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
     window.addEventListener("keydown", closeOnEscape);
-    return () => { document.body.style.overflow = previousOverflow; window.removeEventListener("keydown", closeOnEscape); };
+    return () => { unlockScroll(); window.removeEventListener("keydown", closeOnEscape); };
   }, [onClose]);
 
-  return <div className="fixed inset-0 z-[100] grid overflow-y-auto bg-cmt-secondary-900/70 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="quote-modal-title"><button type="button" aria-label="Close quote form" onClick={onClose} className="fixed inset-0 cursor-default" /><div className="relative m-auto w-full max-w-xl overflow-hidden rounded-cmt-lg bg-white shadow-cmt-xl">
+  return <div className="cmt-quote-modal fixed inset-0 z-[100] grid overflow-y-auto bg-cmt-secondary-900/70 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="quote-modal-title"><button type="button" aria-label="Close quote form" onClick={onClose} className="fixed inset-0 cursor-default" /><div className="relative m-auto w-full max-w-xl overflow-hidden rounded-cmt-lg bg-white shadow-cmt-xl">
     {profileState.status === "loading" || authUser === undefined ? <div className="grid min-h-80 place-items-center"><LoaderCircle className="size-8 animate-spin text-cmt-primary-700" /></div> : profileState.status === "ready" && authUser ? <QuoteForm key={`${profileState.profile.email}-${profileState.profile.name}-${profileState.profile.phone}-${initialTravellers}-${initialTravelDate}`} pkg={pkg} profile={profileState.profile} userId={authUser.uid} initialTravellers={initialTravellers} initialTravelDate={initialTravelDate} onClose={onClose} /> : <div className="p-8 text-center"><p className="font-semibold">Please sign in to request a customized quote.</p></div>}
   </div></div>;
 }

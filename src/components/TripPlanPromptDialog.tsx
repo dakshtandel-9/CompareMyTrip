@@ -1,5 +1,7 @@
 "use client";
 
+import { lockPageScroll } from "@/lib/lockPageScroll";
+
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -141,21 +143,7 @@ export default function TripPlanPromptDialog() {
   useEffect(() => {
     if (!open) return;
 
-    const root = document.documentElement;
-    const body = document.body;
-    const previousRootOverflow = root.style.overflow;
-    const previousRootOverscroll = root.style.overscrollBehavior;
-    const previousBodyOverflow = body.style.overflow;
-
-    root.style.overflow = "hidden";
-    root.style.overscrollBehavior = "none";
-    body.style.overflow = "hidden";
-
-    return () => {
-      root.style.overflow = previousRootOverflow;
-      root.style.overscrollBehavior = previousRootOverscroll;
-      body.style.overflow = previousBodyOverflow;
-    };
+    return lockPageScroll({ root: true });
   }, [open]);
 
   const close = () => {

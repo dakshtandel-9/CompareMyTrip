@@ -26,9 +26,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Normal document flow is now only what a reduced-motion request gets. The
-   pinned, scroll-scrubbed hero runs on phones as well — see the block below
-   for the shorter journey it gets there. */
+/* Reduced motion keeps the hero in normal document flow. */
 @media (prefers-reduced-motion: reduce) {
   .cmt-hero { height: auto; }
   .cmt-hero-stage { position: relative; height: auto; }
@@ -436,7 +434,7 @@ body {
   .cmt-catalog-toolbar > div:last-child { width: 100%; padding: 8px; border-radius: 16px; background: #e9eef4; }
   .cmt-catalog-toolbar > div:last-child > button { flex: 0 0 38%; justify-content: center; border: 0; border-radius: 10px; }
   .cmt-catalog-toolbar > div:last-child > label { flex: 1; }
-  .cmt-catalog-toolbar select { padding-right: 24px; border: 0; border-radius: 10px; font-size: 13px; }
+  .cmt-catalog-toolbar select { min-width: 0; width: 100%; padding-right: 24px; border: 0; border-radius: 10px; font-size: 16px; }
   .cmt-catalog-card { border-radius: 20px; box-shadow: 0 3px 12px #0f172a06; }
   .cmt-catalog-card > div:first-child { aspect-ratio: 16 / 9; }
   .cmt-catalog-card > div:last-child { padding: 16px; }
@@ -493,7 +491,7 @@ body {
   .cmt-phone-dialog header h2 { font-size: 22px; line-height: 1.25; }
   .cmt-phone-dialog header p { font-size: 13px; }
 
-  .cmt-footer { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+  .cmt-footer { padding-bottom: 0; }
   .cmt-footer > div { padding-top: 32px; padding-bottom: 28px; }
   .cmt-footer > div > div > div:first-child { row-gap: 0; }
   .cmt-footer > div > div > div:first-child > div:first-child { padding-bottom: 28px; }
@@ -581,16 +579,6 @@ body {
   .cmt-home #newsletter-status:not(:has(svg)) { color: #cbd5e1; }
 }
 
-/* Keep one phone animation rule, after the shared/static layout. svh keeps
-   the scrub distance steady when the browser's address bar folds away. */
-@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
-  .cmt-hero:not(.cmt-hero-static) { height: calc(var(--cmt-hero-stage-height, 620px) + 160svh); }
-  .cmt-hero:not(.cmt-hero-static) .cmt-hero-stage {
-    position: sticky;
-    top: min(0px, calc(100svh - var(--cmt-hero-stage-height, 620px) - 76px - env(safe-area-inset-bottom)));
-  }
-}
-
 @media (max-width: 767px) and (max-height: 700px) {
   .cmt-hero { --cmt-hero-visual-height: 260px; }
   .cmt-hero-copy > :first-child { font-size: 27px; }
@@ -598,4 +586,46 @@ body {
   .cmt-hero-search { padding: 12px; }
   .cmt-search-tabs { padding-bottom: 10px; margin-bottom: 10px; }
   .cmt-search-fields > div { gap: 10px; }
+}
+
+@media (max-width: 767px) {
+  /* Keep text and the viewport stable as browser chrome expands/collapses.
+     clip contains decorative overflow without creating a new scroll parent. */
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overflow-x: clip; }
+  body { overflow-x: clip; }
+  body:has(.cmt-mobile-nav), body:has(.cmt-booking-dock) {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+  html:has(.cmt-mobile-nav), html:has(.cmt-booking-dock) {
+    scroll-padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+  .cmt-mobile-nav { min-height: calc(64px + env(safe-area-inset-bottom)); }
+  .cmt-mobile-nav-link { min-width: 0; line-height: 1.2; white-space: nowrap; }
+
+  /* The hero leaves with the page instead of pinning a short panel above
+     several blank screens. Only its background is scrubbed on phones. */
+  .cmt-hero-copy:not(:first-child) { display: none; }
+  .cmt-hero-copy:first-child { opacity: 1 !important; transform: none !important; }
+  .cmt-hero-scroll-hint { display: none; }
+  .cmt-hero .cmt-hero-intro { padding-bottom: 32px; }
+  .cmt-hero-content > div:last-child { margin-bottom: 12px; }
+  .cmt-search-field, .cmt-catalog-toolbar > div:last-child > label { min-width: 0; }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea {
+    min-width: 0;
+    max-width: 100%;
+  }
+  input[type="date"] { min-height: 44px; }
+
+  /* A drawer is the scroll container; its controls must not shrink when
+     the keyboard or a short phone leaves less vertical room. */
+  .cmt-menu { height: 100dvh; }
+  .cmt-menu > * { flex-shrink: 0; }
+  .cmt-filter-sheet > div:last-child { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  .cmt-phone-dialog form > div:last-child { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  .cmt-quote-modal { padding: 12px; overscroll-behavior: contain; }
+  .cmt-quote-modal form { max-height: calc(100dvh - 100px); overscroll-behavior: contain; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  .cmt-booking-dock > div > div:last-child { flex-shrink: 0; }
+  .cmt-kerala-dock > div > div:first-child { min-width: 0; }
+  .cmt-kerala-dock a, .cmt-kerala-dock button { padding-inline: 10px; font-size: 12px; white-space: nowrap; }
+  .cmt-kerala-dock p > span { display: none; }
 }

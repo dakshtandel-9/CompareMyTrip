@@ -43,6 +43,92 @@ test('production callbacks ignore localhost configuration and spoofed forwarded 
   const prod = load('src/lib/payu.ts', payuMocks, { NODE_ENV: 'production' });
   assert.equal(prod.siteOrigin(new Request('http://localhost:3100/api/payu/initiate', { headers: { 'x-forwarded-host': 'attacker.example' } })), 'https://comparemytrip.in');
 });
+test('development payment returns stay on the checkout origin despite the public site setting', () => {
+  const dev = load('src/lib/payu.ts', payuMocks, {
+    NODE_ENV: 'development', NEXT_PUBLIC_SITE_URL: 'https://comparemytrip.in',
+  });
+  for (const origin of ['http://localhost:3000', 'http://127.0.0.1:3100', 'https://checkout-preview.example']) {
+    assert.equal(dev.siteOrigin(new Request(`${origin}/api/payu/initiate`)), origin);
+  }
+});
+
+function paymentRoutes(env = {}) {
+  const payment = load('src/lib/payu.ts', payuMocks, {
+    NODE_ENV: 'development', NEXT_PUBLIC_SITE_URL: 'https://comparemytrip.in',
+    PAYU_MERCHANT_KEY: input.key, PAYU_SALT: input.salt, ...env,
+  });
+  const settled = [];
+  const pending = [];
+  const mocks = {
+    '@/lib/payu': { ...payment, resolvePackage: () => ({ id: 'p1', title: 'Trek', price: 2749 }) },
+    '@/lib/firebase/serverTrips': {
+      settleTrip: async value => { settled.push(value); },
+      createPendingTrip: async value => { pending.push(value); },
+    },
+    '@/lib/firebase/admin': { uidFromIdToken: async () => '' },
+    '@/lib/couponServer': { resolveCoupon: async () => ({ applied: null, error: '' }) },
+    '@/lib/packageData': { isDepartureAllowed: () => true },
+    '@/lib/coupons': { normaliseCode: value => value },
+  };
+  return {
+    callback: load('src/app/api/payu/callback/route.ts', mocks),
+    initiate: load('src/app/api/payu/initiate/route.ts', mocks),
+    settled, pending,
+  };
+}
+
+test('initiate sends both PayU return URLs to the local checkout server', async () => {
+  const { initiate, pending } = paymentRoutes();
+  const response = await initiate.POST(new Request('http://localhost:3100/api/payu/initiate', {
+    method: 'POST', body: new URLSearchParams({
+      packageId: 'p1', travellers: '2', firstname: input.firstname,
+      email: input.email, phone: '9999999999',
+    }),
+  }));
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /action="https:\/\/test.payu.in\/_payment"/);
+  for (const field of ['surl', 'furl']) {
+    assert.ok(html.includes(`name="${field}" value="http://localhost:3100/api/payu/callback"`));
+  }
+  assert.equal(pending.length, 1);
+});
+
+for (const [gatewayStatus, state, savedStatus] of [
+  ['success', 'success', 'successful'], ['failure', 'failed', 'failed'],
+]) {
+  test(`verified ${gatewayStatus} callback settles the trip and redirects locally with GET`, async () => {
+    const { callback, settled } = paymentRoutes();
+    const body = new URLSearchParams({
+      key: input.key, txnid: input.txnid, amount: input.amount,
+      productinfo: input.productinfo, firstname: input.firstname, email: input.email,
+      udf1: 'p1', udf2: '2', status: gatewayStatus,
+      hash: payu.buildResponseHash({ ...input, status: gatewayStatus }),
+    });
+    const response = await callback.POST(new Request('http://localhost:3100/api/payu/callback', { method: 'POST', body }));
+    assert.equal(response.status, 303);
+    const destination = new URL(response.headers.get('location'));
+    assert.equal(destination.origin, 'http://localhost:3100');
+    assert.equal(destination.pathname, '/checkout/status');
+    assert.equal(destination.searchParams.get('state'), state);
+    assert.equal(destination.searchParams.get('txnid'), input.txnid);
+    assert.equal(destination.searchParams.get('amount'), input.amount);
+    assert.equal(settled.length, 1);
+    assert.equal(settled[0].paymentStatus, savedStatus);
+  });
+}
+
+test('invalid callbacks stay local and cannot settle a payment', async () => {
+  const { callback, settled } = paymentRoutes();
+  const response = await callback.POST(new Request('http://localhost:3100/api/payu/callback', {
+    method: 'POST', body: new URLSearchParams({ status: 'success', hash: 'invalid' }),
+  }));
+  assert.equal(response.status, 303);
+  assert.equal(response.headers.get('location'), 'http://localhost:3100/checkout/status?state=error&reason=hash-mismatch');
+  const probe = await callback.GET(new Request('http://localhost:3100/api/payu/callback'));
+  assert.equal(probe.headers.get('location'), 'http://localhost:3100/checkout/status?state=error&reason=no-result');
+  assert.equal(settled.length, 0);
+});
 test('sandbox remains available but live payments require approved policies and explicit enablement', () => {
   const env = { NODE_ENV: 'production', PAYU_MERCHANT_KEY: 'test', PAYU_SALT: 'test', PAYU_MODE: 'test' };
   assert.equal(load('src/lib/payu.ts', payuMocks, env).getPayuConfig().endpoint, 'https://test.payu.in/_payment');

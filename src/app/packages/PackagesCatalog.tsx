@@ -1,5 +1,7 @@
 "use client";
 
+import { lockPageScroll } from "@/lib/lockPageScroll";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -517,8 +519,7 @@ export function CatalogContent({
   useEffect(() => {
     if (!mobileFiltersOpen) return;
     const previous = document.activeElement as HTMLElement | null;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockPageScroll();
     const panel = filterDialog.current;
     const targets = () => Array.from(panel?.querySelectorAll<HTMLElement>('button, input, select, [href], [tabindex="0"]') ?? []).filter(el => el.getClientRects().length > 0);
     targets()[0]?.focus();
@@ -531,7 +532,7 @@ export function CatalogContent({
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     };
     document.addEventListener("keydown", onKey);
-    return () => { document.body.style.overflow = overflow; document.removeEventListener("keydown", onKey); previous?.focus(); };
+    return () => { unlockScroll(); document.removeEventListener("keydown", onKey); previous?.focus(); };
   }, [mobileFiltersOpen]);
 
   const dealCount = useMemo(

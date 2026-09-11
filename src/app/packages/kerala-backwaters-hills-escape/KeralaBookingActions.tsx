@@ -46,7 +46,7 @@ export default function KeralaBookingActions({ mobile = false }: { mobile?: bool
             onClick={openQuote}
             className="inline-flex h-11 items-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-3 text-xs font-semibold text-cmt-neutral-900 shadow-cmt-primary"
           >
-            Get customized quote <ArrowRight className="size-4" />
+            <span className="md:hidden">Get quote</span><span className="hidden md:inline">Get customized quote</span><ArrowRight className="size-4 max-md:hidden" />
           </button>
         </div>
       ) : (

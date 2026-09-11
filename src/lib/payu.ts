@@ -191,10 +191,11 @@ export function hashesMatch(a: string, b: string) {
   return diff === 0;
 }
 
-/** PayU needs absolute surl/furl. Prefer the configured site URL, fall back
-    to whatever host the request actually arrived on. */
+/** PayU needs absolute surl/furl. Production uses the trusted canonical
+    origin; development returns to the server running checkout, including
+    its port. The public SEO URL may still point at production locally. */
 export function siteOrigin(request: Request) {
-  if (process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_SITE_URL) {
+  if (process.env.NODE_ENV === "production") {
     return getSiteUrl().origin;
   }
   return new URL(request.url).origin;

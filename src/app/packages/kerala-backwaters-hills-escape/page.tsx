@@ -395,7 +395,7 @@ export default function KeralaPackagePage() {
           </div>
         </section>
 
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-cmt-neutral-200 bg-white/95 p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
+        <div className="cmt-booking-dock cmt-kerala-dock fixed inset-x-0 bottom-0 z-40 border-t border-cmt-neutral-200 bg-white/95 p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
             <div><p className="text-xs text-cmt-neutral-500">Starting from</p><p className="font-display text-lg font-bold">₹12,999 <span className="font-body text-xs font-normal text-cmt-neutral-500">/person</span></p></div>
             <KeralaBookingActions mobile />

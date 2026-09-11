@@ -1,5 +1,7 @@
 "use client";
 
+import { lockPageScroll } from "@/lib/lockPageScroll";
+
 import { useEffect, useRef, useState, useCallback } from "react";
 import BrandLogo from "@/components/BrandLogo";
 import Link from "next/link";
@@ -116,9 +118,8 @@ export default function Header() {
   // ---- Lock body scroll when mobile menu is open --------------------------
   useEffect(() => {
     if (!isMobileMenuOpen) return;
-    const previousOverflow = document.body.style.overflow;
     const previousFocus = document.activeElement as HTMLElement | null;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockPageScroll();
     const menu = mobileMenuRef.current;
     menu?.querySelector<HTMLButtonElement>("button")?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
@@ -143,7 +144,7 @@ export default function Header() {
     document.addEventListener("keydown", onKeyDown);
     desktop.addEventListener("change", onLayoutChange);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       document.removeEventListener("keydown", onKeyDown);
       desktop.removeEventListener("change", onLayoutChange);
       previousFocus?.focus();

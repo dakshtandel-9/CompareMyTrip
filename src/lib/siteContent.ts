@@ -945,6 +945,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
           { id: "nav-addon-1", label: "Flights", href: "/add-on?service=flights" },
           { id: "nav-addon-2", label: "Hotels", href: "/add-on?service=hotels" },
           { id: "nav-addon-3", label: "Visa", href: "/add-on?service=visa" },
+          { id: "nav-addon-4", label: "Bring Your Quote", href: "/add-on?service=byq#add-on-enquiry" },
         ],
       },
       { id: "nav-6", label: "Travel Guides", href: "/blog", children: [] },
@@ -2008,6 +2009,16 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     "nav-4": "International Holidays",
   };
   const upgradedHeaderItems = normalizedHeaderItems.map((item) => {
+    // Add the quote form to headers already saved in the CRM as well.
+    if (item.id === "nav-addon") {
+      const quoteLink = base.header.items
+        .find((entry) => entry.id === "nav-addon")?.children
+        .find((child) => child.id === "nav-addon-4");
+      const hasQuoteLink = item.children.some((child) =>
+        child.id === "nav-addon-4" || child.href.split("#")[0] === "/add-on?service=byq",
+      );
+      if (quoteLink && !hasQuoteLink) return { ...item, children: [...item.children, quoteLink] };
+    }
     if (legacyHeaderLabels[item.id] !== item.label) return item;
     return base.header.items.find((defaultItem) => defaultItem.id === item.id) ?? item;
   });

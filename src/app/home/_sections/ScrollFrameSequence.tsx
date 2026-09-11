@@ -67,17 +67,6 @@ export default function ScrollFrameSequence() {
     const motion = window.matchMedia("(prefers-reduced-motion: no-preference)");
     const phone = window.matchMedia("(max-width: 767px)");
     const reducedData = window.matchMedia("(prefers-reduced-data: reduce)");
-    // Measure the real panel, including edited copy and larger system fonts.
-    // Short phones can scroll its top away before pinning, keeping Search
-    // reachable above the bottom navigation throughout the sequence.
-    const measureStage = () => {
-      if (phone.matches) wrapper.style.setProperty("--cmt-hero-stage-height", `${stage.offsetHeight}px`);
-      else wrapper.style.removeProperty("--cmt-hero-stage-height");
-    };
-    const stageObserver = new ResizeObserver(measureStage);
-    stageObserver.observe(stage);
-    measureStage();
-
     // Last values written to the DOM, so the copy only touches style when it
     // has really moved. Rebuilt whenever the blocks themselves change.
     let lastShown: number[] = [];
@@ -125,16 +114,16 @@ export default function ScrollFrameSequence() {
       copyDirtyRef.current = true;
       const enabled = shouldLoadVideo({ allowMobile: true });
       wrapper.classList.toggle("cmt-hero-static", !enabled);
-      measureStage();
       if (!enabled) { drawCopy(0); return; }
       stopSequence = startScrollVideo({
         wrapper,
         video,
         src: VIDEO_SRC,
         tailHold: TAIL_HOLD,
-        onProgress: drawCopy,
+        // Phone copy stays legible as the unpinned hero scrolls out of view.
+        onProgress: (progress) => drawCopy(phone.matches ? 0 : progress),
         scrollDistance: () => phone.matches
-          ? wrapper.offsetHeight - stage.offsetHeight
+          ? stage.offsetHeight
           : wrapper.offsetHeight - window.innerHeight,
       });
     };
@@ -143,7 +132,6 @@ export default function ScrollFrameSequence() {
     queries.forEach(query => query.addEventListener("change", syncLayout));
     return () => {
       stopSequence?.();
-      stageObserver.disconnect();
       queries.forEach(query => query.removeEventListener("change", syncLayout));
     };
   }, [hero.enabled]);

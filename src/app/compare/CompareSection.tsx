@@ -397,14 +397,14 @@ export default function CompareSection() {
         />
 
         {/* The decision layer: identity, duration, price, action. */}
-        <ul className="cmt-mobile-rail mt-8 grid list-none grid-cols-1 gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-4">
+        <ul className="mt-6 grid min-w-0 list-none grid-cols-1 gap-4 md:mt-10 md:grid-cols-3">
           {columns.map((pkg, index) => {
             if (!pkg) {
               /* An emptied slot keeps its place rather than closing the
                  gap, so the reader can see there is room for one more. */
               return (
                 <li key={`empty-${index}`} className="min-w-0">
-                  <article className="flex h-full min-h-64 flex-col items-center justify-center gap-2 rounded-cmt-lg border border-dashed border-cmt-neutral-300 bg-white p-6 text-center">
+                  <article className="flex h-full min-h-44 flex-col items-center justify-center gap-2 rounded-cmt-lg border border-dashed border-cmt-neutral-300 bg-white p-6 text-center md:min-h-64">
                     <span className="grid size-11 place-items-center rounded-cmt-full bg-cmt-neutral-50 text-cmt-neutral-500">
                       <Plus
                         className="h-5 w-5"
@@ -439,7 +439,7 @@ export default function CompareSection() {
             return (
               <li key={`${pkg.id}-${index}`} className="min-w-0">
                 <article
-                  className={`flex h-full flex-col overflow-hidden rounded-cmt-lg bg-white transition-colors duration-200 ${
+                  className={`grid h-full grid-cols-[88px_minmax(0,1fr)] overflow-hidden rounded-cmt-lg md:flex md:flex-col bg-white transition-colors duration-200 ${
                     isPromoted
                       ? "border border-cmt-primary-500 ring-1 ring-inset ring-cmt-primary-500"
                       : "border border-cmt-neutral-200 hover:border-cmt-neutral-300"
@@ -447,12 +447,12 @@ export default function CompareSection() {
                 >
                   {/* A strip rather than a hero: enough to place the
                       destination, not enough to outweigh the numbers. */}
-                  <div className="relative h-40 w-full shrink-0 overflow-hidden bg-cmt-neutral-100 sm:h-44">
+                  <div className="relative h-full min-h-32 w-full shrink-0 overflow-hidden bg-cmt-neutral-100 md:h-44">
                     <Image
                       src={pkg.image}
                       alt=""
                       fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 480px"
+                      sizes="(max-width: 767px) 88px, (max-width: 1024px) 33vw, 480px"
                       className="object-cover"
                     />
                     <div
@@ -462,7 +462,7 @@ export default function CompareSection() {
 
                     {badge && (
                       <span
-                        className={`absolute left-4 top-4 rounded-cmt-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                        className={`absolute inset-x-1 top-2 rounded-cmt-control px-1 py-1 text-center text-[9px] md:inset-x-auto md:left-4 md:top-4 md:rounded-cmt-full md:px-2.5 md:text-[11px] font-semibold uppercase tracking-wide ${
                           badge.promoted
                             ? "bg-cmt-primary-500 text-cmt-neutral-900"
                             : "border border-cmt-neutral-200 bg-white/95 text-cmt-neutral-700 backdrop-blur-sm"
@@ -473,16 +473,16 @@ export default function CompareSection() {
                     )}
                   </div>
 
-                  <div className="flex flex-1 flex-col p-5 sm:p-6">
-                    <p className="truncate text-xs font-medium text-cmt-neutral-500">
+                  <div className="flex min-w-0 flex-1 flex-col p-4 md:p-6">
+                    <p className="text-xs font-medium text-cmt-neutral-500 md:truncate">
                       {pkg.location}
                     </p>
 
-                    <h3 className="mt-1 line-clamp-2 font-display text-[17px] font-semibold leading-snug text-cmt-neutral-900 sm:text-lg">
+                    <h3 className="mt-1 break-words font-display text-base font-semibold leading-snug text-cmt-neutral-900 md:line-clamp-2 md:text-lg">
                       {pkg.title}
                     </h3>
 
-                    <p className="mt-2.5 inline-flex w-fit items-center gap-1.5 rounded-cmt-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-2.5 py-1 text-[11px] font-semibold tabular-nums text-cmt-neutral-700">
+                    <p className="mt-2.5 inline-flex w-fit flex-wrap items-center gap-1.5 rounded-cmt-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-2.5 py-1 text-[11px] font-semibold tabular-nums text-cmt-neutral-700">
                       <Clock
                         className="h-3.5 w-3.5"
                         strokeWidth={2}
@@ -514,7 +514,7 @@ export default function CompareSection() {
                       <button
                         type="button"
                         onClick={() => setPickerColumn(index)}
-                        className="mx-auto mt-2.5 flex h-8 items-center gap-1.5 rounded-cmt-control px-2 text-xs font-semibold text-cmt-neutral-600 transition-colors hover:bg-cmt-neutral-50 hover:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                        className="mx-auto mt-2.5 flex min-h-11 items-center gap-1.5 rounded-cmt-control px-2 text-xs font-semibold text-cmt-neutral-600 transition-colors hover:bg-cmt-neutral-50 hover:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                       >
                         <ArrowLeftRight
                           className="h-3.5 w-3.5"
@@ -544,10 +544,30 @@ export default function CompareSection() {
           </p>
         ) : (
           <div className="relative mt-4 rounded-cmt-lg border border-cmt-neutral-200 bg-white sm:mt-5">
-            {/* Scrolls sideways on small screens with the attribute column
-              pinned; from lg the table fits, so the container stops being a
-              scroll box and the header row can stick under the site header. */}
-            <div className="overflow-x-auto rounded-t-cmt-lg lg:overflow-visible [scrollbar-width:thin]">
+            {/* Phones show labelled values in rows; larger screens keep the
+                comparison table, with horizontal scrolling on tablets. */}
+            <div className="divide-y divide-cmt-neutral-200 md:hidden">
+              {visibleRows.map((row) => {
+                const bestIndex = row.best ? row.best(filled) : -1;
+                return (
+                  <section key={row.label} className="p-4">
+                    <h3 className="text-sm font-semibold text-cmt-neutral-900">{row.label}</h3>
+                    <dl className="mt-3 space-y-2">
+                      {filled.map((pkg, index) => (
+                        <div key={pkg.id} className={`grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-3 rounded-cmt-sm p-3 ${index === bestIndex ? "bg-cmt-primary-50" : "bg-cmt-neutral-50"}`}>
+                          <dt className="break-words text-xs font-medium leading-relaxed text-cmt-neutral-600">{pkg.title}</dt>
+                          <dd className="min-w-0 space-y-2 break-words text-sm text-cmt-neutral-900">
+                            <div>{row.render(pkg, attributesFor(pkg))}</div>
+                            {index === bestIndex && row.bestLabel && <BestTag label={row.bestLabel} />}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </section>
+                );
+              })}
+            </div>
+            <div className="hidden overflow-x-auto rounded-t-cmt-lg md:block lg:overflow-visible [scrollbar-width:thin]">
               <table className="w-full min-w-[860px] table-fixed border-separate border-spacing-0 text-left lg:min-w-0">
                 <caption className="sr-only">
                   Side-by-side comparison of the shortlisted packages across
@@ -662,7 +682,7 @@ export default function CompareSection() {
         <p className="mt-3 text-xs leading-relaxed text-cmt-neutral-500">
           Highlights are computed from the packages shown, never sponsored: best
           value is the lowest cost per night.
-          <span className="lg:hidden">
+          <span className="hidden md:inline lg:hidden">
             {" "}
             Swipe the table sideways to see every package.
           </span>
@@ -679,7 +699,7 @@ export default function CompareSection() {
           if (event.target === dialogRef.current) setPickerColumn(null);
         }}
         aria-labelledby="package-picker-title"
-        className="m-auto w-[min(560px,calc(100vw-2rem))] rounded-cmt-md border border-cmt-neutral-200 bg-white p-0 shadow-cmt-xl backdrop:bg-cmt-neutral-900/50"
+        className="m-auto max-h-[calc(100dvh-2rem)] w-[min(560px,calc(100vw-2rem))] rounded-cmt-md border border-cmt-neutral-200 bg-white p-0 shadow-cmt-xl backdrop:bg-cmt-neutral-900/50"
       >
         <div className="flex items-start justify-between gap-4 border-b border-cmt-neutral-100 p-5">
           <div>
@@ -752,7 +772,7 @@ export default function CompareSection() {
                     </span>
                   </span>
 
-                  <span className="shrink-0 text-right">
+                  <span className="max-w-[40%] shrink-0 text-right">
                     <span className="block font-display text-sm font-bold tabular-nums text-cmt-neutral-900">
                       ₹{pkg.price.toLocaleString("en-IN")}
                     </span>
