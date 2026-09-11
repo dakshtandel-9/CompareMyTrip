@@ -3,42 +3,11 @@
 import { useEffect, useRef } from "react";
 import ContentImage from "../_components/ContentImage";
 import HeroSearch from "../_components/HeroSearch";
-import { frameSequenceDir } from "@/lib/frameSequenceSource";
-import { startScrollFrameSequence } from "@/lib/scrollFrameSequence";
+import { startScrollVideo } from "@/lib/scrollVideo";
 import { useSiteContent } from "@/lib/useSiteContent";
 
-// One continuous clip — final_video.mp4 exported to a 24fps frame sequence —
-// scrubbed end to end by scroll. The frames are served from R2 rather than
-// /public; see frameSequenceSource.
-//
-// Two cuts of the same 362 frames are published: 1920x1080 (~54KB a frame)
-// and 960x540 (~23KB). The controller picks between them from how many
-// pixels the canvas is actually going to be given, so a phone is never made
-// to download a picture it has no way of showing.
-//
-// 1920 rather than anything larger because the canvas is capped at 2x DPR:
-// on a retina laptop it lands on 1920 exactly and draws these 1:1. A 2560
-// cut measured 65% heavier for pixels that never survive the downscale.
-// Encoded at WebP q64 with -sharp_yuv, which came in a quarter smaller than
-// q78 with no difference visible at 1:1.
-const FRAME_COUNT = 362;
-const FRAMES_DIR = frameSequenceDir("hero-frames-v3");
-const FRAMES_DIR_SMALL = frameSequenceDir("hero-frames-v3-sm");
-
-// How many of the 362 are actually fetched. Not all of them, and the reason
-// is latency rather than bytes: the frames come from R2's public
-// pub-*.r2.dev endpoint, which speaks only http/1.1 — so a browser keeps six
-// requests to it in the air and queues the rest — and is not CDN-cached,
-// ~790ms to first byte against ~170ms for cloudflare.com. Frames therefore
-// arrive at roughly a dozen a second whatever we do, and the sequence is
-// filling in while it is being scrolled through. Asking for fewer is what
-// makes the ones you are actually looking at show up in time.
-//
-// Put a custom domain in front of the bucket and this stops being true:
-// http/2 multiplexing and a real cache edge, at which point high can go back
-// to the full 362 for the smoothest scrub the footage can give.
-const MAX_FRAMES = { high: 240, medium: 160, low: 100 };
-
+// Derived from public/videos/1.mp4 with frequent keyframes for scroll seeking.
+const VIDEO_SRC = "/videos/1-scroll.mp4";
 
 // The slice of the hero's scroll that comes after the clip's last frame,
 // holding it on screen before the section unpins. Without it the sequence
@@ -67,10 +36,10 @@ export default function ScrollFrameSequence() {
 
 
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const copyRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // The scrub loop owns the frame sequence; it must not be torn down and
+  // The scrub controller owns the video; it must not be torn down and
   // rebuilt because an editor renamed a headline. The copy reaches it through
   // a ref instead, written after commit — and the same effect marks the
   // blocks dirty, since a re-render hands the loop fresh DOM nodes with their
@@ -85,8 +54,8 @@ export default function ScrollFrameSequence() {
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
-    const canvas = canvasRef.current;
-    if (!wrapper || !canvas) return;
+    const video = videoRef.current;
+    if (!wrapper || !video) return;
 
     const animatedLayout = window.matchMedia("(min-width: 768px) and (prefers-reduced-motion: no-preference)");
 
@@ -136,16 +105,12 @@ export default function ScrollFrameSequence() {
       stopSequence = undefined;
       copyDirtyRef.current = true;
       if (!animatedLayout.matches) return;
-      stopSequence = startScrollFrameSequence({
-      wrapper,
-      canvas,
-      dir: FRAMES_DIR,
-      smallDir: FRAMES_DIR_SMALL,
-      ext: "webp",
-      count: FRAME_COUNT,
-      tailHold: TAIL_HOLD,
-      maxFrames: MAX_FRAMES,
-      onProgress: drawCopy,
+      stopSequence = startScrollVideo({
+        wrapper,
+        video,
+        src: VIDEO_SRC,
+        tailHold: TAIL_HOLD,
+        onProgress: drawCopy,
       });
     };
     syncLayout();
@@ -156,27 +121,34 @@ export default function ScrollFrameSequence() {
     };
   }, [hero.enabled]);
 
-  /* After the frame-loading effect, never before — an early bail would
+  /* After the video effect, never before — an early bail would
      change the hook order between an enabled and a disabled hero. */
   if (!hero.enabled) return null;
 
   return (
-    // Tall on purpose, but no taller than the scrub needs: ~5 viewports drive
-    // the sequence and the last of them holds its closing frame. The clip is
-    // shorter than the one this replaced, but it is also no longer strided
-    // down on a laptop, so the scroll per drawn frame is about what it was.
-    <div ref={wrapperRef} className="cmt-hero relative h-[600vh] bg-white">
+    // A shorter scroll journey, with a pause on the closing frame.
+    <div ref={wrapperRef} className="cmt-hero relative h-[450vh] bg-white">
       <div className="cmt-hero-stage sticky top-0 flex h-screen w-full items-center justify-center p-3 sm:p-4 md:p-6">
         <div className="cmt-hero-surface relative h-full w-full overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:rounded-3xl">
           <ContentImage
-            src="/images/destinations-header-banner.jpg"
+            src="/videos/1-poster.jpg"
             alt=""
             fill
             fetchPriority="high"
             sizes="100vw"
             className="object-cover"
           />
-          <canvas ref={canvasRef} aria-hidden="true" className="absolute inset-0 block h-full w-full" />
+          <video
+            ref={videoRef}
+            muted
+            playsInline
+            preload="none"
+            poster="/videos/1-poster.jpg"
+            aria-hidden="true"
+            tabIndex={-1}
+            style={{ opacity: 0 }}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          />
 
           {/* Weighted to the bottom so the glass search panel keeps its
               contrast over the brightest frames of the sequence. */}

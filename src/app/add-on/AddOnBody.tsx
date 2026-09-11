@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
+import Image from "next/image";
 import { Check, Clock3, ShieldCheck } from "lucide-react";
 
 import AddOnForm from "./AddOnForm";
@@ -28,7 +29,52 @@ const REASSURANCE = [
   { icon: Check, title: "Real options, not one", body: "You get a shortlist with the trade-offs spelled out, not a single quote." },
 ];
 
-export default function AddOnBody({ initialService }: { initialService: ServiceId }) {
+const HOTEL_LOGOS = [
+  { src: "/hotelLogo/hotel11.png", name: "The Leela" },
+  { src: "/hotelLogo/hotel12.png", name: "Sarovar Hotels & Resorts" },
+  { src: "/hotelLogo/hotel13.png", name: "The Fern Hotels & Resorts" },
+  { src: "/hotelLogo/hotel14.png", name: "Hyatt" },
+  { src: "/hotelLogo/hotel15.png", name: "Lemon Tree Hotels" },
+  { src: "/hotelLogo/hotel16.png", name: "Hilton Hotels & Resorts" },
+  { src: "/hotelLogo/hotel17.png", name: "Oberoi Hotels & Resorts" },
+  { src: "/hotelLogo/hotel18.png", name: "ITC Hotels" },
+  { src: "/hotelLogo/hotel19.png", name: "Marriott" },
+  { src: "/hotelLogo/hotel110.png", name: "Taj" },
+];
+
+const FLIGHT_LOGOS = [
+  { src: "/Flight/Flight1.png", name: "SpiceJet" },
+  { src: "/Flight/Flight2.png", name: "Air India Express" },
+  { src: "/Flight/Flight3.png", name: "Oman Air" },
+  { src: "/Flight/Flight4.png", name: "Gulf Air" },
+  { src: "/Flight/Flight5.png", name: "Saudia" },
+  { src: "/Flight/Flight6.png", name: "SpiceJet" },
+  { src: "/Flight/Flight7.png", name: "Air India Express" },
+  { src: "/Flight/Flight8.png", name: "Air India" },
+  { src: "/Flight/Flight9.png", name: "Akasa Air" },
+  { src: "/Flight/Flight10.png", name: "IndiGo" },
+];
+
+const VISA_LOGOS = [
+  { src: "/visaLogo/visa1.png", name: "New Zealand" },
+  { src: "/visaLogo/visa2.png", name: "Maldives" },
+  { src: "/visaLogo/visa3.png", name: "Malaysia" },
+  { src: "/visaLogo/visa4.png", name: "Japan" },
+  { src: "/visaLogo/visa5.png", name: "Hong Kong" },
+  { src: "/visaLogo/visa6.png", name: "Antarctica" },
+  { src: "/visaLogo/visa7.png", name: "Bali, Indonesia" },
+  { src: "/visaLogo/visa8.png", name: "Sri Lanka" },
+  { src: "/visaLogo/visa9.png", name: "Thailand" },
+  { src: "/visaLogo/visa10.png", name: "Vietnam" },
+];
+
+const SERVICE_LOGOS = {
+  hotels: { title: "Hotel brands", logos: HOTEL_LOGOS },
+  flights: { title: "Airlines", logos: FLIGHT_LOGOS },
+  visa: { title: "Destinations", logos: VISA_LOGOS },
+};
+
+export default function AddOnBody({ initialService, children }: { initialService: ServiceId; children?: ReactNode }) {
   const [active, setActive] = useState<ServiceId>(() => toServiceId(initialService));
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -72,8 +118,12 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
       </section>
 
       {/* Tabs + the open panel */}
-      <section className="w-full px-4 py-10 sm:px-5 sm:py-14 lg:px-6 lg:py-16">
+      <section id="add-on-enquiry" className="scroll-mt-28 w-full px-4 py-10 sm:px-5 sm:py-14 lg:px-6 lg:py-16">
         <div className="mx-auto w-full max-w-[1440px]">
+          <a href="#quote-guarantee" className="mb-6 flex w-fit items-center gap-2 rounded-cmt-control border border-cmt-primary-500/40 bg-cmt-primary-100/50 px-4 py-3 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:bg-cmt-primary-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500">
+            <ShieldCheck size={18} className="shrink-0 text-cmt-primary-700" aria-hidden="true" />
+            Already have a quote? See our price-beat guarantee ↓
+          </a>
           <div
             role="tablist"
             aria-label="Choose what you need"
@@ -178,12 +228,32 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
                       ))}
                     </div>
                   </div>
+                    <section aria-labelledby={`${service.id}-brands-heading`} className="mt-6 rounded-cmt-lg border border-cmt-neutral-200 bg-cmt-neutral-50 p-6 sm:p-8">
+                      <h3 id={`${service.id}-brands-heading`} className="font-display text-xl font-semibold leading-[1.25] text-cmt-neutral-900 sm:text-2xl">
+                        {SERVICE_LOGOS[service.id].title}
+                      </h3>
+                      <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5 lg:grid-cols-2">
+                        {SERVICE_LOGOS[service.id].logos.map((brand) => (
+                          <li key={brand.src} className="flex items-center justify-center overflow-hidden rounded-cmt-control border border-cmt-neutral-200 bg-white px-2">
+                            <Image
+                              src={brand.src}
+                              alt={brand.name}
+                              width={service.id === "flights" ? 1448 : 1254}
+                              height={service.id === "flights" ? 1086 : 1254}
+                              sizes={service.id === "flights" ? "150px" : "112px"}
+                              className={service.id === "flights" ? "h-28 w-full object-contain" : "h-28 w-28 object-contain"}
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
                 </aside>
               </div>
             </div>
           ))}
         </div>
       </section>
+      {children}
     </main>
   );
 }

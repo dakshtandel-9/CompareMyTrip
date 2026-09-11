@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 
+import { quoteFileError, sendEnquiryWithQuote } from "@/lib/quoteUpload";
 import PhoneNumberField from "@/components/PhoneNumberField";
 import { saveContactEnquiry } from "@/lib/firebase/enquiries";
 import { useUserProfile } from "@/lib/firebase/useUserProfile";
@@ -88,6 +89,8 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
 
   const [values, setValues] = useState<Values>(empty);
   const [errors, setErrors] = useState<Errors>({});
+  const [quoteFile, setQuoteFile] = useState<File | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
@@ -128,8 +131,11 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
     setSubmissionError("");
     const found = validate(service, values);
+    if (errors.quote) found.quote = errors.quote;
+    if (quoteFile) { const error = quoteFileError(quoteFile); if (error) found.quote = error; }
     setErrors(found);
     if (Object.keys(found).length > 0) {
       // Move focus to the first problem so keyboard and screen-reader users
@@ -141,7 +147,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
     try {
       setSubmitting(true);
       const summary = service.summary(values);
-      await saveContactEnquiry({
+      const enquiry = {
         name: values.name,
         email: values.email,
         phone: values.phone,
@@ -149,7 +155,10 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
         departure: summary.departure,
         travellers: summary.travellers,
         message: composeMessage(service, values, values.notes ?? ""),
-      });
+      };
+      if (quoteFile) await sendEnquiryWithQuote(quoteFile, enquiry);
+      else await saveContactEnquiry(enquiry);
+      setQuoteFile(null);
       setSent(true);
       // Keep a signed-in visitor's details in place for the next enquiry.
       setValues(applyPrefill(empty()));
@@ -249,6 +258,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="grid gap-5 sm:grid-cols-2">
+      <fieldset disabled={submitting} className="contents">
       {visibleFields(service, values).map(renderField)}
 
       {/* Contact block — the same three questions on every tab. */}
@@ -326,6 +336,22 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
         />
       </div>
 
+      <div className="rounded-cmt-md border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 p-5 sm:col-span-2">
+        <label htmlFor={fieldId("quote")} className={LABEL}>Already have a quote? Attach your PDF <span className="font-normal text-cmt-neutral-500">(optional)</span></label>
+        <p id={`${fieldId("quote")}-hint`} className="mt-2 text-sm leading-6 text-cmt-neutral-600">PDF only, maximum 10 MB. Your attachment expires after 72 hours and is automatically deleted. Your enquiry details stay with our travel desk.</p>
+        <input ref={fileRef} id={fieldId("quote")} name="quote" type="file" accept=".pdf,application/pdf" aria-invalid={Boolean(errors.quote)} aria-describedby={`${fieldId("quote")}-hint${errors.quote ? ` ${fieldId("quote")}-error` : ""}`}
+          onChange={(event) => {
+            const file = event.target.files?.[0] ?? null;
+            const error = file ? quoteFileError(file) : "";
+            setErrors(current => ({ ...current, quote: error }));
+            setQuoteFile(error ? null : file);
+            if (error) event.target.value = "";
+          }}
+          className="mt-3 block w-full min-w-0 rounded-lg text-sm text-cmt-neutral-600 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-4 file:py-3 file:font-semibold file:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-cmt-primary-500" />
+        <FieldError id={`${fieldId("quote")}-error`} message={errors.quote} />
+        {(quoteFile || errors.quote) && <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-cmt-neutral-600">{quoteFile && <span className="break-all">{quoteFile.name} · {(quoteFile.size / 1_000_000).toFixed(2)} MB · uploaded when you send</span>}<button type="button" onClick={() => { setQuoteFile(null); setErrors(current => { const next = { ...current }; delete next.quote; return next; }); if (fileRef.current) fileRef.current.value = ""; }} className="min-h-9 rounded px-2 font-semibold underline focus-visible:outline-2 focus-visible:outline-cmt-primary-500">Remove PDF</button></div>}
+      </div>
+
       <div className="sm:col-span-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-6">
         {submissionError ? (
           <p
@@ -342,7 +368,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           disabled={submitting}
           className="group inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-cmt-control bg-cmt-primary-500 px-8 font-body text-[18px] font-semibold tracking-[0.005em] text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 active:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 disabled:cursor-wait disabled:opacity-60 sm:w-auto"
         >
-          {submitting ? "Sending…" : `Send ${service.label.toLowerCase()} enquiry`}
+          {submitting ? (quoteFile ? "Uploading and sending…" : "Sending…") : `Send ${service.label.toLowerCase()} enquiry`}
           <ArrowRight
             className="h-5 w-5 transition-transform duration-150 group-hover:translate-x-0.5"
             strokeWidth={2.5}
@@ -355,6 +381,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           <span className="text-cmt-error-500">*</span> are required.
         </p>
       </div>
+      </fieldset>
     </form>
   );
 }

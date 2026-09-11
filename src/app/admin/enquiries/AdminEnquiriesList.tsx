@@ -23,6 +23,12 @@ export default function AdminEnquiriesList({ kind }: { kind: "contact" | "packag
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [updatingId, setUpdatingId] = useState("");
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const [downloadingId, setDownloadingId] = useState("");
   const [deletingId, setDeletingId] = useState("");
 
   useEffect(() => {
@@ -72,6 +78,20 @@ export default function AdminEnquiriesList({ kind }: { kind: "contact" | "packag
     finally { setDeletingId(""); }
   };
 
+  const downloadQuote = async (enquiry: ContactEnquiry) => {
+    setDownloadingId(enquiry.id); setError("");
+    try {
+      const token = await authUser?.getIdToken();
+      if (!token) throw new Error("Sign in to download quote PDFs.");
+      const response = await fetch(`/api/quotes/${enquiry.id}`, { headers: { Authorization: `Bearer ${token}` } });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "The PDF could not be downloaded.");
+      const link = document.createElement("a");
+      link.href = result.url; link.rel = "noreferrer"; link.click();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "The PDF could not be downloaded."); }
+    finally { setDownloadingId(""); }
+  };
+
   const isLoading = authUser === undefined || (authUser !== null && loading);
   const displayError = authUser === null ? "Sign in to your CRM account to view enquiries." : error;
   const isPackageInbox = kind === "package";
@@ -89,6 +109,7 @@ export default function AdminEnquiriesList({ kind }: { kind: "contact" | "packag
         {visibleEnquiries.map((enquiry) => { const pricePerPerson = enquiry.pricePerPerson || packages.find((pkg) => pkg.id === enquiry.packageId)?.price || 0; return <article key={enquiry.id} className="p-5 sm:p-6"><div className="flex flex-wrap items-start justify-between gap-4"><div><h2 className="font-display text-lg font-semibold">{enquiry.name}</h2><div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><a href={`mailto:${enquiry.email}`} className="inline-flex items-center gap-1.5 hover:text-cmt-neutral-900"><Mail className="size-4" />{enquiry.email}</a><a href={`tel:${enquiry.phone}`} className="inline-flex items-center gap-1.5 hover:text-cmt-neutral-900"><Phone className="size-4" />{enquiry.phone}</a><span className="inline-flex items-center gap-1.5"><CalendarClock className="size-4" />{enquiry.submittedAt ? dateFormatter.format(enquiry.submittedAt) : "Saving…"}</span></div></div><div className="flex items-center gap-2"><label className="min-w-[170px]"><span className="sr-only">Status for {enquiry.name}</span><select disabled={updatingId === enquiry.id} value={enquiry.status} onChange={(event) => void changeStatus(enquiry, event.target.value as EnquiryStatus)} className={`h-10 w-full rounded-cmt-control border px-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-cmt-primary-500/20 ${enquiry.status === "rejected" ? "border-cmt-error-500/40 bg-cmt-error-100 text-cmt-error-700" : enquiry.status === "completed" || enquiry.status === "contacted" ? "border-cmt-success-500/40 bg-cmt-success-100 text-cmt-success-700" : "border-cmt-primary-500/40 bg-cmt-primary-50 text-cmt-primary-900"}`}>{isPackageInbox ? <><option value="under_review">Under review</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option><option value="completed">Completed</option></> : <><option value="not_contacted">Not contacted</option><option value="contacted">Contacted</option></>}</select></label><button type="button" onClick={() => void removeEnquiry(enquiry)} disabled={deletingId === enquiry.id} title="Delete enquiry" aria-label={`Delete enquiry from ${enquiry.name}`} className="grid size-10 shrink-0 place-items-center rounded-cmt-control border border-cmt-neutral-200 text-cmt-neutral-500 transition hover:border-cmt-error-500/40 hover:bg-cmt-error-100 hover:text-cmt-error-700 disabled:cursor-not-allowed disabled:opacity-50"><Trash2 className="size-4" aria-hidden="true" /></button></div></div>
           {isPackageInbox && enquiry.packageTitle ? <div className="mt-4 rounded-cmt-control border border-cmt-primary-200 bg-cmt-primary-50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-wide text-cmt-primary-800">Customized quote for</p><p className="mt-1 text-sm font-semibold">{enquiry.packageTitle}</p></div> : null}<div className={`mt-4 grid gap-3 rounded-cmt-control bg-cmt-neutral-50 p-4 text-sm ${isPackageInbox ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}><div><p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Destination</p><p className="mt-1 inline-flex items-center gap-1.5"><MapPin className="size-4 text-cmt-neutral-400" />{enquiry.destination || "Not specified"}</p></div><div><p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Departure</p><p className="mt-1">{enquiry.departure || "Not specified"}</p></div><div><p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Travellers</p><p className="mt-1 inline-flex items-center gap-1.5"><Users className="size-4 text-cmt-neutral-400" />{enquiry.travellers || "Not specified"}</p></div>{isPackageInbox ? <div><p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Price per person</p><p className="mt-1 inline-flex items-center gap-1.5 font-semibold"><BadgeIndianRupee className="size-4 text-cmt-neutral-400" />{pricePerPerson ? formatINR(pricePerPerson) : "Not available"}<span className="font-normal text-cmt-neutral-500">/ person</span></p></div> : null}</div>
           <div className="mt-4"><p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">{isPackageInbox ? "Optional message" : "Trip request"}</p><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-cmt-neutral-700">{enquiry.message || "No message provided."}</p></div>
+          {enquiry.quoteExpiresAt && <div className="mt-4 flex flex-wrap items-center gap-3 text-sm"><button type="button" disabled={downloadingId === enquiry.id || enquiry.quoteExpiresAt.getTime() <= now} onClick={() => void downloadQuote(enquiry)} className="min-h-10 rounded-cmt-control border border-cmt-neutral-200 px-4 font-semibold disabled:opacity-50">{downloadingId === enquiry.id ? "Preparing PDF…" : enquiry.quoteExpiresAt.getTime() <= now ? "PDF expired" : "Download quote PDF"}</button><span className="text-xs text-cmt-neutral-500">Expires {dateFormatter.format(enquiry.quoteExpiresAt)}</span></div>}
         </article>; })}
         {!isLoading && !displayError && visibleEnquiries.length === 0 ? <div className="px-5 py-12 text-center"><MessageSquareText className="mx-auto size-8 text-cmt-neutral-300" /><p className="mt-3 text-sm font-semibold">{relevantEnquiries.length ? `No ${isPackageInbox ? "quote requests" : "enquiries"} match your search` : isPackageInbox ? "No package quote requests yet" : "No Contact Us enquiries yet"}</p><p className="mt-1 text-xs text-cmt-neutral-500">{isPackageInbox ? "New customized quote requests will appear here automatically." : "New Contact Us submissions will appear here automatically."}</p></div> : null}
       </div>

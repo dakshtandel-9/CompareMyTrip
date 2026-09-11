@@ -31,13 +31,15 @@ export type ContactEnquiry = {
   source: string;
   status: EnquiryStatus;
   submittedAt: Date | null;
+  quoteExpiresAt?: Date | null;
 };
 
 type NewEnquiry = Omit<ContactEnquiry, "id" | "status" | "submittedAt" | "packageId" | "packageTitle" | "pricePerPerson" | "userId" | "source"> &
   Partial<Pick<ContactEnquiry, "packageId" | "packageTitle" | "pricePerPerson" | "userId" | "source">>;
-type StoredEnquiry = Partial<NewEnquiry> & {
+type StoredEnquiry = Partial<Omit<NewEnquiry, "quoteExpiresAt">> & {
   status?: unknown;
   submittedAt?: Timestamp | null;
+  quoteExpiresAt?: Timestamp | null;
 };
 
 const text = (value: unknown) => typeof value === "string" ? value.trim() : "";
@@ -52,6 +54,7 @@ const mapEnquiry = (id: string, data: StoredEnquiry): ContactEnquiry => {
   const storedStatus = statusValue(data.status);
   return {
     id,
+    quoteExpiresAt: data.quoteExpiresAt?.toDate?.() ?? null,
     name: text(data.name),
     email: text(data.email),
     phone: text(data.phone),
