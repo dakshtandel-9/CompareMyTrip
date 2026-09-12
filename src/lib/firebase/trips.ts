@@ -60,11 +60,16 @@ export type Trip = {
   tripDate: string;
   payuPaymentId: string;
   paymentMode: string;
+  payuEnvironment?: "test" | "live";
+  settledPaymentId?: string;
   failureReason: string;
   /* Set when PayU reports an amount that disagrees with the price the
      server signed — the booking is then not trustworthy without a manual
      check against the PayU dashboard. */
   amountMismatch: boolean;
+  activePaymentId?: string;
+  paymentReportStatus?: "open" | "resolved" | "";
+  duplicatePaymentIds?: string[];
   createdAt: Date | null;
   paidAt: Date | null;
   updatedAt: Date | null;
@@ -112,8 +117,13 @@ const mapTrip = (id: string, data: StoredTrip): Trip => ({
   tripDate: /^\d{4}-\d{2}-\d{2}$/.test(text(data.tripDate)) ? text(data.tripDate) : "",
   payuPaymentId: text(data.payuPaymentId),
   paymentMode: text(data.paymentMode),
+  payuEnvironment: data.payuEnvironment === "test" || data.payuEnvironment === "live" ? data.payuEnvironment : undefined,
+  settledPaymentId: text(data.settledPaymentId),
   failureReason: text(data.failureReason),
   amountMismatch: data.amountMismatch === true,
+  activePaymentId: text(data.activePaymentId) || text(data.txnid) || id,
+  paymentReportStatus: data.paymentReportStatus === "open" || data.paymentReportStatus === "resolved" ? data.paymentReportStatus : "",
+  duplicatePaymentIds: Array.isArray(data.duplicatePaymentIds) ? data.duplicatePaymentIds.filter((id): id is string => typeof id === "string") : [],
   createdAt: date(data.createdAt),
   paidAt: date(data.paidAt),
   updatedAt: date(data.updatedAt),

@@ -115,7 +115,7 @@ export async function POST(request: Request) {
 
   const txnid = newTransactionId();
   const productinfo = pkg.title;
-  const udf: Udf = [pkg.id, String(order.travellers), coupon.applied?.code ?? "", "", ""];
+  const udf: Udf = [pkg.id, String(order.travellers), coupon.applied?.code ?? "", txnid, userId];
 
   // Recorded as pending before the redirect so a booking exists even if the
   // traveller closes the tab at PayU. The callback settles it later.
@@ -135,6 +135,7 @@ export async function POST(request: Request) {
     email,
     phone,
     tripDate: travelDate,
+    payuEnvironment: config.mode,
   }).catch((cause) => {
     console.error("pending trip could not be recorded", cause);
   });

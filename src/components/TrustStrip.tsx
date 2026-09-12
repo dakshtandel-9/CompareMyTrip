@@ -191,7 +191,7 @@ const ACCREDITATIONS: { label: string; mark: () => React.JSX.Element }[] = [
 
 export default function TrustStrip() {
   return (
-    <div className="mt-12 grid gap-8 border-t border-cmt-neutral-200 pt-8 lg:grid-cols-2 lg:gap-10">
+    <div className="mt-12 grid gap-8 border-t border-cmt-neutral-200 pt-8 lg:mt-8 lg:grid-cols-2 lg:gap-10 lg:pt-7">
       <section aria-labelledby="footer-payment-modes">
         <h2 id="footer-payment-modes" className={headingClass}>
           Payment Mode

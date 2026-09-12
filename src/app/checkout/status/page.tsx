@@ -43,6 +43,7 @@ export default async function PaymentStatusPage({
   const { state, txnid, amount, item, reason } = await searchParams;
   const success = state === "success";
   const failed = state === "failed";
+  const pending = state === "pending";
 
   const Icon = success ? CheckCircle2 : failed ? XCircle : TriangleAlert;
   const tone = success
@@ -53,14 +54,18 @@ export default async function PaymentStatusPage({
 
   const heading = success
     ? "Payment received."
-    : failed
-      ? "Payment did not go through."
-      : "We could not start that payment.";
+    : pending
+      ? "Your payment is pending."
+      : failed
+        ? "Payment did not go through."
+        : "We could not start that payment.";
 
   const body = success
     ? "Your booking is with the operator. A confirmation is on its way to the email you gave us."
-    : failed
-      ? "Nothing has been charged. You can try again, or send an enquiry and we will raise a fresh payment link."
+    : pending
+      ? "We are waiting for the payment result. Open My trips to check its status or report a payment that was deducted."
+      : failed
+      ? "We have not confirmed a successful payment. If money was deducted, contact our travel team with your transaction reference."
       : (reason && REASONS[reason]) || reason || "Something went wrong before payment started.";
 
   return (
@@ -103,10 +108,10 @@ export default async function PaymentStatusPage({
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
               <Link
-                href="/packages"
+                href="/account"
                 className="inline-flex h-12 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-6 text-base font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-colors hover:bg-cmt-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
               >
-                Browse packages
+                My trips
               </Link>
               <Link
                 href="/contact"

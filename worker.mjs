@@ -6,15 +6,17 @@ export { DOQueueHandler } from './.open-next/worker.js';
 const worker = {
   fetch: handler.fetch,
   async scheduled(_event, env, ctx) {
-    if (!env.CRON_SECRET) throw new Error('CRON_SECRET is required for quote cleanup.');
-    const request = new Request('https://comparemytrip.internal/api/cron/quote-cleanup', {
-      headers: { authorization: `Bearer ${env.CRON_SECRET}` },
-    });
-    // Use the same application handler as HTTP requests, including its env
-    // context. Never send the secret to an externally supplied URL.
-    const response = await handler.fetch(request, env, ctx);
-    await response.arrayBuffer();
-    if (!response.ok) throw new Error(`Quote cleanup failed with HTTP ${response.status}.`);
+    if (!env.CRON_SECRET) throw new Error('CRON_SECRET is required for scheduled cleanup.');
+    const results = await Promise.allSettled(['quote-cleanup', 'pending-payments'].map(async task => {
+      const request = new Request(`https://comparemytrip.internal/api/cron/${task}`, {
+        headers: { authorization: `Bearer ${env.CRON_SECRET}` },
+      });
+      const response = await handler.fetch(request, env, ctx);
+      await response.arrayBuffer();
+      if (!response.ok) throw new Error(`${task} failed with HTTP ${response.status}.`);
+    }));
+    const errors = results.filter(result => result.status === 'rejected');
+    if (errors.length) throw new AggregateError(errors.map(result => result.reason), 'Scheduled cleanup failed.');
   },
 };
 

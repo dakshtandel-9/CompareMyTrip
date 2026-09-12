@@ -4,9 +4,11 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
-import { DUMMY_PACKAGES } from "@/lib/packageData";
+import { DUMMY_PACKAGES, type TravelPackage } from "@/lib/packageData";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import PackageGallery from "../_components/PackageGallery";
+import PackageShareButton from "../_components/PackageShareButton";
+import ItineraryDownloadButton from "../_components/ItineraryDownloadButton";
 import KeralaBookingActions from "./KeralaBookingActions";
 import {
   ArrowLeft,
@@ -114,6 +116,30 @@ const excluded = [
   "Anything not mentioned under inclusions",
 ];
 
+// This editorial page has its own itinerary, so export its actual content
+// instead of the catalogue's generic fallback itinerary.
+const keralaPackage = DUMMY_PACKAGES.find((pkg) => pkg.href === "/packages/kerala-backwaters-hills-escape")!;
+const downloadPackage: TravelPackage = {
+  ...keralaPackage,
+  details: {
+    gallery: ["/package-gallery/kerala-houseboat.jpg"],
+    summary: "Move from cool tea-covered hills to forested spice country and finish on the calm backwaters. This package balances guided highlights with enough unplanned time to settle into each place.\n\nDesigned for couples, families and small groups, the route keeps daily driving comfortable and includes a private vehicle throughout. Hotels are selected for location and verified service standards, while the houseboat night gives the trip its most memorable change of pace.\n\nGood to know: The itinerary can be adjusted around your arrival time, preferred hotel category and travel pace before you confirm.",
+    places: ["Kochi", "Munnar", "Thekkady", "Alleppey"],
+    highlights,
+    itinerary: itinerary.map((item, index) => ({ day: index + 1, title: item.title, route: item.route, description: item.copy, meals: item.meals })),
+    stays: [
+      { name: "Munnar & Thekkady hotels", nights: 3, place: "Munnar & Thekkady", comfort: "Verified 3-star stays with breakfast, private bathroom and hillside or garden settings." },
+      { name: "Private Alleppey houseboat", nights: 1, place: "Alleppey", comfort: "Air-conditioned room with lunch, dinner and breakfast prepared fresh on board." },
+    ],
+    inclusions: included,
+    exclusions: excluded,
+    meals: "Daily breakfast and all houseboat meals",
+    transfers: "Private cab included",
+    flights: "Not included",
+    cancellationPolicy: "Cancel up to 15 days before departure for a full package refund.\n\nFlexible dates: Move your dates once without a change fee, subject to availability.\n\nVerified operator: Operator credentials have been checked before listing.\n\nConfirmation within 24 hours.",
+  },
+};
+
 const relatedPackages = DUMMY_PACKAGES.slice(1, 9);
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
@@ -179,7 +205,7 @@ export default function KeralaPackagePage() {
 
         <section className="bg-white">
           <div className="mx-auto max-w-[1440px] px-4 pb-10 pt-7 sm:px-6 lg:px-8 lg:pb-14 lg:pt-10">
-            <div className="mb-6 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="mb-6 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-4xl">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-cmt-full bg-cmt-primary-50 px-3 py-1 text-xs font-semibold text-cmt-primary-900">Bestseller</span>
@@ -197,10 +223,12 @@ export default function KeralaPackagePage() {
                   </span>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex shrink-0 flex-wrap gap-2">
                 <button type="button" className="inline-flex h-11 items-center gap-2 rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 text-sm font-semibold text-cmt-neutral-700 shadow-cmt-xs">
                   <Heart className="size-4" /> Save
                 </button>
+                <PackageShareButton title="Kerala Backwaters & Hills Escape" />
+                <ItineraryDownloadButton pkg={downloadPackage} />
                 <Link href="/packages" className="inline-flex h-11 items-center gap-2 rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 text-sm font-semibold text-cmt-neutral-700 shadow-cmt-xs">
                   <ArrowLeft className="size-4" /> All packages
                 </Link>

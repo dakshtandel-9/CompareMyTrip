@@ -29,6 +29,7 @@ import {
 
 import { PACKAGE_CATEGORIES } from "@/lib/packageData";
 import { usePackages } from "@/lib/usePackages";
+import { internationalCardPackage } from "@/lib/internationalPackages";
 import {
   VISA_TYPES,
   type CompareContent,
@@ -39,6 +40,7 @@ import {
   type AuthPageContent,
   type ContactContent,
   type GuidesContent,
+  type GalleryContent,
   type HeaderContent,
   type InternationalContent,
   type LatestDealsContent,
@@ -833,7 +835,7 @@ export function HeaderEditor({
                                   ),
                                 )
                               }
-                              placeholder="Sunrise Track"
+                              placeholder="Sunrise Trek"
                             />
                             <TextField
                               label="Link"
@@ -1475,6 +1477,7 @@ export function InternationalEditor({
   value: InternationalContent;
   onChange: (next: InternationalContent) => void;
 }) {
+  const packages = usePackages().filter((pkg) => pkg.region === "International");
   return (
     <div className="space-y-5">
       <Card
@@ -1602,11 +1605,26 @@ export function InternationalEditor({
                   onChange={(currency) => patch({ currency })}
                   placeholder="Thai baht (THB)"
                 />
-                <TextField
-                  label="Where the card links"
-                  value={item.href}
-                  onChange={(href) => patch({ href })}
-                />
+                <label className="block">
+                  <FieldLabel>Attached package</FieldLabel>
+                  <select
+                    value={packages.some((pkg) => `/packages/${pkg.id}` === item.href) ? item.href : ""}
+                    onChange={(event) => patch({ href: event.target.value })}
+                    className="w-full rounded-cmt-sm border border-cmt-neutral-200 bg-white px-3 py-2 text-sm text-cmt-neutral-900 focus:border-cmt-primary-500 focus:outline-none"
+                  >
+                    <option value="">Automatic — match this country</option>
+                    {packages.map((pkg) => (
+                      <option key={pkg.id} value={`/packages/${pkg.id}`}>
+                        {pkg.destination} — {pkg.title}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="mt-1 block text-[11px] text-cmt-neutral-500">
+                    {internationalCardPackage(item, packages)
+                      ? `Opens: ${internationalCardPackage(item, packages)!.title}. The card shows this package’s current price.`
+                      : "No matching published package yet. Attach one above; until then the card opens all international packages."}
+                  </span>
+                </label>
               </div>
             </div>
           )}
@@ -1948,6 +1966,48 @@ export function ReviewsEditor({
           page. It saves through its own endpoints rather than this editor's
           draft, because credentials must not travel with homepage content. */}
       <GoogleBusinessPanel />
+    </div>
+  );
+}
+
+/* -------------------------- Travel gallery ------------------------ */
+
+export function GalleryEditor({ value, onChange }: {
+  value: GalleryContent;
+  onChange: (next: GalleryContent) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <Card icon={<ImageIcon className="size-5" />} title="Section heading" description="The heading above the homepage photo gallery.">
+        <SectionHeaderFields value={value.header} onChange={(header) => onChange({ ...value, header })} withAction={false} />
+        <TextField className="mt-4" label="View photos button label" value={value.header.actionLabel} onChange={(actionLabel) => onChange({ ...value, header: { ...value.header, actionLabel } })} hint="Leave blank to hide the button. Individual photos still open the viewer." />
+      </Card>
+      <Card icon={<ImageIcon className="size-5" />} title={`Gallery photos (${value.items.length})`} description="Upload photos, choose from the image library, or paste an image URL. Use the arrows to reorder them. Publish changes to update the homepage.">
+        <ListEditor
+          items={value.items}
+          onChange={(items) => onChange({ ...value, items })}
+          idPrefix="gallery"
+          addLabel="Add photo"
+          minItems={0}
+          summary={(item) => item.destination}
+          blank={{ destination: "New photo", caption: "", src: "", alt: "", credit: "", source: "", wide: false }}
+        >
+          {(item, patch) => (
+            <div className="space-y-4">
+              <ImageField label="Gallery image" value={item.src} aspect="aspect-[16/10]" onChange={(src) => patch({ src, credit: "", source: "" })} />
+              <p className="text-xs text-cmt-neutral-500">Photos without an image stay hidden. Replacing an image clears its old photo credit.</p>
+              <TextField label="Destination / photo title" value={item.destination} onChange={(destination) => patch({ destination })} />
+              <TextField label="Caption" value={item.caption} onChange={(caption) => patch({ caption })} />
+              <TextArea label="Photo description (alt text)" value={item.alt} onChange={(alt) => patch({ alt })} />
+              <Toggle checked={item.wide} onChange={(wide) => patch({ wide })} label="Wide photo tile" description="Span two columns in the gallery grid." />
+              <div className={grid2}>
+                <TextField label="Photo credit (optional)" value={item.credit} onChange={(credit) => patch({ credit })} />
+                <TextField label="Photo source link (optional)" value={item.source} onChange={(source) => patch({ source })} placeholder="https://" />
+              </div>
+            </div>
+          )}
+        </ListEditor>
+      </Card>
     </div>
   );
 }

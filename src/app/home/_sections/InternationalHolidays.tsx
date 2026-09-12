@@ -5,6 +5,8 @@ import { ArrowRight, Clock, Plane, Sun, Wallet } from "lucide-react";
 
 import type { VisaType } from "@/lib/siteContent";
 import { useSiteContent } from "@/lib/useSiteContent";
+import { usePackages } from "@/lib/usePackages";
+import { internationalCardPackage } from "@/lib/internationalPackages";
 import ContentImage from "../_components/ContentImage";
 import Price from "../_components/Price";
 import SectionHeader from "../_components/SectionHeader";
@@ -32,6 +34,7 @@ const VISA_TONES: Record<VisaType, string> = {
 
 export default function InternationalHolidays() {
   const { international } = useSiteContent();
+  const packages = usePackages();
   if (!international.enabled) return null;
 
   const { header, items, footnote } = international;
@@ -52,7 +55,10 @@ export default function InternationalHolidays() {
         />
 
         <div className="cmt-mobile-rail mt-8 grid grid-cols-1 gap-6 sm:mt-10 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((country) => (
+          {items.map((country) => {
+            const attachedPackage = internationalCardPackage(country, packages);
+            const href = attachedPackage ? `/packages/${attachedPackage.id}` : "/packages?region=international";
+            return (
             <article
               key={country.id}
               className="group relative flex flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md"
@@ -124,13 +130,14 @@ export default function InternationalHolidays() {
                 </dl>
 
                 <div className="mt-auto flex flex-wrap items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">
-                  <Price price={country.price} qualifier="/person" />
+                  <Price price={attachedPackage?.price ?? country.price} qualifier="/person" />
 
                   <Link
-                    href={country.href}
+                    href={href}
+                    aria-label={attachedPackage ? `View package: ${attachedPackage.title}` : `Browse international packages for ${country.country}`}
                     className="group/cta inline-flex h-11 shrink-0 sm:h-9 items-center gap-1.5 rounded-cmt-control after:absolute after:inset-0 after:content-[''] px-2 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:text-cmt-primary-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                   >
-                    See packages
+                    {attachedPackage ? "View package" : "See packages"}
                     <ArrowRight
                       className="h-4 w-4 transition-transform group-hover/cta:translate-x-1"
                       strokeWidth={2.5}
@@ -140,7 +147,8 @@ export default function InternationalHolidays() {
                 </div>
                 </div>
             </article>
-          ))}
+            );
+          })}
         </div>
 
         {footnote && (

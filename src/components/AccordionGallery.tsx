@@ -205,10 +205,12 @@ export default function AccordionGallery({
   };
 
   const handleClick = (i: number, e: MouseEvent) => {
-    if (items[i].link && window.matchMedia("(max-width: 767px)").matches) return;
     if (i !== active) {
-      // Linked photos navigate on the first tap, including collapsed panels.
-      if (!items[i].link) e.preventDefault();
+      // On phones, preview a closed panel before following its link.
+      // An already-open panel navigates normally on the next tap.
+      if (!items[i].link || window.matchMedia("(max-width: 767px)").matches) {
+        e.preventDefault();
+      }
       setActive(i);
     }
   };

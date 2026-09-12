@@ -76,7 +76,8 @@ export default function DashboardHome() {
   const packages = useAllPackages();
   const content = useSiteContent();
 
-  const liveSections = SECTION_ORDER.filter((key) => content[key].enabled).length;
+  const homepageSections = SECTION_ORDER.filter((key) => key !== "comingSoon");
+  const liveSections = homepageSections.filter((key) => content[key].enabled).length;
   const picks =
     content.hero.topPicks.mode === "manual"
       ? content.hero.topPicks.packageIds.length
@@ -100,7 +101,7 @@ export default function DashboardHome() {
       <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Stat
           label="Sections live"
-          value={`${liveSections}/${SECTION_ORDER.length}`}
+          value={`${liveSections}/${homepageSections.length}`}
           hint="Homepage bands currently visible"
           icon={LayoutList}
         />

@@ -1,4 +1,5 @@
 import { WEEKEND_TRACKS } from "@/lib/weekendTracks";
+import { DEFAULT_COMING_SOON, normalizeComingSoon, type ComingSoonContent } from "@/lib/comingSoon";
 
 /* ------------------------------------------------------------------ */
 /* Editable homepage content.                                          */
@@ -408,6 +409,25 @@ export type LatestDealsContent = {
   maxCards: number;
 };
 
+/* -------------------------- Travel gallery ------------------------ */
+
+export type GalleryPhoto = {
+  id: string;
+  destination: string;
+  caption: string;
+  src: string;
+  alt: string;
+  credit: string;
+  source: string;
+  wide: boolean;
+};
+
+export type GalleryContent = {
+  enabled: boolean;
+  header: SectionHeaderContent;
+  items: GalleryPhoto[];
+};
+
 /* ------------------------ Traveller reviews ----------------------- */
 
 export type Review = {
@@ -698,6 +718,7 @@ export type ContactContent = {
 /* ------------------------- The whole page ------------------------- */
 
 export type SiteContent = {
+  comingSoon: ComingSoonContent;
   header: HeaderContent;
   /* Deliberately absent from SECTION_ORDER: banners are edited on their own
      CRM screen, not in the homepage section list. */
@@ -715,6 +736,7 @@ export type SiteContent = {
   international: InternationalContent;
   whyUs: WhyUsContent;
   latestDeals: LatestDealsContent;
+  gallery: GalleryContent;
   reviews: ReviewsContent;
   guides: GuidesContent;
   faq: FaqContent;
@@ -724,6 +746,7 @@ export type SiteContent = {
 /** Every editable section, in the order it appears on the page. Drives the
     CRM's section list so a new section shows up there by being added here. */
 export const SECTION_ORDER = [
+  "comingSoon",
   "header",
   "auth",
   "contact",
@@ -738,6 +761,7 @@ export const SECTION_ORDER = [
   "international",
   "whyUs",
   "latestDeals",
+  "gallery",
   "reviews",
   "guides",
   "faq",
@@ -752,6 +776,7 @@ export type SectionKey = (typeof SECTION_ORDER)[number];
    guess at what the copy used to say. */
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
+  comingSoon: DEFAULT_COMING_SOON,
   banners: { items: BANNER_SLOTS.map((slot) => slot.banner) },
   contact: {
     enabled: true,
@@ -1203,7 +1228,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       actionHref: "/packages?category=Treks",
     },
     badgeLabel: "Weekend trek",
-    ctaLabel: "View trek",
+    ctaLabel: "View",
     items: [
       {
         id: "kumara-parvatha-trek",
@@ -1578,6 +1603,25 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       countdownNote: "Ends at midnight on the last day of the month.",
     },
     maxCards: 4,
+  },
+
+  gallery: {
+    enabled: true,
+    header: {
+      eyebrow: "Through the lens",
+      title: "The travel gallery",
+      description: "Quiet backwaters, mountain horizons and colourful streets. Find a little inspiration for your next escape.",
+      actionLabel: "View all photos",
+      actionHref: "",
+    },
+    items: [
+      { id: "gallery-1", destination: "Ladakh", caption: "Where the mountains meet the sky", src: "/destinations/ladakh.jpg", alt: "Blue waters of Pangong Lake beneath the mountains of Ladakh", credit: "Stanzin1945 · CC BY-SA 4.0", source: "https://commons.wikimedia.org/wiki/File:Pangong_Tso_in_eastern_Ladakh(Changthang).jpg", wide: true },
+      { id: "gallery-2", destination: "Rajasthan", caption: "Stories in every doorway", src: "/destinations/rajasthan.jpg", alt: "The ornate pink facade and windows of Hawa Mahal in Jaipur", credit: "Chainwit. · CC BY-SA 4.0", source: "https://commons.wikimedia.org/wiki/File:East_facade_Hawa_Mahal_Jaipur_from_ground_level_(July_2022)_-_img_01.jpg", wide: false },
+      { id: "gallery-3", destination: "Goa", caption: "Take the scenic way to the sea", src: "/destinations/goa.jpg", alt: "Palm trees and the sandy shoreline of Palolem Beach in Goa", credit: "iMahesh · CC BY-SA 4.0", source: "https://commons.wikimedia.org/wiki/File:Palolem_Beach,_South_Goa.jpg", wide: false },
+      { id: "gallery-4", destination: "Meghalaya", caption: "A little closer to nature", src: "/destinations/meghalaya.jpg", alt: "A living root bridge surrounded by the green forest of Meghalaya", credit: "Chiranjeeb Baul · CC BY-SA 4.0", source: "https://commons.wikimedia.org/wiki/File:Double_decker_living_root_bridge_02.jpg", wide: false },
+      { id: "gallery-5", destination: "Spiti Valley", caption: "Find your kind of adventure", src: "/destinations/spiti.jpg", alt: "The rugged mountains and wide river valley of Pin Valley in Spiti", credit: "Timothy Gonsalves · CC BY-SA 4.0", source: "https://commons.wikimedia.org/wiki/File:Pin_Valley_Spiti_Himachal_Jun18_D72_7092.jpg", wide: false },
+      { id: "gallery-6", destination: "Kerala", caption: "Let the backwaters set the pace", src: "/destinations/kerala.jpg", alt: "A traditional houseboat cruising the palm-lined Kerala backwaters", credit: "Vyacheslav Argenberg · CC BY 4.0", source: "https://commons.wikimedia.org/wiki/File:Kerala_backwaters,_Houseboat,_Cruise,_India.jpg", wide: true },
+    ],
   },
 
   reviews: {
@@ -1969,6 +2013,7 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
   const dealsRaw = section(root.latestDeals);
   const promoRaw = isRecord(dealsRaw.promo) ? dealsRaw.promo : {};
   const reviewsRaw = section(root.reviews);
+  const galleryRaw = section(root.gallery);
   const guidesRaw = section(root.guides);
   const faqRaw = section(root.faq);
   const faqHelpRaw = isRecord(faqRaw.help) ? faqRaw.help : {};
@@ -2082,6 +2127,7 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
   });
 
   return {
+    comingSoon: normalizeComingSoon(root.comingSoon),
     contact: {
       enabled: bool(contactRaw.enabled, base.contact.enabled),
       eyebrow: str(contactRaw.eyebrow, base.contact.eyebrow),
@@ -2356,6 +2402,23 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
         countdownLabel: str(promoRaw.countdownLabel, base.latestDeals.promo.countdownLabel),
         countdownNote: str(promoRaw.countdownNote, base.latestDeals.promo.countdownNote),
       },
+    },
+
+    gallery: {
+      enabled: bool(galleryRaw.enabled, base.gallery.enabled),
+      header: header(galleryRaw.header, base.gallery.header),
+      // A deliberately emptied gallery stays empty; older documents inherit
+      // the original photos only when the items field is absent or invalid.
+      items: Array.isArray(galleryRaw.items) ? galleryRaw.items.filter(isRecord).map((item, index) => ({
+        id: str(item.id, `gallery-${index + 1}`),
+        destination: str(item.destination, "Untitled photo"),
+        caption: str(item.caption, ""),
+        src: str(item.src, "").trim(),
+        alt: str(item.alt, ""),
+        credit: str(item.credit, ""),
+        source: /^https?:\/\//i.test(str(item.source, "").trim()) ? str(item.source, "").trim() : "",
+        wide: bool(item.wide, false),
+      })) : base.gallery.items,
     },
 
     reviews: {

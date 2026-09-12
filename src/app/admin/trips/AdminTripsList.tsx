@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import PaymentReports from "@/components/PaymentReports";
+import { pendingPaymentExpired } from "@/lib/pendingPayments";
 import { FirebaseError } from "firebase/app";
 import {
   BadgeIndianRupee,
@@ -45,7 +47,8 @@ const FILTERS: { value: Filter; label: string }[] = [
 ];
 
 export default function AdminTripsList() {
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [records, setTrips] = useState<Trip[]>([]);
+  const [now, setNow] = useState(() => Date.now());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -68,6 +71,11 @@ export default function AdminTripsList() {
     [],
   );
 
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+  const trips = useMemo(() => records.filter(trip => !pendingPaymentExpired(trip, now)), [records, now]);
   const visible = useMemo(
     () => (filter === "all" ? trips : trips.filter((trip) => trip.paymentStatus === filter)),
     [trips, filter],
@@ -115,6 +123,8 @@ export default function AdminTripsList() {
   };
 
   return (
+    <div className="space-y-6">
+    <PaymentReports admin />
     <section className="overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-cmt-neutral-200 px-5 py-5 sm:px-7">
         <div className="flex items-center gap-3">
@@ -182,6 +192,8 @@ export default function AdminTripsList() {
                   >
                     {PAYMENT_STATUS_LABELS[trip.paymentStatus]}
                   </span>
+                  {trip.paymentReportStatus === "open" ? <span className="rounded-cmt-full bg-cmt-primary-100 px-3 py-1 text-xs font-semibold text-cmt-primary-900">Payment reported · review request above</span> : null}
+                  {trip.duplicatePaymentIds?.length ? <span className="rounded-cmt-full bg-cmt-error-100 px-3 py-1 text-xs font-semibold text-cmt-error-700">Multiple payments received · check PayU</span> : null}
                   {trip.amountMismatch ? (
                     <span className="inline-flex h-7 items-center gap-1.5 rounded-cmt-full border border-cmt-error-500/40 bg-cmt-error-100 px-3 text-xs font-semibold text-cmt-error-700">
                       <TriangleAlert className="size-3.5" />
@@ -294,7 +306,7 @@ export default function AdminTripsList() {
                 <p className="mt-1">{trip.perPerson ? formatINR(trip.perPerson) : "—"}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Total paid</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">{trip.paymentStatus === "successful" ? "Total paid" : "Booking amount"}</p>
                 <p className="mt-1 flex items-center gap-1.5 font-semibold">
                   <BadgeIndianRupee className="size-4 text-cmt-neutral-400" />
                   {formatINR(trip.amount)}
@@ -333,5 +345,6 @@ export default function AdminTripsList() {
         ) : null}
       </div>
     </section>
+    </div>
   );
 }

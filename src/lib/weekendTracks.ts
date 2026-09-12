@@ -40,7 +40,7 @@ export type WeekendTrack = {
 export const WEEKEND_TRACKS: WeekendTrack[] = [
   {
     id: "sunrise",
-    label: "Sunrise Track",
+    label: "Sunrise Trek",
     tagline: "Pre-dawn starts on the hills nearest the city — summit for first light, home by lunch.",
     bannerTitle: "Sunrise Treks",
     bannerImage: "/weekend-treks/skandagiri.jpg",
@@ -48,7 +48,7 @@ export const WEEKEND_TRACKS: WeekendTrack[] = [
   },
   {
     id: "monsoon",
-    label: "Monsoon Track",
+    label: "Monsoon Trek",
     tagline: "Western Ghats trails at their greenest. Best walked June to September, leeches and all.",
     bannerTitle: "Monsoon Treks",
     bannerImage: "/weekend-treks/kodachadri.jpg",

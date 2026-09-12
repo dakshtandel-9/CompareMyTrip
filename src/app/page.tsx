@@ -17,6 +17,7 @@ import InternationalHolidays from "./home/_sections/InternationalHolidays";
 import WhyTravelWithUs from "./home/_sections/WhyTravelWithUs";
 import LatestDeals from "./home/_sections/LatestDeals";
 import TravellerReviews from "./home/_sections/TravellerReviews";
+import TravelGallery from "./home/_sections/TravelGallery";
 import TravelGuides from "./home/_sections/TravelGuides";
 import Faq from "./home/_sections/Faq";
 import TrustAndNewsletter from "./home/_sections/TrustAndNewsletter";
@@ -45,6 +46,7 @@ export default function HomePage() {
         <InternationalHolidays />
         <WhyTravelWithUs />
         <LatestDeals />
+        <TravelGallery />
         <TravellerReviews />
         <TravelGuides />
         <Faq />

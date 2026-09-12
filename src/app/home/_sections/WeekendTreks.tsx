@@ -34,7 +34,11 @@ export default function WeekendTreks() {
   const { weekendTreks } = useSiteContent();
   if (!weekendTreks.enabled) return null;
 
-  const { header, items, badgeLabel, ctaLabel } = weekendTreks;
+  const { header, items, badgeLabel } = weekendTreks;
+  // Also shorten the original label in previously saved homepage content.
+  const ctaLabel = weekendTreks.ctaLabel.trim().toLowerCase() === "view trek"
+    ? "View"
+    : weekendTreks.ctaLabel;
 
   return (
     <section

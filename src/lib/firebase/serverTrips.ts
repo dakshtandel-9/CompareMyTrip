@@ -34,6 +34,9 @@ export type NewTrip = {
   /** The day the traveller asked to depart, YYYY-MM-DD, or "" if they left
       it open. Already normalised by the caller. */
   tripDate: string;
+  payuEnvironment?: "test" | "live";
+  paymentKind?: "custom";
+  paymentReference?: string;
 };
 
 /** Records the booking as pending, before the buyer is sent to PayU. */
@@ -59,71 +62,67 @@ export async function createPendingTrip(trip: NewTrip) {
   return true;
 }
 
-/**
- * Applies PayU's verified outcome. Only ever called after the response
- * hash checks out, and only moves a trip off `pending` — so a replayed
- * callback cannot flip a settled booking back, and cannot overwrite the
- * travel desk's own tripStatus decisions.
- */
+/** Verified callbacks and reconciliation share one atomic, monotonic write. */
 export async function settleTrip(input: {
   txnid: string;
+  tripId?: string;
   paymentStatus: Exclude<PaymentStatus, "pending">;
   payuPaymentId: string;
   paymentMode: string;
   failureReason: string;
   reportedAmount: string;
+  recovery?: { userId: string; packageId: string; packageTitle: string; travellers: number; name: string; email: string };
 }) {
   const db = getAdminDb();
-  if (!db) return;
+  if (!db) throw new Error("Booking storage is unavailable.");
+  const tripId = input.tripId || input.txnid;
+  if (!/^[A-Za-z0-9_-]{1,100}$/.test(tripId)) throw new Error("Invalid booking reference.");
+  const ref = db.collection("trips").doc(tripId);
+  const reportRef = db.collection("paymentReports").doc(tripId);
 
-  const ref = db.collection("trips").doc(input.txnid);
-  const snapshot = await ref.get();
-  if (!snapshot.exists) {
-    // No pending row — the initiate write failed, or this txnid was never
-    // ours. Record it anyway so the booking is not silently lost, and let
-    // the CRM see it has no order behind it.
-    await ref.set({
-      txnid: input.txnid,
-      userId: "",
-      packageId: "",
-      packageTitle: "Unmatched PayU transaction",
-      travellers: 0,
-      perPerson: 0,
-      amount: Number(input.reportedAmount) || 0,
-      name: "",
-      email: "",
-      phone: "",
+  await db.runTransaction(async tx => {
+    const snapshot = await tx.get(ref);
+    const report = await tx.get(reportRef);
+    const data = snapshot.data();
+    if (data?.paymentStatus === "successful") {
+      if (input.paymentStatus === "successful" && data.settledPaymentId && data.settledPaymentId !== input.txnid) {
+        tx.update(ref, { duplicatePaymentIds: FieldValue.arrayUnion(input.txnid), updatedAt: FieldValue.serverTimestamp() });
+      }
+      return;
+    }
+    // A failure from an older attempt cannot reject the current retry.
+    if (input.paymentStatus === "failed" && (!data || data.paymentStatus !== "pending" || (data.activePaymentId || data.txnid) !== input.txnid)) return;
+
+    // A reported payment keeps its booking snapshot, even after pending
+    // cleanup. New checkouts also carry signed ownership fields in PayU.
+    const backup = data ?? report.data()?.booking;
+    const amount = Number(input.reportedAmount);
+    const expected = Number(backup?.amount ?? amount);
+    const mismatch = input.paymentStatus === "successful" && (!Number.isFinite(amount) || !Number.isFinite(expected) || Math.abs(amount - expected) > 0.01);
+    const result = {
       paymentStatus: input.paymentStatus,
-      tripStatus: "awaiting_confirmation",
-      tripDate: "",
+      settledPaymentId: input.txnid,
       payuPaymentId: input.payuPaymentId,
       paymentMode: input.paymentMode,
       failureReason: input.failureReason,
-      amountMismatch: true,
-      createdAt: FieldValue.serverTimestamp(),
+      amountMismatch: mismatch,
       paidAt: input.paymentStatus === "successful" ? FieldValue.serverTimestamp() : null,
       updatedAt: FieldValue.serverTimestamp(),
-    });
-    return;
-  }
-
-  if (snapshot.data()?.paymentStatus !== "pending") return;
-
-  // PayU echoes the amount it actually charged. A disagreement with the
-  // price the server signed means the booking needs a human check against
-  // the PayU dashboard before it is honoured.
-  const signed = Number(snapshot.data()?.amount ?? 0);
-  const reported = Number(input.reportedAmount);
-  const amountMismatch =
-    !Number.isFinite(reported) || Math.abs(reported - signed) > 0.01;
-
-  await ref.update({
-    paymentStatus: input.paymentStatus,
-    payuPaymentId: input.payuPaymentId,
-    paymentMode: input.paymentMode,
-    failureReason: input.failureReason,
-    amountMismatch: input.paymentStatus === "successful" ? amountMismatch : false,
-    paidAt: input.paymentStatus === "successful" ? FieldValue.serverTimestamp() : null,
-    updatedAt: FieldValue.serverTimestamp(),
+    };
+    if (snapshot.exists) tx.update(ref, result);
+    else {
+      tx.set(ref, {
+        txnid: tripId, userId: "", packageId: "", packageTitle: "Unmatched PayU transaction",
+        travellers: 0, perPerson: 0, subtotal: Number.isFinite(amount) ? amount : 0,
+        discount: 0, couponCode: "", couponLabel: "", amount: Number.isFinite(amount) ? amount : 0,
+        name: "", email: "", phone: "", tripStatus: "awaiting_confirmation", tripDate: "",
+        createdAt: FieldValue.serverTimestamp(), ...input.recovery, ...backup, ...result,
+        amountMismatch: mismatch || (!backup && !input.recovery?.userId),
+      });
+    }
+    if (report.exists && input.paymentStatus === "successful" && !mismatch) {
+      tx.update(reportRef, { status: "resolved", adminNote: "Payment confirmed by PayU.", updatedAt: FieldValue.serverTimestamp() });
+      tx.update(ref, { paymentReportStatus: "resolved" });
+    }
   });
 }

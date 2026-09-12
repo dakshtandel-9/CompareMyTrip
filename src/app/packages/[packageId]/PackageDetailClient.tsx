@@ -6,6 +6,8 @@ import { useState } from "react";
 import { ArrowLeft, BedDouble, Car, Check, Clock3, MapPin, Plane, ShieldCheck, Star, Users, X } from "lucide-react";
 import { getDiscountPercent, getPackageDetails } from "@/lib/packageData";
 import PackageGallery from "../_components/PackageGallery";
+import PackageShareButton from "../_components/PackageShareButton";
+import ItineraryDownloadButton from "../_components/ItineraryDownloadButton";
 import CompareButton from "@/components/CompareButton";
 import BookingCard from "./BookingCard";
 import QuoteModal from "./QuoteModal";
@@ -84,13 +86,15 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
   return (
     <main className="cmt-package-detail bg-cmt-neutral-50 pb-24 font-body text-cmt-neutral-900 lg:pb-0">
       <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div className="min-w-0"><nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-cmt-neutral-500"><Link href="/">Home</Link><span aria-hidden="true">/</span><Link href="/packages">Packages</Link><span aria-hidden="true">/</span>{pkg.destination ? <><Link href={`/packages?destination=${encodeURIComponent(pkg.destination)}`} className="hover:text-cmt-neutral-900">{pkg.destination}</Link><span aria-hidden="true">/</span></> : null}<span className="line-clamp-1">{pkg.title}</span></nav><h1 className="max-w-5xl font-display text-3xl font-semibold tracking-tight sm:text-5xl">{pkg.title}</h1><div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><span className="inline-flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" />{pkg.location}</span>{pkg.reviews > 0 && pkg.rating > 0 ? <span className="inline-flex items-center gap-1.5"><Star className="size-4 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" /><b className="text-cmt-neutral-900">{pkg.rating}</b> {pkg.reviews} traveller reviews</span> : <span className="text-cmt-neutral-500">Newly listed &middot; no traveller reviews yet</span>}</div></div>
           {/* The booking box carries the same control, but it sits below the
               fold behind the gallery — this is the one a visitor sees while
               they are still deciding whether this trip is worth comparing. */}
           <div className="flex shrink-0 flex-wrap items-center gap-2 self-start">
             <CompareButton packageId={pkg.id} className="h-11 px-4 shadow-cmt-xs" labels={{ added: "Added to compare", idle: "Compare" }} />
+            <PackageShareButton title={pkg.title} />
+            <ItineraryDownloadButton pkg={pkg} />
             <Link href="/packages" className="inline-flex h-11 shrink-0 items-center gap-2 rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 text-sm font-semibold shadow-cmt-xs"><ArrowLeft className="size-4" /> All packages</Link>
           </div>
         </div>

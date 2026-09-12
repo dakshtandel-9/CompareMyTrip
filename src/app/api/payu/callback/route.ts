@@ -51,7 +51,18 @@ export async function POST(request: Request) {
     return NextResponse.redirect(status, 303);
   }
 
+  if (read("key") !== config.key) {
+    status.searchParams.set("state", "error");
+    status.searchParams.set("reason", "hash-mismatch");
+    return NextResponse.redirect(status, 303);
+  }
   const payuStatus = read("status").toLowerCase();
+  // Pending is not a failed payment. Leave it available for reconciliation.
+  if (!["success", "failure", "failed"].includes(payuStatus)) {
+    status.searchParams.set("state", "pending");
+    status.searchParams.set("txnid", read("udf4") || read("txnid"));
+    return NextResponse.redirect(status, 303);
+  }
   status.searchParams.set("state", payuStatus === "success" ? "success" : "failed");
   status.searchParams.set("txnid", read("txnid"));
   status.searchParams.set("amount", read("amount"));
@@ -65,6 +76,11 @@ export async function POST(request: Request) {
   // traveller their confirmation screen, so it is logged, not surfaced.
   await settleTrip({
     txnid: read("txnid"),
+    ...(read("udf4") ? { tripId: read("udf4") } : {}),
+    ...(read("udf5") ? { recovery: {
+      userId: read("udf5"), packageId: read("udf1"), packageTitle: read("productinfo"),
+      travellers: Number(read("udf2")) || 0, name: read("firstname"), email: read("email"),
+    } } : {}),
     paymentStatus: payuStatus === "success" ? "successful" : "failed",
     payuPaymentId: read("mihpayid"),
     paymentMode: read("mode"),

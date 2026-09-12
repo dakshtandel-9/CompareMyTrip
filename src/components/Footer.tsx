@@ -1,7 +1,7 @@
 import BrandLogo from "@/components/BrandLogo";
 import { Fragment } from "react";
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { ArrowUpRight, CreditCard, Mail, MapPin, Phone } from "lucide-react";
 
 import PartnerMarquee from "@/components/PartnerMarquee";
 import SupportPhones from "@/components/SupportPhones";
@@ -112,14 +112,14 @@ export default function Footer({
       <PartnerMarquee />
 
       <div
-        className={`px-4 pt-12 sm:px-5 sm:pt-16 lg:px-6 lg:pt-20 ${
+        className={`px-4 pt-12 sm:px-5 sm:pt-16 lg:px-6 lg:pt-14 ${
           clearsCompareBar
             ? "pb-28 sm:pb-32 lg:pb-32"
-            : "pb-12 sm:pb-16 lg:pb-20"
+            : "pb-12 sm:pb-16 lg:pb-8"
         }`}
       >
         <div className="mx-auto w-full max-w-[1440px]">
-          <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:gap-10 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))] lg:gap-8">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:gap-10 lg:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,1fr))] lg:gap-x-10 lg:gap-y-10 xl:gap-x-14">
             {/* Brand */}
             <div className="col-span-2 lg:col-span-1">
               <Link href="/" className="inline-flex">
@@ -130,8 +130,6 @@ export default function Footer({
                 Compare curated travel packages side by side — full itinerary,
                 inclusions and final pricing before you book.
               </p>
-
-              <SupportPhones compact />
 
               {contactRows.length > 0 ? (
                 <ul className="mt-6 space-y-3">
@@ -179,6 +177,27 @@ export default function Footer({
                   ))}
                 </ul>
               ) : null}
+            </div>
+
+            <div className="col-span-2 pb-7 md:pb-0 lg:order-last lg:col-span-5 lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center lg:gap-7 lg:rounded-cmt-md lg:border lg:border-cmt-neutral-200 lg:bg-white lg:p-6 xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-8 xl:px-8">
+              <section aria-labelledby="footer-support">
+                <h2 id="footer-support" className="mb-5 hidden font-display text-lg font-semibold text-cmt-neutral-900 lg:block">
+                  Talk to our travel team
+                </h2>
+                <SupportPhones compact footerRow />
+              </section>
+              <div className="mt-6 max-w-sm rounded-cmt-md border border-cmt-neutral-200 bg-white p-4 lg:mt-0 lg:max-w-none lg:rounded-none lg:border-0 lg:border-l lg:py-0 lg:pl-7 lg:pr-0 xl:pl-8">
+                <p className="flex items-center gap-2 text-sm font-semibold text-cmt-neutral-900">
+                  <CreditCard className="h-4 w-4" aria-hidden="true" />
+                  Agreed on a payment?
+                </p>
+                <p className="mt-2 text-sm leading-5 text-cmt-neutral-600">
+                  Pay the amount discussed with our team.
+                </p>
+                <Link href="/pay" className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-4 py-2 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:bg-cmt-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500">
+                  Pay an amount <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
             </div>
 
             {/* Link columns */}

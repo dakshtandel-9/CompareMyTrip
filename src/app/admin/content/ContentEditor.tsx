@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Globe2,
   HelpCircle,
+  Images,
   Layers,
   LoaderCircle,
   type LucideIcon,
@@ -21,6 +22,7 @@ import {
   MessageSquare,
   Navigation,
   PanelsTopLeft,
+  Plane,
   RotateCcw,
   Save,
   ShieldCheck,
@@ -42,6 +44,7 @@ import {
 import { Button, FieldLabel, Toggle, inputClass } from "../_components/ui";
 import CategoriesEditor from "./CategoriesEditor";
 import HeroEditor from "./HeroEditor";
+import ComingSoonEditor from "./ComingSoonEditor";
 import {
   CompareEditor,
   DomesticEditor,
@@ -51,6 +54,7 @@ import {
   FeaturedEditor,
   HeaderEditor,
   GuidesEditor,
+  GalleryEditor,
   InternationalEditor,
   LatestDealsEditor,
   NewsletterEditor,
@@ -83,6 +87,14 @@ const SECTION_META: Record<
     toggleOff?: string;
   }
 > = {
+  comingSoon: {
+    label: "Coming soon",
+    hint: "Website launch switch",
+    icon: Plane,
+    toggleLabel: "Enable coming-soon mode",
+    toggleOn: "Visitors will see the coming-soon page after you publish. Admin access stays available.",
+    toggleOff: "The regular website is live. Enable this switch and publish to show the coming-soon page.",
+  },
   header: {
     label: "Header",
     hint: "Nav links and dropdowns",
@@ -118,6 +130,7 @@ const SECTION_META: Record<
   international: { label: "International", hint: "Country cards", icon: Globe2 },
   whyUs: { label: "Why travel with us", hint: "Proof points", icon: ShieldCheck },
   latestDeals: { label: "Latest deals", hint: "Promo card and grid", icon: BadgePercent },
+  gallery: { label: "Travel gallery", hint: "Photos, captions and layout", icon: Images },
   reviews: { label: "Reviews", hint: "Traveller quotes", icon: MessageSquareQuote },
   guides: { label: "Travel guides", hint: "Article cards", icon: BookOpen },
   faq: { label: "FAQ", hint: "Questions and help card", icon: HelpCircle },
@@ -255,7 +268,7 @@ function ContentEditorForm({
   const setEnabled = (key: SectionKey, enabled: boolean) =>
     setDraft((current) => ({ ...current, [key]: { ...current[key], enabled } }));
 
-  const hiddenCount = SECTION_ORDER.filter((key) => !draft[key].enabled).length;
+  const hiddenCount = SECTION_ORDER.filter((key) => key !== "comingSoon" && !draft[key].enabled).length;
   const meta = SECTION_META[active];
 
   return (
@@ -391,7 +404,7 @@ function ContentEditorForm({
                     {/* A dot rather than a word: the rail is a map, and the
                         section's own switch is one click away. */}
                     <span
-                      title={isOn ? "Visible" : "Hidden"}
+                      title={key === "comingSoon" ? (isOn ? "Coming soon enabled" : "Website live") : (isOn ? "Visible" : "Hidden")}
                       className={`size-1.5 shrink-0 rounded-cmt-full ${
                         isOn ? "bg-cmt-primary-500" : "bg-cmt-neutral-300"
                       }`}
@@ -513,6 +526,8 @@ function SectionEditor({
   packages: ReturnType<typeof usePackages>;
 }): ReactNode {
   switch (active) {
+    case "comingSoon":
+      return <ComingSoonEditor value={draft.comingSoon} onChange={(next) => set("comingSoon", next)} />;
     case "header":
       return <HeaderEditor value={draft.header} onChange={(next) => set("header", next)} />;
     case "auth":
@@ -580,6 +595,8 @@ function SectionEditor({
       );
     case "reviews":
       return <ReviewsEditor value={draft.reviews} onChange={(next) => set("reviews", next)} />;
+    case "gallery":
+      return <GalleryEditor value={draft.gallery} onChange={(next) => set("gallery", next)} />;
     case "guides":
       return <GuidesEditor value={draft.guides} onChange={(next) => set("guides", next)} />;
     case "faq":

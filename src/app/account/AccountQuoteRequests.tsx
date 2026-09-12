@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  ArrowRight,
   BadgeIndianRupee,
   CalendarClock,
   CalendarDays,
@@ -13,7 +14,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { subscribeToUserQuoteEnquiries, type ContactEnquiry, type EnquiryStatus } from "@/lib/firebase/enquiries";
-import { useAllPackages } from "@/lib/usePackages";
+import Link from "next/link";
+import { usePackages } from "@/lib/usePackages";
 
 /* Quote requests, styled as a sibling of My Trips: heading outside, one
    white card per request. Status is a badge (§8.5), not a disabled button —
@@ -31,21 +33,20 @@ const statusContent: Record<EnquiryStatus, { label: string; className: string; i
   contacted: { label: "Accepted", className: "border-cmt-success-500/40 bg-cmt-success-100 text-cmt-success-700", icon: CheckCircle2 },
 };
 
-function Meta({ icon: Icon, label, value, suffix }: { icon: typeof Users; label: string; value: string; suffix?: string }) {
+function Meta({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <p className="font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-cmt-neutral-400">{label}</p>
+      <p className="font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-cmt-neutral-500">{label}</p>
       <p className="mt-1 flex items-center gap-1.5 font-body text-sm text-cmt-neutral-700">
         <Icon className="size-4 shrink-0 text-cmt-neutral-400" aria-hidden="true" />
-        <span className="truncate">{value}</span>
-        {suffix ? <span className="shrink-0 text-cmt-neutral-500">{suffix}</span> : null}
+        <span className="min-w-0 break-words">{value}</span>
       </p>
     </div>
   );
 }
 
 export default function AccountQuoteRequests({ userId }: { userId: string }) {
-  const packages = useAllPackages();
+  const packages = usePackages();
   const [enquiries, setEnquiries] = useState<ContactEnquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -71,14 +72,11 @@ export default function AccountQuoteRequests({ userId }: { userId: string }) {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-[560px]">
-          <p className="font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-cmt-primary-900">
-            Enquiries
-          </p>
-          <h2 className="mt-2 font-display text-[22px] font-semibold tracking-[-0.003em] text-cmt-neutral-900 sm:text-[26px]">
-            Customized quote requests
+          <h2 className="font-display text-[22px] font-semibold tracking-[-0.003em] text-cmt-neutral-900 sm:text-[26px]">
+            Quote requests
           </h2>
           <p className="mt-1.5 font-body text-sm leading-[1.55] text-cmt-neutral-600">
-            Package enquiries you sent from “Get customized quote”.
+            Your custom travel plans and updates from our team.
           </p>
         </div>
         <span className="rounded-cmt-full border border-cmt-neutral-200 bg-white px-3.5 py-1.5 font-body text-xs font-semibold text-cmt-neutral-700">
@@ -95,7 +93,9 @@ export default function AccountQuoteRequests({ userId }: { userId: string }) {
         </p>
       ) : null}
 
-      {enquiries.length > 0 ? (
+      {loading ? <div role="status" className="mt-6"><span className="sr-only">Loading your quote requests…</span><div aria-hidden="true" className="h-48 animate-pulse rounded-cmt-md border border-cmt-neutral-200 bg-white motion-reduce:animate-none" /></div> : null}
+
+      {!loading && enquiries.length > 0 ? (
         <div className="mt-6 grid gap-5">
           {enquiries.map((enquiry) => {
             const status = statusContent[enquiry.status];
@@ -106,7 +106,7 @@ export default function AccountQuoteRequests({ userId }: { userId: string }) {
             return (
               <article
                 key={enquiry.id}
-                className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md sm:p-6"
+                className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-6"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -128,7 +128,7 @@ export default function AccountQuoteRequests({ userId }: { userId: string }) {
                   </span>
                 </div>
 
-                <div className="mt-5 grid gap-4 rounded-cmt-control bg-cmt-neutral-50 p-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mt-5 grid gap-5 rounded-cmt-control bg-cmt-neutral-50 p-4 sm:grid-cols-2 xl:grid-cols-4">
                   <Meta icon={MapPin} label="Destination" value={enquiry.destination || "Not specified"} />
                   <Meta icon={CalendarDays} label="Travel date" value={enquiry.departure || "Not specified"} />
                   <Meta icon={Users} label="Travellers" value={enquiry.travellers || "Not specified"} />
@@ -136,7 +136,6 @@ export default function AccountQuoteRequests({ userId }: { userId: string }) {
                     icon={BadgeIndianRupee}
                     label="Price per person"
                     value={pricePerPerson ? formatINR(pricePerPerson) : "Not available"}
-                    suffix={pricePerPerson ? "/ person" : undefined}
                   />
                 </div>
 
@@ -165,8 +164,9 @@ export default function AccountQuoteRequests({ userId }: { userId: string }) {
             No quote requests yet
           </h3>
           <p className="mx-auto mt-2 max-w-[420px] text-pretty font-body text-sm leading-[1.6] text-cmt-neutral-600">
-            Requests sent from package pages appear here. Contact Us submissions are kept separate.
+            Found a package you like? Select “Get customized quote” on its page to start planning your trip.
           </p>
+          <Link href="/packages" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-cmt-control border border-cmt-neutral-200 px-5 text-sm font-semibold text-cmt-neutral-900 hover:bg-cmt-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500">Explore packages <ArrowRight className="size-4" aria-hidden="true" /></Link>
         </div>
       ) : null}
     </div>

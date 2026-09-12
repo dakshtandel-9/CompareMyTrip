@@ -173,3 +173,30 @@ test('resolveCoupon selects the greatest eligible auto discount without stacking
   assert.equal(result.applied.discount, 800);
   assert.equal(result.applied.auto, true);
 });
+
+test('a verified pending callback leaves the booking pending for later reconciliation', async () => {
+  const { callback, settled } = paymentRoutes();
+  const body = new URLSearchParams({
+    key: input.key, txnid: input.txnid, amount: input.amount,
+    productinfo: input.productinfo, firstname: input.firstname, email: input.email,
+    udf1: 'p1', udf2: '2', status: 'pending',
+    hash: payu.buildResponseHash({ ...input, status: 'pending' }),
+  });
+  const response = await callback.POST(new Request('http://localhost:3100/api/payu/callback', { method: 'POST', body }));
+  assert.equal(new URL(response.headers.get('location')).searchParams.get('state'), 'pending');
+  assert.equal(settled.length, 0);
+});
+
+test('signed retry callbacks settle the original booking and carry ownership for late recovery', async () => {
+  const { callback, settled } = paymentRoutes();
+  const retry = { ...input, txnid: 'RETRY123', udf: ['p1', '2', '', 'CMT123', 'owner'] };
+  const body = new URLSearchParams({ key: retry.key, txnid: retry.txnid, amount: retry.amount,
+    productinfo: retry.productinfo, firstname: retry.firstname, email: retry.email,
+    udf1: 'p1', udf2: '2', udf4: 'CMT123', udf5: 'owner', status: 'success',
+    hash: payu.buildResponseHash({ ...retry, status: 'success' }),
+  });
+  await callback.POST(new Request('http://localhost:3100/api/payu/callback', { method: 'POST', body }));
+  assert.equal(settled[0].tripId, 'CMT123');
+  assert.equal(settled[0].txnid, 'RETRY123');
+  assert.equal(settled[0].recovery.userId, 'owner');
+});

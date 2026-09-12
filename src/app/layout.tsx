@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import MobileNavigation from "@/components/MobileNavigation";
 import { Inter, Space_Grotesk } from "next/font/google";
-import WebsiteLoader from "@/components/WebsiteLoader";
-import ProfileCompletionGate from "@/components/ProfileCompletionGate";
-import TripPlanPromptDialog from "@/components/TripPlanPromptDialog";
-import FloatingActions from "@/components/FloatingActions";
+import SiteExperience from "@/components/SiteExperience";
 import JsonLd from "@/components/JsonLd";
 import Analytics from "@/components/Analytics";
 import {
@@ -116,17 +112,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
         <Analytics />
-        <WebsiteLoader autoDismiss />
-        <ProfileCompletionGate>{children}</ProfileCompletionGate>
-        {/* Mounted beside the gate, not inside it: living in the root layout
-            is what keeps this timer tied to a document load rather than to
-            route changes. It captures trip leads rather than sign-ins — the
-            account flows stay on /login and /signup. */}
-        <TripPlanPromptDialog />
-        {/* Rides along on every page and hides itself on the handful that
-            own the whole screen — see the component. */}
-        <FloatingActions />
-        <MobileNavigation />
+        <SiteExperience>{children}</SiteExperience>
       </body>
     </html>
   );

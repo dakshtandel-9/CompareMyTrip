@@ -54,10 +54,12 @@ export default function TrainFrameBanner() {
   return (
     <section className="flex w-full justify-center bg-white p-3 sm:p-4 md:p-6">
       <div className="relative h-auto min-h-0 w-full max-w-[1440px] overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:h-[58vh] sm:max-h-[500px] sm:min-h-[360px] sm:rounded-3xl">
-        {/* No `loop`: the clip runs once and holds on its final frame. */}
+        {/* No `loop`: the clip runs once and holds on its final frame.
+            A small left-anchored zoom crops the train fragment at the right
+            edge of the footage and its poster without stretching either. */}
         <video
           ref={videoRef}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full origin-left scale-[1.03] object-cover"
           muted
           playsInline
           preload={loadVideo ? "auto" : "none"}

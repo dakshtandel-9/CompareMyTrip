@@ -5,7 +5,7 @@ import AccountClient from "./AccountClient";
 
 export const metadata: Metadata = {
   title: "My Account",
-  description: "Manage your CompareMyTrip profile and password.",
+  description: "Track your bookings and quote requests, and manage your CompareMyTrip account details.",
   robots: { index: false, follow: false },
 };
 

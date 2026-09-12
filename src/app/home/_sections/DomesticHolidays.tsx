@@ -1,12 +1,15 @@
 "use client";
 
 import AccordionGallery from "@/components/AccordionGallery";
+import { buildDestinations, destinationHref, destinationSlug, findDestinationBySlug } from "@/lib/destinations";
+import { toIndiaState } from "@/lib/indiaStates";
+import { usePackages } from "@/lib/usePackages";
 import { useSiteContent } from "@/lib/useSiteContent";
 import SectionHeader from "../_components/SectionHeader";
 
 /* ------------------------------------------------------------------ */
 /* Domestic holidays — the seven-panel image showcase carried over from  */
-/* the existing homepage. Panels link to matching packages and carry a  */
+/* the existing homepage. Panels link to destinations and carry a       */
 /* photo, the place and one line about it: no price, badge or CTA, so the */
 /* photography does the work (design.md §9).                             */
 /* Photos live in /public/destinations (see CREDITS.txt for sourcing).    */
@@ -14,9 +17,24 @@ import SectionHeader from "../_components/SectionHeader";
 
 export default function DomesticHolidays() {
   const { domestic } = useSiteContent();
+  const packages = usePackages();
   if (!domestic.enabled) return null;
 
   const { header, items, defaultIndex } = domestic;
+  const destinations = buildDestinations(packages);
+  const galleryItems = items.map((item) => {
+    const label = item.label.trim();
+    const name = label.toLowerCase() === "spiti valley"
+      ? "Himachal Pradesh"
+      : label.toLowerCase() === "andaman islands"
+        ? "Andaman & Nicobar Islands"
+        : toIndiaState(label);
+    const destination = findDestinationBySlug(destinations, destinationSlug(name));
+
+    // Resolve from the place shown, including saved cards with old package
+    // links. Destinations without published packages have no detail page yet.
+    return { ...item, link: destination ? destinationHref(destination.name) : "/destinations" };
+  });
 
   return (
     <section
@@ -35,7 +53,7 @@ export default function DomesticHolidays() {
 
         <div className="mt-8 sm:mt-10">
           <AccordionGallery
-            items={items}
+            items={galleryItems}
             defaultIndex={defaultIndex}
             expandRatio={0.42}
             height={520}
