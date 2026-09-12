@@ -45,6 +45,7 @@ import { Button, FieldLabel, Toggle, inputClass } from "../_components/ui";
 import CategoriesEditor from "./CategoriesEditor";
 import HeroEditor from "./HeroEditor";
 import ComingSoonEditor from "./ComingSoonEditor";
+import AddOnEditor from "./AddOnEditor";
 import {
   CompareEditor,
   DomesticEditor,
@@ -118,6 +119,14 @@ const SECTION_META: Record<
     toggleLabel: "Show the sidebar beside the enquiry form",
     toggleOn: "“What happens next”, your contact details and the browse link.",
     toggleOff: "Hidden — the enquiry form runs the full width of the page.",
+  },
+  addOn: {
+    label: "Add On",
+    hint: "Flight, hotel, visa and quote headings",
+    icon: Plane,
+    toggleLabel: "Show the top section on Add On pages",
+    toggleOn: "Each service shows its own top text, heading and description.",
+    toggleOff: "Hidden — the service tabs and enquiry forms remain available.",
   },
   hero: { label: "Hero", hint: "Headlines, trust row, top picks", icon: Sparkles },
   categories: { label: "Travel styles", hint: "Icon and photo cards", icon: PanelsTopLeft },
@@ -283,7 +292,7 @@ function ContentEditorForm({
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-cmt-neutral-600">
             Every page the site publishes, in the order a visitor meets it — the header,
-            the sign-in screens, the contact page and each homepage band. Edit the copy,
+            the sign-in screens, the contact and Add On pages and each homepage band. Edit the copy,
             the photos, the icons and the cards, then publish and the live site updates
             immediately from Firebase.
           </p>
@@ -468,7 +477,7 @@ function ContentEditorForm({
                 </h2>
                 <p className="mt-1.5 text-sm leading-6 text-cmt-neutral-600">
                   Every section goes back to the content that ships with the site — the
-                  header, the sign-in screens, the contact page and every homepage band —
+                  header, the sign-in screens, the contact and Add On pages and every homepage band —
                   and it publishes to Firebase straight away, so the live site changes for
                   everyone. This cannot be undone.
                 </p>
@@ -534,6 +543,8 @@ function SectionEditor({
       return <AuthEditor value={draft.auth} onChange={(next) => set("auth", next)} />;
     case "contact":
       return <ContactEditor value={draft.contact} onChange={(next) => set("contact", next)} />;
+    case "addOn":
+      return <AddOnEditor value={draft.addOn} onChange={(next) => set("addOn", next)} />;
     case "hero":
       return (
         <HeroEditor

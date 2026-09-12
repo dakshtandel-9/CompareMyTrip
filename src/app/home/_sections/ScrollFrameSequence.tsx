@@ -1,18 +1,16 @@
 "use client";
 
-import { shouldLoadVideo, videoSource } from "@/lib/videoSource";
+import { shouldLoadVideo } from "@/lib/videoSource";
 import { useEffect, useRef } from "react";
 import ContentImage from "../_components/ContentImage";
 import HeroSearch from "../_components/HeroSearch";
 import { startScrollVideo } from "@/lib/scrollVideo";
 import { useSiteContent } from "@/lib/useSiteContent";
 
-// Encoded with frequent keyframes (roughly one every five frames) so a scroll
-// seek always lands on a decodable frame rather than the nearest one behind it.
-// Named for the job rather than the clip, so swapping the footage is a matter
-// of replacing these two files.
-const VIDEO_SRC = videoSource("/videos/hero-scroll.mp4");
-const POSTER_SRC = "/videos/hero-poster.jpg";
+// Derived from FINAL_COMBINED_FIRST_3SEC_2X.mp4 with a keyframe every five
+// frames for smooth scroll seeking. Serve locally alongside its matching poster.
+const VIDEO_SRC = "/videos/hero-combined-scroll.mp4";
+const POSTER_SRC = "/videos/hero-combined-poster.jpg";
 
 // The slice of the hero's scroll that comes after the clip's last frame,
 // holding it on screen before the section unpins. Without it the sequence

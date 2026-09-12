@@ -1,4 +1,5 @@
 import { BedDouble, PlaneTakeoff, Stamp, FileCheck2, type LucideIcon } from "lucide-react";
+import type { AddOnContent } from "@/lib/siteContent";
 
 /* ------------------------------------------------------------------ */
 /* The four add-on enquiries, in the order the page offers them:       */
@@ -16,7 +17,7 @@ import { BedDouble, PlaneTakeoff, Stamp, FileCheck2, type LucideIcon } from "luc
 /* in the message instead, which is what the desk reads anyway.          */
 /* ------------------------------------------------------------------ */
 
-export type ServiceId = "flights" | "hotels" | "visa" | "byq";
+export type ServiceId = keyof AddOnContent["services"];
 
 export type FieldOption = { value: string; label: string };
 

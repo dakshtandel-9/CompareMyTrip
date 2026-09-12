@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, PlaneTakeoff, ShieldCheck, UserRound } from "lucide-react";
+import styles from "./FlightEnquiry.module.css";
 
 import { quoteFileError, sendEnquiryWithQuote } from "@/lib/quoteUpload";
 import PhoneNumberField from "@/components/PhoneNumberField";
@@ -77,6 +78,7 @@ function validate(service: ServiceSpec, values: Values): Errors {
 }
 
 export default function AddOnForm({ service }: { service: ServiceSpec }) {
+  const isFlight = service.id === "flights";
   /* Selects open on their first option so nobody has to choose the obvious
      answer; text and date fields open empty. */
   const empty = (): Values => {
@@ -204,8 +206,34 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
     const errorId = error ? `${id}-error` : undefined;
     const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
 
+    if (isFlight && field.name === "tripType") {
+      return (
+        <fieldset key={field.name} className={styles.tripType}>
+          <legend className={LABEL}>Trip type <span className="text-cmt-error-500">*</span></legend>
+          <div className={styles.tripOptions}>
+            {field.options?.map((option) => (
+              <label key={option.value} className={styles.tripOption}>
+                <input
+                  id={option.value === field.options?.[0]?.value ? id : `${id}-${option.value}`}
+                  type="radio"
+                  name={field.name}
+                  value={option.value}
+                  checked={values[field.name] === option.value}
+                  onChange={() => set(field.name, option.value)}
+                  required
+                  aria-describedby={describedBy}
+                />
+                <span>{option.label}</span>
+              </label>
+            ))}
+          </div>
+          <FieldError id={`${id}-error`} message={error} />
+        </fieldset>
+      );
+    }
+
     return (
-      <div key={field.name} className={field.wide ? "sm:col-span-2" : undefined}>
+      <div key={field.name} className={field.wide ? "sm:col-span-2" : "min-w-0"}>
         <label htmlFor={id} className={LABEL}>
           {field.label}{" "}
           {field.required ? (
@@ -257,11 +285,32 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="grid gap-5 sm:grid-cols-2">
+    <form onSubmit={handleSubmit} noValidate className={isFlight ? styles.form : "grid gap-5 sm:grid-cols-2"}>
       <fieldset disabled={submitting} className="contents">
-      {visibleFields(service, values).map(renderField)}
+      {isFlight ? (
+        <section className={styles.journey} aria-labelledby="flights-journey-heading">
+          <div className={styles.sectionHeading}>
+            <span className={styles.sectionIcon}><PlaneTakeoff size={19} aria-hidden="true" /></span>
+            <div><h3 id="flights-journey-heading">Your journey</h3><p>Choose your route, dates and travel preferences.</p></div>
+          </div>
+          {visibleFields(service, values).filter(field => field.name === "tripType").map(renderField)}
+          <div className={styles.routeFields}>
+            {visibleFields(service, values).filter(field => ["from", "to", "departDate", "returnDate"].includes(field.name)).map(renderField)}
+          </div>
+          <div className={styles.preferences}>
+            {["travellers", "cabin", "flexibility"].flatMap(name => visibleFields(service, values).filter(field => field.name === name)).map(renderField)}
+          </div>
+        </section>
+      ) : visibleFields(service, values).map(renderField)}
 
       {/* Contact block — the same three questions on every tab. */}
+      <section className={isFlight ? styles.contact : "contents"} aria-labelledby={isFlight ? "flights-contact-heading" : undefined}>
+      {isFlight ? (
+        <div className={styles.sectionHeading}>
+          <span className={styles.sectionIcon}><UserRound size={19} aria-hidden="true" /></span>
+          <div><h3 id="flights-contact-heading">Contact details</h3><p>Where we can send your flight options.</p></div>
+        </div>
+      ) : (
       <div className="sm:col-span-2">
         <div className="flex items-center gap-3 pt-1">
           <span className="text-xs font-semibold uppercase tracking-wider text-cmt-neutral-500">
@@ -270,7 +319,9 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           <span className="h-px flex-1 bg-cmt-neutral-200" aria-hidden="true" />
         </div>
       </div>
+      )}
 
+      <div className={isFlight ? styles.contactFields : "contents"}>
       <div>
         <label htmlFor={fieldId("name")} className={LABEL}>
           Full name <span className="text-cmt-error-500">*</span>
@@ -315,26 +366,30 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           onChange={(phone) => set("phone", phone)}
           label={<>Phone <span className="text-cmt-error-500">*</span></>}
           required
+          compactCountryCode={isFlight}
+          labelClassName={isFlight ? LABEL : undefined}
           invalid={Boolean(errors.phone)}
           describedBy={errors.phone ? `${fieldId("phone")}-error` : undefined}
         />
         <FieldError id={`${fieldId("phone")}-error`} message={errors.phone} />
       </div>
+      </div>
 
-      <div className="sm:col-span-2">
+      <div className={isFlight ? styles.notes : "sm:col-span-2"}>
         <label htmlFor={fieldId("notes")} className={LABEL}>
           {service.notesLabel} <span className="font-normal text-cmt-neutral-500">(optional)</span>
         </label>
         <textarea
           id={fieldId("notes")}
           name="notes"
-          rows={4}
+          rows={isFlight ? 3 : 4}
           placeholder={service.notesPlaceholder}
           value={values.notes}
           onChange={(event) => set("notes", event.target.value)}
-          className={`mt-2 min-h-[120px] resize-y px-4 py-3 leading-[1.6] ${fieldClass(false)}`}
+          className={`mt-2 ${isFlight ? "min-h-[96px]" : "min-h-[120px]"} resize-y px-4 py-3 leading-[1.6] ${fieldClass(false)}`}
         />
       </div>
+      </section>
 
       {service.id === "byq" && <div className="rounded-cmt-md border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 p-5 sm:col-span-2">
         <label htmlFor={fieldId("quote")} className={LABEL}>Already have a quote? Attach your PDF <span className="font-normal text-cmt-neutral-500">(optional)</span></label>
@@ -352,7 +407,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
         {(quoteFile || errors.quote) && <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-cmt-neutral-600">{quoteFile && <span className="break-all">{quoteFile.name} · {(quoteFile.size / 1_000_000).toFixed(2)} MB · uploaded when you send</span>}<button type="button" onClick={() => { setQuoteFile(null); setErrors(current => { const next = { ...current }; delete next.quote; return next; }); if (fileRef.current) fileRef.current.value = ""; }} className="min-h-9 rounded px-2 font-semibold underline focus-visible:outline-2 focus-visible:outline-cmt-primary-500">Remove PDF</button></div>}
       </div>}
 
-      <div className="sm:col-span-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-6">
+      <div className={isFlight ? styles.submitArea : "sm:col-span-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-6"}>
         {submissionError ? (
           <p
             role="alert"
@@ -368,7 +423,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           disabled={submitting}
           className="group inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-cmt-control bg-cmt-primary-500 px-8 font-body text-[18px] font-semibold tracking-[0.005em] text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 active:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 disabled:cursor-wait disabled:opacity-60 sm:w-auto"
         >
-          {submitting ? (quoteFile ? "Uploading and sending…" : "Sending…") : `Send ${service.label.toLowerCase()} enquiry`}
+          {submitting ? (quoteFile ? "Uploading and sending…" : "Sending…") : isFlight ? "Send flight enquiry" : `Send ${service.label.toLowerCase()} enquiry`}
           <ArrowRight
             className="h-5 w-5 transition-transform duration-150 group-hover:translate-x-0.5"
             strokeWidth={2.5}
@@ -376,9 +431,12 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           />
         </button>
 
-        <p className="mt-4 text-xs leading-[1.5] text-cmt-neutral-500 sm:mt-0 sm:max-w-[32ch] sm:text-right">
+        <p className={isFlight ? styles.privacy : "mt-4 text-xs leading-[1.5] text-cmt-neutral-500 sm:mt-0 sm:max-w-[32ch] sm:text-right"}>
+          {isFlight && <ShieldCheck size={18} aria-hidden="true" />}
+          <span>
           We use these details only to answer your enquiry. Fields marked{" "}
           <span className="text-cmt-error-500">*</span> are required.
+          </span>
         </p>
       </div>
       </fieldset>

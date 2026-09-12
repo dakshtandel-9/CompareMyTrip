@@ -715,6 +715,18 @@ export type ContactContent = {
      follow. */
 };
 
+export type AddOnServiceContent = {
+  eyebrow: string;
+  title: string;
+  description: string;
+};
+
+export type AddOnContent = {
+  /** Controls the top band only; the enquiry forms remain available. */
+  enabled: boolean;
+  services: Record<"flights" | "hotels" | "visa" | "byq", AddOnServiceContent>;
+};
+
 /* ------------------------- The whole page ------------------------- */
 
 export type SiteContent = {
@@ -725,6 +737,7 @@ export type SiteContent = {
   banners: BannersContent;
   auth: AuthContent;
   contact: ContactContent;
+  addOn: AddOnContent;
   hero: HeroContent;
   categories: CategoriesContent;
   trending: TrendingContent;
@@ -750,6 +763,7 @@ export const SECTION_ORDER = [
   "header",
   "auth",
   "contact",
+  "addOn",
   "hero",
   "categories",
   "trending",
@@ -777,6 +791,35 @@ export type SectionKey = (typeof SECTION_ORDER)[number];
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
   comingSoon: DEFAULT_COMING_SOON,
+  addOn: {
+    enabled: true,
+    services: {
+      flights: {
+        eyebrow: "Flight bookings",
+        title: "Find the flight that fits your trip.",
+        description:
+          "Tell us your route and travel dates. We’ll help you compare fares across airlines, with baggage, seats and changes clearly explained — whether you’re booking a package or just a flight.",
+      },
+      hotels: {
+        eyebrow: "Hotel stays",
+        title: "The right stay, at the right rate.",
+        description:
+          "Share your destination, dates and room preferences. We’ll shortlist hotels you can compare by location, comfort, inclusions and price, for a standalone stay or as part of your holiday.",
+      },
+      visa: {
+        eyebrow: "Visa assistance",
+        title: "Your next journey starts with the right visa.",
+        description:
+          "Tell us where you’re travelling and when. Our desk will help you understand the visa options, documents and next steps for your trip, so you can plan with a clearer picture.",
+      },
+      byq: {
+        eyebrow: "Bring Your Quote",
+        title: "Have a travel quote? Let’s compare it.",
+        description:
+          "Share your existing itinerary and quote. We’ll compare the price and inclusions, explain the differences and look for a better offer for the trip you have in mind.",
+      },
+    },
+  },
   banners: { items: BANNER_SLOTS.map((slot) => slot.banner) },
   contact: {
     enabled: true,
@@ -1987,6 +2030,18 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
   const contactRaw = section(root.contact);
   const officesRaw = section(contactRaw.offices);
 
+  const addOnRaw = section(root.addOn);
+  const addOnServicesRaw = section(addOnRaw.services);
+  const addOnService = (id: keyof AddOnContent["services"]): AddOnServiceContent => {
+    const value = section(addOnServicesRaw[id]);
+    const fallback = base.addOn.services[id];
+    return {
+      eyebrow: str(value.eyebrow, fallback.eyebrow),
+      title: str(value.title, fallback.title),
+      description: str(value.description, fallback.description),
+    };
+  };
+
   /* --- auth --- */
   const authRaw = section(root.auth);
   const promptRaw = section(authRaw.prompt);
@@ -2128,6 +2183,15 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
 
   return {
     comingSoon: normalizeComingSoon(root.comingSoon),
+    addOn: {
+      enabled: bool(addOnRaw.enabled, base.addOn.enabled),
+      services: {
+        flights: addOnService("flights"),
+        hotels: addOnService("hotels"),
+        visa: addOnService("visa"),
+        byq: addOnService("byq"),
+      },
+    },
     contact: {
       enabled: bool(contactRaw.enabled, base.contact.enabled),
       eyebrow: str(contactRaw.eyebrow, base.contact.eyebrow),

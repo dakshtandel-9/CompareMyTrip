@@ -5,10 +5,13 @@ import { useEffect, useState } from "react";
 import { LockKeyhole } from "lucide-react";
 import { MAX_CUSTOM_PAYMENT, MIN_CUSTOM_PAYMENT } from "@/lib/customPayment";
 import { getFirebaseAuth } from "@/lib/firebase/client";
+import { useAuthUser } from "@/lib/firebase/useAuthUser";
+import { useUserProfile, type UserProfile } from "@/lib/firebase/useUserProfile";
 
 const fieldClass = "mt-2 h-12 w-full rounded-cmt-control border border-cmt-neutral-300 bg-white px-4 text-base text-cmt-neutral-900 focus:border-cmt-primary-500 focus:outline-2 focus:-outline-offset-2 focus:outline-cmt-primary-500";
 
 export default function CustomPaymentForm({ enabled }: { enabled: boolean }) {
+  const user = useAuthUser();
   const [submitting, setSubmitting] = useState(false);
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");
@@ -43,17 +46,7 @@ export default function CustomPaymentForm({ enabled }: { enabled: boolean }) {
           <input name="amount" type="number" inputMode="decimal" min={MIN_CUSTOM_PAYMENT} max={MAX_CUSTOM_PAYMENT} step="0.01" required value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="Enter agreed amount" className={`${fieldClass} text-xl font-semibold`} aria-describedby="amount-help" />
           <span id="amount-help" className="mt-2 block text-xs font-normal text-cmt-neutral-600">₹1–₹10,00,000 · Payments in Indian rupees</span>
         </label>
-        <label className="block text-sm font-semibold">Full name
-          <input name="firstname" autoComplete="name" required maxLength={80} className={fieldClass} />
-        </label>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <label className="block text-sm font-semibold">Email address
-            <input name="email" type="email" autoComplete="email" required maxLength={254} className={fieldClass} />
-          </label>
-          <label className="block text-sm font-semibold">Phone number
-            <input name="phone" type="tel" autoComplete="tel" required minLength={10} maxLength={25} pattern="[+0-9 ()\-]{10,25}" className={fieldClass} />
-          </label>
-        </div>
+        <PaymentContactFields key={user?.uid ?? "guest"} />
         <label className="block text-sm font-semibold">Booking reference or payment note <span className="font-normal text-cmt-neutral-500">(optional)</span>
           <input name="reference" maxLength={120} placeholder="e.g. Kerala trip advance · 20 October" className={fieldClass} />
         </label>
@@ -70,4 +63,26 @@ export default function CustomPaymentForm({ enabled }: { enabled: boolean }) {
       <p className="text-center text-xs leading-5 text-cmt-neutral-500" role="status">{submitting ? "Please wait while we connect you to PayU." : "Secure checkout with PayU. Keep your transaction reference for our team."}</p>
     </form>
   );
+}
+
+function PaymentContactFields() {
+  const { profile } = useUserProfile();
+  // Populate untouched fields as the profile arrives, preserving customer edits.
+  // The parent's uid key clears these edits when the account changes.
+  const [edits, setEdits] = useState<Partial<UserProfile>>({});
+  const change = (field: keyof UserProfile, value: string) => setEdits(current => ({ ...current, [field]: value }));
+
+  return <>
+    <label className="block text-sm font-semibold">Full name
+      <input name="firstname" autoComplete="name" required maxLength={80} value={edits.name ?? profile?.name ?? ""} onChange={event => change("name", event.target.value)} className={fieldClass} />
+    </label>
+    <div className="grid gap-5 sm:grid-cols-2">
+      <label className="block text-sm font-semibold">Email address
+        <input name="email" type="email" autoComplete="email" required maxLength={254} value={edits.email ?? profile?.email ?? ""} onChange={event => change("email", event.target.value)} className={fieldClass} />
+      </label>
+      <label className="block text-sm font-semibold">Phone number
+        <input name="phone" type="tel" autoComplete="tel" required minLength={10} maxLength={25} pattern="[+0-9 ()\-]{10,25}" value={edits.phone ?? profile?.phone ?? ""} onChange={event => change("phone", event.target.value)} className={fieldClass} />
+      </label>
+    </div>
+  </>;
 }

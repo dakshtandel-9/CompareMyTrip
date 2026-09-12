@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Image from "next/image";
 import { Check, Clock3, ShieldCheck } from "lucide-react";
+import { useSiteContent } from "@/lib/useSiteContent";
 
 import AddOnForm from "./AddOnForm";
 import QuoteGuarantee from "./QuoteGuarantee";
@@ -32,16 +33,16 @@ const REASSURANCE = [
 ];
 
 const HOTEL_LOGOS = [
-  { src: "/hotelLogo/hotel11.png", name: "The Leela" },
-  { src: "/hotelLogo/hotel12.png", name: "Sarovar Hotels & Resorts" },
-  { src: "/hotelLogo/hotel13.png", name: "The Fern Hotels & Resorts" },
-  { src: "/hotelLogo/hotel14.png", name: "Hyatt" },
-  { src: "/hotelLogo/hotel15.png", name: "Lemon Tree Hotels" },
-  { src: "/hotelLogo/hotel16.png", name: "Hilton Hotels & Resorts" },
-  { src: "/hotelLogo/hotel17.png", name: "Oberoi Hotels & Resorts" },
-  { src: "/hotelLogo/hotel18.png", name: "ITC Hotels" },
-  { src: "/hotelLogo/hotel19.png", name: "Marriott" },
-  { src: "/hotelLogo/hotel110.png", name: "Taj" },
+  { src: "/hotelLogo/original/leela.webp", name: "The Leela" },
+  { src: "/hotelLogo/original/sarovar.webp", name: "Sarovar Hotels & Resorts" },
+  { src: "/hotelLogo/original/fern.webp", name: "The Fern Hotels & Resorts" },
+  { src: "/hotelLogo/original/hyatt.webp", name: "Hyatt" },
+  { src: "/hotelLogo/original/lemon-tree.webp", name: "Lemon Tree Hotels" },
+  { src: "/hotelLogo/original/hilton.webp", name: "Hilton Hotels & Resorts" },
+  { src: "/hotelLogo/original/oberoi.webp", name: "Oberoi Hotels & Resorts" },
+  { src: "/hotelLogo/original/itc.webp", name: "ITC Hotels" },
+  { src: "/hotelLogo/original/marriott.webp", name: "Marriott" },
+  { src: "/hotelLogo/original/taj-gold.webp", name: "Taj" },
 ];
 
 const FLIGHT_LOGOS = [
@@ -58,16 +59,16 @@ const FLIGHT_LOGOS = [
 ];
 
 const VISA_LOGOS = [
-  { src: "/visaLogo/visa1.png", name: "New Zealand" },
-  { src: "/visaLogo/visa2.png", name: "Maldives" },
-  { src: "/visaLogo/visa3.png", name: "Malaysia" },
-  { src: "/visaLogo/visa4.png", name: "Japan" },
-  { src: "/visaLogo/visa5.png", name: "Hong Kong" },
-  { src: "/visaLogo/visa6.png", name: "Antarctica" },
-  { src: "/visaLogo/visa7.png", name: "Bali, Indonesia" },
-  { src: "/visaLogo/visa8.png", name: "Sri Lanka" },
-  { src: "/visaLogo/visa9.png", name: "Thailand" },
-  { src: "/visaLogo/visa10.png", name: "Vietnam" },
+  { src: "/visaLogo/new-zealand-color.webp", name: "New Zealand" },
+  { src: "/visaLogo/maldives-color.webp", name: "Maldives" },
+  { src: "/visaLogo/malaysia-color.webp", name: "Malaysia" },
+  { src: "/visaLogo/japan-color.webp", name: "Japan" },
+  { src: "/visaLogo/hong-kong-color.webp", name: "Hong Kong" },
+  { src: "/visaLogo/antarctica-color.webp", name: "Antarctica" },
+  { src: "/visaLogo/bali-color.webp", name: "Bali, Indonesia" },
+  { src: "/visaLogo/sri-lanka-color.webp", name: "Sri Lanka" },
+  { src: "/visaLogo/thailand-color.webp", name: "Thailand" },
+  { src: "/visaLogo/vietnam-color.webp", name: "Vietnam" },
 ];
 
 const SERVICE_LOGOS = {
@@ -78,6 +79,8 @@ const SERVICE_LOGOS = {
 
 export default function AddOnBody({ initialService }: { initialService: ServiceId }) {
   const [active, setActive] = useState<ServiceId>(() => toServiceId(initialService));
+  const { addOn } = useSiteContent();
+  const hero = addOn.services[active];
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const open = (id: ServiceId) => {
@@ -113,22 +116,21 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
   return (
     <main className="cmt-addon w-full bg-white font-body text-cmt-neutral-900">
       {/* Compact hero */}
-      <section className="w-full border-b border-cmt-neutral-100 bg-cmt-neutral-50 px-4 py-12 sm:px-5 sm:py-16 lg:px-6">
-        <div className="mx-auto w-full max-w-[1440px]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-cmt-primary-700 sm:text-sm">
-            Add On
-          </p>
-          <h1 className="mt-2 max-w-[20ch] font-display text-3xl font-semibold leading-[1.15] tracking-tight text-cmt-neutral-900 sm:text-5xl">
-            Flights, hotels, visas and Bring Your Quote — all in one place.
-          </h1>
-          <p className="mt-3 max-w-2xl text-pretty text-sm leading-relaxed text-cmt-neutral-600 sm:text-base">
-            Book them alongside a package or entirely on their own. Tell us what
-            you need and our desk comes back with options you can actually
-            compare — the fare, the rate, the visa route, and what each one
-            leaves out. Already have a quote? Choose Bring Your Quote to compare it with us.
-          </p>
-        </div>
-      </section>
+      {addOn.enabled && (
+        <section className="w-full border-b border-cmt-neutral-100 bg-cmt-neutral-50 px-4 py-12 sm:px-5 sm:py-16 lg:px-6">
+          <div className="mx-auto w-full max-w-[1440px]">
+            <p className="text-xs font-semibold uppercase tracking-wider text-cmt-primary-700 sm:text-sm">
+              {hero.eyebrow}
+            </p>
+            <h1 className="mt-2 max-w-[20ch] font-display text-3xl font-semibold leading-[1.15] tracking-tight text-cmt-neutral-900 sm:text-5xl">
+              {hero.title}
+            </h1>
+            <p className="mt-3 max-w-2xl text-pretty text-sm leading-relaxed text-cmt-neutral-600 sm:text-base">
+              {hero.description}
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* Tabs + the open panel */}
       <section id="add-on-enquiry" className="scroll-mt-28 w-full px-4 py-10 sm:px-5 sm:py-14 lg:px-6 lg:py-16">
@@ -257,10 +259,10 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
                             <Image
                               src={brand.src}
                               alt={brand.name}
-                              width={service.id === "flights" ? 1448 : 1254}
-                              height={service.id === "flights" ? 1086 : 1254}
-                              sizes={service.id === "flights" ? "150px" : "112px"}
-                              className={service.id === "flights" ? "h-28 w-full object-contain" : "h-28 w-28 object-contain"}
+                              width={service.id === "hotels" ? 480 : service.id === "flights" ? 1448 : 512}
+                              height={service.id === "hotels" ? 280 : service.id === "flights" ? 1086 : 512}
+                              sizes={service.id === "hotels" ? "192px" : service.id === "flights" ? "150px" : "112px"}
+                              className={service.id === "hotels" ? "h-28 w-full max-w-48 object-contain" : service.id === "flights" ? "h-28 w-full object-contain" : "h-28 w-28 object-contain"}
                             />
                           </li>
                         ))}
