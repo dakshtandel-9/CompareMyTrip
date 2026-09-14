@@ -4,8 +4,8 @@ import AdminAccessGate from "./_components/AdminAccessGate";
 
 export const metadata: Metadata = {
   title: {
-    default: "CompareMyTrip CRM",
-    template: "%s | CompareMyTrip CRM",
+    default: "CompareMyTrip Admin",
+    template: "%s | CompareMyTrip Admin",
   },
   robots: { index: false, follow: false, noarchive: true },
 };

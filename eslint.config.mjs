@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "docs/**",
     "media-source/**",
+    // Local, git-ignored diagnostic scripts and generated review artifacts.
+    "tmp/**",
     "next-env.d.ts",
   ]),
 ]);

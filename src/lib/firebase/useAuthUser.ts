@@ -9,7 +9,13 @@ export function useAuthUser() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
 
   useEffect(() => {
-    return onAuthStateChanged(getFirebaseAuth(), setUser);
+    try {
+      return onAuthStateChanged(getFirebaseAuth(), setUser, () => setUser(null));
+    } catch {
+      // Missing deployment configuration must not crash public pages. A sign-in
+      // attempt still surfaces the corresponding actionable error on its form.
+      queueMicrotask(() => setUser(null));
+    }
   }, []);
 
   return user;

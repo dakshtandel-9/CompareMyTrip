@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Compass, Phone, Plane } from "lucide-react";
+import { ArrowRight, Compass, Phone, Plane, ShieldCheck } from "lucide-react";
 import ContentImage from "@/app/home/_components/ContentImage";
 import { useSiteContentState } from "@/lib/useSiteContent";
 
@@ -22,13 +22,16 @@ export default function ComingSoonScreen() {
   return (
     <main className="min-h-dvh bg-[#faf9f6] font-body text-cmt-neutral-900">
       <div className="mx-auto flex min-h-dvh max-w-[1440px] flex-col px-5 py-6 sm:px-8 lg:px-12 lg:py-9">
-        <header className="flex items-center justify-between gap-5">
-          <Image src="/comparemytrip-logo.png" alt="CompareMyTrip" width={240} height={42} className="h-auto w-44 sm:w-60" />
-          <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-cmt-primary-500/40 bg-cmt-primary-50 px-3 py-2 text-xs font-semibold"><span className="size-2 rounded-full bg-cmt-primary-600" /> Coming soon</span>
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          <Image src="/comparemytrip-logo.png" alt="CompareMyTrip" width={240} height={42} className="h-auto w-36 sm:w-60" />
+          <Link href="/admin/content" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-cmt-control border border-cmt-neutral-300 bg-white px-4 text-sm font-semibold hover:bg-cmt-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cmt-primary-500"><ShieldCheck className="size-4" aria-hidden="true" /> Admin sign in</Link>
         </header>
         <div className={`grid flex-1 items-center gap-10 py-12 lg:gap-16 lg:py-16 ${comingSoon.image ? "lg:grid-cols-2" : ""}`}>
           <div className="max-w-2xl">
-            <span className="mb-6 inline-grid size-14 place-items-center rounded-2xl bg-cmt-primary-500 shadow-cmt-sm"><Plane className="size-7 -rotate-12" aria-hidden="true" /></span>
+            <div className="mb-6 flex items-center gap-4">
+              <span className="inline-grid size-14 place-items-center rounded-2xl bg-cmt-primary-500 shadow-cmt-sm"><Plane className="size-7 -rotate-12" aria-hidden="true" /></span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-cmt-primary-500/40 bg-cmt-primary-50 px-3 py-2 text-xs font-semibold"><span className="size-2 rounded-full bg-cmt-primary-600" /> Coming soon</span>
+            </div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cmt-primary-800">Good things are on the horizon</p>
             <h1 className="mt-4 break-words font-display text-4xl font-semibold leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl">{comingSoon.title || "Coming soon"}</h1>
             <p className="mt-6 max-w-lg whitespace-pre-line text-base leading-8 text-cmt-neutral-600 sm:text-lg">{comingSoon.message}</p>
@@ -44,7 +47,7 @@ export default function ComingSoonScreen() {
         </div>
         <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-cmt-neutral-200 pt-5 text-xs text-cmt-neutral-500">
           <p>CompareMyTrip · Your journey starts here.</p>
-          <Link href="/login?next=%2Fadmin%2Fcontent" className="rounded underline-offset-4 hover:text-cmt-neutral-900 hover:underline focus-visible:outline-2 focus-visible:outline-cmt-primary-500">Admin sign in</Link>
+          <Link href="/admin/content" className="inline-flex min-h-11 items-center rounded underline-offset-4 hover:text-cmt-neutral-900 hover:underline focus-visible:outline-2 focus-visible:outline-cmt-primary-500">Admin sign in</Link>
         </footer>
       </div>
     </main>

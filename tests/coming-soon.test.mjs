@@ -38,12 +38,16 @@ test('public routes redirect while sign-in, admin, assets, and payment returns r
   const { middleware } = load('src/middleware.ts', {
     'next/server': { NextResponse },
     '@/lib/comingSoon': settings,
+    '@/lib/adminApiGuard': { isFirebaseAdmin: async () => false },
+    '@/lib/adminPreview': { ADMIN_PREVIEW_COOKIE: 'cmt_admin_preview' },
     '@/lib/comingSoonServer': { readComingSoonEnabled: async () => { reads++; return true; } },
   });
   for (const path of ['/', '/packages/bali', '/destinations', '/blog/a-guide', '/compare', '/contact', '/checkout', '/administer']) {
     const response = await middleware(new NextRequest(`https://example.com${path}?tracking=demo`));
     assert.equal(response.status, 307, path);
-    assert.equal(response.headers.get('location'), 'https://example.com/coming-soon');
+    const location = new URL(response.headers.get('location'));
+    assert.equal(location.pathname, '/coming-soon');
+    assert.equal(location.searchParams.get('next'), `${path}?tracking=demo`);
     assert.match(response.headers.get('cache-control'), /no-store/);
   }
   const publicReads = reads;
@@ -59,6 +63,8 @@ test('turning mode off restores public requests immediately; POST actions are no
   const { middleware } = load('src/middleware.ts', {
     'next/server': { NextResponse },
     '@/lib/comingSoon': settings,
+    '@/lib/adminApiGuard': { isFirebaseAdmin: async () => false },
+    '@/lib/adminPreview': { ADMIN_PREVIEW_COOKIE: 'cmt_admin_preview' },
     '@/lib/comingSoonServer': { readComingSoonEnabled: async () => enabled },
   });
   assert.equal((await middleware(new NextRequest('https://example.com/'))).status, 307);

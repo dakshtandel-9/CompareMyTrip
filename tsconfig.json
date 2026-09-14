@@ -40,6 +40,7 @@
     "node_modules",
     "docs",
     ".open-next",
-    ".wrangler"
+    ".wrangler",
+    "tmp"
   ]
 }

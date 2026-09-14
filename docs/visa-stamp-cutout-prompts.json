@@ -1,0 +1,72 @@
+[
+  {
+    "destination": "new-zealand",
+    "mode": "built-in imagegen",
+    "initialPrompt": "Use case: background-extraction. Edit target: the attached original New Zealand passport stamp scan. Extract a clean digital rubber stamp with actual alpha transparency. Keep only the main blue visitor permit impression, including the date and immigration wording. Remove neighboring black stamp marks, passport security crest, page labels, and strip at the left. Preserve existing lettering, even where cut off in the source. Preserve the original ink colors, proportions, all original lettering and dates, frame shape and naturally distressed rubber-stamp ink texture. Do not invent or redesign lettering. Remove every trace of paper, security background, lighting, shadows, and photographic rectangular background. ALL spaces between letters and inside the frame must be transparent, not white. Center the complete isolated ink impression with small transparent margins. No card, paper, new text, glow, shadow, checkerboard drawing or background fill. Output transparent RGBA PNG for stamping directly onto a webpage.",
+    "backgroundCorrectionPrompt": "Remove the background from this image. Return only the stamp ink on a transparent background. Preserve the stamp exactly. The grey and white grid is the background to remove, both outside and inside the stamp.",
+    "output": "public/visaLogo/transparent/new-zealand.webp"
+  },
+  {
+    "destination": "maldives",
+    "mode": "built-in imagegen",
+    "initialPrompt": "Use case: background-extraction. Edit target: the attached original Maldives passport stamp scan. Extract a clean digital rubber stamp with actual alpha transparency. Keep blue immigration frame/arrow, blue text, red date, and officer ink. Remove the fine guilloche passport pattern. Preserve the original ink colors, proportions, all original lettering and dates, frame shape and naturally distressed rubber-stamp ink texture. Do not invent or redesign lettering. Remove every trace of paper, security background, lighting, shadows, and photographic rectangular background. ALL spaces between letters and inside the frame must be transparent, not white. Center the complete isolated ink impression with small transparent margins. No card, paper, new text, glow, shadow, checkerboard drawing or background fill. Output transparent RGBA PNG for stamping directly onto a webpage.",
+    "backgroundCorrectionPrompt": "Remove the background from this image. Return only the stamp ink on a transparent background. Preserve the stamp exactly. The grey and white grid is the background to remove, both outside and inside the stamp.",
+    "output": "public/visaLogo/transparent/maldives.webp"
+  },
+  {
+    "destination": "malaysia",
+    "mode": "built-in imagegen",
+    "initialPrompt": "Use case: background-extraction. Edit target: the attached original Malaysia passport stamp scan. Extract a clean digital rubber stamp with actual alpha transparency. Keep purple immigration impression with repeating numeric border, date and black handwritten ink. Remove the passport guilloche background. Preserve the original ink colors, proportions, all original lettering and dates, frame shape and naturally distressed rubber-stamp ink texture. Do not invent or redesign lettering. Remove every trace of paper, security background, lighting, shadows, and photographic rectangular background. ALL spaces between letters and inside the frame must be transparent, not white. Center the complete isolated ink impression with small transparent margins. No card, paper, new text, glow, shadow, checkerboard drawing or background fill. Output transparent RGBA PNG for stamping directly onto a webpage.",
+    "backgroundCorrectionPrompt": "Remove the background from this image. Return only the stamp ink on a transparent background. Preserve the stamp exactly. The grey and white grid is the background to remove, both outside and inside the stamp.",
+    "output": "public/visaLogo/transparent/malaysia.webp"
+  },
+  {
+    "destination": "japan",
+    "mode": "built-in imagegen",
+    "initialPrompt": "Use case: background-extraction. Edit target: attached original Japan passport stamp scan. Create a precise transparent-background cutout of ONLY the blue ink stamp, including its original frame and ALL original Japanese and English lettering, airport, numbers, date and distressed rubber-stamp ink texture. Remove every trace of passport paper, yellow/pink security pattern, lighting and rectangular photo background. All areas between letters and inside the stamp frame must be fully transparent, not white or filled. Retain the original stamp proportions, original blue ink color, original imperfections and exact text; do not invent or redesign any lettering. Center the complete ink impression with small transparent margins. No paper, shadow, glow, card, checkerboard drawing, surrounding graphic or new text. Output RGBA PNG with actual alpha transparency suitable for directly stamping onto a webpage.",
+    "backgroundCorrectionPrompt": "Remove the background from this image. Return only the stamp ink on a transparent background. Preserve the stamp exactly. The grey and white grid is the background to remove, both outside and inside the stamp.",
+    "output": "public/visaLogo/transparent/japan.webp"
+  },
+  {
+    "destination": "hong-kong",
+    "mode": "built-in imagegen",
+    "initialPrompt": "Use case: background-extraction. Edit target: the attached original Hong Kong passport stamp scan. Extract a clean digital rubber stamp with actual alpha transparency. Keep the main dark Hong Kong entry stamp and its visitor-permission box above. Remove the neighboring purple stamp overlapping on the left and all fine passport patterns. Preserve the original ink colors, proportions, all original lettering and dates, frame shape and naturally distressed rubber-stamp ink texture. Do not invent or redesign lettering. Remove every trace of paper, security background, lighting, shadows, and photographic rectangular background. ALL spaces between letters and inside the frame must be transparent, not white. Center the complete isolated ink impression with small transparent margins. No card, paper, new text, glow, shadow, checkerboard drawing or background fill. Output transparent RGBA PNG for stamping directly onto a webpage.",
+    "backgroundCorrectionPrompt": "Remove the background from this image. Return only the stamp ink on a transparent background. Preserve the stamp exactly. The grey and white grid is the background to remove, both outside and inside the stamp.",
+    "output": "public/visaLogo/transparent/hong-kong.webp"
+  },
+  {
+    "destination": "antarctica",
+    "mode": "built-in imagegen",
+    "initialPrompt": "Use case: background-extraction. Edit target: the attached original Antarctica passport stamp scan. Extract a clean digital rubber stamp with actual alpha transparency. Keep only the circular dark PORT LOCKROY BRITISH ANTARCTIC TERRITORY impression and penguin silhouette. Remove neighboring passport text, page lines, other ink and paper. Preserve the original ink colors, proportions, all original lettering and dates, frame shape and naturally distressed rubber-stamp ink texture. Do not invent or redesign lettering. Remove every trace of paper, security background, lighting, shadows, and photographic rectangular background. ALL spaces between letters and inside the frame must be transparent, not white. Center the complete isolated ink impression with small transparent margins. No card, paper, new text, glow, shadow, checkerboard drawing or background fill. Output transparent RGBA PNG for stamping directly onto a webpage.",
+    "backgroundCorrectionPrompt": "Remove the background from this image. Return only the stamp ink on a transparent background. Preserve the stamp exactly. The grey and white grid is the background to remove, both outside and inside the stamp.",
+    "output": "public/visaLogo/transparent/antarctica.webp"
+  },
+  {
+    "destination": "bali",
+    "mode": "built-in imagegen",
+    "initialPrompt": "Use case: background-extraction. Edit target: the attached original Bali Indonesia passport stamp scan. Extract a clean digital rubber stamp with actual alpha transparency. Keep ONLY the purple triangular NGURAH RAI BERANGKAT DEPARTURE impression dated 06 FEB 2009. Remove the faint green rectangular impression on the left and all paper. Preserve the original ink colors, proportions, all original lettering and dates, frame shape and naturally distressed rubber-stamp ink texture. Do not invent or redesign lettering. Remove every trace of paper, security background, lighting, shadows, and photographic rectangular background. ALL spaces between letters and inside the frame must be transparent, not white. Center the complete isolated ink impression with small transparent margins. No card, paper, new text, glow, shadow, checkerboard drawing or background fill. Output transparent RGBA PNG for stamping directly onto a webpage.",
+    "backgroundCorrectionPrompt": "Remove the background from this image. Return only the stamp ink on a transparent background. Preserve the stamp exactly. The grey and white grid is the background to remove, both outside and inside the stamp.",
+    "output": "public/visaLogo/transparent/bali.webp"
+  },
+  {
+    "destination": "sri-lanka",
+    "mode": "built-in imagegen",
+    "initialPrompt": "Use case: background-extraction. Edit target: the attached original Sri Lanka passport stamp scan. Extract a clean digital rubber stamp with actual alpha transparency. Keep the dark SRI LANKA IMMIGRATION rectangular stamp, date, entry wording and original blue handwritten ink. Remove passport pattern, colored security marks and page. Preserve the original ink colors, proportions, all original lettering and dates, frame shape and naturally distressed rubber-stamp ink texture. Do not invent or redesign lettering. Remove every trace of paper, security background, lighting, shadows, and photographic rectangular background. ALL spaces between letters and inside the frame must be transparent, not white. Center the complete isolated ink impression with small transparent margins. No card, paper, new text, glow, shadow, checkerboard drawing or background fill. Output transparent RGBA PNG for stamping directly onto a webpage.",
+    "backgroundCorrectionPrompt": "Remove the background from this image. Return only the stamp ink on a transparent background. Preserve the stamp exactly. The grey and white grid is the background to remove, both outside and inside the stamp.",
+    "output": "public/visaLogo/transparent/sri-lanka.webp"
+  },
+  {
+    "destination": "thailand",
+    "mode": "built-in imagegen",
+    "initialPrompt": "Use case: background-extraction. Edit target: the attached original Thailand passport stamp scan. Extract a clean digital rubber stamp with actual alpha transparency. Keep red admitted stamp, frame and red date with the dark blue 7 FEB 2022 date. Preserve its original slight curvature. Remove paper and colored bands. Preserve the original ink colors, proportions, all original lettering and dates, frame shape and naturally distressed rubber-stamp ink texture. Do not invent or redesign lettering. Remove every trace of paper, security background, lighting, shadows, and photographic rectangular background. ALL spaces between letters and inside the frame must be transparent, not white. Center the complete isolated ink impression with small transparent margins. No card, paper, new text, glow, shadow, checkerboard drawing or background fill. Output transparent RGBA PNG for stamping directly onto a webpage.",
+    "backgroundCorrectionPrompt": "Remove the background from this image. Return only the stamp ink on a transparent background. Preserve the stamp exactly. The grey and white grid is the background to remove, both outside and inside the stamp.",
+    "output": "public/visaLogo/transparent/thailand.webp"
+  },
+  {
+    "destination": "vietnam",
+    "mode": "built-in imagegen",
+    "initialPrompt": "Use case: background-extraction. Edit target: the attached original Vietnam passport stamp scan. Extract a clean digital rubber stamp with actual alpha transparency. Keep purple VIETNAM IMMIGRATION rectangular stamp, original 03 SEP 2009 date and black ink marks. Remove all fine security lines and paper. Preserve the original ink colors, proportions, all original lettering and dates, frame shape and naturally distressed rubber-stamp ink texture. Do not invent or redesign lettering. Remove every trace of paper, security background, lighting, shadows, and photographic rectangular background. ALL spaces between letters and inside the frame must be transparent, not white. Center the complete isolated ink impression with small transparent margins. No card, paper, new text, glow, shadow, checkerboard drawing or background fill. Output transparent RGBA PNG for stamping directly onto a webpage.",
+    "backgroundCorrectionPrompt": "Remove the background from this image. Return only the stamp ink on a transparent background. Preserve the stamp exactly. The grey and white grid is the background to remove, both outside and inside the stamp.",
+    "output": "public/visaLogo/transparent/vietnam.webp"
+  }
+]

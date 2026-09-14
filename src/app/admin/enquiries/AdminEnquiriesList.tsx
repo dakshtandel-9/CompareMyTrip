@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { BadgeIndianRupee, CalendarClock, Mail, MapPin, MessageSquareText, Phone, Search, Trash2, Users } from "lucide-react";
+import { ChevronDown, Download, Trash2 } from "lucide-react";
+import { ContactLinks, InboxFilters, InboxSearch, InboxState, OperationsHeader, WorkflowGuide } from "./OperationsUI";
 import {
   deleteContactEnquiry,
   subscribeToContactEnquiries,
@@ -22,8 +23,10 @@ export default function AdminEnquiriesList({ kind }: { kind: "contact" | "packag
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<EnquiryStatus | "all">("all");
+  const [notice, setNotice] = useState("");
   const [updatingId, setUpdatingId] = useState("");
-  const [now, setNow] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
@@ -46,14 +49,15 @@ export default function AdminEnquiriesList({ kind }: { kind: "contact" | "packag
 
   const visibleEnquiries = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return query
-      ? relevantEnquiries.filter((enquiry) => [enquiry.name, enquiry.email, enquiry.phone, enquiry.destination, enquiry.packageTitle, enquiry.message]
-          .some((value) => value.toLowerCase().includes(query)))
-      : relevantEnquiries;
-  }, [relevantEnquiries, search]);
+    return relevantEnquiries.filter(enquiry =>
+      (statusFilter === "all" || enquiry.status === statusFilter) &&
+      (!query || [enquiry.name, enquiry.email, enquiry.phone, enquiry.destination, enquiry.packageTitle, enquiry.message]
+        .some(value => value.toLowerCase().includes(query))),
+    );
+  }, [relevantEnquiries, search, statusFilter]);
 
   const changeStatus = async (enquiry: ContactEnquiry, status: EnquiryStatus) => {
-    setUpdatingId(enquiry.id); setError("");
+    setUpdatingId(enquiry.id); setError(""); setNotice("");
     const previousStatus = enquiry.status;
     const setLocalStatus = (nextStatus: EnquiryStatus) => setEnquiries((current) => current.map((item) => item.id === enquiry.id ? { ...item, status: nextStatus } : item));
     setLocalStatus(status);
@@ -62,6 +66,7 @@ export default function AdminEnquiriesList({ kind }: { kind: "contact" | "packag
       // Keep the controlled select on the confirmed value even if an older
       // cached snapshot arrived while the write was in flight.
       setLocalStatus(status);
+      setNotice(`Status saved for ${enquiry.name || "this customer"}.`);
     }
     catch (cause) {
       setLocalStatus(previousStatus);
@@ -73,7 +78,7 @@ export default function AdminEnquiriesList({ kind }: { kind: "contact" | "packag
   const removeEnquiry = async (enquiry: ContactEnquiry) => {
     if (!window.confirm(`Delete the enquiry from ${enquiry.name}? This cannot be undone.`)) return;
     setDeletingId(enquiry.id); setError("");
-    try { await deleteContactEnquiry(enquiry.id); }
+    try { await deleteContactEnquiry(enquiry.id); setNotice("Enquiry deleted."); }
     catch (cause) { setError(cause instanceof Error ? cause.message : "The enquiry could not be deleted."); }
     finally { setDeletingId(""); }
   };
@@ -93,25 +98,76 @@ export default function AdminEnquiriesList({ kind }: { kind: "contact" | "packag
   };
 
   const isLoading = authUser === undefined || (authUser !== null && loading);
-  const displayError = authUser === null ? "Sign in to your CRM account to view enquiries." : error;
+  const displayError = authUser === null ? "Sign in to your admin account to view enquiries." : error;
   const isPackageInbox = kind === "package";
   const pendingCount = relevantEnquiries.filter((enquiry) => enquiry.status === (isPackageInbox ? "under_review" : "not_contacted")).length;
 
-  return <div className="font-body text-cmt-neutral-900">
-    <header className="flex flex-wrap items-end justify-between gap-5">
-      <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-700">{isPackageInbox ? "Package sales inbox" : "Contact inbox"}</p><h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">{isPackageInbox ? "Package quote requests" : "Contact Us enquiries"}</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-cmt-neutral-600">{isPackageInbox ? "Review customized quote requests submitted from package pages and track customer contact." : "Review submissions from the Contact Us form and mark whether the customer has been contacted."}</p></div>
-      <div className="flex min-w-[190px] items-center gap-3 rounded-cmt-md border border-cmt-neutral-200 bg-white px-4 py-3 shadow-cmt-xs"><span className="grid size-10 place-items-center rounded-cmt-full bg-cmt-primary-50 text-cmt-primary-900"><MessageSquareText className="size-5" aria-hidden="true" /></span><div><p className="font-display text-2xl font-semibold tabular-nums">{isLoading ? "—" : pendingCount}</p><p className="text-xs text-cmt-neutral-500">{isPackageInbox ? "Under review" : "Not contacted"}</p></div></div>
-    </header>
-    {displayError ? <p role="alert" className="mt-6 rounded-cmt-control border border-cmt-error-500/20 bg-cmt-error-100 px-4 py-3 text-sm text-cmt-error-700">{displayError}</p> : null}
-    <section className="mt-7 overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cmt-neutral-200 px-5 py-4"><p className="text-sm font-semibold">{isLoading ? `Loading ${isPackageInbox ? "quote requests" : "enquiries"}…` : `${visibleEnquiries.length} ${visibleEnquiries.length === 1 ? isPackageInbox ? "quote request" : "enquiry" : isPackageInbox ? "quote requests" : "enquiries"}`}</p><label className="relative w-full sm:w-80"><span className="sr-only">Search {isPackageInbox ? "quote requests" : "enquiries"}</span><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-400" aria-hidden="true" /><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name, email, phone or trip" className="h-10 w-full rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-50 pl-9 pr-3 text-sm outline-none focus:border-cmt-primary-500 focus:ring-2 focus:ring-cmt-primary-500/20" /></label></div>
-      <div className="divide-y divide-cmt-neutral-200">
-        {visibleEnquiries.map((enquiry) => { const pricePerPerson = enquiry.pricePerPerson || packages.find((pkg) => pkg.id === enquiry.packageId)?.price || 0; return <article key={enquiry.id} className="p-5 sm:p-6"><div className="flex flex-wrap items-start justify-between gap-4"><div><h2 className="font-display text-lg font-semibold">{enquiry.name}</h2><div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><a href={`mailto:${enquiry.email}`} className="inline-flex items-center gap-1.5 hover:text-cmt-neutral-900"><Mail className="size-4" />{enquiry.email}</a><a href={`tel:${enquiry.phone}`} className="inline-flex items-center gap-1.5 hover:text-cmt-neutral-900"><Phone className="size-4" />{enquiry.phone}</a><span className="inline-flex items-center gap-1.5"><CalendarClock className="size-4" />{enquiry.submittedAt ? dateFormatter.format(enquiry.submittedAt) : "Saving…"}</span></div></div><div className="flex items-center gap-2"><label className="min-w-[170px]"><span className="sr-only">Status for {enquiry.name}</span><select disabled={updatingId === enquiry.id} value={enquiry.status} onChange={(event) => void changeStatus(enquiry, event.target.value as EnquiryStatus)} className={`h-10 w-full rounded-cmt-control border px-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-cmt-primary-500/20 ${enquiry.status === "rejected" ? "border-cmt-error-500/40 bg-cmt-error-100 text-cmt-error-700" : enquiry.status === "completed" || enquiry.status === "contacted" ? "border-cmt-success-500/40 bg-cmt-success-100 text-cmt-success-700" : "border-cmt-primary-500/40 bg-cmt-primary-50 text-cmt-primary-900"}`}>{isPackageInbox ? <><option value="under_review">Under review</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option><option value="completed">Completed</option></> : <><option value="not_contacted">Not contacted</option><option value="contacted">Contacted</option></>}</select></label><button type="button" onClick={() => void removeEnquiry(enquiry)} disabled={deletingId === enquiry.id} title="Delete enquiry" aria-label={`Delete enquiry from ${enquiry.name}`} className="grid size-10 shrink-0 place-items-center rounded-cmt-control border border-cmt-neutral-200 text-cmt-neutral-500 transition hover:border-cmt-error-500/40 hover:bg-cmt-error-100 hover:text-cmt-error-700 disabled:cursor-not-allowed disabled:opacity-50"><Trash2 className="size-4" aria-hidden="true" /></button></div></div>
-          {isPackageInbox && enquiry.packageTitle ? <div className="mt-4 rounded-cmt-control border border-cmt-primary-200 bg-cmt-primary-50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-wide text-cmt-primary-800">Customized quote for</p><p className="mt-1 text-sm font-semibold">{enquiry.packageTitle}</p></div> : null}<div className={`mt-4 grid gap-3 rounded-cmt-control bg-cmt-neutral-50 p-4 text-sm ${isPackageInbox ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}><div><p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Destination</p><p className="mt-1 inline-flex items-center gap-1.5"><MapPin className="size-4 text-cmt-neutral-400" />{enquiry.destination || "Not specified"}</p></div><div><p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Departure</p><p className="mt-1">{enquiry.departure || "Not specified"}</p></div><div><p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Travellers</p><p className="mt-1 inline-flex items-center gap-1.5"><Users className="size-4 text-cmt-neutral-400" />{enquiry.travellers || "Not specified"}</p></div>{isPackageInbox ? <div><p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Price per person</p><p className="mt-1 inline-flex items-center gap-1.5 font-semibold"><BadgeIndianRupee className="size-4 text-cmt-neutral-400" />{pricePerPerson ? formatINR(pricePerPerson) : "Not available"}<span className="font-normal text-cmt-neutral-500">/ person</span></p></div> : null}</div>
-          <div className="mt-4"><p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">{isPackageInbox ? "Optional message" : "Trip request"}</p><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-cmt-neutral-700">{enquiry.message || "No message provided."}</p></div>
-          {enquiry.quoteExpiresAt && <div className="mt-4 flex flex-wrap items-center gap-3 text-sm"><button type="button" disabled={downloadingId === enquiry.id || enquiry.quoteExpiresAt.getTime() <= now} onClick={() => void downloadQuote(enquiry)} className="min-h-10 rounded-cmt-control border border-cmt-neutral-200 px-4 font-semibold disabled:opacity-50">{downloadingId === enquiry.id ? "Preparing PDF…" : enquiry.quoteExpiresAt.getTime() <= now ? "PDF expired" : "Download quote PDF"}</button><span className="text-xs text-cmt-neutral-500">Expires {dateFormatter.format(enquiry.quoteExpiresAt)}</span></div>}
-        </article>; })}
-        {!isLoading && !displayError && visibleEnquiries.length === 0 ? <div className="px-5 py-12 text-center"><MessageSquareText className="mx-auto size-8 text-cmt-neutral-300" /><p className="mt-3 text-sm font-semibold">{relevantEnquiries.length ? `No ${isPackageInbox ? "quote requests" : "enquiries"} match your search` : isPackageInbox ? "No package quote requests yet" : "No Contact Us enquiries yet"}</p><p className="mt-1 text-xs text-cmt-neutral-500">{isPackageInbox ? "New customized quote requests will appear here automatically." : "New Contact Us submissions will appear here automatically."}</p></div> : null}
+  const statusOptions: { value: EnquiryStatus; label: string }[] = isPackageInbox
+    ? [{ value: "under_review", label: "Needs review" }, { value: "accepted", label: "Accepted" }, { value: "completed", label: "Completed" }, { value: "rejected", label: "Rejected" }]
+    : [{ value: "not_contacted", label: "Needs a reply" }, { value: "contacted", label: "Contacted" }];
+  const doneCount = relevantEnquiries.filter(enquiry => isPackageInbox ? enquiry.status === "completed" : enquiry.status === "contacted").length;
+  const noun = isPackageInbox ? "quote requests" : "enquiries";
+
+  return <div className="text-slate-900">
+    <OperationsHeader eyebrow="Customer requests" title={isPackageInbox ? "Package quote requests" : "Contact enquiries"}
+      description={isPackageInbox ? "Review the trip a customer is interested in, discuss their requirements, and keep the request status up to date." : "Questions and trip requests from your Contact Us page. Find the customer’s details, reply, and mark them as contacted."}
+      metrics={[
+        { label: isPackageInbox ? "Needs review" : "Needs a reply", value: isLoading ? "—" : pendingCount, hint: "Start with these customers", attention: true },
+        { label: isPackageInbox ? "Completed requests" : "Customers contacted", value: isLoading ? "—" : doneCount, hint: isPackageInbox ? "Requests marked as completed" : "Enquiries marked as contacted" },
+        { label: isPackageInbox ? "All quote requests" : "All enquiries", value: isLoading ? "—" : relevantEnquiries.length, hint: "Newest requests appear first" },
+      ]} />
+    <WorkflowGuide steps={isPackageInbox ? ["Review the request details", "Contact the customer", "Update the request status"] : ["Read the customer’s request", "Call or email them", "Mark as contacted"]} />
+    {displayError && <p role="alert" className="my-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{displayError}</p>}
+    {notice && !displayError && <p role="status" className="my-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</p>}
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="space-y-4 border-b border-slate-200 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><h2 className="text-base font-semibold">{isPackageInbox ? "Quote request inbox" : "Enquiry inbox"}</h2><p className="mt-1 text-xs text-slate-500">{isLoading ? "Connecting to your inbox…" : `${visibleEnquiries.length} of ${relevantEnquiries.length} ${noun} · newest first`}</p></div>
+          <InboxSearch value={search} onChange={setSearch} label={`Search ${noun}`} />
+        </div>
+        <InboxFilters value={statusFilter} onChange={setStatusFilter} options={[{ value: "all", label: "All requests", count: relevantEnquiries.length }, ...statusOptions.map(option => ({ ...option, count: relevantEnquiries.filter(enquiry => enquiry.status === option.value).length }))]} />
+      </div>
+      <div className="divide-y divide-slate-100">
+        {visibleEnquiries.map(enquiry => {
+          const pricePerPerson = enquiry.pricePerPerson || packages.find(pkg => pkg.id === enquiry.packageId)?.price || 0;
+          const expired = Boolean(enquiry.quoteExpiresAt && enquiry.quoteExpiresAt.getTime() <= now);
+          return <article key={enquiry.id} className="p-5 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2"><h3 className="text-base font-semibold">{enquiry.name || "Customer name not provided"}</h3><span className="text-xs text-slate-400">{enquiry.submittedAt ? dateFormatter.format(enquiry.submittedAt) : "Just submitted"}</span></div>
+                <ContactLinks email={enquiry.email} phone={enquiry.phone} />
+              </div>
+              <label className="w-full sm:w-48"><span className="mb-1.5 block text-xs font-medium text-slate-500">{updatingId === enquiry.id ? "Saving status…" : "Request status · saves automatically"}</span>
+                <select disabled={Boolean(updatingId) || deletingId === enquiry.id} value={enquiry.status} onChange={event => void changeStatus(enquiry, event.target.value as EnquiryStatus)} aria-label={`Request status for ${enquiry.name}`}
+                  className={`h-10 w-full rounded-xl border px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-100 disabled:opacity-60 ${enquiry.status === "rejected" ? "border-red-200 bg-red-50 text-red-700" : enquiry.status === "completed" || enquiry.status === "contacted" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-white text-slate-700"}`}>
+                  {statusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+            </div>
+            <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3">
+              <p className="text-sm font-medium text-slate-800">{isPackageInbox ? enquiry.packageTitle || "Package not specified" : enquiry.destination || "Destination not specified"}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">{isPackageInbox ? `${enquiry.destination || "Destination not specified"} · ` : ""}{enquiry.travellers ? `${enquiry.travellers} travellers` : "Traveller count not specified"}{enquiry.departure ? ` · Departure: ${enquiry.departure}` : ""}</p>
+            </div>
+            <details className="group mt-4">
+              <summary className="flex w-fit cursor-pointer list-none items-center gap-2 rounded-md py-1 text-sm font-semibold text-emerald-700 [&::-webkit-details-marker]:hidden"><ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden="true" />View request details</summary>
+              <div className="mt-4 space-y-4 rounded-xl border border-slate-200 p-4">
+                <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                  <div><dt className="text-xs text-slate-500">Destination</dt><dd className="mt-1 font-medium">{enquiry.destination || "Not specified"}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Departure</dt><dd className="mt-1 font-medium">{enquiry.departure || "Not specified"}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Travellers</dt><dd className="mt-1 font-medium">{enquiry.travellers || "Not specified"}</dd></div>
+                  {isPackageInbox && <div><dt className="text-xs text-slate-500">Package price per person</dt><dd className="mt-1 font-medium">{pricePerPerson ? formatINR(pricePerPerson) : "Not available"}</dd></div>}
+                </dl>
+                <div><p className="text-xs font-medium text-slate-500">Customer’s message</p><p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">{enquiry.message || "No message provided."}</p></div>
+                {enquiry.quoteExpiresAt && <div className="flex flex-wrap items-center gap-3"><button type="button" disabled={downloadingId === enquiry.id || expired} onClick={() => void downloadQuote(enquiry)} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm font-semibold disabled:opacity-50"><Download className="size-4" aria-hidden="true" />{downloadingId === enquiry.id ? "Preparing PDF…" : expired ? "Quote PDF expired" : "Download quote PDF"}</button><span className="text-xs text-slate-500">{expired ? "Expired" : "Available until"} {dateFormatter.format(enquiry.quoteExpiresAt)}</span></div>}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3"><p className="break-all text-xs text-slate-400">Request reference: {enquiry.id}</p><button type="button" onClick={() => void removeEnquiry(enquiry)} disabled={Boolean(deletingId) || updatingId === enquiry.id} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"><Trash2 className="size-3.5" aria-hidden="true" />{deletingId === enquiry.id ? "Deleting…" : "Delete request"}</button></div>
+              </div>
+            </details>
+          </article>;
+        })}
+        <InboxState loading={isLoading} empty={!displayError && visibleEnquiries.length === 0}
+          title={relevantEnquiries.length ? "No requests match your filters" : `No ${noun} yet`}
+          description={relevantEnquiries.length ? "Try another search or clear the filters to see every request." : "New customer requests will appear here automatically."}
+          onReset={search || statusFilter !== "all" ? () => { setSearch(""); setStatusFilter("all"); } : undefined} />
       </div>
     </section>
   </div>;

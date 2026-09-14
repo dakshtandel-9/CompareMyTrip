@@ -64,6 +64,8 @@ import {
   CloudRain,
   CloudSun,
   Coffee,
+  Clock3,
+  createLucideIcon,
   Compass,
   Cookie,
   CookingPot,
@@ -244,7 +246,16 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { createElement } from "react";
 
+const PlateAndCup = createLucideIcon("PlateAndCup", [
+  ["path", { d: "M1.6 11.8h11.6a5.8 4.4 0 0 1-11.6 0Z", key: "plate" }],
+  ["path", { d: "M15.8 8.6h6.4v4.6a3.2 3.2 0 0 1-6.4 0Z", key: "cup" }],
+  ["path", { d: "M22.2 9.8a2 2 0 0 1 0 3.6", key: "handle" }],
+  ["path", { d: "M2.6 19.4h18.8", key: "table" }],
+]);
+
 export const ICON_LIBRARY: Record<string, LucideIcon> = {
+  Clock3,
+  PlateAndCup,
   Accessibility,
   Activity,
   AirVent,
@@ -493,7 +504,7 @@ export const ICON_GROUPS: { title: string; icons: string[] }[] = [
   },
   {
     title: "Food & drink",
-    icons: ["Utensils", "UtensilsCrossed", "CookingPot", "Coffee", "CupSoda", "Wine", "Beer", "Martini", "Milk", "IceCreamCone", "Pizza", "Soup", "Salad", "Sandwich", "Croissant", "Cookie", "Donut", "Popcorn", "Candy", "Cake", "Apple", "Cherry", "Grape", "Banana", "Carrot", "Egg", "Beef", "Ham"],
+    icons: ["PlateAndCup", "Utensils", "UtensilsCrossed", "CookingPot", "Coffee", "CupSoda", "Wine", "Beer", "Martini", "Milk", "IceCreamCone", "Pizza", "Soup", "Salad", "Sandwich", "Croissant", "Cookie", "Donut", "Popcorn", "Candy", "Cake", "Apple", "Cherry", "Grape", "Banana", "Carrot", "Egg", "Beef", "Ham"],
   },
   {
     title: "People & occasions",

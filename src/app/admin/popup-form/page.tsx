@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AdminPopupLeadsList from "./AdminPopupLeadsList";
 
 export const metadata: Metadata = {
-  title: "Pop-up Form",
+  title: "Trip Planning Requests",
   description: "Trip planning leads captured by the website pop-up form.",
 };
 

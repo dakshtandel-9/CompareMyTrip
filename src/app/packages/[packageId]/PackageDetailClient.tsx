@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, BedDouble, Car, Check, Clock3, MapPin, Plane, ShieldCheck, Star, Users, X } from "lucide-react";
+import { ArrowLeft, BedDouble, Check, MapPin, ShieldCheck, Star, X } from "lucide-react";
 import { getDiscountPercent, getPackageDetails } from "@/lib/packageData";
+import { getPackageFacts } from "@/lib/packageFacts";
+import PackageFactsBar from "../_components/PackageFactsBar";
 import PackageGallery from "../_components/PackageGallery";
 import PackageShareButton from "../_components/PackageShareButton";
 import ItineraryDownloadButton from "../_components/ItineraryDownloadButton";
@@ -16,31 +18,6 @@ import type { TravelPackage } from "@/lib/packageData";
 import { usePackagesState } from "@/lib/usePackages";
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
-
-/* A place setting rather than lucide's Coffee cup: the row says what meals
-   the price covers, not that tea is served. Drawn here because lucide has no
-   plate — same 24 viewBox, 2px round-capped stroke and currentColor as the
-   five icons beside it, so it sits in the row without looking imported. */
-function PlateAndCup({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M1.6 11.8h11.6a5.8 4.4 0 0 1-11.6 0Z" />
-      <path d="M15.8 8.6h6.4v4.6a3.2 3.2 0 0 1-6.4 0Z" />
-      <path d="M22.2 9.8a2 2 0 0 1 0 3.6" />
-      <path d="M2.6 19.4h18.8" />
-    </svg>
-  );
-}
-
 
 export default function PackageDetailClient({ initialPackage }: { initialPackage: TravelPackage }) {
   const { packageId } = useParams<{ packageId: string }>();
@@ -64,14 +41,7 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
 
   const details = getPackageDetails(pkg);
   const discount = getDiscountPercent(pkg);
-  const facts = [
-    { icon: Clock3, label: "Duration", value: `${pkg.nights} nights / ${pkg.days} days` },
-    { icon: Users, label: "Group size", value: pkg.pax },
-    { icon: BedDouble, label: "Stay", value: `${pkg.hotelStars}★ verified stays` },
-    { icon: Car, label: "Transfers", value: details.transfers },
-    { icon: PlateAndCup, label: "Meals", value: details.meals },
-    { icon: Plane, label: "Flights", value: details.flights },
-  ];
+  const facts = getPackageFacts(pkg);
   /* A customized quote is filed against the customer's account, so it needs a
      real sign-in — the timed pop-up captures leads and cannot supply one. */
   const requestQuote = () => {
@@ -100,9 +70,7 @@ export default function PackageDetailClient({ initialPackage }: { initialPackage
         </div>
         <div className="mt-7"><PackageGallery images={details.gallery} /></div>
 
-        <section className="cmt-trip-facts mt-6 grid grid-cols-2 gap-3 rounded-cmt-md border border-cmt-neutral-200 bg-white p-4 shadow-cmt-sm sm:grid-cols-2 lg:grid-cols-6 lg:p-5">
-          {facts.map(({ icon: Icon, label, value }) => <div key={label} className="rounded-cmt-control bg-cmt-neutral-50 p-3"><Icon className="size-5 text-cmt-primary-700" /><p className="mt-2 text-xs uppercase tracking-wider text-cmt-neutral-400">{label}</p><p className="mt-1 text-xs font-semibold leading-5">{value}</p></div>)}
-        </section>
+        <PackageFactsBar facts={facts} permitRequired={details.permitRequired} className="mt-6" />
 
         <div className="cmt-package-columns mt-7 grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_370px]">
           <div className="space-y-6">

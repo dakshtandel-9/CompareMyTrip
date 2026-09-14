@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import { ShieldCheck, Star } from "lucide-react";
+import { useSiteContent } from "@/lib/useSiteContent";
+import type { FooterBadgesContent } from "@/lib/siteContent";
 
 /* ------------------------------------------------------------------ */
 /* Payment modes + accreditations, the band that sits above the footer  */
@@ -15,19 +19,20 @@ import { ShieldCheck, Star } from "lucide-react";
 /* Intrinsic dimensions come from each file, so a card mark and a long
    wordmark keep their own ratio inside one uniform chip instead of being
    stretched to a common box. */
-const PAYMENT_METHODS: {
+export const PAYMENT_METHODS: {
+  id: string;
   name: string;
   src: string;
   width: number;
   height: number;
 }[] = [
-  { name: "Visa", src: "/payments/visa.svg", width: 780, height: 500 },
-  { name: "Mastercard", src: "/payments/mastercard.svg", width: 780, height: 500 },
-  { name: "American Express", src: "/payments/amex.svg", width: 780, height: 500 },
-  { name: "UPI", src: "/payments/upi.svg", width: 370, height: 131 },
-  { name: "Google Pay", src: "/payments/google-pay.svg", width: 64, height: 24 },
-  { name: "PhonePe", src: "/payments/phonepe.svg", width: 24, height: 24 },
-  { name: "Paytm", src: "/payments/paytm.svg", width: 48, height: 15 },
+  { id: "visa", name: "Visa", src: "/payments/visa.svg", width: 780, height: 500 },
+  { id: "mastercard", name: "Mastercard", src: "/payments/mastercard.svg", width: 780, height: 500 },
+  { id: "amex", name: "American Express", src: "/payments/amex.svg", width: 780, height: 500 },
+  { id: "upi", name: "UPI", src: "/payments/upi.svg", width: 370, height: 131 },
+  { id: "googlePay", name: "Google Pay", src: "/payments/google-pay.svg", width: 64, height: 24 },
+  { id: "phonepe", name: "PhonePe", src: "/payments/phonepe.svg", width: 24, height: 24 },
+  { id: "paytm", name: "Paytm", src: "/payments/paytm.svg", width: 48, height: 15 },
 ];
 
 const headingClass =
@@ -181,15 +186,21 @@ function SecureMark() {
 }
 
 /* Read aloud in place of the drawing — the label is the whole claim. */
-const ACCREDITATIONS: { label: string; mark: () => React.JSX.Element }[] = [
-  { label: "Google Reviews", mark: GoogleReviewsMark },
-  { label: "IATA accredited", mark: IataMark },
-  { label: "ISO 9001:2015 certified", mark: IsoMark },
-  { label: "PCI DSS compliant payments", mark: PciMark },
-  { label: "100% secure checkout", mark: SecureMark },
+export const ACCREDITATIONS: { id: string; label: string; mark: () => React.JSX.Element }[] = [
+  { id: "google", label: "Google Reviews", mark: GoogleReviewsMark },
+  { id: "iata", label: "IATA accredited", mark: IataMark },
+  { id: "iso", label: "ISO 9001:2015 certified", mark: IsoMark },
+  { id: "pci", label: "PCI DSS compliant payments", mark: PciMark },
+  { id: "secure", label: "100% secure checkout", mark: SecureMark },
 ];
 
 export default function TrustStrip() {
+  const { footerBadges } = useSiteContent();
+  return <TrustStripPreview value={footerBadges} />;
+}
+
+export function TrustStripPreview({ value }: { value: FooterBadgesContent }) {
+  if (!value.enabled) return null;
   return (
     <div className="mt-12 grid gap-8 border-t border-cmt-neutral-200 pt-8 lg:mt-8 lg:grid-cols-2 lg:gap-10 lg:pt-7">
       <section aria-labelledby="footer-payment-modes">
@@ -203,12 +214,12 @@ export default function TrustStrip() {
               {/* Capped on both axes: a tall card mark tops out at 24px, a
                   wide wordmark at 54px, and neither crops the other's chip. */}
               <Image
-                src={method.src}
+                src={value.paymentImages[method.id] || method.src}
                 alt={method.name}
                 width={method.width}
                 height={method.height}
                 unoptimized
-                className="h-auto max-h-6 w-auto max-w-[54px] object-contain"
+                className="h-6 w-[54px] object-contain"
               />
             </li>
           ))}
@@ -221,11 +232,20 @@ export default function TrustStrip() {
         </h2>
 
         <ul className="mt-4 flex flex-wrap items-center gap-2.5">
-          {ACCREDITATIONS.map(({ label, mark: Mark }) => (
+          {ACCREDITATIONS.map(({ id, label, mark: Mark }) => (
             <li key={label} className={chipClass} title={label}>
               <span className="sr-only">{label}</span>
               <span aria-hidden="true" className="flex items-center">
-                <Mark />
+                {value.accreditationImages[id] ? (
+                  <Image
+                    src={value.accreditationImages[id]}
+                    alt=""
+                    width={160}
+                    height={32}
+                    unoptimized
+                    className="h-8 w-auto max-w-[160px] object-contain"
+                  />
+                ) : <Mark />}
               </span>
             </li>
           ))}

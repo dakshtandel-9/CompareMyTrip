@@ -8,12 +8,9 @@ import {
   signInWithPopup,
   updateProfile,
 } from "firebase/auth";
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { getFirebaseAuth, getFirebaseDb, createGoogleProvider } from "./client";
-import {
-  COMPLETED_PROFILE_UID_KEY,
-  USER_PROFILE_SAVED_EVENT,
-} from "./profileEvents";
+import { markProfileCompleted } from "./profileEvents";
 
 export async function signUpWithEmail({
   name,
@@ -36,12 +33,7 @@ export async function signUpWithEmail({
     provider: "password",
     createdAt: serverTimestamp(),
   });
-  sessionStorage.setItem(COMPLETED_PROFILE_UID_KEY, credential.user.uid);
-  window.dispatchEvent(
-    new CustomEvent(USER_PROFILE_SAVED_EVENT, {
-      detail: { uid: credential.user.uid },
-    }),
-  );
+  markProfileCompleted(credential.user.uid);
   return credential.user;
 }
 
@@ -101,12 +93,7 @@ export async function signUpGuest({
     provider: "guest",
     createdAt: serverTimestamp(),
   });
-  sessionStorage.setItem(COMPLETED_PROFILE_UID_KEY, credential.user.uid);
-  window.dispatchEvent(
-    new CustomEvent(USER_PROFILE_SAVED_EVENT, {
-      detail: { uid: credential.user.uid },
-    }),
-  );
+  markProfileCompleted(credential.user.uid);
   return credential.user;
 }
 
@@ -131,23 +118,16 @@ export async function requestPasswordReset(email: string) {
 
 export async function signInWithGoogle({ remember = true }: { remember?: boolean } = {}) {
   const auth = getFirebaseAuth();
-  await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
-  const credential = await signInWithPopup(auth, createGoogleProvider());
-  const userRef = doc(getFirebaseDb(), "users", credential.user.uid);
-  const existingUser = await getDoc(userRef);
-  await setDoc(
-    userRef,
-    {
-      name: credential.user.displayName,
-      email: credential.user.email,
-      provider: "google",
-      ...(!existingUser.exists() || !existingUser.data().createdAt
-        ? { createdAt: serverTimestamp() }
-        : {}),
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true },
-  );
+  // Firebase queues persistence changes before committing the signed-in user.
+  // Start the popup in the click handler without first waiting on browser storage.
+  const persistence = setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
+  const [, credential] = await Promise.all([
+    persistence,
+    signInWithPopup(auth, createGoogleProvider()),
+  ]);
+  // ProfileCompletionGate collects and saves a new account's required details.
+  // A Firestore outage must not turn successful Google authentication into a
+  // failed login, or overwrite an existing customer's chosen profile name.
   return credential.user;
 }
 
@@ -163,6 +143,16 @@ const ERROR_MESSAGES: Record<string, string> = {
   "auth/requires-recent-login": "Please log out, sign in again, and retry this security change.",
   "auth/weak-password": "Password is too weak — use at least 8 characters.",
   "auth/popup-closed-by-user": "Google sign-in was closed before completing.",
+  "auth/popup-blocked": "Your browser blocked Google sign-in. Allow pop-ups for this site and try again, or use email and password.",
+  "auth/cancelled-popup-request": "Another Google sign-in is already open. Complete that window or try again.",
+  "auth/unauthorized-domain": "Google sign-in is not configured for this website address. Please use email and password or contact CompareMyTrip.",
+  "auth/operation-not-allowed": "This sign-in method is currently unavailable. Please use another method or contact CompareMyTrip.",
+  "auth/account-exists-with-different-credential": "This email already uses another sign-in method. Sign in using your original method, or reset your password.",
+  "auth/web-storage-unsupported": "Your browser is blocking the storage needed to sign in. Allow site storage or try another browser.",
+  "auth/operation-not-supported-in-this-environment": "Open this website in Safari, Chrome or another browser to sign in.",
+  "auth/invalid-api-key": "Sign-in is temporarily unavailable. Please contact CompareMyTrip.",
+  "auth/auth-domain-config-required": "Google sign-in is temporarily unavailable. Please contact CompareMyTrip.",
+  "auth/configuration-not-found": "Sign-in is temporarily unavailable. Please contact CompareMyTrip.",
   "auth/network-request-failed": "Network error — check your connection and try again.",
   "auth/too-many-requests": "Too many attempts. Please wait a moment and try again.",
 };

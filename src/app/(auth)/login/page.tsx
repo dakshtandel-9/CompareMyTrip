@@ -12,19 +12,18 @@ import Divider from "../_components/Divider";
 import GoogleIcon from "../_components/GoogleIcon";
 import AuthAlert from "../_components/AuthAlert";
 import { signInWithEmail, signInWithGoogle, getAuthErrorMessage } from "@/lib/firebase/auth";
+import { getAuthDestination, getAuthPageHref } from "@/lib/firebase/authDestination";
+import { useAuthDestination } from "@/lib/firebase/useAuthDestination";
 import { Glyph } from "@/lib/adminIcons";
 import { useSiteContent } from "@/lib/useSiteContent";
 
 export default function LoginPage() {
   const router = useRouter();
-  /* Where to land after signing in. Only same-site paths are honoured, so a
-     crafted ?next= cannot bounce a freshly signed-in customer off-site. */
-  const destination = () => {
-    const next = new URLSearchParams(window.location.search).get("next") ?? "";
-    if (!next.startsWith("/") || next.startsWith("//")) return "/";
-    const url = new URL(next, window.location.origin);
-    return url.origin === window.location.origin ? url.pathname + url.search + url.hash : "/";
-  };
+  const destination = () => getAuthDestination(window.location.search, window.location.origin);
+  const returnTo = useAuthDestination();
+  const signupHref = getAuthPageHref("/signup", returnTo);
+  const resetHref = getAuthPageHref("/forgot-password", returnTo);
+  const adminLogin = /^\/admin(?:[/?#]|$)/.test(returnTo);
   /* Copy, icons and artwork only — the form below is code, not content. */
   const { auth } = useSiteContent();
   const copy = auth.login;
@@ -44,9 +43,10 @@ export default function LoginPage() {
       return;
     }
     setIsSubmitting(true);
+    const returnTo = destination();
     try {
       await signInWithEmail({ email, password, remember: rememberMe });
-      router.push(destination());
+      router.push(returnTo);
     } catch (error) {
       setFormError(getAuthErrorMessage(error));
     } finally {
@@ -57,9 +57,10 @@ export default function LoginPage() {
   async function handleGoogleSignIn() {
     setFormError("");
     setIsGoogleSubmitting(true);
+    const returnTo = destination();
     try {
-      await signInWithGoogle();
-      router.push(destination());
+      await signInWithGoogle({ remember: rememberMe });
+      router.push(returnTo);
     } catch (error) {
       setFormError(getAuthErrorMessage(error));
     } finally {
@@ -69,9 +70,9 @@ export default function LoginPage() {
 
   return (
     <SplitAuthShell
-      navPrompt={<>{copy.navPrompt} <Link href="/signup" className="font-semibold text-cmt-primary-900 hover:underline">{copy.navLinkLabel}</Link></>}
-      title={copy.title}
-      subtitle={copy.subtitle}
+      navPrompt={adminLogin ? "Administrator access" : <>{copy.navPrompt} <Link href={signupHref} className="font-semibold text-cmt-primary-900 hover:underline">{copy.navLinkLabel}</Link></>}
+      title={adminLogin ? "Admin sign in" : copy.title}
+      subtitle={adminLogin ? "Use the Google account or email and password assigned administrator access." : copy.subtitle}
       imageSrc={copy.image}
       imageAlt={copy.imageAlt}
       headline={<>{copy.headlineLead}<br /><span className="text-cmt-primary-400">{copy.headlineHighlight}</span></>}
@@ -91,7 +92,7 @@ export default function LoginPage() {
         <TextField label="Password" name="password" placeholder="Enter your password" autoComplete="current-password" required isPassword icon={<Lock size={20} aria-hidden="true" />} value={password} onChange={(event) => setPassword(event.target.value)} />
         <div className="mt-1 flex items-center justify-between">
           <Checkbox checked={rememberMe} onChange={setRememberMe}>Remember me</Checkbox>
-          <Link href="/forgot-password" className="text-[14px] font-semibold text-cmt-primary-900 hover:underline">Forgot password?</Link>
+          <Link href={resetHref} className="text-[14px] font-semibold text-cmt-primary-900 hover:underline">Forgot password?</Link>
         </div>
         <Button type="submit" className="mt-2" icon={<ArrowRight size={20} />} isLoading={isSubmitting} disabled={busy}>Log In</Button>
         <div className="my-1"><Divider label="or continue with" /></div>

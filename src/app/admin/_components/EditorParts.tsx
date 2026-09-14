@@ -27,19 +27,19 @@ export function SectionHeaderFields({
   return (
     <div className="grid gap-4">
       <TextField
-        label="Eyebrow"
+        label="Small heading above the title"
         value={value.eyebrow}
         onChange={(next) => patch({ eyebrow: next })}
         placeholder="Browse By Travel Style"
         hint="The small line above the headline."
       />
       <TextField
-        label="Headline"
+        label="Main heading"
         value={value.title}
         onChange={(next) => patch({ title: next })}
       />
       <TextArea
-        label="Sub-line"
+        label="Description below the heading"
         value={value.description}
         onChange={(next) => patch({ description: next })}
       />
@@ -47,14 +47,14 @@ export function SectionHeaderFields({
       {withAction && (
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField
-            label="Link label"
+            label="Button or link text"
             value={value.actionLabel}
             onChange={(next) => patch({ actionLabel: next })}
             placeholder="See all destinations"
             hint="Leave blank to hide the link."
           />
           <TextField
-            label="Link destination"
+            label="Page to open"
             value={value.actionHref}
             onChange={(next) => patch({ actionHref: next })}
             placeholder="/packages"
@@ -167,7 +167,7 @@ export function ListEditor<Item extends { id: string }>({
   allowDuplicate?: boolean;
 }) {
   const [open, setOpen] = useState<string[]>(() =>
-    items.length <= 3 ? items.map((item) => item.id) : [],
+    items.length === 1 ? [items[0].id] : [],
   );
 
   const isOpen = (id: string) => open.includes(id);
@@ -209,6 +209,7 @@ export function ListEditor<Item extends { id: string }>({
 
   return (
     <div>
+      {items.length > 1 && <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-cmt-neutral-500"><span>{items.length} items · Open an item to edit its details</span><button type="button" className="min-h-9 rounded-lg px-2 font-semibold text-emerald-700 hover:bg-emerald-50" onClick={() => setOpen(open.length ? [] : items.map((item) => item.id))}>{open.length ? "Collapse all" : "Expand all"}</button></div>}
       <ul className="space-y-3">
         {items.map((item, index) => (
           <li

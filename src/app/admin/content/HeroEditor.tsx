@@ -18,6 +18,7 @@ import {
 import { nextId, type HeroContent, type HeroCopyBlock } from "@/lib/siteContent";
 import type { TravelPackage } from "@/lib/packageData";
 import ImageField from "../_components/ImageField";
+import styles from "./ContentWorkspace.module.css";
 import {
   Button,
   Card,
@@ -188,6 +189,7 @@ export default function HeroEditor({
   packages: TravelPackage[];
 }) {
   const [query, setQuery] = useState("");
+  const [panel, setPanel] = useState("headlines");
 
   const patch = (value: Partial<HeroContent>) => onChange({ ...hero, ...value });
 
@@ -250,10 +252,14 @@ export default function HeroEditor({
 
   return (
     <div className="space-y-5">
+      <div className={`${styles.groupTabs} !mt-0`} role="group" aria-label="Welcome section settings">
+        {[{ id: "headlines", label: "Main headlines" }, { id: "rating", label: "Traveller rating" }, { id: "packages", label: "Recommended packages" }].map((item) => <button type="button" key={item.id} aria-pressed={panel === item.id} onClick={() => setPanel(item.id)}>{item.label}</button>)}
+      </div>
+      <div hidden={panel !== "headlines"}>
       <Card
         icon={<Type className="size-5" />}
-        title="Hero headlines"
-        description="Each slide takes an equal share of the hero scroll and fades into the next."
+        title="Main headlines"
+        description="These messages appear at the top of your homepage, one after another as visitors scroll. Use the arrows to change their order."
         action={
           <Button variant="ghost" onClick={addCopy}>
             <Plus className="size-4" /> Add slide
@@ -274,11 +280,13 @@ export default function HeroEditor({
           ))}
         </ul>
       </Card>
+      </div>
 
+      <div hidden={panel !== "rating"}>
       <Card
         icon={<UsersRound className="size-5" />}
         title="Trusted by"
-        description="The social-proof row sitting under the headline."
+        description="The traveller photos, rating and message shown below the main headline."
       >
         <Toggle
           label="Show the trusted-by row"
@@ -302,7 +310,7 @@ export default function HeroEditor({
             hint="Rendered in brand gold."
           />
           <TextField
-            label="Trailing text"
+            label="Text after the traveller count"
             value={hero.trust.suffix}
             onChange={(value) => setTrust({ suffix: value })}
             placeholder="travellers"
@@ -359,27 +367,29 @@ export default function HeroEditor({
           )}
         </div>
       </Card>
+      </div>
 
+      <div hidden={panel !== "packages"}>
       <Card
         icon={<Sparkles className="size-5" />}
         title="Top picks for you"
-        description="The package shelf under the hero search panel."
+        description="The recommended packages shown below the search form on your homepage."
       >
         <Toggle
-          label="Show the top-picks shelf"
+          label="Show recommended packages"
           checked={hero.topPicks.enabled}
           onChange={(next) => setPicks({ enabled: next })}
         />
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <TextField
-            label="Shelf title"
+            label="Section heading"
             value={hero.topPicks.title}
             onChange={(value) => setPicks({ title: value })}
             placeholder="Top picks for you"
           />
           <TextField
-            label="Shelf sub-line"
+            label="Section description"
             value={hero.topPicks.subtitle}
             onChange={(value) => setPicks({ subtitle: value })}
             placeholder="Curated packages you might love"
@@ -467,6 +477,7 @@ export default function HeroEditor({
           </div>
         )}
       </Card>
+      </div>
     </div>
   );
 }

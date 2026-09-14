@@ -5,6 +5,8 @@ import Image from "next/image";
 import { ArrowLeft, ArrowRight, Quote } from "lucide-react";
 
 import { useSiteContent } from "@/lib/useSiteContent";
+import { startVisibleAnimation } from "@/lib/visibleAnimation";
+import { getReviewScrollTarget } from "@/lib/reviewRail";
 import { useGoogleReviews } from "@/lib/useGoogleReviews";
 import { mergeReviews } from "@/lib/googleBusiness";
 import type { Review } from "@/lib/siteContent";
@@ -37,10 +39,6 @@ import SectionHeader from "../_components/SectionHeader";
 /* Avatars use the traveller photo uploaded in the CRM, falling back to   */
 /* their initials when no photo has been added yet.                      */
 /* ------------------------------------------------------------------ */
-
-/* Two cards per press, which keeps a partial card in view as the hint
-   that the rail continues. */
-const CARDS_PER_PRESS = 2;
 
 /* Brisk automatic scrolling; hover or focus pauses the rail for reading. */
 const DRIFT_PX_PER_SECOND = 60;
@@ -91,6 +89,8 @@ export default function TravellerReviews() {
      CRM, so this changes nothing for a site that has not connected one. */
   const googleReviews = useGoogleReviews();
   const railRef = useRef<HTMLUListElement>(null);
+  const periodRef = useRef(0);
+  const [copies, setCopies] = useState(2);
 
   /* Hand-written reviews lead; Google's follow. The travel desk chose what
      opens the rail and a sync must not be able to displace that.
@@ -111,63 +111,64 @@ export default function TravellerReviews() {
     holdUntilRef.current = performance.now() + RESUME_DELAY_MS;
   }, []);
 
-  /* Half the track is one full copy of the list. Read from the live DOM
-     rather than remembered, so a resize or a font swap cannot leave the
-     wrap point measuring something that is no longer there. */
-  const copyWidth = (rail: HTMLElement) => rail.scrollWidth / 2;
-
   useEffect(() => {
     const rail = railRef.current;
-    if (!rail) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!rail || !reviews.enabled) return;
 
-    let frame = 0;
-    let last = performance.now();
+    const first = rail.querySelector<HTMLElement>('[data-review-copy="0"]');
+    if (!first) return;
+    const measure = () => {
+      // Content edits can replace keyed cards without changing the item count.
+      // Always measure the mounted cards, never detached nodes from setup.
+      const currentFirst = rail.querySelector<HTMLElement>('[data-review-copy="0"]');
+      const repeated = rail.querySelector<HTMLElement>('[data-review-copy="1"]');
+      if (!currentFirst || !repeated) return;
+      // scrollWidth includes rail padding and omits the final gap. Measuring
+      // matching cards gives the actual loop period without a visible seam.
+      const period = repeated.getBoundingClientRect().left - currentFirst.getBoundingClientRect().left;
+      periodRef.current = period;
+      if (period > 0) {
+        const needed = Math.max(2, Math.ceil(rail.clientWidth / period) + 1);
+        setCopies(current => current < needed ? needed : current);
+      }
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(rail);
+    observer.observe(first);
 
-    const step = (now: number) => {
-      frame = requestAnimationFrame(step);
-
-      const elapsed = now - last;
-      last = now;
-
+    // Swipes and arrow presses must wrap even when decorative motion is off.
+    const wrap = () => {
+      const period = periodRef.current;
+      if (period > 0 && rail.scrollLeft >= period) rail.scrollLeft %= period;
+    };
+    rail.addEventListener("scroll", wrap, { passive: true });
+    const stopDrift = startVisibleAnimation(rail, (now, elapsed) => {
       const held =
         pointerInsideRef.current ||
         focusInsideRef.current ||
         now < holdUntilRef.current ||
         document.hidden;
 
-      /* Wrap even while held: a swipe can carry the rail past the seam on
-         its own, and it has to come back before the reader reaches the
-         blank space beyond the second copy. */
-      const half = copyWidth(rail);
-      if (half > 0 && rail.scrollLeft >= half) rail.scrollLeft -= half;
-
       if (held) return;
 
       /* Sub-pixel per frame, so it is accumulated rather than rounded away
          — scrollLeft keeps the fraction, an integer step would not. */
       rail.scrollLeft += (DRIFT_PX_PER_SECOND * elapsed) / 1000;
+    });
+    return () => {
+      stopDrift();
+      observer.disconnect();
+      rail.removeEventListener("scroll", wrap);
     };
-
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
-  }, [items.length]);
+  }, [items.length, reviews.enabled]);
 
   const scrollRail = (direction: 1 | -1) => {
     const rail = railRef.current;
     if (!rail) return;
 
-    const card = rail.querySelector("li");
-    const gap = 24;
-    const step = card ? card.getBoundingClientRect().width + gap : rail.clientWidth * 0.8;
-
-    /* Stepping back from the very start would hit the left edge and stop.
-       Jump forward by one copy first — the same pixels, a full copy along
-       — so there is always track to the left to move into. */
-    const half = copyWidth(rail);
-    if (direction === -1 && half > 0 && rail.scrollLeft < step * CARDS_PER_PRESS) {
-      rail.scrollLeft += half;
-    }
+    const target = getReviewScrollTarget(rail.scrollLeft, periodRef.current, items.length, direction);
+    if (!target) return;
 
     holdDrift();
 
@@ -175,9 +176,11 @@ export default function TravellerReviews() {
        the reduced-motion media query the way CSS scroll-behavior is. */
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    rail.scrollBy({
-      left: direction * step * CARDS_PER_PRESS,
-      behavior: reduced ? "auto" : "smooth",
+    rail.scrollTo({
+      left: target.left,
+      // A smooth seek across the duplicate boundary is interrupted by the
+      // scroll wrap. Make that one relocation immediate; ordinary moves glide.
+      behavior: reduced || target.wrapped ? "auto" : "smooth",
     });
   };
 
@@ -230,6 +233,7 @@ export default function TravellerReviews() {
            the drift is held on the gesture itself as well. */
         onTouchStart={holdDrift}
         onTouchMove={holdDrift}
+        onWheel={holdDrift}
         onFocusCapture={() => {
           focusInsideRef.current = true;
         }}
@@ -238,21 +242,23 @@ export default function TravellerReviews() {
         }}
         className="mt-8 flex w-full gap-6 overflow-x-auto px-3 pb-4 pt-1 sm:mt-10 sm:px-4 md:px-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
-        {/* The list twice over, for the seamless wrap. Both copies have to
+        {/* Repeat enough copies to fill even a wide screen with a short list.
+            All copies have to
             stay identical for the join to hold, which is why this maps the
             same items rather than writing a second row out. The duplicate
             is hidden from screen readers so the reviews are not read out
             twice; it is the first copy that carries the content. */}
-        {[0, 1].map((copy) => (
+        {Array.from({ length: copies }, (_, copy) => (
           <li
             key={copy}
-            aria-hidden={copy === 1 ? "true" : undefined}
+            aria-hidden={copy > 0 ? "true" : undefined}
             className="contents"
           >
             <ul className="contents">
               {items.map((review) => (
                 <li
                   key={review.id}
+                  data-review-copy={copy}
                   className="w-[min(300px,calc(100vw-2rem))] shrink-0 sm:w-[360px]"
                 >
                   <figure className="flex h-full flex-col rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm">

@@ -3,7 +3,7 @@
 /* Form furniture shared by every CRM screen, so a field looks the same
    whether it is editing hero copy or a category card. */
 
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 export const inputClass =
   "h-11 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white px-3.5 text-sm text-cmt-neutral-900 outline-none transition-colors placeholder:text-cmt-neutral-400 focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]";
@@ -13,7 +13,7 @@ export const textareaClass =
 
 export function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-cmt-neutral-500">
+    <span className="mb-1.5 block text-xs font-semibold text-cmt-neutral-700">
       {children}
     </span>
   );
@@ -34,6 +34,7 @@ export function TextField({
   hint?: string;
   className?: string;
 }) {
+  const hintId = useId();
   return (
     <label className={`block ${className}`}>
       <FieldLabel>{label}</FieldLabel>
@@ -41,9 +42,10 @@ export function TextField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        aria-describedby={hint ? hintId : undefined}
         className={inputClass}
       />
-      {hint && <span className="mt-1 block text-[11px] text-cmt-neutral-500">{hint}</span>}
+      {hint && <span id={hintId} className="mt-1 block text-xs leading-5 text-cmt-neutral-500">{hint}</span>}
     </label>
   );
 }
@@ -63,6 +65,7 @@ export function TextArea({
   hint?: string;
   className?: string;
 }) {
+  const hintId = useId();
   return (
     <label className={`block ${className}`}>
       <FieldLabel>{label}</FieldLabel>
@@ -70,9 +73,10 @@ export function TextArea({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        aria-describedby={hint ? hintId : undefined}
         className={textareaClass}
       />
-      {hint && <span className="mt-1 block text-[11px] text-cmt-neutral-500">{hint}</span>}
+      {hint && <span id={hintId} className="mt-1 block text-xs leading-5 text-cmt-neutral-500">{hint}</span>}
     </label>
   );
 }
@@ -91,7 +95,7 @@ export function Card({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm">
+    <section className="rounded-xl border border-cmt-neutral-200 bg-white shadow-cmt-xs">
       <header className="flex flex-wrap items-start justify-between gap-4 border-b border-cmt-neutral-100 px-5 py-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           {icon && (
@@ -102,7 +106,7 @@ export function Card({
           <div className="min-w-0">
             <h2 className="font-display text-base font-semibold text-cmt-neutral-900">{title}</h2>
             {description && (
-              <p className="mt-0.5 text-xs leading-5 text-cmt-neutral-500">{description}</p>
+              <p className="mt-1 text-sm leading-6 text-cmt-neutral-500">{description}</p>
             )}
           </div>
         </div>
@@ -171,7 +175,7 @@ export function Button({
 }) {
   const styles = {
     primary:
-      "bg-cmt-primary-500 text-cmt-neutral-900 shadow-cmt-primary hover:bg-cmt-primary-600 disabled:bg-cmt-neutral-200 disabled:text-cmt-neutral-400 disabled:shadow-none",
+      "bg-emerald-700 text-white shadow-cmt-xs hover:bg-emerald-800 disabled:bg-cmt-neutral-200 disabled:text-cmt-neutral-500 disabled:shadow-none",
     ghost:
       "border border-cmt-neutral-200 bg-white text-cmt-neutral-700 hover:border-cmt-neutral-300 hover:bg-cmt-neutral-50",
     danger:
@@ -183,7 +187,7 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-cmt-control px-4 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 disabled:cursor-not-allowed ${styles} ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-cmt-control px-4 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 disabled:cursor-not-allowed ${styles} ${className}`}
     >
       {children}
     </button>
@@ -203,29 +207,20 @@ export function SegmentedControl<Value extends string>({
   options: { value: Value; label: string }[];
   onChange: (next: Value) => void;
 }) {
+  const groupName = useId();
   return (
     <div>
       <FieldLabel>{label}</FieldLabel>
       <div
         role="radiogroup"
         aria-label={label}
-        className="inline-flex rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-100 p-1"
+        className="inline-flex flex-wrap rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-100 p-1"
       >
         {options.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            role="radio"
-            aria-checked={value === option.value}
-            onClick={() => onChange(option.value)}
-            className={`rounded-[calc(var(--cmt-radius-control)-2px)] px-4 py-1.5 text-sm font-semibold transition-colors ${
-              value === option.value
-                ? "bg-white text-cmt-neutral-900 shadow-cmt-xs"
-                : "text-cmt-neutral-500 hover:text-cmt-neutral-700"
-            }`}
-          >
-            {option.label}
-          </button>
+          <label key={option.value} className="relative cursor-pointer">
+            <input type="radio" name={groupName} value={option.value} checked={value === option.value} onChange={() => onChange(option.value)} className="peer sr-only" />
+            <span className={`block rounded-lg px-4 py-2 text-sm font-semibold transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-emerald-700 ${value === option.value ? "bg-white text-cmt-neutral-900 shadow-cmt-xs" : "text-cmt-neutral-500 hover:text-cmt-neutral-700"}`}>{option.label}</span>
+          </label>
         ))}
       </div>
     </div>

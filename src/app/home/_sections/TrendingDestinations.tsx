@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MoveRight, Plane, TrendingUp } from "lucide-react";
 
 import { useSiteContent } from "@/lib/useSiteContent";
+import { startVisibleAnimation } from "@/lib/visibleAnimation";
 import type { SiteContent } from "@/lib/siteContent";
 import ContentImage from "../_components/ContentImage";
 import SectionHeader from "../_components/SectionHeader";
@@ -21,8 +22,9 @@ import SectionHeader from "../_components/SectionHeader";
 /* over. Only the first copy is exposed to assistive tech.               */
 /* ------------------------------------------------------------------ */
 
-/** Idle drift speed, px/s — brisk, but a card still stays readable. */
+/** Idle drift speed, px/s. Phones move slowly so each card stays readable. */
 const DRIFT_PX_PER_SECOND = 60;
+const MOBILE_DRIFT_PX_PER_SECOND = 24;
 /** How long after a wheel/drag before the drift picks back up. */
 const RESUME_DELAY_MS = 2000;
 
@@ -37,8 +39,6 @@ export default function TrendingDestinations() {
   const leadRef = useRef<HTMLDivElement>(null);
   /** Width of one item set plus the gap that follows it — the loop period. */
   const setWidthRef = useRef(0);
-  const pausedRef = useRef(false);
-  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [copies, setCopies] = useState(3);
 
@@ -51,8 +51,13 @@ export default function TrendingDestinations() {
     const set = setRef.current;
     if (!enabled || !scroller || !track || !set || itemCount === 0) return;
 
-    let raf = 0;
     let started = false;
+    let pointerInside = false;
+    let focusInside = false;
+    let touchActive = false;
+    let holdUntil = 0;
+    let driftRemainder = 0;
+    const mobile = window.matchMedia("(max-width: 767px)");
 
     const measure = () => {
       const gap = parseFloat(getComputedStyle(track).columnGap || "0") || 0;
@@ -84,58 +89,77 @@ export default function TrendingDestinations() {
     // identical, so the correction is invisible.
     const handleScroll = () => {
       const period = setWidthRef.current;
-      if (!period) return;
+      // A keyboard user focuses the accessible first copy. Wrapping that
+      // scroll into a hidden duplicate would move their focused card away.
+      if (!period || scroller.contains(document.activeElement)) return;
       const offset = scroller.scrollLeft;
       if (offset >= period * 2) scroller.scrollLeft = offset - period;
       else if (offset < period) scroller.scrollLeft = offset + period;
     };
 
-    const pause = () => {
-      pausedRef.current = true;
-      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-      resumeTimerRef.current = null;
+    // Touch pointers also fire enter/leave; only a mouse can hover to pause.
+    const enter = (event: PointerEvent) => {
+      if (event.pointerType === "mouse") pointerInside = true;
     };
-    const resume = () => {
-      pausedRef.current = false;
+    const leave = (event: PointerEvent) => {
+      if (event.pointerType === "mouse") pointerInside = false;
     };
-    // Wheel and touch have no matching "done" event — resume once idle.
-    const pauseThenResume = () => {
-      pausedRef.current = true;
-      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-      resumeTimerRef.current = setTimeout(resume, RESUME_DELAY_MS);
+    const focus = () => { focusInside = true; };
+    const blur = (event: FocusEvent) => {
+      focusInside = event.relatedTarget instanceof Node && scroller.contains(event.relatedTarget);
+      if (!focusInside) handleScroll();
+    };
+    // Each reason holds independently: a swipe timeout must never restart
+    // the drift while the pointer or keyboard focus is still reading a card.
+    const pauseThenResume = () => { holdUntil = performance.now() + RESUME_DELAY_MS; };
+    const touchStart = () => {
+      touchActive = true;
+      pauseThenResume();
+    };
+    const touchEnd = (event: TouchEvent) => {
+      touchActive = Array.from(event.touches).some(
+        (touch) => touch.target instanceof Node && scroller.contains(touch.target),
+      );
+      pauseThenResume();
     };
 
     scroller.addEventListener("scroll", handleScroll, { passive: true });
-    scroller.addEventListener("pointerenter", pause);
-    scroller.addEventListener("pointerleave", resume);
-    scroller.addEventListener("focusin", pause);
-    scroller.addEventListener("focusout", resume);
+    scroller.addEventListener("pointerenter", enter);
+    scroller.addEventListener("pointerleave", leave);
+    scroller.addEventListener("focusin", focus);
+    scroller.addEventListener("focusout", blur);
     scroller.addEventListener("wheel", pauseThenResume, { passive: true });
-    scroller.addEventListener("touchstart", pauseThenResume, { passive: true });
+    scroller.addEventListener("touchstart", touchStart, { passive: true });
+    scroller.addEventListener("touchmove", pauseThenResume, { passive: true });
+    scroller.addEventListener("touchend", touchEnd, { passive: true });
+    scroller.addEventListener("touchcancel", touchEnd, { passive: true });
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let last = performance.now();
-    const tick = (now: number) => {
-      const elapsed = now - last;
-      last = now;
-      if (!pausedRef.current && !reduceMotion.matches && window.matchMedia("(hover: hover) and (pointer: fine)").matches && setWidthRef.current) {
-        scroller.scrollLeft += (DRIFT_PX_PER_SECOND * elapsed) / 1000;
+    const stopDrift = startVisibleAnimation(scroller, (now, elapsed) => {
+      if (!pointerInside && !focusInside && !touchActive && now >= holdUntil && setWidthRef.current) {
+        const speed = mobile.matches ? MOBILE_DRIFT_PX_PER_SECOND : DRIFT_PX_PER_SECOND;
+        // Preserve fractional movement on browsers that round scrollLeft.
+        driftRemainder += (speed * elapsed) / 1000;
+        const pixels = Math.floor(driftRemainder);
+        if (pixels > 0) {
+          scroller.scrollLeft += pixels;
+          driftRemainder -= pixels;
+        }
       }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
+    }, { allowMobile: true });
 
     return () => {
-      cancelAnimationFrame(raf);
+      stopDrift();
       resizeObserver.disconnect();
-      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
       scroller.removeEventListener("scroll", handleScroll);
-      scroller.removeEventListener("pointerenter", pause);
-      scroller.removeEventListener("pointerleave", resume);
-      scroller.removeEventListener("focusin", pause);
-      scroller.removeEventListener("focusout", resume);
+      scroller.removeEventListener("pointerenter", enter);
+      scroller.removeEventListener("pointerleave", leave);
+      scroller.removeEventListener("focusin", focus);
+      scroller.removeEventListener("focusout", blur);
       scroller.removeEventListener("wheel", pauseThenResume);
-      scroller.removeEventListener("touchstart", pauseThenResume);
+      scroller.removeEventListener("touchstart", touchStart);
+      scroller.removeEventListener("touchmove", pauseThenResume);
+      scroller.removeEventListener("touchend", touchEnd);
+      scroller.removeEventListener("touchcancel", touchEnd);
     };
   }, [enabled, itemCount]);
 

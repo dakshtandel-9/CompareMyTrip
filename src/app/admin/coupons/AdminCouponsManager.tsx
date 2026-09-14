@@ -17,13 +17,15 @@ import {
   BLANK_COUPON,
   couponHeadline,
   normaliseCode,
+  todayInIndia,
   type Coupon,
   type CouponType,
 } from "@/lib/coupons";
 import { deleteCoupon, saveCoupon, subscribeToCoupons } from "@/lib/firebase/coupons";
 import { subscribeToTrips, type Trip } from "@/lib/firebase/trips";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
-import { DUMMY_PACKAGES } from "@/lib/packageData";
+import { useAllPackagesState } from "@/lib/usePackages";
+import { InboxFilters, InboxSearch, InboxState, OperationsHeader, WorkflowGuide } from "../enquiries/OperationsUI";
 import { NumberField } from "../_components/EditorParts";
 import {
   Button,
@@ -50,6 +52,16 @@ import {
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
+function couponAvailability(coupon: Coupon, used: number | null, today: string) {
+  if (!coupon.active) return "Paused";
+  if (coupon.endsOn && coupon.endsOn < today) return "Expired";
+  if (coupon.startsOn && coupon.startsOn > today) return "Scheduled";
+  if (coupon.usageLimit > 0 && used === null) return "Usage unavailable";
+  if (coupon.usageLimit > 0 && used !== null && used >= coupon.usageLimit) return "Fully used";
+  return "Available";
+}
+
+
 export default function AdminCouponsManager() {
   const authUser = useAuthUser();
 
@@ -66,6 +78,11 @@ export default function AdminCouponsManager() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [deletingCode, setDeletingCode] = useState("");
+  const [usageError, setUsageError] = useState("");
+  const [usageLoading, setUsageLoading] = useState(true);
+  const [today, setToday] = useState(() => todayInIndia());
 
   useEffect(() => {
     if (!authUser) return;
@@ -87,7 +104,7 @@ export default function AdminCouponsManager() {
      same data the trips screen shows, counted by code. */
   useEffect(() => {
     if (!authUser) return;
-    return subscribeToTrips(setTrips, () => setTrips([]));
+    return subscribeToTrips(next => { setTrips(next); setUsageError(""); setUsageLoading(false); }, () => { setUsageError("Booking usage counts could not be loaded. Refresh the page to try again."); setUsageLoading(false); });
   }, [authUser]);
 
   const usage = useMemo(() => {
@@ -99,41 +116,63 @@ export default function AdminCouponsManager() {
     return counts;
   }, [trips]);
 
+  useEffect(() => {
+    const timer = setInterval(() => setToday(todayInIndia()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const availability = (coupon: Coupon) => couponAvailability(coupon, usageLoading || usageError ? null : usage.get(coupon.code) ?? 0, today);
   const visible = useMemo(() => {
     const needle = search.trim().toLowerCase();
-    if (!needle) return coupons;
-    return coupons.filter(
-      (coupon) =>
-        coupon.code.toLowerCase().includes(needle) ||
-        coupon.label.toLowerCase().includes(needle),
-    );
-  }, [coupons, search]);
+    return coupons.filter(coupon => {
+      const status = couponAvailability(coupon, usageLoading || usageError ? null : usage.get(coupon.code) ?? 0, today);
+      const matchesStatus = statusFilter === "all" || (statusFilter === "available" ? status === "Available" : statusFilter === "scheduled" ? status === "Scheduled" : statusFilter === "check" ? status === "Usage unavailable" : status === "Paused" || status === "Expired" || status === "Fully used");
+      return matchesStatus && (!needle || coupon.code.toLowerCase().includes(needle) || coupon.label.toLowerCase().includes(needle));
+    });
+  }, [coupons, search, statusFilter, today, usage, usageError, usageLoading]);
 
-  const liveCount = coupons.filter((coupon) => coupon.active).length;
+  const liveCount = coupons.filter(coupon => availability(coupon) === "Available").length;
+  const scheduledCount = coupons.filter(coupon => availability(coupon) === "Scheduled").length;
+  const unknownCount = coupons.filter(coupon => availability(coupon) === "Usage unavailable").length;
+  const isLoading = authUser === undefined || (authUser !== null && loading);
+  const discardDraft = () => !draft || JSON.stringify(draft) === JSON.stringify(editingCode ? coupons.find(coupon => coupon.code === editingCode) : BLANK_COUPON) || window.confirm("Discard your unsaved coupon changes?");
 
   const startNew = () => {
+    if (saving || !discardDraft()) return;
     setDraft({ ...BLANK_COUPON });
     setEditingCode("");
     setError("");
     setMessage("");
+    requestAnimationFrame(() => document.getElementById("coupon-editor")?.scrollIntoView({ behavior: "smooth", block: "start" }));
   };
 
   const startEdit = (coupon: Coupon) => {
+    if (saving || !discardDraft()) return;
     setDraft({ ...coupon });
     setEditingCode(coupon.code);
     setError("");
     setMessage("");
+    requestAnimationFrame(() => document.getElementById("coupon-editor")?.scrollIntoView({ behavior: "smooth", block: "start" }));
   };
 
   const handleSave = async () => {
-    if (!draft) return;
+    if (!draft || saving) return;
     const code = normaliseCode(draft.code);
     if (!code) return setError("A coupon needs a code.");
-    if (draft.type === "percent" && draft.percentOff <= 0) {
-      return setError("A percentage coupon needs a percentage above zero.");
+    if (draft.type === "percent" && (draft.percentOff <= 0 || draft.percentOff > 100)) {
+      return setError("Enter a discount percentage greater than 0 and no more than 100.");
     }
     if (draft.type === "flat" && draft.flatOff <= 0) {
       return setError("A flat coupon needs an amount above zero.");
+    }
+    if (draft.startsOn && draft.endsOn && draft.endsOn < draft.startsOn) {
+      return setError("The end date must be on or after the start date.");
+    }
+    if ([draft.percentOff, draft.flatOff, draft.maxDiscount, draft.minOrderValue, draft.usageLimit, draft.perUserLimit].some(value => !Number.isFinite(value) || value < 0)) {
+      return setError("Discount amounts and usage limits must be zero or greater.");
+    }
+    if (!Number.isInteger(draft.usageLimit) || !Number.isInteger(draft.perUserLimit)) {
+      return setError("Usage limits must be whole numbers. Use 0 for unlimited.");
     }
     /* Renaming onto a code that already exists would silently replace it. */
     if (code !== editingCode && coupons.some((coupon) => coupon.code === code)) {
@@ -163,6 +202,7 @@ export default function AdminCouponsManager() {
 
     setError("");
     setMessage("");
+    setDeletingCode(coupon.code);
     try {
       await deleteCoupon(coupon.code);
       setMessage(`${coupon.code} deleted.`);
@@ -172,46 +212,26 @@ export default function AdminCouponsManager() {
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "That coupon could not be deleted.");
+    } finally {
+      setDeletingCode("");
     }
   };
 
   const displayError =
-    authUser === null ? "Sign in to your CRM account to manage coupons." : error || loadError;
+    authUser === null ? "Sign in to your admin account to manage coupons." : error || loadError;
 
   return (
     <div className="font-body text-cmt-neutral-900">
-      <header className="flex flex-wrap items-end justify-between gap-5">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-700">
-            Offers
-          </p>
-          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-            Coupons
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-cmt-neutral-600">
-            Codes travellers can enter at checkout, and the standing offers that
-            apply themselves. The discount is worked out on the server at
-            payment time, so what is set here is what gets charged.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex min-w-[170px] items-center gap-3 rounded-cmt-md border border-cmt-neutral-200 bg-white px-4 py-3 shadow-cmt-xs">
-            <span className="grid size-10 place-items-center rounded-cmt-full bg-cmt-primary-50 text-cmt-primary-900">
-              <TicketPercent className="size-5" aria-hidden="true" />
-            </span>
-            <div>
-              <p className="font-display text-2xl font-semibold tabular-nums">
-                {loading ? "—" : `${liveCount}/${coupons.length}`}
-              </p>
-              <p className="text-xs text-cmt-neutral-500">Active coupons</p>
-            </div>
-          </div>
-          <Button onClick={startNew} disabled={authUser === null} className="h-11">
-            <Plus className="size-4" /> New coupon
-          </Button>
-        </div>
-      </header>
+      <OperationsHeader eyebrow="Offers & discounts" title="Discount coupons"
+        description="Create offers for your customers, choose where they apply, and keep track of how often they are used."
+        action={<Button onClick={startNew} disabled={!authUser || saving} className="h-11"><Plus className="size-4" aria-hidden="true" />Create coupon</Button>}
+        metrics={[
+          { label: "Available coupons", value: isLoading || usageLoading || usageError ? "—" : liveCount, hint: "Enabled and within their dates and limits", attention: true },
+          { label: "Scheduled offers", value: isLoading ? "—" : scheduledCount, hint: "Offers that start on a future date" },
+          { label: "Successful uses", value: isLoading || usageLoading || usageError ? "—" : Array.from(usage.values()).reduce((sum, count) => sum + count, 0), hint: "Coupon uses on paid bookings" },
+        ]} />
+      <WorkflowGuide steps={["Set the discount", "Choose dates, customers and packages", "Save the coupon to make it available"]} />
+      {usageError && <p role="alert" className="my-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">{usageError}</p>}
 
       {displayError ? (
         <p
@@ -223,20 +243,22 @@ export default function AdminCouponsManager() {
       ) : null}
 
       {message && !displayError ? (
-        <p className="mt-6 rounded-cmt-control border border-cmt-success-500/20 bg-cmt-success-100 px-4 py-3 text-sm text-cmt-success-700">
+        <p role="status" className="mt-6 rounded-cmt-control border border-cmt-success-500/20 bg-cmt-success-100 px-4 py-3 text-sm text-cmt-success-700">
           {message}
         </p>
       ) : null}
 
       {draft && (
-        <div className="mt-7">
+        <div className="mt-7 scroll-mt-24" id="coupon-editor">
           <CouponEditor
             draft={draft}
             isNew={editingCode === ""}
             saving={saving}
+            error={error}
             onChange={setDraft}
             onSave={() => void handleSave()}
             onCancel={() => {
+              if (saving || !discardDraft()) return;
               setDraft(null);
               setEditingCode("");
             }}
@@ -245,26 +267,9 @@ export default function AdminCouponsManager() {
       )}
 
       <section className="mt-7 overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cmt-neutral-200 px-5 py-4">
-          <p className="text-sm font-semibold">
-            {loading
-              ? "Loading coupons…"
-              : `${visible.length} ${visible.length === 1 ? "coupon" : "coupons"}`}
-          </p>
-          <label className="relative w-full sm:w-72">
-            <span className="sr-only">Search coupons</span>
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-400"
-              aria-hidden="true"
-            />
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by code or name"
-              className="h-10 w-full rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-50 pl-9 pr-3 text-sm outline-none focus:border-cmt-primary-500 focus:ring-2 focus:ring-cmt-primary-500/20"
-            />
-          </label>
+        <div className="space-y-4 border-b border-slate-200 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-base font-semibold">Your coupons</h2><p className="mt-1 text-xs text-slate-500">{isLoading ? "Loading coupons…" : `${visible.length} of ${coupons.length} coupons`}</p></div><InboxSearch value={search} onChange={setSearch} placeholder="Search coupon code or offer name" label="Search coupons" /></div>
+          <InboxFilters value={statusFilter} onChange={setStatusFilter} options={[{ value: "all", label: "All coupons", count: coupons.length }, { value: "available", label: "Available", count: liveCount }, { value: "scheduled", label: "Scheduled", count: scheduledCount }, { value: "inactive", label: "Paused or finished", count: coupons.length - liveCount - scheduledCount - unknownCount }, ...(unknownCount ? [{ value: "check", label: "Check usage", count: unknownCount }] : [])]} />
         </div>
 
         <div className="divide-y divide-cmt-neutral-200">
@@ -274,25 +279,15 @@ export default function AdminCouponsManager() {
               coupon={coupon}
               used={usage.get(coupon.code) ?? 0}
               editing={editingCode === coupon.code}
-              disabled={authUser === null}
+              disabled={!authUser || saving || Boolean(deletingCode)}
+              availability={availability(coupon)}
+              usageUnavailable={usageLoading || Boolean(usageError)}
               onEdit={() => startEdit(coupon)}
               onDelete={() => void handleDelete(coupon)}
             />
           ))}
 
-          {!loading && !displayError && visible.length === 0 ? (
-            <div className="px-5 py-12 text-center">
-              <TicketPercent className="mx-auto size-8 text-cmt-neutral-300" aria-hidden="true" />
-              <p className="mt-3 text-sm font-semibold">
-                {coupons.length ? "No coupon matches your search" : "No coupons yet"}
-              </p>
-              <p className="mt-1 text-xs text-cmt-neutral-500">
-                {coupons.length
-                  ? "Try the code itself."
-                  : "Create one and it works at checkout straight away."}
-              </p>
-            </div>
-          ) : null}
+          <InboxState loading={isLoading} empty={!displayError && visible.length === 0} title={coupons.length ? "No coupons match your filters" : "Create your first coupon"} description={coupons.length ? "Search by code or offer name, or clear the filters." : "Choose Create coupon to set up a discount for your customers."} onReset={search || statusFilter !== "all" ? () => { setSearch(""); setStatusFilter("all"); } : undefined} />
         </div>
       </section>
     </div>
@@ -306,6 +301,8 @@ function CouponRow({
   used,
   editing,
   disabled,
+  availability,
+  usageUnavailable,
   onEdit,
   onDelete,
 }: {
@@ -313,6 +310,8 @@ function CouponRow({
   used: number;
   editing: boolean;
   disabled: boolean;
+  availability: string;
+  usageUnavailable: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -336,10 +335,10 @@ function CouponRow({
           <span className="rounded-cmt-sm border border-dashed border-cmt-primary-700 bg-cmt-primary-50 px-2 py-0.5 font-mono text-[13px] font-semibold tracking-[0.06em]">
             {coupon.code}
           </span>
-          <Pill tone={coupon.active ? "good" : "muted"}>
-            {coupon.active ? "Active" : "Paused"}
+          <Pill tone={availability === "Available" ? "good" : "muted"}>
+            {availability}
           </Pill>
-          {coupon.autoApply && <Pill tone="info">Auto-applied</Pill>}
+          {coupon.autoApply && <Pill tone="info">Applied automatically</Pill>}
           {coupon.firstBookingOnly && <Pill tone="info">First booking</Pill>}
         </div>
 
@@ -355,19 +354,19 @@ function CouponRow({
       <div className="flex items-center gap-4">
         <div className="text-right">
           <p className="font-display text-lg font-semibold tabular-nums">
-            {used}
-            {coupon.usageLimit > 0 ? (
+            {usageUnavailable ? "—" : used}
+            {coupon.usageLimit > 0 && !usageUnavailable ? (
               <span className="text-sm font-medium text-cmt-neutral-400">/{coupon.usageLimit}</span>
             ) : null}
           </p>
-          <p className="text-[11px] text-cmt-neutral-500">Redeemed</p>
+          <p className="text-[11px] text-cmt-neutral-500">{usageUnavailable ? "Usage unavailable" : "Paid bookings"}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={onEdit} disabled={disabled}>
             <Pencil className="size-4" /> Edit
           </Button>
           <Button variant="danger" onClick={onDelete} disabled={disabled}>
-            <Trash2 className="size-4" />
+            <Trash2 className="size-4" /> Delete
           </Button>
         </div>
       </div>
@@ -406,6 +405,7 @@ function CouponEditor({
   draft,
   isNew,
   saving,
+  error,
   onChange,
   onSave,
   onCancel,
@@ -413,22 +413,24 @@ function CouponEditor({
   draft: Coupon;
   isNew: boolean;
   saving: boolean;
+  error: string;
   onChange: (next: Coupon) => void;
   onSave: () => void;
   onCancel: () => void;
 }) {
   const [packageSearch, setPackageSearch] = useState("");
+  const catalogue = useAllPackagesState();
   const patch = (changes: Partial<Coupon>) => onChange({ ...draft, ...changes });
 
   const packages = useMemo(() => {
     const needle = packageSearch.trim().toLowerCase();
-    if (!needle) return DUMMY_PACKAGES;
-    return DUMMY_PACKAGES.filter(
+    if (!needle) return catalogue.packages;
+    return catalogue.packages.filter(
       (item) =>
         item.title.toLowerCase().includes(needle) ||
         item.destination.toLowerCase().includes(needle),
     );
-  }, [packageSearch]);
+  }, [packageSearch, catalogue.packages]);
 
   const togglePackage = (id: string) =>
     patch({
@@ -438,14 +440,14 @@ function CouponEditor({
     });
 
   return (
-    <div className="space-y-5">
+    <fieldset disabled={saving} className="min-w-0 space-y-5">
       <Card
         icon={<TicketPercent className="size-5" />}
-        title={isNew ? "New coupon" : `Editing ${draft.code || "coupon"}`}
-        description="The code as travellers type it, and the discount behind it."
+        title={isNew ? "1. Create your discount" : `1. Edit ${draft.code || "coupon"}`}
+        description="Choose the code customers will use and how much they will save."
         action={
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={onCancel}>
+            <Button variant="ghost" onClick={onCancel} disabled={saving}>
               <X className="size-4" /> Cancel
             </Button>
             <Button onClick={onSave} disabled={saving}>
@@ -456,14 +458,14 @@ function CouponEditor({
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField
-            label="Code"
+            label="Coupon code"
             value={draft.code}
             onChange={(code) => patch({ code: normaliseCode(code) })}
             placeholder="MONSOON12"
-            hint="Letters, numbers, - and _. Case does not matter at checkout."
+            hint="For example, SUMMER10. Letters, numbers, hyphens and underscores are allowed."
           />
           <TextField
-            label="Name"
+            label="Offer name"
             value={draft.label}
             onChange={(label) => patch({ label })}
             placeholder="Monsoon campaign"
@@ -495,7 +497,7 @@ function CouponEditor({
                 label="Maximum discount (₹)"
                 value={draft.maxDiscount}
                 onChange={(maxDiscount) => patch({ maxDiscount })}
-                hint="The ceiling on a percentage — 0 for no cap."
+                hint="Maximum saving on one booking. Enter 0 for no limit."
               />
             </>
           ) : (
@@ -511,7 +513,7 @@ function CouponEditor({
             label="Minimum order value (₹)"
             value={draft.minOrderValue}
             onChange={(minOrderValue) => patch({ minOrderValue })}
-            hint="The order must reach this. 0 for no floor."
+            hint="The minimum booking amount needed to use this coupon. Enter 0 for no minimum."
           />
         </div>
 
@@ -523,16 +525,16 @@ function CouponEditor({
 
       <Card
         icon={<Wand2 className="size-5" />}
-        title="How it is claimed"
-        description="Whether travellers have to type it, and who it is for."
+        title="2. Set availability & usage limits"
+        description="Choose when the offer runs, who can use it, and how often."
       >
         <div className="space-y-3">
           <Toggle
-            label="Active"
+            label="Enable this coupon"
             description={
               draft.active
-                ? "Accepted at checkout, subject to the rules below."
-                : "Refused at checkout, whatever else is set here."
+                ? "Customers can use this coupon when they meet the conditions below."
+                : "This coupon is paused. Customers cannot use it until you turn it on."
             }
             checked={draft.active}
             onChange={(active) => patch({ active })}
@@ -564,25 +566,25 @@ function CouponEditor({
             label="Starts on"
             value={draft.startsOn}
             onChange={(startsOn) => patch({ startsOn })}
-            hint="Empty starts it straight away. Indian dates."
+            hint="Leave empty to start immediately. Dates use India time."
           />
           <DateField
             label="Ends on"
             value={draft.endsOn}
             onChange={(endsOn) => patch({ endsOn })}
-            hint="Empty leaves it open-ended. The last day counts."
+            hint="Leave empty for no end date. The offer includes the entire last day."
           />
           <NumberField
-            label="Total redemptions"
+            label="Maximum uses across all customers"
             value={draft.usageLimit}
             onChange={(usageLimit) => patch({ usageLimit })}
-            hint="Across everyone. 0 for unlimited."
+            hint="Only paid bookings count. Enter 0 for unlimited uses."
           />
           <NumberField
-            label="Per traveller"
+            label="Maximum uses per customer"
             value={draft.perUserLimit}
             onChange={(perUserLimit) => patch({ perUserLimit })}
-            hint="Paid bookings one traveller may use it on. 0 for unlimited."
+            hint="Enter 1 for a single use per customer, or 0 for unlimited."
           />
         </div>
       </Card>
@@ -591,14 +593,14 @@ function CouponEditor({
         icon={<BadgePercent className="size-5" />}
         title={
           draft.packageIds.length === 0
-            ? "Packages — all of them"
-            : `Packages — ${draft.packageIds.length} selected`
+            ? "3. Choose packages · all packages"
+            : `3. Choose packages · ${draft.packageIds.length} selected`
         }
-        description="Leave everything unticked and the code works on any package that can be paid for online."
+        description="No selection means all packages. Select one or more packages to limit the offer to those trips."
         action={
           draft.packageIds.length > 0 ? (
             <Button variant="ghost" onClick={() => patch({ packageIds: [] })}>
-              Clear selection
+              Apply to all packages
             </Button>
           ) : undefined
         }
@@ -618,6 +620,8 @@ function CouponEditor({
           />
         </label>
 
+        {catalogue.error && <p role="alert" className="mt-3 text-sm text-red-700">Packages could not be loaded: {catalogue.error}</p>}
+        {catalogue.loading && <p role="status" className="mt-3 text-sm text-slate-500">Loading your package catalogue…</p>}
         <div className="mt-3 max-h-72 overflow-y-auto rounded-cmt-control border border-cmt-neutral-200">
           {packages.map((item) => {
             const checked = draft.packageIds.includes(item.id);
@@ -651,7 +655,12 @@ function CouponEditor({
           )}
         </div>
       </Card>
-    </div>
+      {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+      <div className="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-white p-4 shadow-lg">
+        <div><p className="text-sm font-semibold">Ready to save {draft.code || "your coupon"}?</p><p className="mt-1 text-xs text-slate-500">{draft.active ? "The offer will follow the dates and rules you selected." : "This coupon will be saved as paused."}</p></div>
+        <div className="flex gap-2"><Button variant="ghost" onClick={onCancel} disabled={saving}>Cancel</Button><Button onClick={onSave} disabled={saving}><Check className="size-4" aria-hidden="true" />{saving ? "Saving…" : "Save coupon"}</Button></div>
+      </div>
+    </fieldset>
   );
 }
 

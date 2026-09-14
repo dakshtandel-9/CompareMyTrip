@@ -1,0 +1,90 @@
+.journey {
+  min-width: 0;
+  border: 1px solid var(--color-cmt-neutral-200);
+  border-radius: 20px;
+  padding: 24px;
+  background: white;
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.tripTypes { min-width: 0; }
+.tripOptions { display: flex; flex-wrap: wrap; gap: 8px; }
+.tripOption { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 12px; border-radius: 24px; cursor: pointer; font-size: 14px; color: var(--color-cmt-neutral-600); }
+.tripOption:has(input:checked) { background: var(--color-cmt-primary-100); color: var(--color-cmt-neutral-900); font-weight: 600; }
+.tripOption input { width: 17px; height: 17px; flex-shrink: 0; accent-color: var(--color-cmt-neutral-900); }
+.tripOption:has(input:focus-visible) { outline: 2px solid var(--color-cmt-primary-500); outline-offset: 2px; }
+.tripOption:has(input:disabled) { opacity: 0.6; cursor: wait; }
+.bookingLabel { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-cmt-neutral-500); }
+
+.route { display: grid; grid-template-columns: minmax(0, 2.4fr) repeat(2, minmax(0, 1fr)) minmax(0, 0.9fr); border: 1px solid var(--color-cmt-neutral-200); border-radius: 16px; }
+.route > :not(:first-child) { border-left: 1px solid var(--color-cmt-neutral-200); }
+.route:not(:has(.returnPrompt)):not(:has(input[name="returnDate"])):not(.hourlyRoute) { grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr) minmax(0, 0.9fr); }
+.hourlyRoute { grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); }
+.locations { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; }
+.locations > .field:first-child { border-radius: 16px 0 0 16px; background: var(--color-cmt-neutral-50); }
+.locations > .field:last-child:not(:first-child) { padding-left: 28px; border-left: 1px solid var(--color-cmt-neutral-200); }
+.hourlyRoute .locations { grid-template-columns: minmax(0, 1fr); }
+.field, .returnPrompt { min-width: 0; padding: 20px 18px; }
+.field label, .returnPrompt > span { display: block; margin-bottom: 12px; font-size: 13px; font-weight: 500; color: var(--color-cmt-neutral-600); }
+.field input, .field select { display: block; width: 100%; min-width: 0; min-height: 40px; border-radius: 6px; background: transparent; font-size: 20px; font-weight: 600; color: var(--color-cmt-neutral-900); }
+.field input::placeholder { opacity: 1; color: var(--color-cmt-neutral-400); }
+.field input[type="date"], .field input[type="time"], .field select { font-size: 17px; }
+.field input:focus-visible, .field select:focus-visible { outline: 2px solid var(--color-cmt-primary-500); outline-offset: 4px; }
+.field input[aria-invalid="true"], .field select[aria-invalid="true"] { outline: 2px solid var(--color-cmt-error-500); outline-offset: 4px; }
+.hint { margin-top: 8px; font-size: 11px; line-height: 1.5; color: var(--color-cmt-neutral-500); }
+.error { margin-top: 10px; font-size: 12px; line-height: 1.5; color: var(--color-cmt-error-700); }
+.swap { position: absolute; top: 58px; left: 50%; z-index: 1; display: grid; place-items: center; width: 38px; height: 38px; transform: translateX(-50%); border: 1px solid var(--color-cmt-neutral-200); border-radius: 50%; background: white; color: var(--color-cmt-neutral-700); box-shadow: 0 2px 8px rgb(15 23 42 / 6%); cursor: pointer; }
+.swap:hover { background: var(--color-cmt-primary-100); }
+.returnPrompt button { min-height: 44px; border-radius: 6px; text-align: left; font-size: 15px; line-height: 1.5; font-weight: 600; cursor: pointer; }
+.returnPrompt button > span { display: block; margin-top: 4px; font-size: 11px; font-weight: 400; color: var(--color-cmt-neutral-500); }
+.returnPrompt button:hover { color: var(--color-cmt-primary-700); }
+.swap:focus-visible, .returnPrompt button:focus-visible, .addStop:focus-visible, .removeStop:focus-visible { outline: 2px solid var(--color-cmt-primary-500); outline-offset: 3px; }
+.airportHint { margin-top: 16px; font-size: 13px; line-height: 1.6; color: var(--color-cmt-neutral-600); }
+.stops { margin-top: 16px; }
+.addStop { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 4px; border-radius: 6px; font-size: 14px; font-weight: 600; color: var(--color-cmt-neutral-900); cursor: pointer; }
+.addStop:hover { color: var(--color-cmt-primary-700); }
+.addStop:disabled { opacity: 0.45; cursor: default; }
+.stopsHint { margin-left: 14px; font-size: 12px; color: var(--color-cmt-neutral-500); }
+.stopFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+.stopRow { display: flex; align-items: center; gap: 12px; border: 1px solid var(--color-cmt-neutral-200); border-radius: 12px; padding: 12px; }
+.stopNumber { display: grid; flex-shrink: 0; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--color-cmt-primary-100); font-size: 12px; font-weight: 600; }
+.stopRow .field { flex: 1; padding: 0; }
+.stopRow .field label { margin-bottom: 4px; }
+.stopRow .field input { font-size: 16px; }
+.removeStop { display: grid; flex-shrink: 0; place-items: center; width: 40px; height: 40px; border-radius: 8px; color: var(--color-cmt-neutral-500); cursor: pointer; }
+.removeStop:hover { background: var(--color-cmt-neutral-100); color: var(--color-cmt-neutral-900); }
+
+@container (max-width: 1050px) {
+  .route, .hourlyRoute, .route:not(:has(.returnPrompt)):not(:has(input[name="returnDate"])):not(.hourlyRoute) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .locations { grid-column: 1 / -1; border-bottom: 1px solid var(--color-cmt-neutral-200); }
+  .locations > .field:first-child { border-radius: 16px 0 0; }
+  .route > :nth-child(2) { border-left: 0; }
+  .route:not(:has(.returnPrompt)):not(:has(input[name="returnDate"])):not(.hourlyRoute) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@container (max-width: 540px) {
+  .journey { padding: 16px; border-radius: 16px; }
+  .heading { gap: 12px; margin-bottom: 16px; }
+  .tripOptions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .tripOption { padding: 8px; gap: 6px; border-radius: 12px; font-size: 12px; line-height: 1.5; }
+  .bookingLabel { padding-left: 8px; font-size: 12px; }
+  .route, .hourlyRoute, .route:not(:has(.returnPrompt)):not(:has(input[name="returnDate"])):not(.hourlyRoute) { grid-template-columns: minmax(0, 1fr); }
+  .locations { grid-template-columns: minmax(0, 1fr); }
+  .locations > .field:first-child { border-radius: 16px 16px 0 0; }
+  .locations > .field:last-child:not(:first-child) { padding-left: 16px; border-left: 0; border-top: 1px solid var(--color-cmt-neutral-200); }
+  .route > :not(:first-child) { border-left: 0; }
+  .route > :nth-child(n + 3) { border-top: 1px solid var(--color-cmt-neutral-200); }
+  .field, .returnPrompt { padding: 16px; }
+  .field label, .returnPrompt > span { margin-bottom: 6px; }
+  .swap { top: 50%; right: 18px; left: auto; transform: translateY(-50%) rotate(90deg); }
+  .stopFields { grid-template-columns: minmax(0, 1fr); }
+  .stopsHint { display: block; margin: 0 0 4px 4px; }
+}

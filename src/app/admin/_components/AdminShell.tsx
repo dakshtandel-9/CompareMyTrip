@@ -1,158 +1,113 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import {
-  Compass,
-  ExternalLink,
-  GalleryHorizontalEnd,
-  LayoutDashboard,
-  type LucideIcon,
-  Menu,
-  Mail,
-  MessageSquareText,
-  MessagesSquare,
-  Newspaper,
-  PackageSearch,
-  PanelsTopLeft,
-  Plane,
-  Sparkles,
-  TicketPercent,
-  Users,
-  X,
-} from "lucide-react";
-
-type NavItem = { href: string; label: string; hint: string; icon: LucideIcon };
-
-/* Only routes that exist. A CRM sidebar full of dead links is worse than a
-   short one — new sections get added here as they are built. */
-const NAV: NavItem[] = [
-  { href: "/admin", label: "Dashboard", hint: "Overview", icon: LayoutDashboard },
-  { href: "/admin/content", label: "Website content", hint: "Every page's copy and images", icon: PanelsTopLeft },
-  { href: "/admin/banners", label: "Banners", hint: "Page mastheads", icon: GalleryHorizontalEnd },
-  { href: "/admin/packages", label: "Packages", hint: "Create inventory", icon: PackageSearch },
-  { href: "/admin/trips", label: "Trips", hint: "Paid bookings", icon: Plane },
-  { href: "/admin/coupons", label: "Coupons", hint: "Discount codes", icon: TicketPercent },
-  { href: "/admin/destinations", label: "Destinations", hint: "Cover artwork", icon: Compass },
-  { href: "/admin/blog", label: "Blog", hint: "Travel guides", icon: Newspaper },
-  { href: "/admin/users", label: "Users", hint: "Registered customers", icon: Users },
-  { href: "/admin/subscribers", label: "Subscribers", hint: "Newsletter sign-ups", icon: Mail },
-  { href: "/admin/enquiries", label: "Contact enquiries", hint: "Contact Us form", icon: MessageSquareText },
-  { href: "/admin/package-enquiries", label: "Package quotes", hint: "Customized requests", icon: MessagesSquare },
-  { href: "/admin/popup-form", label: "Pop-up Form", hint: "Trip planning leads", icon: Sparkles },
-];
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, BookOpen, ChevronRight, ExternalLink, LogOut, Menu, Search, X } from "lucide-react";
+import { signOut } from "firebase/auth";
+import BrandLogo from "@/components/BrandLogo";
+import { getFirebaseAuth } from "@/lib/firebase/client";
+import { useAuthUser } from "@/lib/firebase/useAuthUser";
+import { lockPageScroll } from "@/lib/lockPageScroll";
+import { ADMIN_NAV_GROUPS, findAdminPage, searchAdminPages } from "./adminNavigation";
+import styles from "./AdminWorkspace.module.css";
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+  const user = useAuthUser();
+  const mobileDialog = useRef<HTMLDialogElement>(null);
+  const searchDialog = useRef<HTMLDialogElement>(null);
+  const [query, setQuery] = useState("");
+  const [signingOut, setSigningOut] = useState(false);
+  const [accountError, setAccountError] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const current = findAdminPage(pathname);
+  const group = ADMIN_NAV_GROUPS.find((section) => section.items.some((item) => item.href === current?.href));
+  const results = searchAdminPages(query);
 
-  const isActive = (href: string) =>
-    href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+  function closeDialogs() {
+    mobileDialog.current?.close();
+    searchDialog.current?.close();
+    setModalOpen(false);
+  }
+  function openSearch() {
+    mobileDialog.current?.close();
+    setQuery("");
+    searchDialog.current?.showModal();
+    setModalOpen(true);
+  }
+  useEffect(() => {
+    const keyboard = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        mobileDialog.current?.close();
+        searchDialog.current?.showModal();
+        setModalOpen(true);
+      }
+    };
+    document.addEventListener("keydown", keyboard);
+    return () => document.removeEventListener("keydown", keyboard);
+  }, []);
+  useEffect(() => modalOpen ? lockPageScroll() : undefined, [modalOpen]);
 
-  const nav = (
-    <nav className="space-y-1">
-      {NAV.map((item) => {
-        const Icon = item.icon;
-        const active = isActive(item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={() => setMenuOpen(false)}
-            aria-current={active ? "page" : undefined}
-            className={`flex items-center gap-3 rounded-cmt-control px-3 py-2.5 transition-colors ${
-              active
-                ? "bg-cmt-primary-500 text-cmt-neutral-900"
-                : "text-cmt-neutral-300 hover:bg-white/5 hover:text-white"
-            }`}
-          >
-            <Icon className="size-[18px] shrink-0" strokeWidth={2} aria-hidden="true" />
-            <span className="min-w-0">
-              <span className="block text-sm font-semibold leading-tight">{item.label}</span>
-              <span
-                className={`block text-[11px] leading-tight ${
-                  active ? "text-cmt-neutral-900/60" : "text-cmt-neutral-500"
-                }`}
-              >
-                {item.hint}
-              </span>
-            </span>
-          </Link>
-        );
-      })}
-    </nav>
-  );
+  async function logOut() {
+    setSigningOut(true);
+    setAccountError("");
+    try {
+      await signOut(getFirebaseAuth());
+      router.replace("/login?next=%2Fadmin");
+    } catch {
+      setAccountError("Could not sign out. Please try again.");
+      setSigningOut(false);
+    }
+  }
 
-  const sidebarBody = (
-    <>
-      <p className="shrink-0 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-cmt-neutral-500">
-        Manage
-      </p>
-      <div className="mt-2 min-h-0 flex-1 overflow-y-auto">{nav}</div>
+  const navigation = <nav aria-label="Admin navigation" className={styles.navigation}>
+    {ADMIN_NAV_GROUPS.map((section) => <div className={styles.navGroup} key={section.label}>
+      <p className={styles.navHeading}>{section.label}</p>
+      {section.items.map((item) => <Link key={item.href} href={item.href} onClick={closeDialogs} aria-current={current?.href === item.href ? "page" : undefined} className={styles.navLink} title={item.description}>
+        <item.icon size={18} strokeWidth={1.8} aria-hidden="true" /><span>{item.label}</span>
+        {current?.href === item.href && <span className={styles.activeDot} />}
+      </Link>)}
+    </div>)}
+  </nav>;
 
-      <Link
-        href="/"
-        className="mt-4 flex shrink-0 items-center justify-center gap-2 rounded-cmt-control border border-white/15 px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-      >
-        <ExternalLink className="size-4" /> View live site
-      </Link>
-    </>
-  );
-
-  return (
-    <div className="min-h-screen bg-cmt-neutral-50 font-body text-cmt-neutral-900">
-      {/* Desktop rail */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[248px] flex-col bg-cmt-secondary-900 px-4 py-6 lg:flex">
-        {sidebarBody}
-      </aside>
-
-      {/* Mobile drawer over the same markup, so the two never drift apart */}
-      {menuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-cmt-neutral-900/50"
-            onClick={() => setMenuOpen(false)}
-          />
-          <aside className="absolute inset-y-0 left-0 flex w-[268px] flex-col bg-cmt-secondary-900 px-4 py-6">
-            <button
-              type="button"
-              onClick={() => setMenuOpen(false)}
-              aria-label="Close menu"
-              className="absolute right-3 top-4 grid size-9 place-items-center rounded-cmt-control text-white/70 hover:bg-white/10"
-            >
-              <X className="size-4" />
-            </button>
-            {sidebarBody}
-          </aside>
-        </div>
-      )}
-
-      <div className="lg:pl-[248px]">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-cmt-neutral-200 bg-white/90 px-4 backdrop-blur sm:px-6 lg:px-8">
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            aria-label="Open menu"
-            className="grid size-10 shrink-0 place-items-center rounded-cmt-control border border-cmt-neutral-200 lg:hidden"
-          >
-            <Menu className="size-4" />
-          </button>
-
-          <p className="min-w-0 flex-1 truncate font-display text-sm font-semibold text-cmt-neutral-900">
-            {NAV.find((item) => isActive(item.href))?.label ?? "Admin"}
-          </p>
-
-          <span className="hidden items-center gap-2 rounded-cmt-full bg-cmt-primary-50 px-3 py-1.5 text-[11px] font-semibold text-cmt-primary-900 sm:inline-flex">
-            <span className="size-1.5 rounded-cmt-full bg-cmt-primary-600" />
-            Content synced with Firebase
-          </span>
-        </header>
-
-        <main className="mx-auto w-full max-w-[1180px] px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
-          {children}
-        </main>
+  const sidebar = <>
+    <Link href="/admin" onClick={closeDialogs} aria-label="CompareMyTrip admin overview" className={styles.brand}><BrandLogo className="w-[181px]" sizes="181px" /><span>ADMIN WORKSPACE</span></Link>
+    {navigation}
+    <div className={styles.sidebarBottom}>
+      <Link href="/admin/guide" onClick={closeDialogs} className={styles.guideLink} aria-current={pathname === "/admin/guide" ? "page" : undefined}><BookOpen size={18} aria-hidden="true" /><span>How to use admin<small>A little help, whenever you need it</small></span><ChevronRight size={15} /></Link>
+      <div className={styles.account}>
+        <span className={styles.avatar} aria-hidden="true">{(user?.displayName || user?.email || "A").slice(0, 1).toUpperCase()}</span>
+        <span className={styles.accountName}>{user?.displayName || "Administrator"}<small>{user?.email || "Admin account"}</small></span>
+        <button type="button" onClick={() => void logOut()} disabled={signingOut} aria-label={signingOut ? "Signing out" : "Sign out"} title="Sign out" className={styles.iconButton}><LogOut size={17} /></button>
       </div>
+      {accountError && <p role="alert" className={styles.accountError}>{accountError}</p>}
     </div>
-  );
+  </>;
+
+  return <div className={styles.workspace}>
+    <a href="#admin-main" className={styles.skipLink}>Skip to main content</a>
+    <aside className={styles.sidebar}>{sidebar}</aside>
+    <dialog ref={mobileDialog} className={styles.mobileDialog} aria-label="Admin menu" onClose={() => setModalOpen(Boolean(searchDialog.current?.open))} onClick={(event) => { if (event.target === event.currentTarget && event.clientX > event.currentTarget.getBoundingClientRect().right) closeDialogs(); }}>
+      <button type="button" className={styles.closeMenu} aria-label="Close menu" onClick={closeDialogs}><X size={19} /></button>
+      {sidebar}
+    </dialog>
+    <div className={styles.page}>
+      <header className={styles.topbar}>
+        <button type="button" aria-label="Open menu" className={`${styles.iconButton} ${styles.menuButton}`} onClick={() => { mobileDialog.current?.showModal(); setModalOpen(true); }}><Menu size={20} /></button>
+        <div className={styles.breadcrumb}><span>{group?.label || "Help & guidance"}</span><ChevronRight size={14} /><strong>{current?.label || "Admin"}</strong></div>
+        <button type="button" className={styles.searchTrigger} onClick={openSearch}><Search size={16} /><span>Find a page or task</span><kbd>⌘ K / Ctrl K</kbd></button>
+        <Link href="/" target="_blank" rel="noopener noreferrer" className={styles.viewSite}><ExternalLink size={16} /><span>View website</span></Link>
+      </header>
+      <main id="admin-main" tabIndex={-1} className={styles.main}>{children}</main>
+      <footer className={styles.footer}><span>CompareMyTrip · Admin workspace</span><Link href="/admin/guide">Need a hand? Open the guide <ArrowRight size={13} /></Link></footer>
+    </div>
+    <dialog ref={searchDialog} className={styles.searchDialog} aria-labelledby="admin-search-title" onClose={() => setModalOpen(false)} onClick={(event) => { if (event.target === event.currentTarget) { const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeDialogs(); } }}>
+      <div className={styles.searchHeader}><Search size={21} /><label className="sr-only" htmlFor="admin-task-search" id="admin-search-title">Find a page or task</label><input id="admin-task-search" type="search" autoComplete="off" placeholder="Try “payments”, “photos” or “coupons”…" value={query} onChange={(event) => setQuery(event.target.value)} /><button type="button" aria-label="Close search" onClick={closeDialogs} className={styles.iconButton}><X size={18} /></button></div>
+      <div className={styles.searchResults}><p className={styles.navHeading} role="status">{query ? `${results.length} matching pages` : "Where would you like to go?"}</p>{results.map((item) => <Link href={item.href} key={item.href} onClick={closeDialogs}><item.icon size={21} /><span><strong>{item.label}</strong><small>{item.description}</small></span><ArrowRight size={16} /></Link>)}{results.length === 0 && <p className={styles.searchEmpty}>No pages found. Try “packages”, “customers” or “website”.</p>}</div>
+      <p className={styles.searchHint}>Use Tab to move between results, Enter to open, or Escape to close.</p>
+    </dialog>
+  </div>;
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Clock, MapPin } from "lucide-react";
 
 import { Glyph } from "@/lib/adminIcons";
+import { DEFAULT_SITE_CONTENT } from "@/lib/siteContent";
 import { useSiteContent } from "@/lib/useSiteContent";
 import Faq from "@/app/home/_sections/Faq";
 import EnquiryForm from "./EnquiryForm";
@@ -35,8 +36,15 @@ export default function ContactBody() {
   /* Business details shipped empty as PENDING, so every block that depends on
      them still hides itself until it is filled in. */
   const channels = contact.channels.filter((channel) => channel.value.trim() !== "");
+  const sampleOffice = DEFAULT_SITE_CONTENT.contact.offices.items.find(
+    (office) => office.id === "contact-office-sample",
+  );
+  // Editing the sample in the CRM keeps its ID. Only hide its placeholder
+  // address, so a real replacement can display its map immediately.
   const offices = contact.offices.items.filter(
-    (office) => office.id !== "contact-office-sample" && (office.city.trim() !== "" || office.address.trim() !== ""),
+    (office) =>
+      office.address.trim() !== "" &&
+      office.address.trim() !== sampleOffice?.address.trim(),
   );
   const showOffices = contact.offices.enabled && offices.length > 0;
   const showDirect = channels.length > 0 || contact.hours.trim() !== "";
@@ -193,9 +201,9 @@ export default function ContactBody() {
               {offices.map((office) => (
                 <li
                   key={office.id}
-                  className="grid gap-6 rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm md:grid-cols-2 md:items-center"
+                  className="grid overflow-hidden rounded-cmt-lg border border-cmt-neutral-200 bg-cmt-neutral-50 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:items-center"
                 >
-                  <div>
+                  <div className="p-6 sm:p-8">
                     <span className="flex h-12 w-12 items-center justify-center rounded-cmt-full bg-cmt-primary-100">
                       <MapPin className="h-6 w-6 text-cmt-neutral-900" strokeWidth={2} aria-hidden="true" />
                     </span>
@@ -226,7 +234,7 @@ export default function ContactBody() {
                     <iframe
                       title={`Google map for ${office.city || "our office"}: ${office.address}`}
                       src={`https://www.google.com/maps?q=${encodeURIComponent(`${office.address}, ${office.city}`)}&output=embed`}
-                      className="h-64 w-full rounded-cmt-md border-0 bg-cmt-neutral-50"
+                      className="h-72 w-full border-0 bg-cmt-neutral-100 sm:h-96"
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
                       allowFullScreen

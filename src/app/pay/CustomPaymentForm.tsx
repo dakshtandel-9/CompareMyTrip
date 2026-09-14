@@ -60,7 +60,7 @@ export default function CustomPaymentForm({ enabled }: { enabled: boolean }) {
         <LockKeyhole className="h-4 w-4" aria-hidden="true" />
         {submitting ? "Opening payment…" : Number(amount) > 0 ? `Pay ₹${Number(amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "Continue to payment"}
       </button>
-      <p className="text-center text-xs leading-5 text-cmt-neutral-500" role="status">{submitting ? "Please wait while we connect you to PayU." : "Secure checkout with PayU. Keep your transaction reference for our team."}</p>
+      <p className="text-center text-xs leading-5 text-cmt-neutral-500" role="status">{submitting ? "Please wait while we connect you to PayU." : "Payment gateway charges applicable."}</p>
     </form>
   );
 }

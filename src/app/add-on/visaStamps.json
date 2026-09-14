@@ -1,0 +1,112 @@
+[
+  {
+    "name": "New Zealand",
+    "src": "/visaLogo/transparent/new-zealand.webp",
+    "width": 640,
+    "height": 429,
+    "alt": "Passport stamp entry permit, Auckland, New Zealand, 1992",
+    "source": "https://commons.wikimedia.org/wiki/File:Newzealand_entry_permit.JPG",
+    "author": "Slleong",
+    "license": "Public domain",
+    "licenseUrl": null
+  },
+  {
+    "name": "Maldives",
+    "src": "/visaLogo/transparent/maldives.webp",
+    "width": 640,
+    "height": 429,
+    "alt": "Maldives entry passport stamp",
+    "source": "https://commons.wikimedia.org/wiki/File:Maldives_entry_stamp.jpg",
+    "author": "Blagomeni",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  {
+    "name": "Malaysia",
+    "src": "/visaLogo/transparent/malaysia.webp",
+    "width": 640,
+    "height": 550,
+    "alt": "Malaysia Entry Stamp",
+    "source": "https://commons.wikimedia.org/wiki/File:Malaysia_Entry_Stamp.jpg",
+    "author": "ButcherC",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "name": "Japan",
+    "src": "/visaLogo/transparent/japan.webp",
+    "width": 559,
+    "height": 640,
+    "alt": "Japan exit stamp",
+    "source": "https://commons.wikimedia.org/wiki/File:Japan_exit_stamp.JPG",
+    "author": "Abasaa",
+    "license": "Public domain",
+    "licenseUrl": null
+  },
+  {
+    "name": "Hong Kong",
+    "src": "/visaLogo/transparent/hong-kong.webp",
+    "width": 640,
+    "height": 544,
+    "alt": "Hong Kong entry passport stamp at the airport",
+    "source": "https://commons.wikimedia.org/wiki/File:Hong_Kong_Entry_Stamp.jpg",
+    "author": "Fligtar",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "name": "Antarctica",
+    "src": "/visaLogo/transparent/antarctica.webp",
+    "width": 640,
+    "height": 581,
+    "alt": "British Antarctic Territory Passport Stamp",
+    "source": "https://commons.wikimedia.org/wiki/File:British_Antarctic_Territory_Passport_Stamp.jpg",
+    "author": "Daxelk",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "name": "Bali, Indonesia",
+    "src": "/visaLogo/transparent/bali.webp",
+    "width": 640,
+    "height": 418,
+    "alt": "Passport stamp Ngurah Rai Airport, Bali",
+    "source": "https://commons.wikimedia.org/wiki/File:Indonesia_bali3.JPG",
+    "author": "Slleong",
+    "license": "Public domain",
+    "licenseUrl": null
+  },
+  {
+    "name": "Sri Lanka",
+    "src": "/visaLogo/transparent/sri-lanka.webp",
+    "width": 640,
+    "height": 421,
+    "alt": "Sri Lankan entry stamp at Bandaranaike International Airport",
+    "source": "https://commons.wikimedia.org/wiki/File:Sri_Lankan_entry_stamp.jpg",
+    "author": "Jpchamathdj",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  {
+    "name": "Thailand",
+    "src": "/visaLogo/transparent/thailand.webp",
+    "width": 640,
+    "height": 427,
+    "alt": "Thailand entry stamp for 24 Jan 2022 at Suvarnabhumi Airport, on a Turkish passport",
+    "source": "https://commons.wikimedia.org/wiki/File:Thailand_Entry_Stamp_(2022).jpg",
+    "author": "Ave Ozkal",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "name": "Vietnam",
+    "src": "/visaLogo/transparent/vietnam.webp",
+    "width": 640,
+    "height": 435,
+    "alt": "Passport stamp from Noi Bai Airport, Hanoi, Vietnam",
+    "source": "https://commons.wikimedia.org/wiki/File:Vietnam_entry_stamp.png",
+    "author": "Slleong; derivative by Monocletophat123",
+    "license": "Public domain",
+    "licenseUrl": null
+  }
+]

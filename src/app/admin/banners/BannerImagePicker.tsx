@@ -91,7 +91,12 @@ export default function BannerImagePicker({
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/65 to-black/10" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/15" />
 
-        <div className="absolute right-3 top-3 z-10 flex flex-wrap justify-end gap-2">
+        <div className="flex min-h-[210px] items-center px-6 py-8 sm:min-h-[240px] sm:px-8">
+          {children}
+        </div>
+      </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
           <PhotoButton
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
@@ -103,14 +108,14 @@ export default function BannerImagePicker({
               )
             }
           >
-            {uploading ? "Uploading…" : "Upload"}
+            {uploading ? "Uploading…" : "Upload photo"}
           </PhotoButton>
 
           <PhotoButton
             onClick={() => setShowLibrary((current) => !current)}
             icon={<Images className="size-3.5" />}
           >
-            {showLibrary ? "Close library" : "Library"}
+            {showLibrary ? "Close library" : "Choose from library"}
           </PhotoButton>
 
           {value && (
@@ -120,10 +125,6 @@ export default function BannerImagePicker({
           )}
         </div>
 
-        <div className="flex min-h-[210px] items-center px-6 py-8 sm:min-h-[240px] sm:px-8">
-          {children}
-        </div>
-      </div>
 
       <input
         ref={fileRef}
@@ -137,11 +138,10 @@ export default function BannerImagePicker({
       />
 
       <p className="mt-2 text-[11px] text-cmt-neutral-500">
-        JPG, PNG or WebP · up to 5 MB · files under 800 KB are stored as they
-        are, larger ones are resized and saved as WebP at 70% quality.
+        Choose a wide JPG, PNG or WebP photo up to 5 MB. Your preview updates immediately; publish to show it on the website.
       </p>
 
-      {error && <p className="mt-2 text-xs font-medium text-cmt-error-700">{error}</p>}
+      {error && <p role="alert" className="mt-2 text-xs font-medium text-cmt-error-700">{error}</p>}
 
       {showLibrary && (
         <div className="mt-3 rounded-cmt-md border border-cmt-neutral-200 bg-cmt-neutral-50 p-3">
@@ -153,7 +153,9 @@ export default function BannerImagePicker({
               <button
                 key={src}
                 type="button"
-                title={src}
+                title={src.split("/").pop()?.replace(/[-_]/g, " ")}
+                aria-label={`Choose ${src.split("/").pop()?.replace(/[-_]/g, " ")} photo`}
+                aria-pressed={value === src}
                 onClick={() => {
                   onChange(src);
                   setShowLibrary(false);
@@ -173,9 +175,11 @@ export default function BannerImagePicker({
 
       {/* The path stays editable for anyone pasting a URL, but it is the
           quiet option now rather than the first thing in the card. */}
+      <details className="mt-4 text-xs text-cmt-neutral-500">
+      <summary className="cursor-pointer">Use an image link instead</summary>
       <label className="mt-3 block">
         <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-cmt-neutral-500">
-          Image path
+          Image URL or website image path
         </span>
         <input
           value={isUpload ? "" : value}
@@ -185,6 +189,7 @@ export default function BannerImagePicker({
           className={`${inputClass} mt-1 h-10 font-mono text-[12px] disabled:bg-cmt-neutral-50 disabled:text-cmt-neutral-400`}
         />
       </label>
+      </details>
     </div>
   );
 }
@@ -205,7 +210,7 @@ function PhotoButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-cmt-full bg-white/90 px-3 text-[11px] font-semibold text-cmt-neutral-900 shadow-cmt-xs backdrop-blur-sm transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      className="inline-flex min-h-10 items-center gap-2 whitespace-nowrap rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 text-xs font-semibold text-cmt-neutral-700 transition-colors hover:bg-cmt-neutral-50 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
     >
       {icon}
       {children}

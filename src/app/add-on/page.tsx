@@ -7,7 +7,7 @@ import { createPageMetadata } from "@/lib/seo";
 import { findService, toServiceId } from "./services";
 
 /* Stays a server component so the page keeps its metadata; the tabs and the
-   four forms live in AddOnBody.
+   enquiry forms live in AddOnBody.
 
    `?service=` opens one of them, which is what the header's Add On menu
    points at. AddOnBody is keyed by it: the panels are client state, so
@@ -23,9 +23,9 @@ export async function generateMetadata({
   const service = findService(toServiceId(params.service));
 
   return createPageMetadata({
-    title: "Flight, Hotel, Visa and Bring Your Quote Enquiries",
+    title: "Flight, Hotel, Visa, Transport and Bring Your Quote Enquiries",
     description:
-      "Ask our travel desk for flights, hotels or a visa, or use Bring Your Quote to compare your itinerary and price.",
+      "Ask our travel desk for flights, hotels, visas, outstation cabs, airport transfers or hourly rentals, or use Bring Your Quote to compare your itinerary and price.",
     path: "/add-on",
     // One canonical page; the tabs are the same content, so only the plain
     // URL is offered to search.

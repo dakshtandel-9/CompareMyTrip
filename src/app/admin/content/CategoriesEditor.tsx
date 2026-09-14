@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -88,12 +89,14 @@ function CategoryRow({
   onDuplicate: () => void;
   onRemove: () => void;
 }) {
+  const [expanded, setExpanded] = useState(index === 0);
   return (
     <li className="rounded-cmt-sm border border-cmt-neutral-200 bg-cmt-neutral-50 p-4">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-cmt-neutral-500">
-          Card {index + 1}
-        </span>
+        <button type="button" onClick={() => setExpanded(!expanded)} aria-expanded={expanded} className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm font-semibold text-cmt-neutral-700">
+          <ChevronDown className={`size-4 shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`} />
+          <span className="truncate">{index + 1}. {card.label || "Untitled travel style"}</span>
+        </button>
         <span className="flex items-center gap-1">
           <button
             type="button"
@@ -133,7 +136,7 @@ function CategoryRow({
         </span>
       </div>
 
-      <div className="flex flex-col gap-5 lg:flex-row">
+      {expanded && <div className="flex flex-col gap-5 lg:flex-row">
         <div className="min-w-0 flex-1 space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField
@@ -185,7 +188,7 @@ function CategoryRow({
                       : "border-cmt-neutral-200 bg-white text-cmt-neutral-600 hover:bg-cmt-neutral-100"
                   }`}
                 >
-                  {preset}
+                  {preset === "/packages" ? "All packages" : `${preset.split("=")[1][0].toUpperCase()}${preset.split("=")[1].slice(1)}`}
                 </button>
               ))}
             </div>
@@ -193,7 +196,7 @@ function CategoryRow({
         </div>
 
         <CardPreview card={card} />
-      </div>
+      </div>}
     </li>
   );
 }
@@ -256,11 +259,11 @@ export default function CategoriesEditor({
       <Card
         icon={<LayoutList className="size-5" />}
         title="Section heading"
-        description="The eyebrow, headline and sub-line above the travel-style rail."
+        description="The small heading, main heading and description above the travel-style cards."
       >
         <div className="grid gap-4">
           <TextField
-            label="Eyebrow"
+            label="Small heading"
             value={categories.eyebrow}
             onChange={(value) => patch({ eyebrow: value })}
             placeholder="Browse By Travel Style"
@@ -272,7 +275,7 @@ export default function CategoriesEditor({
             placeholder="What kind of trip are you after?"
           />
           <TextArea
-            label="Sub-line"
+            label="Description"
             value={categories.description}
             onChange={(value) => patch({ description: value })}
             placeholder="Pick a style that matches your next getaway…"
@@ -283,7 +286,7 @@ export default function CategoriesEditor({
       <Card
         icon={<LayoutList className="size-5" />}
         title={`Travel-style cards (${categories.cards.length})`}
-        description="The rail scrolls, so there is no cap — but the first four are what most visitors see."
+        description="Select a card to edit it. Put your most popular travel styles first using the arrows; visitors can scroll through the full list."
         action={
           <Button variant="ghost" onClick={addCard}>
             <Plus className="size-4" /> Add card

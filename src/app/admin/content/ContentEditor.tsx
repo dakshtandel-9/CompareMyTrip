@@ -7,6 +7,7 @@ import {
   BadgePercent,
   BookOpen,
   Check,
+  ChevronRight,
   Compass,
   ExternalLink,
   Globe2,
@@ -25,6 +26,7 @@ import {
   Plane,
   RotateCcw,
   Save,
+  Search,
   ShieldCheck,
   Sparkles,
   TrainFront,
@@ -46,6 +48,9 @@ import CategoriesEditor from "./CategoriesEditor";
 import HeroEditor from "./HeroEditor";
 import ComingSoonEditor from "./ComingSoonEditor";
 import AddOnEditor from "./AddOnEditor";
+import FooterBadgesEditor from "./FooterBadgesEditor";
+import styles from "./ContentWorkspace.module.css";
+import { useUnsavedContentChanges } from "./useUnsavedContentChanges";
 import {
   CompareEditor,
   DomesticEditor,
@@ -89,16 +94,16 @@ const SECTION_META: Record<
   }
 > = {
   comingSoon: {
-    label: "Coming soon",
+    label: "Website availability",
     hint: "Website launch switch",
     icon: Plane,
     toggleLabel: "Enable coming-soon mode",
-    toggleOn: "Visitors will see the coming-soon page after you publish. Admin access stays available.",
+    toggleOn: "Visitors will see the coming-soon page after you publish. Signed-in admins can browse the full website.",
     toggleOff: "The regular website is live. Enable this switch and publish to show the coming-soon page.",
   },
   header: {
-    label: "Header",
-    hint: "Nav links and dropdowns",
+    label: "Navigation & contact number",
+    hint: "Menu links, dropdowns and phone number",
     icon: Navigation,
     toggleLabel: "Show the navigation links",
     toggleOn: "The menu is live on every page.",
@@ -121,32 +126,52 @@ const SECTION_META: Record<
     toggleOff: "Hidden — the enquiry form runs the full width of the page.",
   },
   addOn: {
-    label: "Add On",
-    hint: "Flight, hotel, visa and quote headings",
+    label: "Extra travel services",
+    hint: "Flight, hotel, visa, transport and quote headings",
     icon: Plane,
     toggleLabel: "Show the top section on Add On pages",
     toggleOn: "Each service shows its own top text, heading and description.",
     toggleOff: "Hidden — the service tabs and enquiry forms remain available.",
   },
-  hero: { label: "Hero", hint: "Headlines, trust row, top picks", icon: Sparkles },
+  hero: { label: "Welcome & main headlines", hint: "First screen, traveller rating and top picks", icon: Sparkles },
   categories: { label: "Travel styles", hint: "Icon and photo cards", icon: PanelsTopLeft },
-  trending: { label: "Trending", hint: "Destination rail", icon: TrendingUp },
-  compare: { label: "Compare", hint: "Comparison band heading", icon: Layers },
+  trending: { label: "Trending destinations", hint: "Popular destination cards", icon: TrendingUp },
+  compare: { label: "Package comparison", hint: "Heading above the comparison tool", icon: Layers },
   featured: { label: "Featured packages", hint: "Tabs and grid", icon: Sparkles },
   weekendTreks: { label: "Weekend treks", hint: "Trek cards", icon: Mountain },
   trainBanner: { label: "Train banner", hint: "Looping video band", icon: TrainFront },
-  domestic: { label: "Domestic holidays", hint: "Accordion gallery", icon: Compass },
+  domestic: { label: "India holidays", hint: "Destination photos and details", icon: Compass },
   international: { label: "International", hint: "Country cards", icon: Globe2 },
-  whyUs: { label: "Why travel with us", hint: "Proof points", icon: ShieldCheck },
+  whyUs: { label: "Why travel with us", hint: "Benefits and reasons to book", icon: ShieldCheck },
   latestDeals: { label: "Latest deals", hint: "Promo card and grid", icon: BadgePercent },
   gallery: { label: "Travel gallery", hint: "Photos, captions and layout", icon: Images },
   reviews: { label: "Reviews", hint: "Traveller quotes", icon: MessageSquareQuote },
   guides: { label: "Travel guides", hint: "Article cards", icon: BookOpen },
-  faq: { label: "FAQ", hint: "Questions and help card", icon: HelpCircle },
+  faq: { label: "Common questions", hint: "Answers and the contact help card", icon: HelpCircle },
   newsletter: { label: "Trust & newsletter", hint: "Sign-up band", icon: Mail },
+  footerBadges: {
+    label: "Footer badges",
+    hint: "Payment and accreditation images",
+    icon: ShieldCheck,
+    toggleLabel: "Show payment and accreditation badges",
+    toggleOn: "These badges appear in the footer across the website.",
+    toggleOff: "Payment and accreditation badges are hidden from the footer.",
+  },
 };
 
-export default function ContentEditor() {
+const SECTION_GROUPS: { id: string; label: string; description: string; keys: SectionKey[] }[] = [
+  { id: "homepage", label: "Homepage", description: "Sections in the order visitors see them", keys: SECTION_ORDER.filter((key) => !["comingSoon", "header", "auth", "contact", "addOn", "footerBadges"].includes(key)) },
+  { id: "pages", label: "Other pages", description: "Sign-in, enquiries and travel services", keys: ["contact", "addOn", "auth"] },
+  { id: "settings", label: "Across the website", description: "Navigation, footer and website availability", keys: ["header", "footerBadges", "comingSoon"] },
+];
+
+function sectionState(key: SectionKey, enabled: boolean) {
+  if (key === "comingSoon") return enabled ? "Coming soon" : "Website open";
+  if (["auth", "header", "contact", "addOn"].includes(key)) return enabled ? "Enabled" : "Disabled";
+  return enabled ? "Visible" : "Hidden";
+}
+
+export default function ContentEditor({ initialSection = "hero" }: { initialSection?: SectionKey }) {
   const { content, loading, error, exists } = useSiteContentState();
 
   if (loading) {
@@ -159,7 +184,7 @@ export default function ContentEditor() {
     );
   }
 
-  return <ContentEditorForm saved={content} loadError={error} documentExists={exists} />;
+  return <ContentEditorForm saved={content} loadError={error} documentExists={exists} initialSection={initialSection} />;
 }
 
 type EditorStatus = { kind: "success" | "error"; message: string };
@@ -168,10 +193,12 @@ function ContentEditorForm({
   saved,
   loadError,
   documentExists,
+  initialSection,
 }: {
   saved: SiteContent;
   loadError: string;
   documentExists: boolean;
+  initialSection: SectionKey;
 }) {
   const packages = usePackages();
 
@@ -181,7 +208,10 @@ function ContentEditorForm({
     loadError ? { kind: "error", message: loadError } : null,
   );
   const [saving, setSaving] = useState(false);
-  const [active, setActive] = useState<SectionKey>("hero");
+  const [active, setActive] = useState<SectionKey>(initialSection);
+  const [query, setQuery] = useState("");
+  const [group, setGroup] = useState(() => SECTION_GROUPS.find((item) => item.keys.includes(initialSection))?.id ?? "homepage");
+  const [reviewChanges, setReviewChanges] = useState(false);
   /* Reset all overwrites every section in Firebase, and there is no undo once
      it lands — so it is held behind a typed confirmation rather than a click. */
   const [resetPrompt, setResetPrompt] = useState(false);
@@ -191,9 +221,9 @@ function ContentEditorForm({
   /* `saved` always comes back through the normaliser, so the draft goes
      through it too — otherwise two equal documents could still compare
      unequal purely on key order. */
-  const dirty =
-    !documentExists ||
-    JSON.stringify(normalizeSiteContent(draft)) !== JSON.stringify(saved);
+  const draftChanged = JSON.stringify(normalizeSiteContent(draft)) !== JSON.stringify(saved);
+  const dirty = !documentExists || draftChanged;
+  useUnsavedContentChanges(draftChanged && !saving);
 
   /* Adopt remote updates while the form is clean. If an editor is midway
      through a change, keep their draft and let Discard return to the newest
@@ -214,12 +244,12 @@ function ContentEditorForm({
       const normalized = normalizeSiteContent(draft);
       await saveHomepageContent(normalized);
       setDraft(normalized);
-      setStatus({ kind: "success", message: "Published to Firebase — the site is live." });
+      setStatus({ kind: "success", message: "Your changes are published and visible on the website." });
     } catch (error) {
       console.error("Unable to publish site content", error);
       setStatus({
         kind: "error",
-        message: "Publish failed. Check Firebase access and try again.",
+        message: "Your changes could not be published. They are still here. Check your connection and try again.",
       });
     } finally {
       setSaving(false);
@@ -250,13 +280,13 @@ function ContentEditorForm({
       await saveHomepageContent(DEFAULT_SITE_CONTENT);
       setStatus({
         kind: "success",
-        message: "Original site content restored in Firebase.",
+        message: "The original website content has been restored and published.",
       });
     } catch (error) {
       console.error("Unable to restore site content defaults", error);
       setStatus({
         kind: "error",
-        message: "Reset failed. Check Firebase access and try again.",
+        message: "The original content could not be restored. Please try again.",
       });
     } finally {
       setSaving(false);
@@ -271,182 +301,136 @@ function ContentEditorForm({
 
   /* One helper per section rather than a generic setter: it keeps each
      editor's props exactly typed to its own slice. */
-  const set = <Key extends SectionKey>(key: Key, value: SiteContent[Key]) =>
-    setDraft((current) => ({ ...current, [key]: value }));
+  const set = <Key extends SectionKey>(key: Key, value: SiteContent[Key] | ((current: SiteContent[Key]) => SiteContent[Key])) =>
+    setDraft((current) => ({ ...current, [key]: typeof value === "function" ? value(current[key]) : value }));
 
   const setEnabled = (key: SectionKey, enabled: boolean) =>
     setDraft((current) => ({ ...current, [key]: { ...current[key], enabled } }));
 
-  const hiddenCount = SECTION_ORDER.filter((key) => key !== "comingSoon" && !draft[key].enabled).length;
+  const normalizedDraft = normalizeSiteContent(draft);
+  const changedSections = SECTION_ORDER.filter((key) =>
+    JSON.stringify(normalizedDraft[key]) !== JSON.stringify(saved[key]),
+  );
   const meta = SECTION_META[active];
+  const currentGroup = SECTION_GROUPS.find((item) => item.id === group) ?? SECTION_GROUPS[0];
+  const searchTerm = query.trim().toLowerCase();
+  const visibleSections = (searchTerm ? SECTION_ORDER : currentGroup.keys).filter((key) => {
+    const item = SECTION_META[key];
+    return `${item.label} ${item.hint}`.toLowerCase().includes(searchTerm);
+  });
+  const previewHref = active === "contact" ? "/contact" : active === "addOn" ? "/add-on" : active === "auth" ? "/login" : "/";
+  const selectSection = (key: SectionKey) => {
+    setActive(key);
+    setGroup(SECTION_GROUPS.find((item) => item.keys.includes(key))?.id ?? "homepage");
+  };
 
   return (
-    <div>
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-700">
-            Content
-          </p>
-          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-            Website content
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-cmt-neutral-600">
-            Every page the site publishes, in the order a visitor meets it — the header,
-            the sign-in screens, the contact and Add On pages and each homepage band. Edit the copy,
-            the photos, the icons and the cards, then publish and the live site updates
-            immediately from Firebase.
-          </p>
+    <div className={styles.workspace}>
+      <header className={styles.pageHeader}>
+        <div>
+          <p className={styles.eyebrow}>Your website</p>
+          <h1>Website content</h1>
+          <p>Update your pages, photos and wording. Choose a section, make your changes, then publish when you are ready.</p>
         </div>
-
-        <Link
-          href="/"
-          target="_blank"
-          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 text-sm font-semibold text-cmt-neutral-700 shadow-cmt-xs transition-colors hover:bg-cmt-neutral-50"
-        >
-          <ExternalLink className="size-4" /> Preview site
+        <Link href="/" target="_blank" className={styles.secondaryLink}>
+          <ExternalLink className="size-4" /> View live website
         </Link>
       </header>
 
-      {/* Sticky action bar: the editors below are long, and Publish has to
-          stay in reach from the bottom of the last card. */}
-      <div className="sticky top-16 z-20 -mx-4 mt-6 border-y border-cmt-neutral-200 bg-cmt-neutral-50/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm font-semibold text-cmt-neutral-900">
-            {meta.label}
-            {hiddenCount > 0 && (
-              <span className="ml-2 font-normal text-cmt-neutral-500">
-                · {hiddenCount} section{hiddenCount === 1 ? "" : "s"} hidden
-              </span>
-            )}
-          </p>
+      <ol className={styles.steps} aria-label="How to update your website">
+        <li><span>1</span><div><strong>Choose a section</strong><p>Find the page or content you want to update.</p></div></li>
+        <li><span>2</span><div><strong>Make your changes</strong><p>Switch sections freely; your edits stay here.</p></div></li>
+        <li><span>3</span><div><strong>Publish to the website</strong><p>All your changes go live together.</p></div></li>
+      </ol>
 
-          <span className="flex-1" />
-
-          {status && (
-            <span
-              className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
-                status.kind === "error" ? "text-red-600" : "text-cmt-primary-900"
-              }`}
-            >
-              {status.kind === "error" ? (
-                <AlertCircle className="size-3.5" />
-              ) : (
-                <Check className="size-3.5" />
-              )}
-              {status.message}
-            </span>
-          )}
-
-          <Button variant="ghost" onClick={() => setResetPrompt(true)} disabled={saving}>
-            <RotateCcw className="size-4" /> Reset all
-          </Button>
-          <Button variant="ghost" onClick={revert} disabled={!dirty || saving}>
-            Discard
-          </Button>
+      <div className={styles.saveBar}>
+        <div className={styles.saveState}>
+          <span className={`${styles.stateDot} ${dirty ? styles.pendingDot : ""}`} />
+          <div>
+            <strong>{dirty ? !documentExists ? "Ready for your first publish" : `${changedSections.length} section${changedSections.length === 1 ? "" : "s"} with unpublished changes` : "Everything is published"}</strong>
+            <p>{dirty ? "The live website updates only when you publish." : "Choose any section below to make an update."}</p>
+          </div>
+        </div>
+        <div className={styles.actions}>
+          {changedSections.length > 0 && <button type="button" onClick={() => setReviewChanges(!reviewChanges)} aria-expanded={reviewChanges} className={styles.textButton}>Review changes</button>}
+          <Button variant="ghost" onClick={revert} disabled={!dirty || saving}>Discard changes</Button>
           <Button onClick={() => void publish()} disabled={!dirty || saving}>
-            {saving ? (
-              <LoaderCircle className="size-4 animate-spin" />
-            ) : (
-              <Save className="size-4" />
-            )}
-            {saving
-              ? "Publishing…"
-              : !documentExists
-                ? "Publish to Firebase"
-                : dirty
-                  ? "Publish changes"
-                  : "Published"}
+            {saving ? <LoaderCircle className="size-4 animate-spin" /> : <Save className="size-4" />}
+            {saving ? "Publishing…" : "Publish changes"}
           </Button>
         </div>
       </div>
+      {status && (
+        <div role={status.kind === "error" ? "alert" : "status"} className={`${styles.feedback} ${status.kind === "error" ? styles.error : ""}`}>
+          {status.kind === "error" ? <AlertCircle className="size-4 shrink-0" /> : <Check className="size-4 shrink-0" />}
+          {status.message}
+        </div>
+      )}
+      {reviewChanges && changedSections.length > 0 && (
+        <div className={styles.changeReview}>
+          <strong>These sections will be published together</strong>
+          <div>{changedSections.map((key) => <button type="button" key={key} onClick={() => selectSection(key)}>{SECTION_META[key].label}<ChevronRight className="size-3.5" /></button>)}</div>
+        </div>
+      )}
 
-      <div className="mt-6 grid items-start gap-6 lg:grid-cols-[248px_minmax(0,1fr)]">
-        {/* Section rail */}
-        <nav
-          aria-label="Website sections"
-          className="lg:sticky lg:top-[132px] rounded-cmt-md border border-cmt-neutral-200 bg-white p-2 shadow-cmt-xs"
-        >
-          <ul className="max-h-[70vh] space-y-0.5 overflow-y-auto">
-            {SECTION_ORDER.map((key, index) => {
+      <div className={styles.groupTabs} role="group" aria-label="Content area">
+        {SECTION_GROUPS.map((item) => (
+          <button type="button" key={item.id} aria-pressed={group === item.id && !searchTerm} onClick={() => { setGroup(item.id); setQuery(""); setActive(item.keys[0]); }}>
+            {item.label}<span>{item.keys.length}</span>
+          </button>
+        ))}
+        <Link href="/admin/banners">Page banners <ChevronRight className="size-4" /></Link>
+      </div>
+
+      <div className={styles.editorLayout}>
+        <nav aria-label="Website sections" className={styles.sectionNav}>
+          <label className={styles.search}>
+            <Search className="size-4" aria-hidden="true" />
+            <input aria-label="Find a website section" placeholder="Find a section…" value={query} onChange={(event) => setQuery(event.target.value)} />
+          </label>
+          <p className={styles.navDescription}>{searchTerm ? `${visibleSections.length} matching sections` : currentGroup.description}</p>
+          <ul className={styles.sectionList}>
+            {visibleSections.map((key) => {
               const item = SECTION_META[key];
               const Icon = item.icon;
               const isActive = key === active;
-              const isOn = draft[key].enabled;
-
+              const changed = changedSections.includes(key);
               return (
                 <li key={key}>
-                  <button
-                    type="button"
-                    onClick={() => setActive(key)}
-                    aria-current={isActive ? "true" : undefined}
-                    className={`flex w-full items-center gap-2.5 rounded-cmt-sm px-2.5 py-2 text-left transition-colors ${
-                      isActive
-                        ? "bg-cmt-secondary-900 text-white"
-                        : "text-cmt-neutral-700 hover:bg-cmt-neutral-100"
-                    }`}
-                  >
-                    <span
-                      className={`w-4 shrink-0 text-[10px] font-bold tabular-nums ${
-                        isActive ? "text-white/40" : "text-cmt-neutral-300"
-                      }`}
-                    >
-                      {index + 1}
-                    </span>
-                    <Icon
-                      className={`size-4 shrink-0 ${
-                        isActive ? "text-cmt-primary-500" : "text-cmt-neutral-400"
-                      }`}
-                      strokeWidth={2}
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13px] font-semibold leading-tight">
-                        {item.label}
-                      </span>
-                      <span
-                        className={`block truncate text-[11px] leading-tight ${
-                          isActive ? "text-white/50" : "text-cmt-neutral-400"
-                        }`}
-                      >
-                        {item.hint}
-                      </span>
-                    </span>
-                    {/* A dot rather than a word: the rail is a map, and the
-                        section's own switch is one click away. */}
-                    <span
-                      title={key === "comingSoon" ? (isOn ? "Coming soon enabled" : "Website live") : (isOn ? "Visible" : "Hidden")}
-                      className={`size-1.5 shrink-0 rounded-cmt-full ${
-                        isOn ? "bg-cmt-primary-500" : "bg-cmt-neutral-300"
-                      }`}
-                    />
+                  <button type="button" onClick={() => selectSection(key)} aria-current={isActive ? "true" : undefined} className={`${styles.sectionButton} ${isActive ? styles.activeSection : ""}`}>
+                    <Icon className="size-4 shrink-0" aria-hidden="true" />
+                    <span className={styles.sectionName}><strong>{item.label}</strong><small>{item.hint}</small><span className={changed ? styles.changedLabel : styles.visibilityLabel}>{changed ? "Unpublished changes" : sectionState(key, draft[key].enabled)}</span></span>
+                    {isActive && <ChevronRight className="size-3.5 shrink-0" aria-hidden="true" />}
                   </button>
                 </li>
               );
             })}
           </ul>
+          {visibleSections.length === 0 && <div className={styles.noResults}><strong>No sections found</strong><p>Try “photos”, “contact” or “reviews”.</p><button type="button" onClick={() => setQuery("")}>Clear search</button></div>}
         </nav>
 
-        {/* Selected section */}
-        <div className="min-w-0 space-y-5">
+        <div className="min-w-0 space-y-5" aria-busy={saving}>
+          <div className={styles.sectionHeading}>
+            <div><p className={styles.eyebrow}>{SECTION_GROUPS.find((item) => item.keys.includes(active))?.label}</p><h2>{meta.label}</h2><p>{meta.hint}. Changes here are included when you publish.</p></div>
+            <Link href={previewHref} target="_blank" className={styles.textLink}>View live page <ExternalLink className="size-3.5" /></Link>
+          </div>
+          <fieldset disabled={saving} className="min-w-0 space-y-5 disabled:opacity-70">
+            <legend className="sr-only">Edit {meta.label}</legend>
           <Toggle
             label={meta.toggleLabel ?? `Show “${meta.label}” on the homepage`}
-            description={
-              draft[active].enabled
-                ? (meta.toggleOn ?? "This section is live.")
-                : (meta.toggleOff ??
-                  "Hidden — the page renders without it, and nothing below shifts out of order.")
-            }
+            description={draft[active].enabled ? (meta.toggleOn ?? "This section will be visible after you publish.") : (meta.toggleOff ?? "This section will be hidden after you publish. Your content stays saved so you can show it again later.")}
             checked={draft[active].enabled}
             onChange={(next) => setEnabled(active, next)}
           />
-
-          <SectionEditor
-            active={active}
-            draft={draft}
-            set={set}
-            packages={packages}
-          />
+            <SectionEditor active={active} draft={draft} set={set} packages={packages} />
+          </fieldset>
         </div>
       </div>
+
+      <details className={styles.advanced}>
+        <summary>Advanced: restore original website content</summary>
+        <div><p>Replace every section with the original website content. This publishes immediately and cannot be undone.</p><Button variant="danger" onClick={() => setResetPrompt(true)} disabled={saving}><RotateCcw className="size-4" /> Restore all original content</Button></div>
+      </details>
 
       {resetPrompt && (
         <div
@@ -478,7 +462,7 @@ function ContentEditorForm({
                 <p className="mt-1.5 text-sm leading-6 text-cmt-neutral-600">
                   Every section goes back to the content that ships with the site — the
                   header, the sign-in screens, the contact and Add On pages and every homepage band —
-                  and it publishes to Firebase straight away, so the live site changes for
+                  and it publishes straight away, so the live site changes for
                   everyone. This cannot be undone.
                 </p>
               </div>
@@ -531,10 +515,12 @@ function SectionEditor({
 }: {
   active: SectionKey;
   draft: SiteContent;
-  set: <Key extends SectionKey>(key: Key, value: SiteContent[Key]) => void;
+  set: <Key extends SectionKey>(key: Key, value: SiteContent[Key] | ((current: SiteContent[Key]) => SiteContent[Key])) => void;
   packages: ReturnType<typeof usePackages>;
 }): ReactNode {
   switch (active) {
+    case "footerBadges":
+      return <FooterBadgesEditor value={draft.footerBadges} onChange={(next) => set("footerBadges", next)} />;
     case "comingSoon":
       return <ComingSoonEditor value={draft.comingSoon} onChange={(next) => set("comingSoon", next)} />;
     case "header":

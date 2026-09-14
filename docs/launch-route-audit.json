@@ -1,0 +1,689 @@
+{
+  "auditedAt": "2026-09-13T11:25:07.452Z",
+  "startedAt": "2026-09-13T11:25:06.834Z",
+  "baseUrl": "http://localhost:3200",
+  "environment": "Isolated local production fixture; coming-soon maintenance switch mocked off locally. No remote maintenance setting was changed.",
+  "scope": "Read-only HTTP GET of the 84 public paths recorded in the historical audit. Validates HTTP 200 and a nonempty server-rendered h1. No forms, sign-in, payment transactions, account writes or remote configuration changes.",
+  "limitations": "This fixture does not prove live deployment, remote production content, physical phone scrolling, authenticated account behavior, or Core Web Vitals. Local timings include concurrent requests and are diagnostic only.",
+  "historicalSource": "docs/performance-route-audit.json",
+  "concurrency": 4,
+  "summary": {
+    "total": 84,
+    "passed": 84,
+    "failed": 0
+  },
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "ms": 82,
+      "decodedBodyBytes": 874710,
+      "heading": "Smart travel packages.Better choices.",
+      "passed": true
+    },
+    {
+      "path": "/packages",
+      "status": 200,
+      "ms": 55,
+      "decodedBodyBytes": 692736,
+      "heading": "Holiday packages",
+      "passed": true
+    },
+    {
+      "path": "/compare",
+      "status": 200,
+      "ms": 47,
+      "decodedBodyBytes": 320461,
+      "heading": "Compare holiday packages side by side",
+      "passed": true
+    },
+    {
+      "path": "/destinations",
+      "status": 200,
+      "ms": 50,
+      "decodedBodyBytes": 445182,
+      "heading": "Every place we cover.",
+      "passed": true
+    },
+    {
+      "path": "/contact",
+      "status": 200,
+      "ms": 18,
+      "decodedBodyBytes": 180888,
+      "heading": "Tell us about the trip.",
+      "passed": true
+    },
+    {
+      "path": "/blog",
+      "status": 200,
+      "ms": 17,
+      "decodedBodyBytes": 232355,
+      "heading": "Stories, routes and honest advice.",
+      "passed": true
+    },
+    {
+      "path": "/destinations/karnataka",
+      "status": 200,
+      "ms": 35,
+      "decodedBodyBytes": 298393,
+      "heading": "Karnataka Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/kerala",
+      "status": 200,
+      "ms": 24,
+      "decodedBodyBytes": 241009,
+      "heading": "Kerala Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/himachal-pradesh",
+      "status": 200,
+      "ms": 31,
+      "decodedBodyBytes": 226241,
+      "heading": "Himachal Pradesh Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/bali",
+      "status": 200,
+      "ms": 24,
+      "decodedBodyBytes": 202394,
+      "heading": "Bali Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/jammu-kashmir",
+      "status": 200,
+      "ms": 19,
+      "decodedBodyBytes": 205515,
+      "heading": "Jammu & Kashmir Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/ladakh",
+      "status": 200,
+      "ms": 29,
+      "decodedBodyBytes": 205887,
+      "heading": "Ladakh Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/rajasthan",
+      "status": 200,
+      "ms": 28,
+      "decodedBodyBytes": 204627,
+      "heading": "Rajasthan Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/sri-lanka",
+      "status": 200,
+      "ms": 27,
+      "decodedBodyBytes": 203968,
+      "heading": "Sri Lanka Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/thailand",
+      "status": 200,
+      "ms": 24,
+      "decodedBodyBytes": 202225,
+      "heading": "Thailand Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/vietnam",
+      "status": 200,
+      "ms": 15,
+      "decodedBodyBytes": 206860,
+      "heading": "Vietnam Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/goa",
+      "status": 200,
+      "ms": 19,
+      "decodedBodyBytes": 187105,
+      "heading": "Goa Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/arctic",
+      "status": 200,
+      "ms": 16,
+      "decodedBodyBytes": 190816,
+      "heading": "Arctic Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/hong-kong",
+      "status": 200,
+      "ms": 16,
+      "decodedBodyBytes": 186465,
+      "heading": "Hong Kong Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/lakshadweep",
+      "status": 200,
+      "ms": 18,
+      "decodedBodyBytes": 182881,
+      "heading": "Lakshadweep Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/malaysia",
+      "status": 200,
+      "ms": 26,
+      "decodedBodyBytes": 187167,
+      "heading": "Malaysia Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/japan",
+      "status": 200,
+      "ms": 23,
+      "decodedBodyBytes": 187625,
+      "heading": "Japan Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/maldives",
+      "status": 200,
+      "ms": 20,
+      "decodedBodyBytes": 187968,
+      "heading": "Maldives Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/new-zealand",
+      "status": 200,
+      "ms": 19,
+      "decodedBodyBytes": 191063,
+      "heading": "New Zealand Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/russia",
+      "status": 200,
+      "ms": 17,
+      "decodedBodyBytes": 187927,
+      "heading": "Russia Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/sikkim",
+      "status": 200,
+      "ms": 16,
+      "decodedBodyBytes": 186505,
+      "heading": "Sikkim Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/destinations/taiwan",
+      "status": 200,
+      "ms": 16,
+      "decodedBodyBytes": 188963,
+      "heading": "Taiwan Tour Packages",
+      "passed": true
+    },
+    {
+      "path": "/packages/tadiandamol-trek",
+      "status": 200,
+      "ms": 16,
+      "decodedBodyBytes": 194571,
+      "heading": "Tadiandamol Weekend Trek",
+      "passed": true
+    },
+    {
+      "path": "/packages/kodachadri-trek",
+      "status": 200,
+      "ms": 21,
+      "decodedBodyBytes": 193871,
+      "heading": "Kodachadri Weekend Trek",
+      "passed": true
+    },
+    {
+      "path": "/packages/savandurga-trek",
+      "status": 200,
+      "ms": 10,
+      "decodedBodyBytes": 192837,
+      "heading": "Savandurga Day Trek",
+      "passed": true
+    },
+    {
+      "path": "/packages/nandi-hills-trek",
+      "status": 200,
+      "ms": 10,
+      "decodedBodyBytes": 193770,
+      "heading": "Nandi Hills Day Trek",
+      "passed": true
+    },
+    {
+      "path": "/packages/manali-volvo-tour-package-4-nights-5-days-98fb",
+      "status": 200,
+      "ms": 18,
+      "decodedBodyBytes": 218091,
+      "heading": "Manali Volvo Tour Package – 4 Nights / 5 Days",
+      "passed": true
+    },
+    {
+      "path": "/packages/kerala-backwaters-hills-escape",
+      "status": 200,
+      "ms": 11,
+      "decodedBodyBytes": 370083,
+      "heading": "Kerala Backwaters & Hills Escape",
+      "passed": true
+    },
+    {
+      "path": "/packages/jibhi-jalori-pass-tour-package-4-nights-5-days-from-delhi-serolsar-lake-trek-tirthan-valley-3917",
+      "status": 200,
+      "ms": 17,
+      "decodedBodyBytes": 213307,
+      "heading": "Jibhi Jalori Pass Tour Package · 4 Nights 5 Days from Delhi · Serolsar Lake Trek & Tirthan Valley",
+      "passed": true
+    },
+    {
+      "path": "/packages/magnificent-kashmir-9ec7",
+      "status": 200,
+      "ms": 21,
+      "decodedBodyBytes": 221765,
+      "heading": "Magnificent Kashmir",
+      "passed": true
+    },
+    {
+      "path": "/packages/manali-kasol-tour-package-from-delhi-4-nights-5-days-fi-b375",
+      "status": 200,
+      "ms": 16,
+      "decodedBodyBytes": 216336,
+      "heading": "Manali Kasol Tour Package from Delhi · 4 Nights / 5 Days Fixed Departure · Solang Valley, Sissu & Atal Tunnel",
+      "passed": true
+    },
+    {
+      "path": "/packages/ladakh-land-of-lamas-e6ff",
+      "status": 200,
+      "ms": 16,
+      "decodedBodyBytes": 220261,
+      "heading": "Ladakh Land of Lamas",
+      "passed": true
+    },
+    {
+      "path": "/packages/majestic-ladakh-tour-with-nubra-and-pangong-5n-6d-cde8",
+      "status": 200,
+      "ms": 16,
+      "decodedBodyBytes": 216900,
+      "heading": "Majestic Ladakh Tour with Nubra and Pangong 5N &6D",
+      "passed": true
+    },
+    {
+      "path": "/packages/sikkim-darjeeling-delight-4-nights-5-days-69c9",
+      "status": 200,
+      "ms": 19,
+      "decodedBodyBytes": 216351,
+      "heading": "Sikkim & Darjeeling Delight – 4 Nights / 5 Days",
+      "passed": true
+    },
+    {
+      "path": "/packages/discover-the-best-of-goa-scenic-sightseeing-tour-8366",
+      "status": 200,
+      "ms": 15,
+      "decodedBodyBytes": 212241,
+      "heading": "Discover the Best of Goa: Scenic Sightseeing Tour",
+      "passed": true
+    },
+    {
+      "path": "/packages/majestic-desert-night-with-cultural-show-06ca",
+      "status": 200,
+      "ms": 17,
+      "decodedBodyBytes": 193431,
+      "heading": "Majestic Desert Night with Cultural Show",
+      "passed": true
+    },
+    {
+      "path": "/packages/kerala-escape-5-nights-6-days-kochi-munnar-thekkady-alleppey-houseboat-9b49",
+      "status": 200,
+      "ms": 14,
+      "decodedBodyBytes": 202964,
+      "heading": "Kerala Escape 5 Nights 6 Days · Kochi, Munnar, Thekkady & Alleppey Houseboat",
+      "passed": true
+    },
+    {
+      "path": "/packages/kerala-monsoon-escape-5-nights-6-days-9416",
+      "status": 200,
+      "ms": 18,
+      "decodedBodyBytes": 206970,
+      "heading": "Kerala Monsoon Escape – 5 Nights / 6 Days",
+      "passed": true
+    },
+    {
+      "path": "/packages/lakshadweep-ed5b",
+      "status": 200,
+      "ms": 16,
+      "decodedBodyBytes": 201056,
+      "heading": "Lakshadweep",
+      "passed": true
+    },
+    {
+      "path": "/packages/kerala-delight-tour-with-houseboat-84e3",
+      "status": 200,
+      "ms": 17,
+      "decodedBodyBytes": 219072,
+      "heading": "Kerala Delight Tour with Houseboat",
+      "passed": true
+    },
+    {
+      "path": "/packages/royalty-in-rajasthan-6-nights-7-days-39b8",
+      "status": 200,
+      "ms": 18,
+      "decodedBodyBytes": 221376,
+      "heading": "Royalty in Rajasthan – 6 Nights / 7 Days",
+      "passed": true
+    },
+    {
+      "path": "/packages/magical-kashmir-srinagar-gulmarg-pahalgam-6c9c",
+      "status": 200,
+      "ms": 17,
+      "decodedBodyBytes": 212233,
+      "heading": "Magical Kashmir — Srinagar, Gulmarg & Pahalgam",
+      "passed": true
+    },
+    {
+      "path": "/packages/coorg-mysore-explore-5bb5",
+      "status": 200,
+      "ms": 20,
+      "decodedBodyBytes": 206704,
+      "heading": "COORG - MYSORE EXPLORE",
+      "passed": true
+    },
+    {
+      "path": "/packages/bali-adventure-516e",
+      "status": 200,
+      "ms": 13,
+      "decodedBodyBytes": 193263,
+      "heading": "Bali Adventure",
+      "passed": true
+    },
+    {
+      "path": "/packages/sri-lanka-luxury-group-tour-5-0c14",
+      "status": 200,
+      "ms": 17,
+      "decodedBodyBytes": 213211,
+      "heading": "Sri Lanka Luxury Classy Fix departure",
+      "passed": true
+    },
+    {
+      "path": "/packages/superb-bali-c189",
+      "status": 200,
+      "ms": 28,
+      "decodedBodyBytes": 213122,
+      "heading": "Superb Bali",
+      "passed": true
+    },
+    {
+      "path": "/packages/mesmerising-vietnam-including-phu-quoc-copy-9654",
+      "status": 200,
+      "ms": 25,
+      "decodedBodyBytes": 224514,
+      "heading": "SENIOR SPECIAL - Discover Vietnam Tour - Hanoi, Halong, Ninh Binh, Da Nang, Hoi An & Hue",
+      "passed": true
+    },
+    {
+      "path": "/packages/astonishing-sri-lanka-8a8b",
+      "status": 200,
+      "ms": 23,
+      "decodedBodyBytes": 219736,
+      "heading": "Astonishing Sri Lanka",
+      "passed": true
+    },
+    {
+      "path": "/packages/two-capitals-with-northern-lights-fixed-departure-521e",
+      "status": 200,
+      "ms": 23,
+      "decodedBodyBytes": 212187,
+      "heading": "Two Capitals with Northern Lights Fixed Departure",
+      "passed": true
+    },
+    {
+      "path": "/packages/new-zealand-luxury-group-tour-a3b4",
+      "status": 200,
+      "ms": 20,
+      "decodedBodyBytes": 235233,
+      "heading": "New Zealand Luxury Group Tour",
+      "passed": true
+    },
+    {
+      "path": "/packages/taipei-taiwan-tour-package-5n-6d-jiufen-shifen-0eb6",
+      "status": 200,
+      "ms": 18,
+      "decodedBodyBytes": 228153,
+      "heading": "Taipei Taiwan Tour Package 5N/6D · Jiufen & Shifen",
+      "passed": true
+    },
+    {
+      "path": "/packages/japan-luxury-group-tour-73cb",
+      "status": 200,
+      "ms": 18,
+      "decodedBodyBytes": 218446,
+      "heading": "Japan Luxury Group Tour",
+      "passed": true
+    },
+    {
+      "path": "/packages/scenic-thailand-fc95",
+      "status": 200,
+      "ms": 14,
+      "decodedBodyBytes": 212198,
+      "heading": "Scenic Thailand",
+      "passed": true
+    },
+    {
+      "path": "/packages/4-nights-maldives-all-meals-best-value-d03d",
+      "status": 200,
+      "ms": 20,
+      "decodedBodyBytes": 221496,
+      "heading": "Affordable Maldives Package · Perfect for Couples & Families",
+      "passed": true
+    },
+    {
+      "path": "/packages/thailand-getaway-927f",
+      "status": 200,
+      "ms": 17,
+      "decodedBodyBytes": 199799,
+      "heading": "Thailand Getaway",
+      "passed": true
+    },
+    {
+      "path": "/packages/hong-kong-cruise-getaway-dd5e",
+      "status": 200,
+      "ms": 17,
+      "decodedBodyBytes": 214296,
+      "heading": "Hong Kong & Cruise Getaway",
+      "passed": true
+    },
+    {
+      "path": "/packages/senior-special-vietnam-cambodia-d362",
+      "status": 200,
+      "ms": 17,
+      "decodedBodyBytes": 226471,
+      "heading": "SENIOR SPECIAL - Vietnam & Cambodia Group Tour",
+      "passed": true
+    },
+    {
+      "path": "/packages/arctic-expedition-luxury-group-tour-3622",
+      "status": 200,
+      "ms": 22,
+      "decodedBodyBytes": 230731,
+      "heading": "Arctic Expedition Luxury Group Tour",
+      "passed": true
+    },
+    {
+      "path": "/packages/malaysian-delight-9619",
+      "status": 200,
+      "ms": 22,
+      "decodedBodyBytes": 215609,
+      "heading": "Malaysian Delight",
+      "passed": true
+    },
+    {
+      "path": "/packages/skandagiri-trek",
+      "status": 200,
+      "ms": 7,
+      "decodedBodyBytes": 196612,
+      "heading": "Skandagiri Sunrise Trek",
+      "passed": true
+    },
+    {
+      "path": "/packages/kumara-parvatha-trek",
+      "status": 200,
+      "ms": 19,
+      "decodedBodyBytes": 198078,
+      "heading": "Kumara Parvatha Weekend Trek",
+      "passed": true
+    },
+    {
+      "path": "/blog/three-days-in-munnar",
+      "status": 200,
+      "ms": 18,
+      "decodedBodyBytes": 204482,
+      "heading": "Three days in Munnar, and what to skip",
+      "passed": true
+    },
+    {
+      "path": "/blog/choosing-a-kerala-houseboat",
+      "status": 200,
+      "ms": 15,
+      "decodedBodyBytes": 204522,
+      "heading": "Picking a Kerala houseboat that is actually worth it",
+      "passed": true
+    },
+    {
+      "path": "/blog/spiti-by-road-altitude",
+      "status": 200,
+      "ms": 17,
+      "decodedBodyBytes": 204100,
+      "heading": "Spiti by road: what the altitude does to your plans",
+      "passed": true
+    },
+    {
+      "path": "/blog/goa-beyond-the-beach-shacks",
+      "status": 200,
+      "ms": 18,
+      "decodedBodyBytes": 203930,
+      "heading": "Goa in the shoulder season, beyond the beach shacks",
+      "passed": true
+    },
+    {
+      "path": "/blog/weekend-treks-from-bengaluru",
+      "status": 200,
+      "ms": 16,
+      "decodedBodyBytes": 205747,
+      "heading": "Six weekend treks from Bengaluru, ranked by effort",
+      "passed": true
+    },
+    {
+      "path": "/blog/rajasthan-first-trip-route",
+      "status": 200,
+      "ms": 12,
+      "decodedBodyBytes": 204246,
+      "heading": "A first trip to Rajasthan: the route that actually works",
+      "passed": true
+    },
+    {
+      "path": "/blog/andaman-islands-how-many-days",
+      "status": 200,
+      "ms": 16,
+      "decodedBodyBytes": 203674,
+      "heading": "How many days do the Andamans actually need?",
+      "passed": true
+    },
+    {
+      "path": "/blog/meghalaya-living-root-bridges",
+      "status": 200,
+      "ms": 15,
+      "decodedBodyBytes": 204115,
+      "heading": "Meghalaya's root bridges: the trek nobody warns you about",
+      "passed": true
+    },
+    {
+      "path": "/blog/kochi-two-days",
+      "status": 200,
+      "ms": 131,
+      "decodedBodyBytes": 204148,
+      "heading": "Two days in Kochi that are not just a stopover",
+      "passed": true
+    },
+    {
+      "path": "/blog/monsoon-travel-in-india",
+      "status": 200,
+      "ms": 133,
+      "decodedBodyBytes": 203408,
+      "heading": "Where monsoon actually improves the trip",
+      "passed": true
+    },
+    {
+      "path": "/login",
+      "status": 200,
+      "ms": 116,
+      "decodedBodyBytes": 32750,
+      "heading": "Welcome back!",
+      "passed": true
+    },
+    {
+      "path": "/add-on",
+      "status": 200,
+      "ms": 133,
+      "decodedBodyBytes": 305958,
+      "heading": "Find the flight that fits your trip.",
+      "passed": true
+    },
+    {
+      "path": "/signup",
+      "status": 200,
+      "ms": 72,
+      "decodedBodyBytes": 37518,
+      "heading": "Create your account",
+      "passed": true
+    },
+    {
+      "path": "/terms",
+      "status": 200,
+      "ms": 79,
+      "decodedBodyBytes": 158231,
+      "heading": "Terms and Conditions",
+      "passed": true
+    },
+    {
+      "path": "/privacy",
+      "status": 200,
+      "ms": 71,
+      "decodedBodyBytes": 158259,
+      "heading": "Privacy Policy",
+      "passed": true
+    },
+    {
+      "path": "/pay",
+      "status": 200,
+      "ms": 62,
+      "decodedBodyBytes": 158259,
+      "heading": "One call. One easy payment.",
+      "passed": true
+    },
+    {
+      "path": "/forgot-password",
+      "status": 200,
+      "ms": 14,
+      "decodedBodyBytes": 23260,
+      "heading": "Reset your password",
+      "passed": true
+    },
+    {
+      "path": "/refund-policy",
+      "status": 200,
+      "ms": 10,
+      "decodedBodyBytes": 158431,
+      "heading": "Refund and Cancellation Policy",
+      "passed": true
+    }
+  ]
+}

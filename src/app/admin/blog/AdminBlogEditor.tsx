@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
   ArrowDown,
   ArrowUp,
   CalendarDays,
@@ -30,12 +31,16 @@ import {
 } from "@/lib/blogData";
 import { saveBlogPost, uploadBlogImage } from "@/lib/firebase/blog";
 import { BLOG_DRAFT_IMAGE_KEY_PREFIX, deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
+import EditorSteps, { ReadinessList } from "../packages/EditorSteps";
+import { useUnsavedContentChanges } from "../content/useUnsavedContentChanges";
+
+const EDITOR_STEPS = ["Article details", "Cover photo", "Write your article", "Review & publish"] as const;
 
 const inputClass = "h-12 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 text-sm outline-none focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]";
 const textareaClass = "min-h-28 w-full resize-y rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 py-3 text-sm leading-6 outline-none focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]";
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-cmt-neutral-500">{children}</span>;
+  return <span className="mb-2 block text-sm font-semibold text-cmt-neutral-700">{children}</span>;
 }
 
 function SectionTitle({ icon, title, copy }: { icon: React.ReactNode; title: string; copy: string }) {
@@ -80,6 +85,7 @@ function BlogImageUpload({
           <Image src={value} alt="" fill sizes="(max-width: 768px) 100vw, 640px" className="object-cover" unoptimized={value.startsWith("data:")} />
           <button
             type="button"
+            disabled={busy}
             onClick={onRemove}
             aria-label="Delete image"
             className="absolute right-3 top-3 inline-flex h-9 items-center gap-1.5 rounded-cmt-control bg-cmt-neutral-900/85 px-3 text-xs font-semibold text-white"
@@ -145,7 +151,7 @@ export default function AdminBlogEditor({
   /** Slugs already in use, so a new post cannot overwrite an old one. */
   existingIds: string[];
   onCancel: () => void;
-  onSaved: () => void;
+  onSaved: (message: string) => void;
 }) {
   const draftStorageKey = `${BLOG_DRAFT_IMAGE_KEY_PREFIX}${initialPost?.id ?? "new"}`;
   const draftImagesRef = useRef<string[]>([]);
@@ -160,6 +166,23 @@ export default function AdminBlogEditor({
   const [saving, setSaving] = useState(false);
   /** Which uploader is busy: "cover" or a section id. */
   const [uploadingKey, setUploadingKey] = useState("");
+  const [step, setStep] = useState(0);
+  const [originalPost] = useState(() => JSON.stringify(post));
+  const dirty = JSON.stringify(post) !== originalPost || tagsText !== (initialPost?.tags ?? []).join(", ");
+  const goToStep = (next: number) => {
+    setStep(next);
+    window.requestAnimationFrame(() => {
+      document.getElementById("blog-step-heading")?.focus({ preventScroll: true });
+      document.getElementById("blog-editor-start")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+  const fail = (message: string, section: number) => { setError(message); goToStep(section); };
+  useUnsavedContentChanges(dirty && !saving);
+  const readiness = [
+    { label: "Headline and short summary", ready: Boolean(post.title.trim() && post.excerpt.trim()), step: 0 },
+    { label: "Cover photo", ready: Boolean(post.coverImage), step: 1 },
+    { label: "Article content", ready: post.sections.some((section) => section.heading.trim() || section.body.trim() || section.image), step: 2 },
+  ];
 
   /* Retry anything a previous session failed to clean up before the tab was
      closed — same recovery the package builder does. */
@@ -227,6 +250,7 @@ export default function AdminBlogEditor({
     });
 
   const handleUpload = async (file: File, apply: (url: string) => void, key: string) => {
+    if (uploadingKey || saving) return;
     if (!file.type.startsWith("image/")) return setError("Please choose an image file.");
     if (file.size > 5_000_000) return setError("Each image must be 5 MB or smaller.");
     try {
@@ -248,7 +272,9 @@ export default function AdminBlogEditor({
      until Save is pressed, which is why the transform is replayed against
      the last persisted copy rather than against the draft. */
   const handleImageDelete = async (image: string, transform: (target: BlogPost) => BlogPost) => {
+    if (uploadingKey || saving) return;
     try {
+      setUploadingKey("removing");
       setError("");
       await deleteImageFromCloudflare(image);
       forgetDraftImage(image);
@@ -261,6 +287,8 @@ export default function AdminBlogEditor({
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "The image could not be deleted.");
+    } finally {
+      setUploadingKey("");
     }
   };
 
@@ -308,18 +336,20 @@ export default function AdminBlogEditor({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (saving || uploadingKey) return;
+    if (step !== 3) { goToStep(step + 1); return; }
     setMessage("");
     setError("");
 
     const slug = slugify(post.id || post.title);
-    if (!post.title.trim()) return setError("Add a headline before saving.");
-    if (!slug) return setError("Add a URL slug — it becomes the address of the article.");
-    if (!initialPost && existingIds.includes(slug)) return setError(`The slug “${slug}” is already used by another post. Choose a different one.`);
-    if (!post.excerpt.trim()) return setError("Add a short summary — it is what the guides index and search results show.");
-    if (!post.coverImage) return setError("Upload a cover image for the article.");
+    if (!post.title.trim()) return fail("Add a headline before saving.", 0);
+    if (!slug) return fail("Add a URL slug — it becomes the address of the article.", 0);
+    if (!initialPost && existingIds.includes(slug)) return fail(`The website address “${slug}” is already used by another post. Choose a different one.`, 0);
+    if (!post.excerpt.trim()) return fail("Add a short summary — it is what the guides index and search results show.", 0);
+    if (!post.coverImage) return fail("Upload a cover image for the article.", 1);
     const sections = post.sections.filter((section) => section.heading.trim() || section.body.trim() || section.image);
-    if (!sections.length) return setError("Write at least one content block.");
-    if (!Number.isFinite(new Date(post.publishedAt).getTime())) return setError("Choose a valid publish date.");
+    if (!sections.length) return fail("Write at least one content block.", 2);
+    if (!Number.isFinite(new Date(post.publishedAt).getTime())) return fail("Choose a valid publish date.", 0);
 
     const nextPost: BlogPost = {
       ...post,
@@ -349,7 +379,7 @@ export default function AdminBlogEditor({
       draftImagesRef.current = [];
       sessionStorage.removeItem(draftStorageKey);
       setMessage(`“${nextPost.title}” is saved.`);
-      onSaved();
+      onSaved(nextPost.status === "published" ? `“${nextPost.title}” was saved and is live on the website.` : `“${nextPost.title}” was saved as a draft. It is hidden from the website.`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "This post could not be saved.");
     } finally {
@@ -358,12 +388,13 @@ export default function AdminBlogEditor({
   };
 
   const handleCancel = async () => {
+    if (dirty && !window.confirm("Leave the article editor? Unsaved changes will be lost.")) return;
     setSaving(true);
     await abandonDraft();
     onCancel();
   };
 
-  const uploadHint = "JPG, PNG or WebP · up to 5 MB · files under 800 KB stay unchanged · larger files are compressed";
+  const uploadHint = "JPG, PNG or WebP · up to 5 MB";
 
   return (
     <div className="font-body text-cmt-neutral-900">
@@ -380,22 +411,25 @@ export default function AdminBlogEditor({
           {initialPost ? "Edit blog post" : "Write blog post"}
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-cmt-neutral-600">
-          Everything here appears on the travel guides section of the website. Images are stored in Cloudflare R2 and only their address is kept in the database.
+          Create a travel guide in four simple steps. Start with the details, add a cover and write your story, then choose when to publish. Fields marked * are required.
         </p>
       </div>
 
-      <div className="grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_390px]">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <section className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-            <SectionTitle icon={<PenLine className="size-5" />} title="Headline and summary" copy="What a reader sees on the guides index." />
+      <div id="blog-editor-start" className="scroll-mt-24"><EditorSteps steps={EDITOR_STEPS} current={step} onChange={goToStep} /></div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm"><h2 id="blog-step-heading" tabIndex={-1} className="font-semibold">Step {step + 1} of {EDITOR_STEPS.length} · {EDITOR_STEPS[step]}</h2><p className="text-xs text-cmt-neutral-500">{dirty ? "Unsaved changes" : initialPost ? "Editing saved article" : "New article · starts as a draft"}</p></div>
+      {error && <p role="alert" className="mb-5 rounded-xl border border-cmt-error-500/20 bg-cmt-error-100 px-4 py-3 text-sm text-cmt-error-700">{error}</p>}
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <form noValidate onSubmit={handleSubmit} className="space-y-6">
+          <section hidden={step !== 0} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
+            <SectionTitle icon={<PenLine className="size-5" />} title="1. Introduce your article" copy="These details help travellers decide what to read." />
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
               <label className="sm:col-span-2">
-                <FieldLabel>Headline</FieldLabel>
+                <FieldLabel>Headline *</FieldLabel>
                 <input required value={post.title} onChange={(e) => handleTitleChange(e.target.value)} placeholder="Three days in Munnar, without the crowds" className={inputClass} />
               </label>
 
               <label className="sm:col-span-2">
-                <FieldLabel>URL slug</FieldLabel>
+                <FieldLabel>Website address</FieldLabel>
                 <input
                   value={post.id}
                   onChange={(e) => { setSlugTouched(true); update("id", slugify(e.target.value)); }}
@@ -405,13 +439,13 @@ export default function AdminBlogEditor({
                 />
                 <span className="mt-1.5 block text-xs text-cmt-neutral-500">
                   {initialPost
-                    ? "The address is fixed once a post is published, so existing links keep working."
-                    : `Published at /blog/${post.id || "your-slug"}`}
+                    ? "The address is fixed after the first save, so existing links keep working."
+                    : `Created automatically from your headline: /blog/${post.id || "your-article"}`}
                 </span>
               </label>
 
               <label className="sm:col-span-2">
-                <FieldLabel>Short summary</FieldLabel>
+                <FieldLabel>Short summary *</FieldLabel>
                 <textarea value={post.excerpt} onChange={(e) => update("excerpt", e.target.value)} placeholder="Two or three sentences describing what the reader gets from this guide." className={textareaClass} />
               </label>
 
@@ -439,7 +473,7 @@ export default function AdminBlogEditor({
               </label>
 
               <label>
-                <FieldLabel>Publish date</FieldLabel>
+                <FieldLabel>Article date *</FieldLabel>
                 <input type="date" value={post.publishedAt} onChange={(e) => update("publishedAt", e.target.value)} className={inputClass} />
               </label>
 
@@ -449,38 +483,18 @@ export default function AdminBlogEditor({
               </label>
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => update("status", post.status === "published" ? "draft" : "published")}
-                className={`inline-flex h-10 items-center gap-2 rounded-cmt-full border px-4 text-xs font-semibold ${
-                  post.status === "published"
-                    ? "border-cmt-success-500/30 bg-cmt-success-100 text-cmt-success-700"
-                    : "border-cmt-neutral-200 bg-white text-cmt-neutral-600"
-                }`}
-              >
-                {post.status === "published" ? <><Check className="size-3.5" /> Published — live on the website</> : "Draft — hidden from the website"}
-              </button>
-              <button
-                type="button"
-                onClick={() => update("featured", !post.featured)}
-                className={`inline-flex h-10 items-center gap-2 rounded-cmt-full border px-4 text-xs font-semibold ${
-                  post.featured ? "border-cmt-neutral-900 bg-cmt-neutral-900 text-white" : "border-cmt-neutral-200 bg-white text-cmt-neutral-600"
-                }`}
-              >
-                {post.featured && <Check className="size-3.5" />} Feature at the top of /blog
-              </button>
-            </div>
+
           </section>
 
-          <section className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-            <SectionTitle icon={<ImagePlus className="size-5" />} title="Cover image" copy="Used on the guides index, the article header and link previews." />
+          <section hidden={step !== 1} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
+            <SectionTitle icon={<ImagePlus className="size-5" />} title="2. Choose a cover photo" copy="Used on the guides index, the article header and link previews." />
+            <p className="mt-3 text-xs leading-5 text-cmt-neutral-500">Removing a saved photo updates the website immediately. Other edits apply when you save.</p>
             <div className="mt-6 space-y-4">
               <BlogImageUpload
-                label="Cover photo"
+                label="Cover photo *"
                 hint={uploadHint}
                 value={post.coverImage}
-                busy={uploadingKey === "cover"}
+                busy={Boolean(uploadingKey) || saving}
                 onUpload={(file) => void handleUpload(file, (url) => update("coverImage", url), "cover")}
                 onRemove={removeCover}
               />
@@ -491,9 +505,9 @@ export default function AdminBlogEditor({
             </div>
           </section>
 
-          <section className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
+          <section hidden={step !== 2} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <SectionTitle icon={<PenLine className="size-5" />} title="Article content" copy="Each block is a heading, its text and an optional photograph." />
+              <SectionTitle icon={<PenLine className="size-5" />} title="3. Write your article" copy="Each block is a heading, its text and an optional photograph." />
               <button
                 type="button"
                 onClick={() => setPost((current) => ({ ...current, sections: [...current.sections, makeBlogSection()] }))}
@@ -542,7 +556,7 @@ export default function AdminBlogEditor({
                       hint={uploadHint}
                       aspect="aspect-[16/10]"
                       value={section.image}
-                      busy={uploadingKey === section.id}
+                      busy={Boolean(uploadingKey) || saving}
                       onUpload={(file) => void handleUpload(file, (url) => updateSection(section.id, { image: url }), section.id)}
                       onRemove={() => removeSectionImage(section.id)}
                     />
@@ -565,8 +579,28 @@ export default function AdminBlogEditor({
             </div>
           </section>
 
-          <section className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-            <SectionTitle icon={<Search className="size-5" />} title="Search engine listing" copy="Leave blank to use the headline and summary." />
+          <section hidden={step !== 3} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
+            <ReadinessList items={readiness} onSelect={goToStep} />
+            <div className="my-6 rounded-xl border border-cmt-neutral-200 p-4">
+              <h2 className="text-base font-semibold">Choose what happens when you save</h2>
+              <p className="mt-1 text-xs leading-5 text-cmt-neutral-500">Keep your article private as a draft, or publish it for travellers to read. The date is displayed on the article; it does not schedule publication.</p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {([{ value: "draft", label: "Keep as a draft", description: "Save privately until your article is ready." }, { value: "published", label: "Publish on the website", description: "Make this article available to readers when you save." }] as const).map((option) => <label key={option.value} className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${post.status === option.value ? "border-emerald-300 bg-emerald-50" : "border-cmt-neutral-200"}`}><input type="radio" name="article-status" checked={post.status === option.value} onChange={() => update("status", option.value)} className="mt-1 size-4 accent-emerald-700" /><span><span className="block text-sm font-semibold">{option.label}</span><span className="mt-1 block text-xs leading-5 text-cmt-neutral-500">{option.description}</span></span></label>)}
+            </div>
+            <div className="mt-4">
+              <button
+                type="button"
+                aria-pressed={post.featured}
+                onClick={() => update("featured", !post.featured)}
+                className={`inline-flex h-10 items-center gap-2 rounded-cmt-full border px-4 text-xs font-semibold ${
+                  post.featured ? "border-cmt-neutral-900 bg-cmt-neutral-900 text-white" : "border-cmt-neutral-200 bg-white text-cmt-neutral-600"
+                }`}
+              >
+                {post.featured && <Check className="size-3.5" />} Feature at the top of the blog
+              </button>
+            </div>
+            </div>
+            <SectionTitle icon={<Search className="size-5" />} title="Search appearance (optional)" copy="These details help your article appear in search results. Leave blank to use your headline and summary." />
             <div className="mt-6 grid gap-5">
               <label>
                 <FieldLabel>Search title</FieldLabel>
@@ -579,22 +613,18 @@ export default function AdminBlogEditor({
             </div>
           </section>
 
-          {error && <p role="alert" className="rounded-cmt-control border border-cmt-error-500/20 bg-cmt-error-100 px-4 py-3 text-sm font-medium text-cmt-error-700">{error}</p>}
-          {message && <p role="status" className="rounded-cmt-control border border-cmt-success-500/20 bg-cmt-success-100 px-4 py-3 text-sm font-medium text-cmt-success-700">{message}</p>}
-
-          <button
-            disabled={saving || Boolean(uploadingKey)}
-            type="submit"
-            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-6 text-sm font-semibold shadow-cmt-primary hover:bg-cmt-primary-600 disabled:opacity-50 sm:w-auto"
-          >
-            <Save className="size-4" /> {saving ? "Saving…" : initialPost ? "Save changes" : "Save post"}
-          </button>
+          {message && <p role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{message}</p>}
+          <div className="sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cmt-neutral-200 bg-white/95 p-4 shadow-cmt-md backdrop-blur-sm">
+            <button disabled={step === 0 || saving || Boolean(uploadingKey)} type="button" onClick={() => goToStep(step - 1)} className="inline-flex h-11 items-center gap-2 rounded-xl border border-cmt-neutral-200 px-4 text-sm font-semibold disabled:opacity-40"><ArrowLeft className="size-4" /> Previous</button>
+            {step < 3 ? <button disabled={saving || Boolean(uploadingKey)} type="button" onClick={() => goToStep(step + 1)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white disabled:opacity-50">Continue <ArrowRight className="size-4" /></button> : <button disabled={saving || Boolean(uploadingKey)} type="submit" className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white disabled:opacity-50"><Save className="size-4" />{saving ? "Saving…" : post.status === "draft" ? "Save as draft" : "Save and publish"}</button>}
+          </div>
         </form>
 
-        <aside className="xl:sticky xl:top-6">
+        <aside className="space-y-5 xl:sticky xl:top-24">
+          <ReadinessList items={readiness} onSelect={goToStep} />
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-neutral-500">Live card preview</p>
-            <span className="text-[11px] text-cmt-success-700">● Updating</span>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-neutral-500">Website card preview</p>
+            <span className="text-[11px] text-cmt-success-700">Preview only</span>
           </div>
 
           <article className="overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-md">
@@ -628,7 +658,7 @@ export default function AdminBlogEditor({
                 <p className="mt-1 text-xs leading-5 text-cmt-neutral-300">
                   {post.status === "published"
                     ? "Saving publishes this article to /blog immediately."
-                    : "Saved as a draft — switch it to Published when the copy is ready."}
+                    : "Saving keeps this article private. Choose Publish in the final step when it is ready."}
                 </p>
               </div>
             </div>

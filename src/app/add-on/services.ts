@@ -1,13 +1,19 @@
-import { BedDouble, PlaneTakeoff, Stamp, FileCheck2, type LucideIcon } from "lucide-react";
+import { BedDouble, CarFront, PlaneTakeoff, Stamp, FileCheck2, type LucideIcon } from "lucide-react";
 import type { AddOnContent } from "@/lib/siteContent";
+import {
+  isOutstationTrip,
+  MAX_TRANSPORT_STOPS,
+  TRANSPORT_DURATION_OPTIONS,
+  TRANSPORT_TRIP_OPTIONS,
+} from "./transport";
 
 /* ------------------------------------------------------------------ */
-/* The four add-on enquiries, in the order the page offers them:       */
-/* flights, hotels, visa and Bring Your Quote.                                   */
+/* The add-on enquiries, in the order the page offers them:             */
+/* flights, hotels, visa, transport and Bring Your Quote.               */
 /*                                                                      */
 /* Each is the same form with a different middle: the contact block and  */
 /* the notes box are shared by AddOnForm, and everything specific to a   */
-/* service is the `fields` list below. Adding a service is a fourth      */
+/* service is the `fields` list below. Adding a service is another       */
 /* entry here — the tabs, the URL, the validation, the summary the       */
 /* travel desk reads and the success note all follow from it.           */
 /*                                                                      */
@@ -26,9 +32,10 @@ export type FieldOption = { value: string; label: string };
 export type FieldSpec = {
   name: string;
   label: string;
-  kind: "text" | "date" | "select";
+  kind: "text" | "date" | "time" | "select";
   required?: boolean;
   placeholder?: string;
+  defaultValue?: string;
   options?: FieldOption[];
   /** Rendered only when this passes — the return date on a one-way flight is
       not an empty field, it is not a question. */
@@ -40,6 +47,13 @@ export type FieldSpec = {
 };
 
 export type Values = Record<string, string>;
+
+export const MAX_FLIGHT_LEGS = 4;
+export const flightLegCount = (values: Values) =>
+  values.tripType === "multicity"
+    ? Math.min(MAX_FLIGHT_LEGS, Math.max(2, Math.floor(Number(values.flightLegCount)) || 2))
+    : 1;
+export const flightFieldName = (name: string, leg: number) => leg === 1 ? name : `${name}${leg}`;
 
 export type ServiceSpec = {
   id: ServiceId;
@@ -108,6 +122,19 @@ export const SERVICES: ServiceSpec[] = [
       { name: "from", label: "Flying from", kind: "text", required: true, placeholder: "Mumbai" },
       { name: "to", label: "Flying to", kind: "text", required: true, placeholder: "Bali" },
       { name: "departDate", label: "Departure date", kind: "date", required: true },
+      ...Array.from({ length: MAX_FLIGHT_LEGS - 1 }, (_, index) => {
+        const leg = index + 2;
+        return [
+          { name: `from${leg}`, label: `Flight ${leg} · Flying from`, kind: "text", placeholder: "City or airport" },
+          { name: `to${leg}`, label: `Flight ${leg} · Flying to`, kind: "text", placeholder: "City or airport" },
+          { name: `departDate${leg}`, label: `Flight ${leg} · Departure date`, kind: "date" },
+        ].map((field): FieldSpec => ({
+          ...field,
+          kind: field.kind as FieldSpec["kind"],
+          required: true,
+          when: (values) => flightLegCount(values) >= leg,
+        }));
+      }).flat(),
       {
         name: "returnDate",
         label: "Return date",
@@ -138,7 +165,9 @@ export const SERVICES: ServiceSpec[] = [
     ],
     sentNote: "Our flights desk will come back with fare options for this route.",
     summary: (values) => ({
-      destination: clamp(`${values.from} → ${values.to}`, 160),
+      destination: clamp(Array.from({ length: flightLegCount(values) }, (_, index) =>
+        `${values[flightFieldName("from", index + 1)]} → ${values[flightFieldName("to", index + 1)]}`
+      ).join("; "), 160),
       departure: clamp(values.departDate, 20),
       travellers: clamp(values.travellers, 20),
     }),
@@ -288,6 +317,71 @@ export const SERVICES: ServiceSpec[] = [
       destination: clamp(values.country, 160),
       departure: clamp(values.travelDate, 20),
       travellers: clamp(values.applicants, 20),
+    }),
+  },
+  {
+    id: "transport",
+    label: "Transport",
+    icon: CarFront,
+    title: "Transport enquiry",
+    description:
+      "Plan an outstation journey, airport transfer or hourly rental. Share your route, dates and pickup time so our desk can arrange cab options.",
+    fields: [
+      {
+        name: "tripType",
+        label: "Trip type",
+        kind: "select",
+        required: true,
+        options: TRANSPORT_TRIP_OPTIONS,
+      },
+      { name: "from", label: "From", kind: "text", required: true, placeholder: "Mumbai" },
+      {
+        name: "to",
+        label: "To",
+        kind: "text",
+        required: true,
+        placeholder: "Pune",
+        when: (values) => values.tripType !== "hourly",
+      },
+      ...Array.from({ length: MAX_TRANSPORT_STOPS }, (_, index): FieldSpec => ({
+        name: `stop${index + 1}`,
+        label: `Stop ${index + 1}`,
+        kind: "text",
+        required: true,
+        placeholder: "City or pickup address",
+        when: (values) => isOutstationTrip(values) && Number(values.stopCount) >= index + 1,
+      })),
+      { name: "departDate", label: "Departure", kind: "date", required: true },
+      {
+        name: "returnDate",
+        label: "Return",
+        kind: "date",
+        required: true,
+        when: (values) => values.tripType === "round",
+      },
+      { name: "pickupTime", label: "Pickup time", kind: "time", required: true, defaultValue: "10:00" },
+      {
+        name: "duration",
+        label: "Rental duration",
+        kind: "select",
+        required: true,
+        options: TRANSPORT_DURATION_OPTIONS,
+        when: (values) => values.tripType === "hourly",
+      },
+    ],
+    notesLabel: "Anything we should know about the ride?",
+    notesPlaceholder:
+      "Pickup address, preferred vehicle, luggage, accessibility needs or your flight number for an airport transfer.",
+    promises: [
+      "Cab options for your route and pickup time",
+      "A clear breakdown of fare, tolls and other charges",
+      "Help with stops, airport pickups and hourly rentals",
+    ],
+    sentNote: "Our transport desk will come back with cab options for your journey.",
+    summary: (values) => ({
+      destination: clamp(values.tripType === "hourly" ? values.from : `${values.from} → ${values.to}`, 160),
+      departure: clamp(values.departDate, 20),
+      travellers: "",
     }),
   },
   {

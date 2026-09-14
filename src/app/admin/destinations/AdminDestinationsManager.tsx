@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
-import { Compass, ImageIcon, ImagePlus, MapPin, Search, Trash2 } from "lucide-react";
+import { ArrowRight, Compass, ImageIcon, ImagePlus, MapPin, Search, Trash2 } from "lucide-react";
 
 import { buildDestinations, durationLabel } from "@/lib/destinations";
 import {
@@ -27,10 +28,11 @@ const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
 export default function AdminDestinationsManager() {
   const authUser = useAuthUser();
-  const { packages, loading: packagesLoading } = useAllPackagesState();
+  const { packages, loading: packagesLoading, error: packagesError } = useAllPackagesState();
   const { covers, loading: coversLoading, error: coversError } = useDestinationCoversState();
 
   const [search, setSearch] = useState("");
+  const [coverFilter, setCoverFilter] = useState("all");
   const [busyName, setBusyName] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -39,15 +41,14 @@ export default function AdminDestinationsManager() {
 
   const visible = useMemo(() => {
     const needle = search.trim().toLowerCase();
-    if (!needle) return destinations;
-    return destinations.filter((destination) => destination.name.toLowerCase().includes(needle));
-  }, [destinations, search]);
+    return destinations.filter((destination) => (!needle || destination.name.toLowerCase().includes(needle)) && (coverFilter === "all" || (coverFilter === "custom" ? Boolean(destination.cover) : !destination.cover)));
+  }, [destinations, search, coverFilter]);
 
   const withCover = destinations.filter((destination) => destination.cover).length;
 
   const isLoading = authUser === undefined || (authUser !== null && (packagesLoading || coversLoading));
   const displayError =
-    authUser === null ? "Sign in to your CRM account to manage destinations." : error || coversError;
+    authUser === null ? "Sign in to your admin account to manage destinations." : error || coversError || packagesError;
 
   /* Same guards as the package builder before anything leaves the browser. */
   const handleUpload = async (name: string, previousCover: string, files: FileList | null) => {
@@ -100,15 +101,14 @@ export default function AdminDestinationsManager() {
       <header className="flex flex-wrap items-end justify-between gap-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-700">
-            Cover artwork
+            Travel catalogue
           </p>
           <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
             Destinations
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-cmt-neutral-600">
-            Every destination that has at least one package. Set the cover photo
-            shown on the public destinations page — the list itself comes from
-            your packages, so add a package to add a destination.
+            Choose the destination photos travellers see on your website.
+            Upload a photo to update its cover immediately.
           </p>
         </div>
         <div className="flex min-w-[190px] items-center gap-3 rounded-cmt-md border border-cmt-neutral-200 bg-white px-4 py-3 shadow-cmt-xs">
@@ -124,6 +124,10 @@ export default function AdminDestinationsManager() {
         </div>
       </header>
 
+      <div className="mt-6 grid gap-4 rounded-2xl border border-cmt-neutral-200 bg-white p-5 sm:grid-cols-[1fr_auto] sm:items-center">
+        <div><h2 className="text-sm font-semibold">Need to add a destination?</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-cmt-neutral-500">Create a package and choose its destination category. The destination appears automatically. Its name, trip count and starting price come from your packages.</p></div>
+        <Link href="/admin/packages" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">Manage packages <ArrowRight className="size-4" /></Link>
+      </div>
       {displayError ? (
         <p
           role="alert"
@@ -162,6 +166,10 @@ export default function AdminDestinationsManager() {
           </label>
         </div>
 
+        <div className="flex flex-wrap gap-2 border-b border-cmt-neutral-100 px-5 py-3" aria-label="Filter destination photos">
+          {[{ value: "all", label: "All destinations" }, { value: "custom", label: "Custom cover set" }, { value: "automatic", label: "Using a package photo" }].map((item) => <button type="button" key={item.value} aria-pressed={coverFilter === item.value} onClick={() => setCoverFilter(item.value)} className={`rounded-lg px-3 py-2 text-xs font-semibold ${coverFilter === item.value ? "bg-emerald-50 text-emerald-800" : "text-cmt-neutral-500 hover:bg-cmt-neutral-50"}`}>{item.label}</button>)}
+          <p className="ml-auto self-center text-xs text-cmt-neutral-500">Photo changes save automatically</p>
+        </div>
         <div className="divide-y divide-cmt-neutral-200">
           {visible.map((destination) => (
             <DestinationRow
@@ -174,7 +182,7 @@ export default function AdminDestinationsManager() {
               cover={destination.cover}
               image={destination.image}
               busy={busyName === destination.name}
-              disabled={authUser === null}
+              disabled={authUser === null || Boolean(busyName)}
               onUpload={(files) => void handleUpload(destination.name, destination.cover, files)}
               onClear={() => void handleClear(destination.name, destination.cover)}
             />
@@ -184,11 +192,11 @@ export default function AdminDestinationsManager() {
             <div className="px-5 py-12 text-center">
               <Compass className="mx-auto size-8 text-cmt-neutral-300" aria-hidden="true" />
               <p className="mt-3 text-sm font-semibold">
-                {destinations.length ? "No destination matches your search" : "No destinations yet"}
+                {destinations.length ? "No destinations match these filters" : "No destinations yet"}
               </p>
               <p className="mt-1 text-xs text-cmt-neutral-500">
                 {destinations.length
-                  ? "Try another spelling."
+                  ? "Try another search or select All destinations."
                   : "Destinations appear here as soon as a package is filed under one."}
               </p>
             </div>
@@ -271,7 +279,7 @@ function DestinationRow({
           <span className="tabular-nums">{formatINR(fromPrice)}</span>
         </p>
         <p className="mt-1 text-[11px] text-cmt-neutral-400">
-          Up to 5 MB · files under 800 KB stay unchanged · larger files use 70% quality
+          JPG, PNG or WebP · up to 5 MB · saves automatically
         </p>
       </div>
 
@@ -283,7 +291,7 @@ function DestinationRow({
           className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 text-xs font-semibold text-cmt-neutral-700 transition-colors hover:bg-cmt-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ImagePlus className="size-3.5" aria-hidden="true" />
-          {busy ? "Uploading…" : cover ? "Replace cover" : "Upload cover"}
+          {busy ? "Saving…" : cover ? "Change photo" : "Upload cover photo"}
         </button>
 
         {cover ? (
@@ -294,7 +302,7 @@ function DestinationRow({
             className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 text-xs font-semibold text-cmt-neutral-600 transition-colors hover:border-cmt-error-500/40 hover:bg-cmt-error-100 hover:text-cmt-error-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Trash2 className="size-3.5" aria-hidden="true" />
-            Remove
+            Use package photo
           </button>
         ) : null}
 

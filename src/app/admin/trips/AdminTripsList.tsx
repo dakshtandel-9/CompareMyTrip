@@ -4,16 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import PaymentReports from "@/components/PaymentReports";
 import { pendingPaymentExpired } from "@/lib/pendingPayments";
 import { FirebaseError } from "firebase/app";
-import {
-  BadgeIndianRupee,
-  CalendarClock,
-  CalendarHeart,
-  Mail,
-  Phone,
-  Plane,
-  TriangleAlert,
-  Users,
-} from "lucide-react";
+import { ChevronDown, TriangleAlert } from "lucide-react";
+import { ContactLinks, InboxFilters, InboxSearch, InboxState, OperationsHeader, WorkflowGuide } from "../enquiries/OperationsUI";
 import {
   PAYMENT_STATUS_LABELS,
   TRIP_STATUS_LABELS,
@@ -40,10 +32,10 @@ const paymentTone: Record<PaymentStatus, string> = {
 type Filter = "all" | PaymentStatus;
 
 const FILTERS: { value: Filter; label: string }[] = [
-  { value: "all", label: "All" },
+  { value: "all", label: "All bookings" },
   { value: "successful", label: "Paid" },
-  { value: "pending", label: "Pending" },
-  { value: "failed", label: "Rejected" },
+  { value: "pending", label: "Payment pending" },
+  { value: "failed", label: "Payment failed" },
 ];
 
 export default function AdminTripsList() {
@@ -51,6 +43,8 @@ export default function AdminTripsList() {
   const [now, setNow] = useState(() => Date.now());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [updatingId, setUpdatingId] = useState("");
   const [fieldError, setFieldError] = useState<Record<string, string>>({});
@@ -76,10 +70,11 @@ export default function AdminTripsList() {
     return () => clearInterval(timer);
   }, []);
   const trips = useMemo(() => records.filter(trip => !pendingPaymentExpired(trip, now)), [records, now]);
-  const visible = useMemo(
-    () => (filter === "all" ? trips : trips.filter((trip) => trip.paymentStatus === filter)),
-    [trips, filter],
-  );
+  const visible = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return trips.filter(trip => (filter === "all" || trip.paymentStatus === filter) &&
+      (!query || [trip.name, trip.email, trip.phone, trip.packageTitle, trip.txnid, trip.payuPaymentId].some(value => value?.toLowerCase().includes(query))));
+  }, [trips, filter, search]);
 
   const revenue = useMemo(
     () =>
@@ -91,8 +86,11 @@ export default function AdminTripsList() {
 
   const changeStatus = async (trip: Trip, tripStatus: TripStatus) => {
     setUpdatingId(trip.id);
+    setError("");
+    setNotice("");
     try {
       await updateTripStatus(trip.id, tripStatus);
+      setNotice(`Trip status saved for ${trip.name || trip.packageTitle}.`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "The trip status could not be updated.");
     } finally {
@@ -102,16 +100,19 @@ export default function AdminTripsList() {
 
   const changeDate = async (trip: Trip, tripDate: string) => {
     setUpdatingId(trip.id);
+    setError("");
+    setNotice("");
     setFieldError((current) => ({ ...current, [trip.id]: "" }));
     try {
       await updateTripDate(trip.id, tripDate);
+      setNotice(`Departure date saved for ${trip.name || trip.packageTitle}.`);
     } catch (cause) {
       // Firestore applies the write locally before the server answers, so a
       // rejected save briefly *looks* saved. Pin the failure to this row so
       // it cannot be mistaken for success once the value snaps back.
       const message =
         cause instanceof FirebaseError && cause.code === "permission-denied"
-          ? "Not saved — deploy firestore.rules to allow trip dates."
+          ? "Date not saved. Your account does not currently have permission to change departure dates."
           : cause instanceof Error
             ? cause.message
             : "The trip date could not be saved.";
@@ -122,229 +123,55 @@ export default function AdminTripsList() {
     }
   };
 
-  return (
-    <div className="space-y-6">
+  const paidCount = trips.filter(trip => trip.paymentStatus === "successful").length;
+  const pendingCount = trips.filter(trip => trip.paymentStatus === "pending").length;
+
+  return <div className="space-y-6 text-slate-900">
+    <OperationsHeader eyebrow="Bookings & payments" title="Bookings & trips" description="Keep track of customer payments, confirm departure dates, and update each trip as it progresses."
+      metrics={[
+        { label: "Payments collected", value: loading ? "—" : formatINR(revenue), hint: `${paidCount} successfully paid bookings`, attention: true },
+        { label: "Payment pending", value: loading ? "—" : pendingCount, hint: "Waiting for payment confirmation" },
+        { label: "All bookings", value: loading ? "—" : trips.length, hint: "Current checkout and trip records" },
+      ]} />
+    <WorkflowGuide steps={["Check the payment status", "Confirm the departure date", "Update the trip status"]} />
     <PaymentReports admin />
-    <section className="overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-cmt-neutral-200 px-5 py-5 sm:px-7">
-        <div className="flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-cmt-full bg-cmt-primary-50 text-cmt-primary-900">
-            <Plane className="size-5" />
-          </span>
-          <div>
-            <h1 className="font-display text-xl font-semibold">Trips</h1>
-            <p className="text-xs text-cmt-neutral-500">
-              Bookings taken through PayU checkout. Payment status comes from PayU and cannot be edited.
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-cmt-full bg-cmt-success-100 px-3 py-1.5 text-xs font-semibold text-cmt-success-700">
-            {formatINR(revenue)} collected
-          </span>
-          <span className="rounded-cmt-full bg-cmt-neutral-100 px-3 py-1.5 text-xs font-semibold text-cmt-neutral-700">
-            {loading ? "Loading…" : `${trips.length} trip${trips.length === 1 ? "" : "s"}`}
-          </span>
-        </div>
-      </header>
-
-      <div className="flex flex-wrap gap-2 border-b border-cmt-neutral-200 px-5 py-4 sm:px-7">
-        {FILTERS.map((option) => {
-          const count =
-            option.value === "all"
-              ? trips.length
-              : trips.filter((trip) => trip.paymentStatus === option.value).length;
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setFilter(option.value)}
-              className={`inline-flex h-9 items-center gap-2 rounded-cmt-control border px-4 text-sm font-semibold transition ${
-                filter === option.value
-                  ? "border-cmt-neutral-900 bg-cmt-neutral-900 text-white"
-                  : "border-cmt-neutral-200 bg-white text-cmt-neutral-700 hover:border-cmt-neutral-300"
-              }`}
-            >
-              {option.label}
-              <span className="text-xs opacity-70">{count}</span>
-            </button>
-          );
-        })}
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="space-y-4 border-b border-slate-200 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-base font-semibold">Booking list</h2><p className="mt-1 text-xs text-slate-500">{loading ? "Loading bookings…" : `${visible.length} of ${trips.length} bookings · newest first`}</p></div><InboxSearch value={search} onChange={setSearch} placeholder="Search customer, package or booking ID" label="Search bookings" /></div>
+        <InboxFilters value={filter} onChange={setFilter} options={FILTERS.map(option => ({ ...option, count: option.value === "all" ? trips.length : trips.filter(trip => trip.paymentStatus === option.value).length }))} />
+        <p className="text-xs leading-5 text-slate-500">Payment status updates automatically from PayU. Departure dates and trip statuses can be edited once a booking is paid.</p>
       </div>
-
-      {error ? (
-        <p role="alert" className="m-5 rounded-cmt-control bg-cmt-error-100 px-4 py-3 text-sm text-cmt-error-700 sm:m-7">
-          {error}
-        </p>
-      ) : null}
-
-      <div className="divide-y divide-cmt-neutral-200">
-        {visible.map((trip) => (
-          <article key={trip.id} className="p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-display text-lg font-semibold">
-                    {trip.packageTitle || "Unnamed package"}
-                  </h2>
-                  <span
-                    className={`inline-flex h-7 items-center rounded-cmt-full border px-3 text-xs font-semibold ${paymentTone[trip.paymentStatus]}`}
-                  >
-                    {PAYMENT_STATUS_LABELS[trip.paymentStatus]}
-                  </span>
-                  {trip.paymentReportStatus === "open" ? <span className="rounded-cmt-full bg-cmt-primary-100 px-3 py-1 text-xs font-semibold text-cmt-primary-900">Payment reported · review request above</span> : null}
-                  {trip.duplicatePaymentIds?.length ? <span className="rounded-cmt-full bg-cmt-error-100 px-3 py-1 text-xs font-semibold text-cmt-error-700">Multiple payments received · check PayU</span> : null}
-                  {trip.amountMismatch ? (
-                    <span className="inline-flex h-7 items-center gap-1.5 rounded-cmt-full border border-cmt-error-500/40 bg-cmt-error-100 px-3 text-xs font-semibold text-cmt-error-700">
-                      <TriangleAlert className="size-3.5" />
-                      Check in PayU
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 font-mono text-xs text-cmt-neutral-500">{trip.txnid}</p>
-                <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm text-cmt-neutral-600">
-                  <span className="font-semibold text-cmt-neutral-900">{trip.name || "—"}</span>
-                  {trip.email ? (
-                    <a href={`mailto:${trip.email}`} className="inline-flex items-center gap-1.5 hover:text-cmt-neutral-900">
-                      <Mail className="size-4" />
-                      {trip.email}
-                    </a>
-                  ) : null}
-                  {trip.phone ? (
-                    <a href={`tel:${trip.phone}`} className="inline-flex items-center gap-1.5 hover:text-cmt-neutral-900">
-                      <Phone className="size-4" />
-                      {trip.phone}
-                    </a>
-                  ) : null}
-                  <span className="inline-flex items-center gap-1.5">
-                    <CalendarClock className="size-4" />
-                    {trip.createdAt ? dateFormatter.format(trip.createdAt) : "Saving…"}
-                  </span>
-                  {/* The traveller picks their date on the package page, so
-                      most bookings now arrive with one. It is repeated here
-                      because the editable field to the right is locked until
-                      the payment succeeds — on a pending booking this is the
-                      only place the desk can see what was asked for. */}
-                  {trip.tripDate ? (
-                    <span className="inline-flex items-center gap-1.5 font-semibold text-cmt-neutral-900">
-                      <CalendarHeart className="size-4 text-cmt-neutral-400" />
-                      Wants {formatTripDate(trip.tripDate)}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 text-cmt-neutral-400">
-                      <CalendarHeart className="size-4" />
-                      Dates open
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-start gap-2">
-              <label className="min-w-[190px]">
-                <span className="sr-only">Trip date for {trip.txnid}</span>
-                <input
-                  type="date"
-                  value={trip.tripDate}
-                  disabled={updatingId === trip.id || trip.paymentStatus !== "successful"}
-                  onChange={(event) => void changeDate(trip, event.target.value)}
-                  title={
-                    trip.paymentStatus === "successful"
-                      ? "Departure date shown to the traveller — prefilled with the date they asked for, change it to what was confirmed"
-                      : "The date the traveller asked for. Editable once the payment succeeds."
-                  }
-                  className="h-10 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 text-sm font-semibold text-cmt-neutral-900 outline-none focus:border-cmt-primary-500 focus:ring-2 focus:ring-cmt-primary-500/20 disabled:cursor-not-allowed disabled:bg-cmt-neutral-100 disabled:text-cmt-neutral-400"
-                />
-                {fieldError[trip.id] ? (
-                  <span className="mt-1 block max-w-[210px] text-xs font-semibold text-cmt-error-700">
-                    {fieldError[trip.id]}
-                  </span>
-                ) : trip.tripDate && trip.paymentStatus === "successful" ? (
-                  (() => {
-                    const days = daysUntilTrip(trip.tripDate);
-                    if (days === null) return null;
-                    return (
-                      <span className="mt-1 block text-xs font-semibold text-cmt-neutral-500">
-                        {trip.tripStatus === "completed" ? "Travelled" : countdownLabel(days)}
-                      </span>
-                    );
-                  })()
-                ) : null}
-              </label>
-              <label className="min-w-[190px]">
-                <span className="sr-only">Trip status for {trip.txnid}</span>
-                <select
-                  disabled={updatingId === trip.id || trip.paymentStatus !== "successful"}
-                  value={trip.tripStatus}
-                  onChange={(event) => void changeStatus(trip, event.target.value as TripStatus)}
-                  title={
-                    trip.paymentStatus === "successful"
-                      ? undefined
-                      : "Available once the payment succeeds."
-                  }
-                  className="h-10 w-full rounded-cmt-control border border-cmt-primary-500/40 bg-cmt-primary-50 px-3 text-sm font-semibold text-cmt-primary-900 outline-none focus:ring-2 focus:ring-cmt-primary-500/20 disabled:cursor-not-allowed disabled:border-cmt-neutral-200 disabled:bg-cmt-neutral-100 disabled:text-cmt-neutral-400"
-                >
-                  {(Object.keys(TRIP_STATUS_LABELS) as TripStatus[]).map((value) => (
-                    <option key={value} value={value}>
-                      {TRIP_STATUS_LABELS[value]}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              </div>
-            </div>
-
-            <div className="mt-5 grid gap-3 rounded-cmt-control bg-cmt-neutral-50 p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Travellers</p>
-                <p className="mt-1 flex items-center gap-1.5">
-                  <Users className="size-4 text-cmt-neutral-400" />
-                  {trip.travellers || "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Per person</p>
-                <p className="mt-1">{trip.perPerson ? formatINR(trip.perPerson) : "—"}</p>
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">{trip.paymentStatus === "successful" ? "Total paid" : "Booking amount"}</p>
-                <p className="mt-1 flex items-center gap-1.5 font-semibold">
-                  <BadgeIndianRupee className="size-4 text-cmt-neutral-400" />
-                  {formatINR(trip.amount)}
-                </p>
-                {/* Only where a coupon actually moved the number — every
-                    older booking would otherwise carry a dash. */}
-                {trip.discount > 0 && (
-                  <p className="mt-1 text-xs text-cmt-success-700">
-                    {trip.couponCode} · −{formatINR(trip.discount)} off {formatINR(trip.subtotal)}
-                  </p>
-                )}
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">
-                  {trip.paymentStatus === "failed" ? "Failure reason" : "PayU reference"}
-                </p>
-                <p className="mt-1 break-words text-cmt-neutral-600">
-                  {trip.paymentStatus === "failed"
-                    ? trip.failureReason || "Not reported"
-                    : trip.payuPaymentId || "—"}
-                  {trip.paymentMode ? ` · ${trip.paymentMode}` : ""}
-                </p>
-              </div>
-            </div>
-          </article>
-        ))}
-
-        {!loading && !error && visible.length === 0 ? (
-          <div className="px-5 py-12 text-center">
-            <Plane className="mx-auto size-8 text-cmt-neutral-300" />
-            <p className="mt-3 text-sm font-semibold">No trips here yet</p>
-            <p className="mt-1 text-xs text-cmt-neutral-500">
-              Bookings appear the moment someone starts a PayU payment, even before it completes.
-            </p>
+      {error && <p role="alert" className="m-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+      {notice && !error && <p role="status" className="m-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</p>}
+      <div className="divide-y divide-slate-100">
+        {visible.map(trip => <article key={trip.id} className="p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="text-base font-semibold">{trip.packageTitle || "Package not specified"}</h3><span className={`inline-flex rounded-lg border px-2.5 py-1 text-xs font-semibold ${paymentTone[trip.paymentStatus]}`}>{trip.paymentStatus === "failed" ? "Payment failed" : PAYMENT_STATUS_LABELS[trip.paymentStatus]}</span></div><p className="mt-2 text-sm font-medium text-slate-700">{trip.name || "Customer name not provided"}</p><ContactLinks email={trip.email} phone={trip.phone} /></div>
+            <div className="text-left sm:text-right"><p className="text-lg font-semibold">{formatINR(trip.amount)}</p><p className="mt-0.5 text-xs text-slate-500">{trip.paymentStatus === "successful" ? "Total paid" : "Booking amount"} · {trip.travellers || "Unspecified"} travellers</p></div>
           </div>
-        ) : null}
+          {(trip.paymentReportStatus === "open" || trip.duplicatePaymentIds?.length || trip.amountMismatch) && <div className="mt-4 space-y-1 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+            {trip.paymentReportStatus === "open" && <p>Customer reported a payment issue. Review their payment request above.</p>}
+            {Boolean(trip.duplicatePaymentIds?.length) && <p>Multiple payments received. Check the transactions in PayU.</p>}
+            {trip.amountMismatch && <p className="flex items-center gap-2"><TriangleAlert className="size-4 shrink-0" aria-hidden="true" />The payment amount needs checking in PayU.</p>}
+          </div>}
+          <div className="mt-4 grid gap-4 rounded-xl bg-slate-50 p-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div><p className="text-xs font-medium text-slate-500">Travel date</p><p className="mt-2 text-sm font-semibold">{trip.tripDate ? formatTripDate(trip.tripDate) : "Date not selected"}</p><p className="mt-1 text-xs text-slate-500">Booked {trip.createdAt ? dateFormatter.format(trip.createdAt) : "just now"}</p></div>
+            <label><span className="mb-1.5 block text-xs font-medium text-slate-500">Departure date</span><input type="date" value={trip.tripDate} disabled={Boolean(updatingId) || trip.paymentStatus !== "successful"} onChange={event => void changeDate(trip, event.target.value)} aria-label={`Departure date for ${trip.txnid}`} className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400" />
+              {fieldError[trip.id] ? <span className="mt-1 block text-xs font-medium text-red-700">{fieldError[trip.id]}</span> : <span className="mt-1 block text-xs text-slate-500">{trip.paymentStatus !== "successful" ? "Available after payment is confirmed" : updatingId === trip.id ? "Saving changes…" : trip.tripDate ? (() => { const days = daysUntilTrip(trip.tripDate); return trip.tripStatus === "completed" ? "Trip completed" : days === null ? "Saves automatically" : countdownLabel(days); })() : "Choose the confirmed date · saves automatically"}</span>}
+            </label>
+            <label><span className="mb-1.5 block text-xs font-medium text-slate-500">Trip status</span><select value={trip.tripStatus} disabled={Boolean(updatingId) || trip.paymentStatus !== "successful"} onChange={event => void changeStatus(trip, event.target.value as TripStatus)} aria-label={`Trip status for ${trip.txnid}`} className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400">{(Object.keys(TRIP_STATUS_LABELS) as TripStatus[]).map(status => <option key={status} value={status}>{TRIP_STATUS_LABELS[status]}</option>)}</select><span className="mt-1 block text-xs text-slate-500">{trip.paymentStatus === "successful" ? "Changes save automatically" : "Available after payment is confirmed"}</span></label>
+          </div>
+          <details className="group mt-4"><summary className="flex w-fit cursor-pointer list-none items-center gap-2 rounded-md py-1 text-sm font-semibold text-emerald-700 [&::-webkit-details-marker]:hidden"><ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden="true" />View payment & booking details</summary><dl className="mt-4 grid gap-4 rounded-xl border border-slate-200 p-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+            <div><dt className="text-xs text-slate-500">Booking reference</dt><dd className="mt-1 break-all font-mono text-xs">{trip.txnid}</dd></div>
+            <div><dt className="text-xs text-slate-500">Price per person</dt><dd className="mt-1 font-medium">{trip.perPerson ? formatINR(trip.perPerson) : "Not recorded"}</dd></div>
+            <div><dt className="text-xs text-slate-500">Number of travellers</dt><dd className="mt-1 font-medium">{trip.travellers || "Not recorded"}</dd></div>
+            <div><dt className="text-xs text-slate-500">{trip.paymentStatus === "failed" ? "Payment failure reason" : "PayU payment reference"}</dt><dd className="mt-1 break-words">{trip.paymentStatus === "failed" ? trip.failureReason || "No reason provided" : trip.payuPaymentId || "Awaiting payment"}</dd></div>
+            <div><dt className="text-xs text-slate-500">Payment method</dt><dd className="mt-1">{trip.paymentMode || "Not recorded"}</dd></div>
+            {trip.discount > 0 && <div><dt className="text-xs text-slate-500">Discount applied</dt><dd className="mt-1 text-emerald-700">{trip.couponCode} · {formatINR(trip.discount)} off {formatINR(trip.subtotal)}</dd></div>}
+          </dl></details>
+        </article>)}
+        <InboxState loading={loading} empty={!error && visible.length === 0} title={trips.length ? "No bookings match your filters" : "No bookings yet"} description={trips.length ? "Try a customer name, package, or booking reference, or clear your filters." : "Bookings appear here when a customer starts a payment. Expired pending payments are removed automatically."} onReset={search || filter !== "all" ? () => { setSearch(""); setFilter("all"); } : undefined} />
       </div>
     </section>
-    </div>
-  );
+  </div>;
 }

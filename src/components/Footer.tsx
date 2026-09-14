@@ -16,18 +16,13 @@ import TrustStrip from "@/components/TrustStrip";
 
 /* ── FILL IN when the business details are confirmed ────────────────
    requirements/01-Project-Requirements.md still lists these as PENDING
-   (registered address, support email, phone, social handles). Anything
+   (registered address, support email, phone). Anything
    left empty is simply not rendered, so nothing invented ships. */
 const CONTACT = {
   email: "", // e.g. "support@comparemytrip.com"
   phone: "", // e.g. "+91 98765 43210"
   address: "", // registered business address
 };
-
-const SOCIAL_LINKS: { label: string; href: string; path: string }[] = [
-  // Paste the real profile URLs in to switch this row on, e.g.
-  // { label: "Instagram", href: "https://instagram.com/…", path: INSTAGRAM },
-];
 
 /* lucide-react v1 no longer ships brand marks, so these are inline. */
 export const INSTAGRAM =
@@ -38,6 +33,14 @@ export const YOUTUBE =
   "M21.58 7.19a2.51 2.51 0 0 0-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.81.42a2.51 2.51 0 0 0-1.77 1.77A26.2 26.2 0 0 0 2 12a26.2 26.2 0 0 0 .42 4.81 2.51 2.51 0 0 0 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.81-.42a2.51 2.51 0 0 0 1.77-1.77A26.2 26.2 0 0 0 22 12a26.2 26.2 0 0 0-.42-4.81ZM10 15.02V8.98L15.2 12 10 15.02Z";
 export const LINKEDIN =
   "M6.94 8.5H3.56V21h3.38V8.5ZM5.25 3a1.96 1.96 0 1 0 0 3.92 1.96 1.96 0 0 0 0-3.92ZM20.44 21v-6.86c0-3.36-1.79-4.92-4.19-4.92a3.6 3.6 0 0 0-3.27 1.8h-.05V8.5H9.68V21h3.38v-6.19c0-1.63.31-3.21 2.33-3.21 1.99 0 2.02 1.86 2.02 3.31V21h3.03Z";
+
+// Placeholder destinations; replace with the business profile URLs when ready.
+const SOCIAL_LINKS: { label: string; href: string; path: string }[] = [
+  { label: "Instagram", href: "https://www.instagram.com/", path: INSTAGRAM },
+  { label: "Facebook", href: "https://www.facebook.com/", path: FACEBOOK },
+  { label: "YouTube", href: "https://www.youtube.com/", path: YOUTUBE },
+  { label: "LinkedIn", href: "https://www.linkedin.com/", path: LINKEDIN },
+];
 
 type FooterLink = { label: string; href: string };
 
@@ -162,8 +165,9 @@ export default function Footer({
                         href={social.href}
                         target="_blank"
                         rel="noreferrer noopener"
-                        aria-label={social.label}
-                        className="flex h-10 w-10 items-center justify-center rounded-cmt-full border border-cmt-neutral-200 bg-white text-cmt-neutral-700 transition-colors duration-150 hover:border-cmt-primary-500 hover:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                        aria-label={`${social.label} (opens in a new tab)`}
+                        title={social.label}
+                        className="flex h-11 w-11 items-center justify-center rounded-cmt-full border border-cmt-neutral-200 bg-white text-cmt-neutral-700 transition-colors duration-150 hover:border-cmt-primary-500 hover:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                       >
                         <svg
                           viewBox="0 0 24 24"
@@ -195,7 +199,7 @@ export default function Footer({
                   Pay the amount discussed with our team.
                 </p>
                 <Link href="/pay" className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-4 py-2 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:bg-cmt-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500">
-                  Pay an amount <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                  Pay now <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
             </div>

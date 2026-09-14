@@ -13,12 +13,16 @@ import Divider from "../_components/Divider";
 import GoogleIcon from "../_components/GoogleIcon";
 import AuthAlert from "../_components/AuthAlert";
 import { signUpWithEmail, signInWithGoogle, getAuthErrorMessage } from "@/lib/firebase/auth";
+import { getAuthDestination, getAuthPageHref } from "@/lib/firebase/authDestination";
+import { useAuthDestination } from "@/lib/firebase/useAuthDestination";
 import PhoneNumberField from "@/components/PhoneNumberField";
 import { Glyph } from "@/lib/adminIcons";
 import { useSiteContent } from "@/lib/useSiteContent";
 
 export default function SignupPage() {
   const router = useRouter();
+  const destination = () => getAuthDestination(window.location.search, window.location.origin);
+  const loginHref = getAuthPageHref("/login", useAuthDestination());
   /* Copy, icons and artwork only — the form below is code, not content. */
   const { auth } = useSiteContent();
   const copy = auth.signup;
@@ -58,9 +62,10 @@ export default function SignupPage() {
       return;
     }
     setIsSubmitting(true);
+    const returnTo = destination();
     try {
       await signUpWithEmail({ name: fullName, email, phone, password });
-      router.push("/");
+      router.push(returnTo);
     } catch (error) {
       setFormError(getAuthErrorMessage(error));
     } finally {
@@ -71,9 +76,10 @@ export default function SignupPage() {
   async function handleGoogleSignUp() {
     setFormError("");
     setIsGoogleSubmitting(true);
+    const returnTo = destination();
     try {
       await signInWithGoogle();
-      router.push("/");
+      router.push(returnTo);
     } catch (error) {
       setFormError(getAuthErrorMessage(error));
     } finally {
@@ -83,7 +89,7 @@ export default function SignupPage() {
 
   return (
     <SplitAuthShell
-      navPrompt={<>{copy.navPrompt} <Link href="/login" className="font-semibold text-cmt-primary-900 hover:underline">{copy.navLinkLabel}</Link></>}
+      navPrompt={<>{copy.navPrompt} <Link href={loginHref} className="font-semibold text-cmt-primary-900 hover:underline">{copy.navLinkLabel}</Link></>}
       title={copy.title}
       subtitle={copy.subtitle}
       imageSrc={copy.image}

@@ -3,7 +3,7 @@
    every route under /api/integrations shares one definition of "admin"
    rather than four drifting copies. */
 
-export async function isFirebaseAdmin(request: Request): Promise<boolean> {
+export async function isFirebaseAdmin(request: Request, signal?: AbortSignal): Promise<boolean> {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
@@ -16,17 +16,19 @@ export async function isFirebaseAdmin(request: Request): Promise<boolean> {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ idToken: token }),
       cache: "no-store",
+      signal,
     },
   );
   if (!authResponse.ok) return false;
 
-  const authResult = (await authResponse.json()) as { users?: Array<{ localId?: string }> };
+  const authResult = (await authResponse.json()) as { users?: Array<{ localId?: string; disabled?: boolean }> };
+  if (authResult.users?.[0]?.disabled) return false;
   const uid = authResult.users?.[0]?.localId;
   if (!uid) return false;
 
   const adminResponse = await fetch(
     `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents/admins/${encodeURIComponent(uid)}`,
-    { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
+    { headers: { Authorization: `Bearer ${token}` }, cache: "no-store", signal },
   );
   return adminResponse.ok;
 }

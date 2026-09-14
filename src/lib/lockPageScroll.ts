@@ -1,78 +1,89 @@
 type ScrollLockOptions = { root?: boolean };
 
-let phoneLocks = 0;
-let restorePhoneScroll: (() => void) | undefined;
+type ScrollLockState = {
+  count: number;
+  rootCount: number;
+  fixed: boolean;
+  scrollX: number;
+  scrollY: number;
+  bodyStyles: Pick<CSSStyleDeclaration, "position" | "top" | "left" | "right" | "width" | "overflow">;
+  rootOverflow: string;
+  rootOverscroll: string;
+};
 
-/** Phone overlays share a lock, so closing one cannot strand another's lock. */
+let activeLock: ScrollLockState | undefined;
+
+/** Overlays share the original page styles, regardless of close order or width. */
 export function lockPageScroll({ root: lockRoot = false }: ScrollLockOptions = {}) {
   const root = document.documentElement;
   const body = document.body;
   const phone = window.matchMedia("(max-width: 767px)").matches;
 
-  const acquire = (includeRoot: boolean) => {
-    const bodyOverflow = body.style.overflow;
-    const rootOverflow = root.style.overflow;
-    const overscroll = root.style.overscrollBehavior;
-    body.style.overflow = "hidden";
-    if (includeRoot) {
-      root.style.overflow = "hidden";
-      root.style.overscrollBehavior = "none";
-    }
-    return () => {
-      body.style.overflow = bodyOverflow;
-      if (includeRoot) {
-        root.style.overflow = rootOverflow;
-        root.style.overscrollBehavior = overscroll;
-      }
+  if (!activeLock) {
+    activeLock = {
+      count: 0,
+      rootCount: 0,
+      fixed: false,
+      scrollX: 0,
+      scrollY: 0,
+      bodyStyles: {
+        position: body.style.position,
+        top: body.style.top,
+        left: body.style.left,
+        right: body.style.right,
+        width: body.style.width,
+        overflow: body.style.overflow,
+      },
+      rootOverflow: root.style.overflow,
+      rootOverscroll: root.style.overscrollBehavior,
     };
-  };
+  }
+  const state = activeLock;
+  state.count++;
+  if (lockRoot) state.rootCount++;
 
-  // Keep the existing desktop overlay behavior.
-  if (!phone && phoneLocks === 0) return acquire(lockRoot);
-
-  if (phoneLocks === 0) {
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
-    const bodyStyles = {
-      position: body.style.position,
-      top: body.style.top,
-      left: body.style.left,
-      right: body.style.right,
-      width: body.style.width,
-      overflow: body.style.overflow,
-    };
-    const rootOverflow = root.style.overflow;
-    const overscroll = root.style.overscrollBehavior;
-
+  if (phone && !state.fixed) {
     // Overflow alone still allows the background to move on touch browsers.
-    // Fix it at its current offset, without creating a horizontal scroll box.
+    // A phone overlay can join a desktop lock after a resize. Keep the first
+    // lock's clean styles, then hold this position until every overlay closes.
+    state.fixed = true;
+    state.scrollX = window.scrollX;
+    state.scrollY = window.scrollY;
     Object.assign(body.style, {
       position: "fixed",
-      top: `${-scrollY}px`,
+      top: `${-state.scrollY}px`,
       left: "0",
       right: "0",
       width: "100vw",
-      overflow: "clip",
     });
-    root.style.overflow = "hidden";
-    root.style.overscrollBehavior = "none";
-
-    restorePhoneScroll = () => {
-      Object.assign(body.style, bodyStyles);
-      root.style.overflow = rootOverflow;
-      root.style.overscrollBehavior = overscroll;
-      window.scrollTo({ left: scrollX, top: scrollY, behavior: "instant" });
-    };
   }
-  phoneLocks++;
+
+  const applyOverflow = () => {
+    body.style.overflow = state.fixed ? "clip" : "hidden";
+    const includeRoot = state.fixed || state.rootCount > 0;
+    root.style.overflow = includeRoot ? "hidden" : state.rootOverflow;
+    root.style.overscrollBehavior = includeRoot ? "none" : state.rootOverscroll;
+  };
+  applyOverflow();
+
   let released = false;
   return () => {
     if (released) return;
     released = true;
-    phoneLocks--;
-    if (phoneLocks === 0) {
-      restorePhoneScroll?.();
-      restorePhoneScroll = undefined;
+    state.count--;
+    if (lockRoot) state.rootCount--;
+    if (state.count > 0) {
+      applyOverflow();
+      return;
+    }
+
+    activeLock = undefined;
+    body.style.overflow = state.bodyStyles.overflow;
+    root.style.overflow = state.rootOverflow;
+    root.style.overscrollBehavior = state.rootOverscroll;
+    if (state.fixed) {
+      Object.assign(body.style, state.bodyStyles);
+      window.scrollTo({ left: state.scrollX, top: state.scrollY, behavior: "instant" });
     }
   };
 }

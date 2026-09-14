@@ -3,19 +3,21 @@
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Image from "next/image";
-import { Check, Clock3, ShieldCheck } from "lucide-react";
+import { ArrowDown, Check, ClipboardList, Clock3, ShieldCheck } from "lucide-react";
 import { useSiteContent } from "@/lib/useSiteContent";
 
 import AddOnForm from "./AddOnForm";
+import AirlineBrands from "./AirlineBrands";
+import VisaDestinationStamps from "./VisaDestinationStamps";
 import QuoteGuarantee from "./QuoteGuarantee";
 import { SERVICES, toServiceId, type ServiceId } from "./services";
 
 /* ------------------------------------------------------------------ */
-/* Add On — flights, hotels, visas and Bring Your Quote (BYQ).     */
+/* Add On — flights, hotels, visas, transport and Bring Your Quote.    */
 /* One page, one tab each, in that order.                              */
 /*                                                                      */
 /* Split out of page.tsx so that file stays a server component and keeps */
-/* exporting `metadata`. All four panels are mounted at once and the    */
+/* exporting `metadata`. All panels are mounted at once and the         */
 /* inactive ones are `hidden`: that is the ARIA tabs pattern, and it     */
 /* means opening Hotels to check a date and coming back to Flights does  */
 /* not wipe what was already typed.                                     */
@@ -45,36 +47,8 @@ const HOTEL_LOGOS = [
   { src: "/hotelLogo/original/taj-gold.webp", name: "Taj" },
 ];
 
-const FLIGHT_LOGOS = [
-  { src: "/Flight/Flight1.png", name: "SpiceJet" },
-  { src: "/Flight/Flight2.png", name: "Air India Express" },
-  { src: "/Flight/Flight3.png", name: "Oman Air" },
-  { src: "/Flight/Flight4.png", name: "Gulf Air" },
-  { src: "/Flight/Flight5.png", name: "Saudia" },
-  { src: "/Flight/Flight6.png", name: "SpiceJet" },
-  { src: "/Flight/Flight7.png", name: "Air India Express" },
-  { src: "/Flight/Flight8.png", name: "Air India" },
-  { src: "/Flight/Flight9.png", name: "Akasa Air" },
-  { src: "/Flight/Flight10.png", name: "IndiGo" },
-];
-
-const VISA_LOGOS = [
-  { src: "/visaLogo/new-zealand-color.webp", name: "New Zealand" },
-  { src: "/visaLogo/maldives-color.webp", name: "Maldives" },
-  { src: "/visaLogo/malaysia-color.webp", name: "Malaysia" },
-  { src: "/visaLogo/japan-color.webp", name: "Japan" },
-  { src: "/visaLogo/hong-kong-color.webp", name: "Hong Kong" },
-  { src: "/visaLogo/antarctica-color.webp", name: "Antarctica" },
-  { src: "/visaLogo/bali-color.webp", name: "Bali, Indonesia" },
-  { src: "/visaLogo/sri-lanka-color.webp", name: "Sri Lanka" },
-  { src: "/visaLogo/thailand-color.webp", name: "Thailand" },
-  { src: "/visaLogo/vietnam-color.webp", name: "Vietnam" },
-];
-
 const SERVICE_LOGOS = {
   hotels: { title: "Hotel brands", logos: HOTEL_LOGOS },
-  flights: { title: "Airlines", logos: FLIGHT_LOGOS },
-  visa: { title: "Destinations", logos: VISA_LOGOS },
 };
 
 export default function AddOnBody({ initialService }: { initialService: ServiceId }) {
@@ -191,7 +165,7 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
               {/* The blueprint's 7 + 5 split: the form, and what we come back
                   with beside it. */}
               <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
-                <div className="lg:col-span-7">
+                <div className={service.id === "transport" ? "min-w-0 lg:col-span-12" : "lg:col-span-7"}>
                   <h2 className="font-display text-2xl font-semibold leading-[1.2] text-cmt-neutral-900 sm:text-[28px]">
                     {service.title}
                   </h2>
@@ -210,12 +184,12 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
                   </div>
                 </div>
 
-                <aside className="lg:col-span-5">
-                  <div className="rounded-cmt-lg border border-cmt-neutral-200 bg-cmt-neutral-50 p-6 sm:p-8">
+                <aside className={service.id === "transport" ? "lg:col-span-12" : "lg:col-span-5"}>
+                  <div className={`rounded-cmt-lg border border-cmt-neutral-200 bg-cmt-neutral-50 p-6 sm:p-8 ${service.id === "transport" ? "lg:grid lg:grid-cols-2 lg:gap-x-12" : ""}`}>
                     <h3 className="font-display text-xl font-semibold leading-[1.25] text-cmt-neutral-900 sm:text-2xl">
                       What comes back
                     </h3>
-                    <ul className="mt-6 space-y-4">
+                    <ul className={`mt-6 space-y-4 ${service.id === "transport" ? "lg:col-start-1" : ""}`}>
                       {service.promises.map((promise) => (
                         <li key={promise} className="flex gap-3">
                           <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-cmt-full bg-cmt-primary-500">
@@ -228,7 +202,7 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
                       ))}
                     </ul>
 
-                    <div className="mt-8 space-y-5 border-t border-cmt-neutral-200 pt-6">
+                    <div className={service.id === "transport" ? "mt-8 space-y-5 border-t border-cmt-neutral-200 pt-6 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:mt-0 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0" : "mt-8 space-y-5 border-t border-cmt-neutral-200 pt-6"}>
                       {REASSURANCE.filter((item) => service.id !== "byq" || item.title !== "No booking, no fee").map((item) => (
                         <div key={item.title} className="flex gap-3">
                           <item.icon
@@ -249,7 +223,51 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
                       ))}
                     </div>
                   </div>
-                    {service.id !== "byq" && <section aria-labelledby={`${service.id}-brands-heading`} className="mt-6 rounded-cmt-lg border border-cmt-neutral-200 bg-cmt-neutral-50 p-6 sm:p-8">
+                    {service.id === "byq" && (
+                      <section aria-labelledby="byq-checklist-heading" className="mt-6 overflow-hidden rounded-cmt-lg border border-cmt-neutral-200 bg-white">
+                        <div className="border-b border-cmt-neutral-200 bg-cmt-primary-100/40 p-6 sm:p-8">
+                          <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-cmt-control border border-cmt-primary-500/40 bg-cmt-primary-100">
+                            <ClipboardList size={22} className="text-cmt-primary-700" aria-hidden="true" />
+                          </span>
+                          <h3 id="byq-checklist-heading" className="font-display text-xl font-semibold leading-[1.25] text-cmt-neutral-900 sm:text-2xl">
+                            A better comparison starts here
+                          </h3>
+                          <p className="mt-2 text-sm leading-relaxed text-cmt-neutral-600">
+                            Keep these details handy so we can compare the whole trip, down to the little things.
+                          </p>
+                        </div>
+                        <ul className="space-y-6 p-6 sm:p-8">
+                          {[
+                            { title: "Same dates, same travellers", body: "Include your travel dates, number of guests and children’s ages, if any." },
+                            { title: "The stay details", body: "Share hotel names, room categories, number of nights and meal plans." },
+                            { title: "Everything that’s included", body: "List flights, baggage, transfers, sightseeing and any entry tickets." },
+                            { title: "The full price", body: "Mention the currency, taxes, extra charges and whether the total is per person or for everyone." },
+                          ].map((item, index) => (
+                            <li key={item.title} className="flex gap-4">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-cmt-full bg-cmt-neutral-50 text-xs font-semibold text-cmt-primary-700">
+                                {String(index + 1).padStart(2, "0")}
+                              </span>
+                              <div>
+                                <h4 className="font-display text-[15px] font-semibold text-cmt-neutral-900">{item.title}</h4>
+                                <p className="mt-1 text-sm leading-relaxed text-cmt-neutral-600">{item.body}</p>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="mx-6 border-t border-cmt-neutral-200 py-6 sm:mx-8">
+                          <p className="text-sm leading-relaxed text-cmt-neutral-600">
+                            Don’t have every detail? Share what you have and mention what matters most to you.
+                          </p>
+                          <a href="#quote-guarantee" className="mt-4 inline-flex items-center gap-2 rounded-cmt-control text-sm font-semibold text-cmt-neutral-900 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cmt-primary-500">
+                            How the price-beat guarantee works
+                            <ArrowDown size={16} aria-hidden="true" />
+                          </a>
+                        </div>
+                      </section>
+                    )}
+                    {service.id === "visa" && <VisaDestinationStamps />}
+                    {service.id === "flights" && <AirlineBrands />}
+                    {service.id === "hotels" && <section aria-labelledby={`${service.id}-brands-heading`} className="mt-6 rounded-cmt-lg border border-cmt-neutral-200 bg-cmt-neutral-50 p-6 sm:p-8">
                       <h3 id={`${service.id}-brands-heading`} className="font-display text-xl font-semibold leading-[1.25] text-cmt-neutral-900 sm:text-2xl">
                         {SERVICE_LOGOS[service.id].title}
                       </h3>
@@ -259,10 +277,10 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
                             <Image
                               src={brand.src}
                               alt={brand.name}
-                              width={service.id === "hotels" ? 480 : service.id === "flights" ? 1448 : 512}
-                              height={service.id === "hotels" ? 280 : service.id === "flights" ? 1086 : 512}
-                              sizes={service.id === "hotels" ? "192px" : service.id === "flights" ? "150px" : "112px"}
-                              className={service.id === "hotels" ? "h-28 w-full max-w-48 object-contain" : service.id === "flights" ? "h-28 w-full object-contain" : "h-28 w-28 object-contain"}
+                              width={480}
+                              height={280}
+                              sizes="192px"
+                              className="h-28 w-full max-w-48 object-contain"
                             />
                           </li>
                         ))}

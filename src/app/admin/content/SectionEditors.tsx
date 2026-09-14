@@ -104,7 +104,7 @@ export function ContactEditor({
         description="The band across the top of the contact page."
       >
         <TextField
-          label="Eyebrow"
+          label="Small heading"
           value={value.eyebrow}
           onChange={(eyebrow) => onChange({ ...value, eyebrow })}
           placeholder="Contact"
@@ -118,7 +118,7 @@ export function ContactEditor({
         />
         <TextArea
           className="mt-4"
-          label="Sub-line"
+          label="Description"
           value={value.description}
           onChange={(description) => onChange({ ...value, description })}
         />
@@ -137,7 +137,7 @@ export function ContactEditor({
         />
         <TextArea
           className="mt-4"
-          label="Sub-line"
+          label="Description"
           value={value.formDescription}
           onChange={(formDescription) => onChange({ ...value, formDescription })}
         />
@@ -368,7 +368,7 @@ function AuthPageFields({
           placeholder="Welcome back!"
         />
         <TextField
-          label="Sub-line"
+          label="Description"
           value={value.subtitle}
           onChange={(subtitle) => onChange({ ...value, subtitle })}
           placeholder="Log in to continue…"
@@ -478,7 +478,7 @@ export function AuthEditor({
 
         <TextArea
           className="mt-4"
-          label="Sub-line on the Log in tab"
+          label="Description on the Log in tab"
           value={prompt.loginSubtitle}
           onChange={(loginSubtitle) =>
             onChange({ ...value, prompt: { ...prompt, loginSubtitle } })
@@ -486,7 +486,7 @@ export function AuthEditor({
         />
         <TextArea
           className="mt-4"
-          label="Sub-line on the Sign up tab"
+          label="Description on the Sign up tab"
           value={prompt.signupSubtitle}
           onChange={(signupSubtitle) =>
             onChange({ ...value, prompt: { ...prompt, signupSubtitle } })
@@ -927,7 +927,7 @@ export function TrendingEditor({
       <Card
         icon={<TrendingUp className="size-5" />}
         title="Section heading"
-        description="The band above the destination rail."
+        description="The heading and description above the destination cards."
       >
         <SectionHeaderFields
           value={value.header}
@@ -965,7 +965,7 @@ export function TrendingEditor({
                   onChange={(name) => patch({ name })}
                 />
                 <TextField
-                  label="Sub-line"
+                  label="Description"
                   value={item.subtitle}
                   onChange={(subtitle) => patch({ subtitle })}
                   placeholder="Beach Getaway"
@@ -1293,7 +1293,7 @@ export function TrainBannerEditor({
       >
         <div className="grid gap-4">
           <TextField
-            label="Eyebrow"
+            label="Small heading"
             value={value.eyebrow}
             onChange={(eyebrow) => onChange({ ...value, eyebrow })}
             placeholder="Crafted For Every Explorer"
@@ -1652,7 +1652,7 @@ export function WhyUsEditor({
       >
         <div className="grid gap-4">
           <TextField
-            label="Eyebrow"
+            label="Small heading"
             value={value.eyebrow}
             onChange={(eyebrow) => onChange({ ...value, eyebrow })}
           />
@@ -1690,7 +1690,7 @@ export function WhyUsEditor({
 
       <Card
         icon={<Star className="size-5" />}
-        title={`Proof points (${value.points.length})`}
+        title={`Reasons to book (${value.points.length})`}
         description="Four reads best — they lay out as a two-by-two grid."
       >
         <ListEditor

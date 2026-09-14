@@ -5,6 +5,7 @@ import { getPayuConfig } from "@/lib/payu";
 import { CUSTOM_PAYMENT_ERRORS } from "@/lib/customPayment";
 import CustomPaymentForm from "./CustomPaymentForm";
 import PaymentHistory from "./PaymentHistory";
+import DirectPaymentDetails from "./DirectPaymentDetails";
 
 export const metadata: Metadata = { title: "Pay an amount", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ export default async function PayPage({ searchParams }: { searchParams: Promise<
         <CustomPaymentForm enabled={Boolean(config)} />
       </div>
       <PaymentHistory />
+      <DirectPaymentDetails />
       </div>
     </main>
     <Footer />

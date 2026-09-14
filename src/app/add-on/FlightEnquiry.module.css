@@ -119,6 +119,7 @@
 }
 
 .routeFields,
+.detailsFields,
 .preferences,
 .contactFields {
   display: grid;
@@ -126,10 +127,86 @@
   gap: 20px 16px;
 }
 
-.preferences {
+.preferences,
+.detailsFields {
   margin-top: 22px;
   padding-top: 22px;
   border-top: 1px solid var(--color-cmt-neutral-200);
+}
+
+.flightLegs {
+  display: grid;
+  gap: 20px;
+}
+
+.flightLeg {
+  position: relative;
+  min-width: 0;
+  padding: 18px 16px 16px;
+  border: 1px solid var(--color-cmt-neutral-200);
+  border-radius: 12px;
+}
+
+.flightLeg legend {
+  padding-inline: 6px;
+}
+
+.flightLeg:has(.removeLeg) .routeFields {
+  margin-top: 34px;
+}
+
+.removeLeg,
+.addCity {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.removeLeg {
+  position: absolute;
+  top: 0;
+  right: 12px;
+  color: var(--color-cmt-neutral-600);
+}
+
+.addCity {
+  border: 1px solid var(--color-cmt-primary-500);
+  background: white;
+}
+
+.removeLeg:hover,
+.addCity:hover:not(:disabled) {
+  background: var(--color-cmt-primary-100);
+}
+
+.addCity:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.removeLeg:focus-visible,
+.addCity:focus-visible {
+  outline: 2px solid var(--color-cmt-primary-500);
+  outline-offset: 2px;
+}
+
+.addCityRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.addCityRow p {
+  font-size: 12px;
+  color: var(--color-cmt-neutral-600);
 }
 
 .preferences > :last-child {
@@ -142,6 +219,141 @@
 
 .notes {
   margin-top: 22px;
+}
+
+.wide {
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+
+.uploadArea {
+  margin-top: 22px;
+}
+
+.uploadBox {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+  padding: 20px;
+  border: 1px dashed var(--color-cmt-neutral-300);
+  border-radius: 14px;
+  background: var(--color-cmt-neutral-50);
+  transition: border-color 150ms, background-color 150ms;
+}
+
+.uploadBox:hover,
+.uploadBox:focus-within {
+  border-color: var(--color-cmt-primary-500);
+  background: var(--color-cmt-primary-100);
+}
+
+.uploadBox:has(input:focus-visible) {
+  outline: 2px solid var(--color-cmt-primary-500);
+  outline-offset: 3px;
+}
+
+.uploadInvalid {
+  border-color: var(--color-cmt-error-500);
+}
+
+.uploadIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-cmt-neutral-200);
+  border-radius: 12px;
+  background: white;
+  color: var(--color-cmt-primary-700);
+}
+
+.uploadCopy {
+  flex: 1 1 150px;
+}
+
+.fileInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.fileInput:disabled {
+  cursor: wait;
+}
+
+.uploadButton {
+  border: 1px solid var(--color-cmt-neutral-200);
+  border-radius: 10px;
+  padding: 12px 16px;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.selectedFile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-cmt-neutral-200);
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.selectedFile > svg,
+.uploadHint > svg {
+  flex-shrink: 0;
+}
+
+.selectedFile > div {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.selectedFile span {
+  color: var(--color-cmt-neutral-500);
+  font-size: 12px;
+}
+
+.selectedFile button {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.selectedFile button:hover {
+  background: var(--color-cmt-neutral-50);
+}
+
+.selectedFile button:focus-visible {
+  outline: 2px solid var(--color-cmt-primary-500);
+}
+
+.uploadHint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--color-cmt-neutral-500);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.uploadHint > svg {
+  margin-top: 2px;
 }
 
 .submitArea {
@@ -195,6 +407,7 @@
   }
 
   .routeFields,
+  .detailsFields,
   .preferences,
   .contactFields {
     grid-template-columns: minmax(0, 1fr);
@@ -226,5 +439,14 @@
 
   .privacy {
     max-width: none;
+  }
+
+  .uploadBox {
+    padding: 16px;
+  }
+
+  .uploadButton {
+    width: 100%;
+    text-align: center;
   }
 }

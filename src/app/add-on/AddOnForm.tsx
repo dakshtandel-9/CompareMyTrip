@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, ArrowRight, CheckCircle2, PlaneTakeoff, ShieldCheck, UserRound } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, FileText, PlaneTakeoff, Plus, ShieldCheck, Trash2, UserRound } from "lucide-react";
 import styles from "./FlightEnquiry.module.css";
+import QuoteAttachment from "./QuoteAttachment";
+import TransportFields from "./TransportFields";
+import { validateTransport } from "./transport";
 
 import { quoteFileError, sendEnquiryWithQuote } from "@/lib/quoteUpload";
 import PhoneNumberField from "@/components/PhoneNumberField";
@@ -10,6 +13,9 @@ import { saveContactEnquiry } from "@/lib/firebase/enquiries";
 import { useUserProfile } from "@/lib/firebase/useUserProfile";
 import {
   composeMessage,
+  flightFieldName,
+  flightLegCount,
+  MAX_FLIGHT_LEGS,
   visibleFields,
   type FieldSpec,
   type ServiceSpec,
@@ -17,7 +23,7 @@ import {
 } from "./services";
 
 /* ------------------------------------------------------------------ */
-/* One form for all three add-ons — Forms & search (§07): 48px height,  */
+/* Shared add-on form — Forms & search (§07): 48px height,              */
 /* 12px radius, 16px text, focus is a 2px yellow border plus a ring and  */
 /* is never suppressed. Every field carries a visible label; the         */
 /* placeholder never stands in for one. Errors pair an icon with the     */
@@ -66,6 +72,8 @@ function validate(service: ServiceSpec, values: Values): Errors {
     }
   }
 
+  if (service.id === "transport") Object.assign(errors, validateTransport(values));
+
   if (!values.name?.trim()) errors.name = "Tell us who we should reply to.";
 
   if (!values.email?.trim()) errors.email = "We need an email address to send options to.";
@@ -79,17 +87,40 @@ function validate(service: ServiceSpec, values: Values): Errors {
 
 export default function AddOnForm({ service }: { service: ServiceSpec }) {
   const isFlight = service.id === "flights";
+  const isTransport = service.id === "transport";
+  const ServiceIcon = service.icon;
+  const layouts: Partial<Record<ServiceSpec["id"], {
+    title: string; description: string; primary: string[]; secondary: string[]; contact: string; submit: string;
+  }>> = {
+    hotels: {
+      title: "Your stay", description: "Choose your destination, dates and the stay that suits you.",
+      primary: ["city", "category", "checkIn", "checkOut"], secondary: ["rooms", "guests", "budget", "meals"],
+      contact: "Where we can send your hotel shortlist.", submit: "Send hotel enquiry",
+    },
+    visa: {
+      title: "Your visa requirements", description: "Tell us about your passport and your travel plans.",
+      primary: ["country", "nationality", "travelDate", "visaType"], secondary: ["applicants", "passportValidity", "previousVisas"],
+      contact: "Where we can send your visa requirements and next steps.", submit: "Send visa enquiry",
+    },
+    byq: {
+      title: "Your trip", description: "Share the trip details so we can compare like for like.",
+      primary: ["destination", "travelDate", "travellers", "duration"], secondary: [],
+      contact: "Where we can send your quote comparison.", submit: "Send quote for comparison",
+    },
+  };
+  const layout = layouts[service.id];
   /* Selects open on their first option so nobody has to choose the obvious
      answer; text and date fields open empty. */
   const empty = (): Values => {
     const base: Values = { name: "", email: "", phone: "+91", notes: "" };
     for (const field of service.fields) {
-      base[field.name] = field.kind === "select" ? field.options?.[0]?.value ?? "" : "";
+      base[field.name] = field.defaultValue ?? (field.kind === "select" ? field.options?.[0]?.value ?? "" : "");
     }
     return base;
   };
 
   const [values, setValues] = useState<Values>(empty);
+  const fields = visibleFields(service, values);
   const [errors, setErrors] = useState<Errors>({});
   const [quoteFile, setQuoteFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -122,6 +153,12 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
   const set = (name: string, value: string) => {
     setValues((current) => ({ ...current, [name]: value }));
     setErrors((current) => {
+      if (isTransport && (name === "stopCount" || service.fields.some((field) => field.name === name))) {
+        // A mode, route or date change can resolve errors in related fields.
+        const next = { ...current };
+        for (const field of service.fields) delete next[field.name];
+        return next;
+      }
       if (!current[name]) return current;
       const next = { ...current };
       delete next[name];
@@ -130,6 +167,28 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
   };
 
   const fieldId = (name: string) => `${service.id}-${name}`;
+
+  const changeFlightLegs = (removeLeg?: number) => {
+    const count = flightLegCount(values);
+    if (removeLeg ? count <= 2 : count >= MAX_FLIGHT_LEGS) return;
+    setValues((current) => {
+      const next: Values = { ...current, flightLegCount: String(count + (removeLeg ? -1 : 1)) };
+      if (removeLeg) {
+        for (let leg = removeLeg; leg <= count; leg++) {
+          for (const name of ["from", "to", "departDate"]) {
+            next[flightFieldName(name, leg)] = leg < count ? current[flightFieldName(name, leg + 1)] ?? "" : "";
+          }
+        }
+      } else {
+        next[flightFieldName("from", count + 1)] = current[flightFieldName("to", count)] ?? "";
+      }
+      return next;
+    });
+    setErrors({});
+    requestAnimationFrame(() => {
+      document.getElementById(removeLeg ? "flights-add-city" : fieldId(flightFieldName("from", count + 1)))?.focus();
+    });
+  };
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -233,7 +292,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
     }
 
     return (
-      <div key={field.name} className={field.wide ? "sm:col-span-2" : "min-w-0"}>
+      <div key={field.name} className={field.wide ? styles.wide : "min-w-0"}>
         <label htmlFor={id} className={LABEL}>
           {field.label}{" "}
           {field.required ? (
@@ -264,7 +323,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           <input
             id={id}
             name={field.name}
-            type={field.kind === "date" ? "date" : "text"}
+            type={field.kind}
             placeholder={field.placeholder}
             value={values[field.name] ?? ""}
             onChange={(event) => set(field.name, event.target.value)}
@@ -284,44 +343,117 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
     );
   };
 
+  const renderNotes = () => (
+      <div className={styles.notes}>
+        <label htmlFor={fieldId("notes")} className={LABEL}>
+          {service.notesLabel} <span className="font-normal text-cmt-neutral-500">(optional)</span>
+        </label>
+        <textarea
+          id={fieldId("notes")}
+          name="notes"
+          rows={3}
+          placeholder={service.notesPlaceholder}
+          value={values.notes}
+          onChange={(event) => set("notes", event.target.value)}
+          className={`mt-2 min-h-[96px] resize-y px-4 py-3 leading-[1.6] ${fieldClass(false)}`}
+        />
+      </div>
+  );
+
   return (
-    <form onSubmit={handleSubmit} noValidate className={isFlight ? styles.form : "grid gap-5 sm:grid-cols-2"}>
+    <form onSubmit={handleSubmit} noValidate className={styles.form}>
       <fieldset disabled={submitting} className="contents">
-      {isFlight ? (
+      {isTransport ? (
+        <TransportFields service={service} values={values} errors={errors} onChange={set} />
+      ) : isFlight ? (
         <section className={styles.journey} aria-labelledby="flights-journey-heading">
           <div className={styles.sectionHeading}>
             <span className={styles.sectionIcon}><PlaneTakeoff size={19} aria-hidden="true" /></span>
             <div><h3 id="flights-journey-heading">Your journey</h3><p>Choose your route, dates and travel preferences.</p></div>
           </div>
           {visibleFields(service, values).filter(field => field.name === "tripType").map(renderField)}
-          <div className={styles.routeFields}>
+          {values.tripType === "multicity" ? (
+            <div className={styles.flightLegs}>
+              {Array.from({ length: flightLegCount(values) }, (_, index) => {
+                const leg = index + 1;
+                return (
+                  <fieldset key={leg} className={styles.flightLeg}>
+                    <legend className={LABEL}>Flight {leg}</legend>
+                    {leg > 1 && flightLegCount(values) > 2 && (
+                      <button type="button" className={styles.removeLeg} onClick={() => changeFlightLegs(leg)} aria-label={`Remove flight ${leg}`}>
+                        <Trash2 size={16} aria-hidden="true" /> Remove
+                      </button>
+                    )}
+                    <div className={styles.routeFields}>
+                      {["from", "to", "departDate"].flatMap(name => fields.filter(field => field.name === flightFieldName(name, leg))).map(renderField)}
+                    </div>
+                  </fieldset>
+                );
+              })}
+              <div className={styles.addCityRow}>
+                <button id="flights-add-city" type="button" className={styles.addCity} disabled={flightLegCount(values) >= MAX_FLIGHT_LEGS} onClick={() => changeFlightLegs()}>
+                  <Plus size={18} aria-hidden="true" /> Add city
+                </button>
+                <p role="status">{flightLegCount(values)} of {MAX_FLIGHT_LEGS} flights{flightLegCount(values) === MAX_FLIGHT_LEGS ? " · Maximum reached" : ""}</p>
+              </div>
+            </div>
+          ) : <div className={styles.routeFields}>
             {visibleFields(service, values).filter(field => ["from", "to", "departDate", "returnDate"].includes(field.name)).map(renderField)}
-          </div>
+          </div>}
           <div className={styles.preferences}>
             {["travellers", "cabin", "flexibility"].flatMap(name => visibleFields(service, values).filter(field => field.name === name)).map(renderField)}
           </div>
         </section>
-      ) : visibleFields(service, values).map(renderField)}
+      ) : layout ? (
+        <section className={styles.journey} aria-labelledby={fieldId("journey-heading")}>
+          <div className={styles.sectionHeading}>
+            <span className={styles.sectionIcon}><ServiceIcon size={19} aria-hidden="true" /></span>
+            <div><h3 id={fieldId("journey-heading")}>{layout.title}</h3><p>{layout.description}</p></div>
+          </div>
+          <div className={styles.routeFields}>
+            {layout.primary.flatMap(name => fields.filter(field => field.name === name)).map(renderField)}
+          </div>
+          {layout.secondary.length > 0 && (
+            <div className={styles.detailsFields}>
+              {layout.secondary.flatMap(name => fields.filter(field => field.name === name)).map(renderField)}
+            </div>
+          )}
+        </section>
+      ) : fields.map(renderField)}
 
-      {/* Contact block — the same three questions on every tab. */}
-      <section className={isFlight ? styles.contact : "contents"} aria-labelledby={isFlight ? "flights-contact-heading" : undefined}>
-      {isFlight ? (
-        <div className={styles.sectionHeading}>
-          <span className={styles.sectionIcon}><UserRound size={19} aria-hidden="true" /></span>
-          <div><h3 id="flights-contact-heading">Contact details</h3><p>Where we can send your flight options.</p></div>
-        </div>
-      ) : (
-      <div className="sm:col-span-2">
-        <div className="flex items-center gap-3 pt-1">
-          <span className="text-xs font-semibold uppercase tracking-wider text-cmt-neutral-500">
-            Where we reply
-          </span>
-          <span className="h-px flex-1 bg-cmt-neutral-200" aria-hidden="true" />
-        </div>
-      </div>
+      {service.id === "byq" && (
+        <section className={styles.contact} aria-labelledby={fieldId("quote-heading")}>
+          <div className={styles.sectionHeading}>
+            <span className={styles.sectionIcon}><FileText size={19} aria-hidden="true" /></span>
+            <div><h3 id={fieldId("quote-heading")}>Your existing quote</h3><p>Help us understand the price and everything it includes.</p></div>
+          </div>
+          <div className={styles.routeFields}>
+            {["quoteAmount", "provider"].flatMap(name => fields.filter(field => field.name === name)).map(renderField)}
+          </div>
+          {renderNotes()}
+          <QuoteAttachment
+            id={fieldId("quote")}
+            file={quoteFile}
+            inputRef={fileRef}
+            error={errors.quote}
+            onChange={(file) => {
+              const error = file ? quoteFileError(file) : "";
+              setErrors(current => ({ ...current, quote: error }));
+              setQuoteFile(error ? null : file);
+              if ((!file || error) && fileRef.current) fileRef.current.value = "";
+            }}
+          />
+        </section>
       )}
 
-      <div className={isFlight ? styles.contactFields : "contents"}>
+      {/* Contact block — the same three questions on every tab. */}
+      <section className={styles.contact} aria-labelledby={`${service.id}-contact-heading`}>
+        <div className={styles.sectionHeading}>
+          <span className={styles.sectionIcon}><UserRound size={19} aria-hidden="true" /></span>
+          <div><h3 id={`${service.id}-contact-heading`}>Contact details</h3><p>{layout?.contact ?? `Where we can send your ${isTransport ? "transport" : "flight"} options.`}</p></div>
+        </div>
+
+      <div className={styles.contactFields}>
       <div>
         <label htmlFor={fieldId("name")} className={LABEL}>
           Full name <span className="text-cmt-error-500">*</span>
@@ -366,8 +498,8 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           onChange={(phone) => set("phone", phone)}
           label={<>Phone <span className="text-cmt-error-500">*</span></>}
           required
-          compactCountryCode={isFlight}
-          labelClassName={isFlight ? LABEL : undefined}
+          compactCountryCode
+          labelClassName={LABEL}
           invalid={Boolean(errors.phone)}
           describedBy={errors.phone ? `${fieldId("phone")}-error` : undefined}
         />
@@ -375,39 +507,10 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
       </div>
       </div>
 
-      <div className={isFlight ? styles.notes : "sm:col-span-2"}>
-        <label htmlFor={fieldId("notes")} className={LABEL}>
-          {service.notesLabel} <span className="font-normal text-cmt-neutral-500">(optional)</span>
-        </label>
-        <textarea
-          id={fieldId("notes")}
-          name="notes"
-          rows={isFlight ? 3 : 4}
-          placeholder={service.notesPlaceholder}
-          value={values.notes}
-          onChange={(event) => set("notes", event.target.value)}
-          className={`mt-2 ${isFlight ? "min-h-[96px]" : "min-h-[120px]"} resize-y px-4 py-3 leading-[1.6] ${fieldClass(false)}`}
-        />
-      </div>
+      {service.id !== "byq" && renderNotes()}
       </section>
 
-      {service.id === "byq" && <div className="rounded-cmt-md border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 p-5 sm:col-span-2">
-        <label htmlFor={fieldId("quote")} className={LABEL}>Already have a quote? Attach your PDF <span className="font-normal text-cmt-neutral-500">(optional)</span></label>
-        <p id={`${fieldId("quote")}-hint`} className="mt-2 text-sm leading-6 text-cmt-neutral-600">PDF only, maximum 10 MB. Your attachment expires after 72 hours and is automatically deleted. Your enquiry details stay with our travel desk.</p>
-        <input ref={fileRef} id={fieldId("quote")} name="quote" type="file" accept=".pdf,application/pdf" aria-invalid={Boolean(errors.quote)} aria-describedby={`${fieldId("quote")}-hint${errors.quote ? ` ${fieldId("quote")}-error` : ""}`}
-          onChange={(event) => {
-            const file = event.target.files?.[0] ?? null;
-            const error = file ? quoteFileError(file) : "";
-            setErrors(current => ({ ...current, quote: error }));
-            setQuoteFile(error ? null : file);
-            if (error) event.target.value = "";
-          }}
-          className="mt-3 block w-full min-w-0 rounded-lg text-sm text-cmt-neutral-600 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-4 file:py-3 file:font-semibold file:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-cmt-primary-500" />
-        <FieldError id={`${fieldId("quote")}-error`} message={errors.quote} />
-        {(quoteFile || errors.quote) && <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-cmt-neutral-600">{quoteFile && <span className="break-all">{quoteFile.name} · {(quoteFile.size / 1_000_000).toFixed(2)} MB · uploaded when you send</span>}<button type="button" onClick={() => { setQuoteFile(null); setErrors(current => { const next = { ...current }; delete next.quote; return next; }); if (fileRef.current) fileRef.current.value = ""; }} className="min-h-9 rounded px-2 font-semibold underline focus-visible:outline-2 focus-visible:outline-cmt-primary-500">Remove PDF</button></div>}
-      </div>}
-
-      <div className={isFlight ? styles.submitArea : "sm:col-span-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-6"}>
+      <div className={styles.submitArea}>
         {submissionError ? (
           <p
             role="alert"
@@ -423,7 +526,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           disabled={submitting}
           className="group inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-cmt-control bg-cmt-primary-500 px-8 font-body text-[18px] font-semibold tracking-[0.005em] text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 active:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 disabled:cursor-wait disabled:opacity-60 sm:w-auto"
         >
-          {submitting ? (quoteFile ? "Uploading and sending…" : "Sending…") : isFlight ? "Send flight enquiry" : `Send ${service.label.toLowerCase()} enquiry`}
+          {submitting ? (quoteFile ? "Uploading and sending…" : "Sending…") : layout?.submit ?? (isFlight ? "Send flight enquiry" : `Send ${service.label.toLowerCase()} enquiry`)}
           <ArrowRight
             className="h-5 w-5 transition-transform duration-150 group-hover:translate-x-0.5"
             strokeWidth={2.5}
@@ -431,8 +534,8 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           />
         </button>
 
-        <p className={isFlight ? styles.privacy : "mt-4 text-xs leading-[1.5] text-cmt-neutral-500 sm:mt-0 sm:max-w-[32ch] sm:text-right"}>
-          {isFlight && <ShieldCheck size={18} aria-hidden="true" />}
+        <p className={styles.privacy}>
+          <ShieldCheck size={18} aria-hidden="true" />
           <span>
           We use these details only to answer your enquiry. Fields marked{" "}
           <span className="text-cmt-error-500">*</span> are required.

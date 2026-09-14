@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GalleryHorizontalEnd, RotateCcw, Save, Undo2 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { Check, ExternalLink, GalleryHorizontalEnd, RotateCcw, Save, Search, Undo2 } from "lucide-react";
 
 import {
   BANNER_SLOTS,
@@ -20,6 +22,8 @@ import { useSiteContentState } from "@/lib/useSiteContent";
 import { Button, Card, TextArea, TextField } from "../_components/ui";
 import BannerImagePicker from "./BannerImagePicker";
 import ConfirmResetDialog from "./ConfirmResetDialog";
+import styles from "../content/ContentWorkspace.module.css";
+import { useUnsavedContentChanges } from "../content/useUnsavedContentChanges";
 
 /* ------------------------------------------------------------------ */
 /* Banners.                                                            */
@@ -53,6 +57,8 @@ export default function AdminBannersManager() {
 
   const [publishing, setPublishing] = useState(false);
   const [message, setMessage] = useState("");
+  const [selectedId, setSelectedId] = useState(BANNER_SLOTS[0].id);
+  const [query, setQuery] = useState("");
   const [failure, setFailure] = useState("");
   /* The slot whose reset is waiting to be confirmed, or null. */
   const [resettingId, setResettingId] = useState<string | null>(null);
@@ -116,6 +122,7 @@ export default function AdminBannersManager() {
     () => edits !== null && JSON.stringify(edits) !== JSON.stringify(saved),
     [edits, saved],
   );
+  useUnsavedContentChanges(dirty && !publishing);
 
   const patch = (id: string, changes: Partial<BannerContent>) => {
     setMessage("");
@@ -192,51 +199,37 @@ export default function AdminBannersManager() {
   const displayError =
     authUser === null ? "Sign in to your CRM account to edit banners." : failure || error;
 
+  const selectedSlot = BANNER_SLOTS.find((slot) => slot.id === selectedId) ?? BANNER_SLOTS[0];
+  const changedIds = BANNER_SLOTS.filter((slot) => JSON.stringify(bannerFor(draft, slot.id)) !== JSON.stringify(bannerFor(saved, slot.id))).map((slot) => slot.id);
+  const visibleSlots = BANNER_SLOTS.filter((slot) => `${slot.name} ${slot.where}`.toLowerCase().includes(query.trim().toLowerCase()));
+
   return (
-    <div className="font-body text-cmt-neutral-900">
-      <header className="flex flex-wrap items-end justify-between gap-5">
+    <div className={styles.workspace}>
+      <header className={styles.pageHeader}>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-700">
-            Artwork
-          </p>
-          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-            Banners
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-cmt-neutral-600">
-            The photography mastheads across the site. Change the picture and
-            the wording here; where each one appears is fixed, so nothing can
-            end up pointing at a page that does not exist.
-          </p>
+          <p className={styles.eyebrow}>Your website</p>
+          <h1>Page banners</h1>
+          <p>Give each page a welcoming first impression. Choose a page, update its photo and message, then publish your changes.</p>
         </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex min-w-[170px] items-center gap-3 rounded-cmt-md border border-cmt-neutral-200 bg-white px-4 py-3 shadow-cmt-xs">
-            <span className="grid size-10 place-items-center rounded-cmt-full bg-cmt-primary-50 text-cmt-primary-900">
-              <GalleryHorizontalEnd className="size-5" aria-hidden="true" />
-            </span>
-            <div>
-              <p className="font-display text-2xl font-semibold tabular-nums">
-                {loading ? "—" : BANNER_SLOTS.length}
-              </p>
-              <p className="text-xs text-cmt-neutral-500">Banners on the site</p>
-            </div>
-          </div>
-
-          {dirty && (
-            <Button variant="ghost" onClick={discard} disabled={publishing}>
-              <Undo2 className="size-4" /> Discard
-            </Button>
-          )}
-          <Button
-            onClick={() => void publish()}
-            disabled={!dirty || publishing || authUser === null}
-            className="h-11"
-          >
-            <Save className="size-4" />
-            {publishing ? "Publishing…" : dirty ? "Publish banners" : "Published"}
-          </Button>
-        </div>
+        <Link href={selectedSlot.where} target="_blank" className={styles.secondaryLink}><ExternalLink className="size-4" /> View live page</Link>
       </header>
+
+      <ol className={styles.steps} aria-label="How to update banners">
+        <li><span>1</span><div><strong>Choose a page</strong><p>Every banner is linked to its own page.</p></div></li>
+        <li><span>2</span><div><strong>Edit the photo & message</strong><p>See your changes in the banner preview.</p></div></li>
+        <li><span>3</span><div><strong>Publish your banners</strong><p>Your updated banners appear on the website.</p></div></li>
+      </ol>
+
+      <div className={styles.saveBar}>
+        <div className={styles.saveState}>
+          <span className={`${styles.stateDot} ${dirty ? styles.pendingDot : ""}`} />
+          <div><strong>{loading ? "Loading your banners…" : dirty ? `${changedIds.length} banner${changedIds.length === 1 ? "" : "s"} with unpublished changes` : "All banners are published"}</strong><p>Changes to all edited banners are published together.</p></div>
+        </div>
+        <div className={styles.actions}>
+          <Button variant="ghost" onClick={discard} disabled={!dirty || publishing}><Undo2 className="size-4" /> Discard changes</Button>
+          <Button onClick={() => void publish()} disabled={!dirty || publishing || loading || authUser === null}><Save className="size-4" />{publishing ? "Publishing…" : "Publish banners"}</Button>
+        </div>
+      </div>
 
       {displayError ? (
         <p
@@ -248,38 +241,41 @@ export default function AdminBannersManager() {
       ) : null}
 
       {message && !displayError ? (
-        <p className="mt-6 rounded-cmt-control border border-cmt-success-500/20 bg-cmt-success-100 px-4 py-3 text-sm text-cmt-success-700">
-          {message}
-        </p>
+        <p role="status" className={styles.feedback}><Check className="size-4" />{message}</p>
       ) : null}
 
-      <div className="mt-7 space-y-5">
-        {BANNER_SLOTS.map((slot) => {
+      <div className={`${styles.editorLayout} mt-7`}>
+        <nav className={styles.sectionNav} aria-label="Choose a banner to edit">
+          <label className={styles.search}><Search className="size-4" aria-hidden="true" /><input aria-label="Find a page banner" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a page…" /></label>
+          <p className={styles.navDescription}>{BANNER_SLOTS.length} page banners · select one to edit</p>
+          <ul className={styles.bannerList}>
+            {visibleSlots.map((slot) => {
+              const image = bannerFor(draft, slot.id).image;
+              return <li key={slot.id}><button type="button" onClick={() => setSelectedId(slot.id)} aria-current={slot.id === selectedId ? "true" : undefined} className={styles.bannerNavButton}>
+                <span className={styles.bannerThumb}>{image && <Image src={image} alt="" fill sizes="58px" unoptimized className="object-cover" />}</span>
+                <span><strong>{slot.name}</strong><small>{changedIds.includes(slot.id) ? "Unpublished changes" : "Published"}</small></span>
+              </button></li>;
+            })}
+          </ul>
+          {!visibleSlots.length && <div className={styles.noResults}><strong>No pages found</strong><p>Try a destination or “India”.</p><button type="button" onClick={() => setQuery("")}>Clear search</button></div>}
+        </nav>
+        <fieldset disabled={publishing || loading} className="min-w-0" aria-busy={publishing || loading}>
+          <legend className="sr-only">Edit {selectedSlot.name} banner</legend>
+        {[selectedSlot].map((slot) => {
           const banner = bannerFor(draft, slot.id);
-          const isShipped =
-            JSON.stringify(banner) === JSON.stringify(slot.banner);
-
+          const isShipped = JSON.stringify(banner) === JSON.stringify(slot.banner);
           return (
             <Card
               key={slot.id}
               icon={<GalleryHorizontalEnd className="size-5" />}
               title={slot.name}
-              description={`Shown on ${slot.where}`}
-              action={
-                !isShipped ? (
-                  <Button
-                    variant="ghost"
-                    onClick={() => setResettingId(slot.id)}
-                    disabled={publishing}
-                  >
-                    <RotateCcw className="size-4" /> Reset to original
-                  </Button>
-                ) : undefined
-              }
+              description={`The photo and introduction at the top of the ${slot.name.toLowerCase()} page.`}
+              action={<Link href={slot.where} target="_blank" className={styles.textLink}>View live page <ExternalLink className="size-3.5" /></Link>}
             >
               {/* The photo is the preview and the preview is the photo: the
                   controls sit on the picture, and the copy below is edited
                   against the contrast it will really have. */}
+              <h3 className={`${styles.bannerFieldsHeading} !mt-0`}><span>1</span> Choose a photo</h3>
               <BannerImagePicker
                 value={banner.image}
                 onChange={(image) => applyBanner(slot.id, { image })}
@@ -287,7 +283,7 @@ export default function AdminBannersManager() {
               >
                 <div className="w-full">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-cmt-primary-400">
-                    {banner.eyebrow || "Eyebrow"}
+                    {banner.eyebrow || "Small heading"}
                   </p>
                   <p className="mt-1.5 max-w-[18ch] font-display text-xl font-semibold leading-[1.15] tracking-tight text-white [text-shadow:0_3px_18px_rgba(0,0,0,0.35)] sm:text-2xl">
                     {banner.title || "Headline"}
@@ -298,31 +294,36 @@ export default function AdminBannersManager() {
                 </div>
               </BannerImagePicker>
 
-              <div className="mt-5 grid gap-4 sm:grid-cols-[minmax(0,200px)_minmax(0,1fr)]">
+              <h3 className={styles.bannerFieldsHeading}><span>2</span> Write your message</h3>
+              <div className="grid gap-4 sm:grid-cols-[minmax(0,200px)_minmax(0,1fr)]">
                 <TextField
-                  label="Eyebrow"
+                  label="Small heading"
                   value={banner.eyebrow}
                   onChange={(eyebrow) => patch(slot.id, { eyebrow })}
                   placeholder="Weekend treks"
                   hint="The small line above the headline."
                 />
                 <TextField
-                  label="Headline"
+                  label="Main heading"
                   value={banner.title}
                   onChange={(title) => patch(slot.id, { title })}
                   placeholder="Monsoon Treks"
+                  hint="The main message visitors see first."
                 />
               </div>
 
               <TextArea
                 className="mt-4"
-                label="Sub-line"
+                label="Description"
                 value={banner.description}
                 onChange={(description) => patch(slot.id, { description })}
+                hint="One or two short sentences introducing this page."
               />
+              {!isShipped && <details className={styles.advanced}><summary>Restore the original banner</summary><div><p>Bring back the original photo and wording for this page. You can review it before publishing.</p><Button variant="ghost" onClick={() => setResettingId(slot.id)} disabled={publishing}><RotateCcw className="size-4" /> Restore original</Button></div></details>}
             </Card>
           );
         })}
+        </fieldset>
       </div>
 
       {resetSlot && (

@@ -1,0 +1,590 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "ms": 813,
+    "bytes": 875730,
+    "heading": "Smart travel packages.Better choices."
+  },
+  {
+    "path": "/packages",
+    "status": 200,
+    "ms": 1216,
+    "bytes": 694332,
+    "heading": "Holiday packages"
+  },
+  {
+    "path": "/compare",
+    "status": 200,
+    "ms": 609,
+    "bytes": 321879,
+    "heading": "Compare holiday packages side by side"
+  },
+  {
+    "path": "/destinations",
+    "status": 200,
+    "ms": 1564,
+    "bytes": 446774,
+    "heading": "Every place we cover."
+  },
+  {
+    "path": "/contact",
+    "status": 200,
+    "ms": 193,
+    "bytes": 182284,
+    "heading": "Tell us about the trip."
+  },
+  {
+    "path": "/blog",
+    "status": 200,
+    "ms": 702,
+    "bytes": 233946,
+    "heading": "Stories, routes and honest advice."
+  },
+  {
+    "path": "/destinations/karnataka",
+    "status": 200,
+    "ms": 398,
+    "bytes": 299811,
+    "heading": "Karnataka Tour Packages"
+  },
+  {
+    "path": "/destinations/kerala",
+    "status": 200,
+    "ms": 765,
+    "bytes": 242427,
+    "heading": "Kerala Tour Packages"
+  },
+  {
+    "path": "/destinations/himachal-pradesh",
+    "status": 200,
+    "ms": 545,
+    "bytes": 227659,
+    "heading": "Himachal Pradesh Tour Packages"
+  },
+  {
+    "path": "/destinations/bali",
+    "status": 200,
+    "ms": 614,
+    "bytes": 203898,
+    "heading": "Bali Tour Packages"
+  },
+  {
+    "path": "/destinations/jammu-kashmir",
+    "status": 200,
+    "ms": 570,
+    "bytes": 207019,
+    "heading": "Jammu &amp; Kashmir Tour Packages"
+  },
+  {
+    "path": "/destinations/ladakh",
+    "status": 200,
+    "ms": 610,
+    "bytes": 207391,
+    "heading": "Ladakh Tour Packages"
+  },
+  {
+    "path": "/destinations/rajasthan",
+    "status": 200,
+    "ms": 521,
+    "bytes": 206088,
+    "heading": "Rajasthan Tour Packages"
+  },
+  {
+    "path": "/destinations/sri-lanka",
+    "status": 200,
+    "ms": 642,
+    "bytes": 205601,
+    "heading": "Sri Lanka Tour Packages"
+  },
+  {
+    "path": "/destinations/thailand",
+    "status": 200,
+    "ms": 557,
+    "bytes": 203858,
+    "heading": "Thailand Tour Packages"
+  },
+  {
+    "path": "/destinations/vietnam",
+    "status": 200,
+    "ms": 564,
+    "bytes": 208493,
+    "heading": "Vietnam Tour Packages"
+  },
+  {
+    "path": "/destinations/goa",
+    "status": 200,
+    "ms": 769,
+    "bytes": 188738,
+    "heading": "Goa Tour Packages"
+  },
+  {
+    "path": "/destinations/arctic",
+    "status": 200,
+    "ms": 820,
+    "bytes": 192449,
+    "heading": "Arctic Tour Packages"
+  },
+  {
+    "path": "/destinations/hong-kong",
+    "status": 200,
+    "ms": 792,
+    "bytes": 188098,
+    "heading": "Hong Kong Tour Packages"
+  },
+  {
+    "path": "/destinations/lakshadweep",
+    "status": 200,
+    "ms": 433,
+    "bytes": 184514,
+    "heading": "Lakshadweep Tour Packages"
+  },
+  {
+    "path": "/destinations/malaysia",
+    "status": 200,
+    "ms": 404,
+    "bytes": 188800,
+    "heading": "Malaysia Tour Packages"
+  },
+  {
+    "path": "/destinations/japan",
+    "status": 200,
+    "ms": 466,
+    "bytes": 189258,
+    "heading": "Japan Tour Packages"
+  },
+  {
+    "path": "/destinations/maldives",
+    "status": 200,
+    "ms": 631,
+    "bytes": 189601,
+    "heading": "Maldives Tour Packages"
+  },
+  {
+    "path": "/destinations/new-zealand",
+    "status": 200,
+    "ms": 720,
+    "bytes": 192696,
+    "heading": "New Zealand Tour Packages"
+  },
+  {
+    "path": "/destinations/russia",
+    "status": 200,
+    "ms": 790,
+    "bytes": 189560,
+    "heading": "Russia Tour Packages"
+  },
+  {
+    "path": "/destinations/sikkim",
+    "status": 200,
+    "ms": 408,
+    "bytes": 188138,
+    "heading": "Sikkim Tour Packages"
+  },
+  {
+    "path": "/destinations/taiwan",
+    "status": 200,
+    "ms": 443,
+    "bytes": 190596,
+    "heading": "Taiwan Tour Packages"
+  },
+  {
+    "path": "/packages/tadiandamol-trek",
+    "status": 200,
+    "ms": 470,
+    "bytes": 196064,
+    "heading": "Tadiandamol Weekend Trek"
+  },
+  {
+    "path": "/packages/kodachadri-trek",
+    "status": 200,
+    "ms": 549,
+    "bytes": 195364,
+    "heading": "Kodachadri Weekend Trek"
+  },
+  {
+    "path": "/packages/savandurga-trek",
+    "status": 200,
+    "ms": 443,
+    "bytes": 194330,
+    "heading": "Savandurga Day Trek"
+  },
+  {
+    "path": "/packages/nandi-hills-trek",
+    "status": 200,
+    "ms": 738,
+    "bytes": 195263,
+    "heading": "Nandi Hills Day Trek"
+  },
+  {
+    "path": "/packages/manali-volvo-tour-package-4-nights-5-days-98fb",
+    "status": 200,
+    "ms": 461,
+    "bytes": 219584,
+    "heading": "Manali Volvo Tour Package – 4 Nights / 5 Days"
+  },
+  {
+    "path": "/packages/kerala-backwaters-hills-escape",
+    "status": 200,
+    "ms": 715,
+    "bytes": 371377,
+    "heading": "Kerala Backwaters &amp; Hills Escape"
+  },
+  {
+    "path": "/packages/jibhi-jalori-pass-tour-package-4-nights-5-days-from-delhi-serolsar-lake-trek-tirthan-valley-3917",
+    "status": 200,
+    "ms": 413,
+    "bytes": 214800,
+    "heading": "Jibhi Jalori Pass Tour Package · 4 Nights 5 Days from Delhi · Serolsar Lake Trek &amp; Tir"
+  },
+  {
+    "path": "/packages/magnificent-kashmir-9ec7",
+    "status": 200,
+    "ms": 589,
+    "bytes": 223258,
+    "heading": "Magnificent Kashmir"
+  },
+  {
+    "path": "/packages/manali-kasol-tour-package-from-delhi-4-nights-5-days-fi-b375",
+    "status": 200,
+    "ms": 714,
+    "bytes": 217829,
+    "heading": "Manali Kasol Tour Package from Delhi · 4 Nights / 5 Days Fixed Departure · Solang Valley, "
+  },
+  {
+    "path": "/packages/ladakh-land-of-lamas-e6ff",
+    "status": 200,
+    "ms": 595,
+    "bytes": 221883,
+    "heading": "Ladakh Land of Lamas"
+  },
+  {
+    "path": "/packages/majestic-ladakh-tour-with-nubra-and-pangong-5n-6d-cde8",
+    "status": 200,
+    "ms": 545,
+    "bytes": 218522,
+    "heading": "Majestic Ladakh Tour with Nubra and Pangong 5N &amp;6D"
+  },
+  {
+    "path": "/packages/sikkim-darjeeling-delight-4-nights-5-days-69c9",
+    "status": 200,
+    "ms": 823,
+    "bytes": 217973,
+    "heading": "Sikkim &amp; Darjeeling Delight – 4 Nights / 5 Days"
+  },
+  {
+    "path": "/packages/discover-the-best-of-goa-scenic-sightseeing-tour-8366",
+    "status": 200,
+    "ms": 795,
+    "bytes": 213863,
+    "heading": "Discover the Best of Goa: Scenic Sightseeing Tour"
+  },
+  {
+    "path": "/packages/majestic-desert-night-with-cultural-show-06ca",
+    "status": 200,
+    "ms": 733,
+    "bytes": 195010,
+    "heading": "Majestic Desert Night with Cultural Show"
+  },
+  {
+    "path": "/packages/kerala-escape-5-nights-6-days-kochi-munnar-thekkady-alleppey-houseboat-9b49",
+    "status": 200,
+    "ms": 416,
+    "bytes": 204586,
+    "heading": "Kerala Escape 5 Nights 6 Days · Kochi, Munnar, Thekkady &amp; Alleppey Houseboat"
+  },
+  {
+    "path": "/packages/kerala-monsoon-escape-5-nights-6-days-9416",
+    "status": 200,
+    "ms": 473,
+    "bytes": 208592,
+    "heading": "Kerala Monsoon Escape – 5 Nights / 6 Days"
+  },
+  {
+    "path": "/packages/lakshadweep-ed5b",
+    "status": 200,
+    "ms": 431,
+    "bytes": 202635,
+    "heading": "Lakshadweep"
+  },
+  {
+    "path": "/packages/kerala-delight-tour-with-houseboat-84e3",
+    "status": 200,
+    "ms": 482,
+    "bytes": 220694,
+    "heading": "Kerala Delight Tour with Houseboat"
+  },
+  {
+    "path": "/packages/royalty-in-rajasthan-6-nights-7-days-39b8",
+    "status": 200,
+    "ms": 717,
+    "bytes": 222998,
+    "heading": "Royalty in Rajasthan – 6 Nights / 7 Days"
+  },
+  {
+    "path": "/packages/magical-kashmir-srinagar-gulmarg-pahalgam-6c9c",
+    "status": 200,
+    "ms": 824,
+    "bytes": 213855,
+    "heading": "Magical Kashmir — Srinagar, Gulmarg &amp; Pahalgam"
+  },
+  {
+    "path": "/packages/coorg-mysore-explore-5bb5",
+    "status": 200,
+    "ms": 590,
+    "bytes": 208326,
+    "heading": "COORG - MYSORE EXPLORE"
+  },
+  {
+    "path": "/packages/bali-adventure-516e",
+    "status": 200,
+    "ms": 703,
+    "bytes": 194885,
+    "heading": "Bali Adventure"
+  },
+  {
+    "path": "/packages/sri-lanka-luxury-group-tour-5-0c14",
+    "status": 200,
+    "ms": 880,
+    "bytes": 214833,
+    "heading": "Sri Lanka Luxury Classy Fix departure"
+  },
+  {
+    "path": "/packages/superb-bali-c189",
+    "status": 200,
+    "ms": 664,
+    "bytes": 214744,
+    "heading": "Superb Bali"
+  },
+  {
+    "path": "/packages/mesmerising-vietnam-including-phu-quoc-copy-9654",
+    "status": 200,
+    "ms": 504,
+    "bytes": 226136,
+    "heading": "SENIOR SPECIAL - Discover Vietnam Tour - Hanoi, Halong, Ninh Binh, Da Nang, Hoi An &amp; H"
+  },
+  {
+    "path": "/packages/astonishing-sri-lanka-8a8b",
+    "status": 200,
+    "ms": 761,
+    "bytes": 221358,
+    "heading": "Astonishing Sri Lanka"
+  },
+  {
+    "path": "/packages/two-capitals-with-northern-lights-fixed-departure-521e",
+    "status": 200,
+    "ms": 789,
+    "bytes": 213809,
+    "heading": "Two Capitals with Northern Lights Fixed Departure"
+  },
+  {
+    "path": "/packages/new-zealand-luxury-group-tour-a3b4",
+    "status": 200,
+    "ms": 708,
+    "bytes": 236812,
+    "heading": "New Zealand Luxury Group Tour"
+  },
+  {
+    "path": "/packages/taipei-taiwan-tour-package-5n-6d-jiufen-shifen-0eb6",
+    "status": 200,
+    "ms": 822,
+    "bytes": 229775,
+    "heading": "Taipei Taiwan Tour Package 5N/6D · Jiufen &amp; Shifen"
+  },
+  {
+    "path": "/packages/japan-luxury-group-tour-73cb",
+    "status": 200,
+    "ms": 824,
+    "bytes": 220068,
+    "heading": "Japan Luxury Group Tour"
+  },
+  {
+    "path": "/packages/scenic-thailand-fc95",
+    "status": 200,
+    "ms": 714,
+    "bytes": 213820,
+    "heading": "Scenic Thailand"
+  },
+  {
+    "path": "/packages/4-nights-maldives-all-meals-best-value-d03d",
+    "status": 200,
+    "ms": 562,
+    "bytes": 223075,
+    "heading": "Affordable Maldives Package · Perfect for Couples &amp; Families"
+  },
+  {
+    "path": "/packages/thailand-getaway-927f",
+    "status": 200,
+    "ms": 573,
+    "bytes": 201421,
+    "heading": "Thailand Getaway"
+  },
+  {
+    "path": "/packages/hong-kong-cruise-getaway-dd5e",
+    "status": 200,
+    "ms": 667,
+    "bytes": 215918,
+    "heading": "Hong Kong &amp; Cruise Getaway"
+  },
+  {
+    "path": "/packages/senior-special-vietnam-cambodia-d362",
+    "status": 200,
+    "ms": 895,
+    "bytes": 228093,
+    "heading": "SENIOR SPECIAL - Vietnam &amp; Cambodia Group Tour"
+  },
+  {
+    "path": "/packages/arctic-expedition-luxury-group-tour-3622",
+    "status": 200,
+    "ms": 895,
+    "bytes": 232310,
+    "heading": "Arctic Expedition Luxury Group Tour"
+  },
+  {
+    "path": "/packages/malaysian-delight-9619",
+    "status": 200,
+    "ms": 1025,
+    "bytes": 217231,
+    "heading": "Malaysian Delight"
+  },
+  {
+    "path": "/packages/skandagiri-trek",
+    "status": 200,
+    "ms": 931,
+    "bytes": 198191,
+    "heading": "Skandagiri Sunrise Trek"
+  },
+  {
+    "path": "/packages/kumara-parvatha-trek",
+    "status": 200,
+    "ms": 1130,
+    "bytes": 199700,
+    "heading": "Kumara Parvatha Weekend Trek"
+  },
+  {
+    "path": "/blog/three-days-in-munnar",
+    "status": 200,
+    "ms": 1480,
+    "bytes": 205943,
+    "heading": "Three days in Munnar, and what to skip"
+  },
+  {
+    "path": "/blog/choosing-a-kerala-houseboat",
+    "status": 200,
+    "ms": 822,
+    "bytes": 205983,
+    "heading": "Picking a Kerala houseboat that is actually worth it"
+  },
+  {
+    "path": "/blog/spiti-by-road-altitude",
+    "status": 200,
+    "ms": 736,
+    "bytes": 205561,
+    "heading": "Spiti by road: what the altitude does to your plans"
+  },
+  {
+    "path": "/blog/goa-beyond-the-beach-shacks",
+    "status": 200,
+    "ms": 554,
+    "bytes": 205391,
+    "heading": "Goa in the shoulder season, beyond the beach shacks"
+  },
+  {
+    "path": "/blog/weekend-treks-from-bengaluru",
+    "status": 200,
+    "ms": 910,
+    "bytes": 207208,
+    "heading": "Six weekend treks from Bengaluru, ranked by effort"
+  },
+  {
+    "path": "/blog/rajasthan-first-trip-route",
+    "status": 200,
+    "ms": 811,
+    "bytes": 205707,
+    "heading": "A first trip to Rajasthan: the route that actually works"
+  },
+  {
+    "path": "/blog/andaman-islands-how-many-days",
+    "status": 200,
+    "ms": 773,
+    "bytes": 205264,
+    "heading": "How many days do the Andamans actually need?"
+  },
+  {
+    "path": "/blog/meghalaya-living-root-bridges",
+    "status": 200,
+    "ms": 874,
+    "bytes": 205705,
+    "heading": "Meghalaya&#x27;s root bridges: the trek nobody warns you about"
+  },
+  {
+    "path": "/blog/kochi-two-days",
+    "status": 200,
+    "ms": 874,
+    "bytes": 205738,
+    "heading": "Two days in Kochi that are not just a stopover"
+  },
+  {
+    "path": "/blog/monsoon-travel-in-india",
+    "status": 200,
+    "ms": 708,
+    "bytes": 204998,
+    "heading": "Where monsoon actually improves the trip"
+  },
+  {
+    "path": "/login",
+    "status": 200,
+    "ms": 573,
+    "bytes": 34236,
+    "heading": "Welcome back!"
+  },
+  {
+    "path": "/add-on",
+    "status": 200,
+    "ms": 586,
+    "bytes": 307461,
+    "heading": "Find the flight that fits your trip."
+  },
+  {
+    "path": "/signup",
+    "status": 200,
+    "ms": 601,
+    "bytes": 39002,
+    "heading": "Create your account"
+  },
+  {
+    "path": "/terms",
+    "status": 200,
+    "ms": 122,
+    "bytes": 159647,
+    "heading": "Terms and Conditions"
+  },
+  {
+    "path": "/privacy",
+    "status": 200,
+    "ms": 228,
+    "bytes": 159675,
+    "heading": "Privacy Policy"
+  },
+  {
+    "path": "/pay",
+    "status": 200,
+    "ms": 742,
+    "bytes": 157985,
+    "heading": "One call. One easy payment."
+  },
+  {
+    "path": "/forgot-password",
+    "status": 200,
+    "ms": 1171,
+    "bytes": 24750,
+    "heading": "Reset your password"
+  },
+  {
+    "path": "/refund-policy",
+    "status": 200,
+    "ms": 661,
+    "bytes": 159847,
+    "heading": "Refund and Cancellation Policy"
+  }
+]

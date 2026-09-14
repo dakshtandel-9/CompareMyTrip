@@ -87,42 +87,42 @@ function PickCard({ pkg }: { pkg: TravelPackage }) {
   return (
     <Link
       href={pkg.href ?? `/packages/${pkg.id}`}
-      className="group flex w-[290px] shrink-0 items-center gap-3 rounded-cmt-md border border-white/15 bg-white/10 p-2.5 backdrop-blur-md transition-colors hover:border-white/30 hover:bg-white/20"
+      className="cmt-hero-pick group flex w-[290px] shrink-0 items-center gap-3 rounded-cmt-md border border-white/15 bg-slate-900/70 p-2.5 transition-colors hover:border-white/30 hover:bg-slate-800/80"
     >
-      <div className="relative size-14 shrink-0 overflow-hidden rounded-cmt-sm bg-white/10">
+      <div className="cmt-hero-pick-image relative size-14 shrink-0 overflow-hidden rounded-cmt-sm bg-white/10">
         <ContentImage
           src={pkg.image}
           alt=""
           fill
-          sizes="56px"
+          sizes="(max-width: 767px) 64px, 56px"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="truncate font-body text-sm font-semibold text-white">
+          <p className="cmt-hero-pick-title truncate font-body text-sm font-semibold text-white">
             {pkg.title}
           </p>
-          <span className="shrink-0 font-body text-xs text-white/55">From</span>
+          <span className="cmt-hero-pick-from shrink-0 font-body text-xs text-white/55">From</span>
         </div>
 
         <div className="mt-0.5 flex items-baseline justify-between gap-2">
-          <p className="truncate font-body text-xs text-white/65">
+          <p className="cmt-hero-pick-meta truncate font-body text-xs text-white/65">
             {pkg.nights} Nights · {pkg.tags[0]}
           </p>
-          <span className="shrink-0 font-body text-sm font-semibold text-white">
+          <span className="cmt-hero-pick-price shrink-0 font-body text-sm font-semibold text-white">
             {formatINR(pkg.price)}
           </span>
         </div>
 
         <div className="mt-1 flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1 font-body text-xs font-medium text-white/85">
+          <span className="cmt-hero-pick-rating inline-flex items-center gap-1 font-body text-xs font-medium text-white/85">
             <Star className="size-3 fill-cmt-primary-500 text-cmt-primary-500" />
             {pkg.rating}
             <span className="text-white/50">({pkg.reviews})</span>
           </span>
-          <span className="shrink-0 font-body text-xs text-white/55">/person</span>
+          <span className="cmt-hero-pick-unit shrink-0 font-body text-xs text-white/55">/person</span>
         </div>
       </div>
     </Link>
@@ -209,8 +209,8 @@ export default function HeroSearch() {
     const atEnd =
       scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 8;
     scroller.scrollTo({
-      left: atEnd ? 0 : scroller.scrollLeft + 302,
-      behavior: "smooth",
+      left: atEnd ? 0 : scroller.scrollLeft + (scroller.firstElementChild?.getBoundingClientRect().width ?? 290) + 12,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
     });
   };
 
@@ -232,10 +232,10 @@ export default function HeroSearch() {
   };
 
   return (
-    <div ref={rootRef} className="w-full">
+    <div ref={rootRef} className="cmt-hero-booking w-full">
       <form
         onSubmit={handleSubmit}
-        className="cmt-hero-search w-full rounded-cmt-lg border border-white/15 bg-black/30 p-2.5 shadow-[0_24px_60px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-3"
+        className="cmt-hero-search w-full rounded-cmt-lg border border-white/15 bg-slate-950/75 p-2.5 shadow-[0_24px_60px_rgba(2,6,23,0.45)] sm:p-3"
       >
         {/* Travel style — doubles as the trip-type filter carried into search */}
         <div className="cmt-search-tabs flex items-center gap-2 overflow-x-auto pb-2.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:pb-3 [&::-webkit-scrollbar]:hidden">
@@ -359,7 +359,7 @@ export default function HeroSearch() {
               </div>
             </Field>
 
-            <Field label="Budget" className="hidden md:flex">
+            <Field label="Budget" className="flex">
               <div className="relative">
                 <button
                   type="button"
@@ -414,14 +414,14 @@ export default function HeroSearch() {
         </div>
       </form>
 
-      {/* Top picks — hidden on phones, where the search alone fills the hero */}
+      {/* The same curated shelf is available at every screen size. */}
       {hero.topPicks.enabled && topPicks.length > 0 && (
-      <div className="mt-3 hidden items-center gap-4 md:flex lg:mt-4">
-        <div className="hidden w-[186px] shrink-0 lg:block">
-          <p className="inline-flex items-center gap-2 font-display text-lg font-semibold text-white">
+      <div role="region" aria-label={hero.topPicks.title} className="cmt-hero-picks mt-3 hidden items-center gap-4 md:flex lg:mt-4">
+        <div className="cmt-hero-picks-heading hidden w-[186px] shrink-0 lg:block">
+          <h2 className="inline-flex items-center gap-2 font-display text-lg font-semibold text-white">
             <Sparkles className="size-5 text-cmt-primary-500" strokeWidth={2} />
             {hero.topPicks.title}
-          </p>
+          </h2>
           <p className="mt-1 font-body text-xs text-white/60">
             {hero.topPicks.subtitle}
           </p>
@@ -429,7 +429,7 @@ export default function HeroSearch() {
 
         <div
           ref={scrollerRef}
-          className="flex min-w-0 flex-1 gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="cmt-hero-picks-rail flex min-w-0 flex-1 gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {topPicks.map((pkg) => (
             <PickCard key={pkg.id} pkg={pkg} />
@@ -440,7 +440,7 @@ export default function HeroSearch() {
           type="button"
           onClick={scrollPicks}
           aria-label="Show more picks"
-          className="grid size-10 shrink-0 place-items-center rounded-cmt-full border border-white/20 bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/25"
+          className="cmt-hero-picks-next grid size-10 shrink-0 place-items-center rounded-cmt-full border border-white/20 bg-slate-900/70 text-white transition-colors hover:bg-slate-800/80"
         >
           <ChevronRight className="size-5" strokeWidth={2} />
         </button>

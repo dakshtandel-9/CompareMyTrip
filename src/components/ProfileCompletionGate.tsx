@@ -2,18 +2,24 @@
 
 import { useEffect, useRef, useState } from "react";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
-import { updateProfile } from "firebase/auth";
+import { signOut, updateProfile } from "firebase/auth";
 import { LoaderCircle, Mail, UserRound } from "lucide-react";
-import { getFirebaseDb } from "@/lib/firebase/client";
+import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase/client";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
 import {
-  COMPLETED_PROFILE_UID_KEY,
+  consumeCompletedProfile,
   USER_PROFILE_SAVED_EVENT,
   type UserProfileSavedDetail,
 } from "@/lib/firebase/profileEvents";
 import PhoneNumberField from "@/components/PhoneNumberField";
+import {
+  createProfileSaveController,
+  getProfileSaveStateForUser,
+  IDLE_PROFILE_SAVE_STATE,
+  ProfileSaveTimeoutError,
+} from "@/lib/firebase/profileSave";
 
-type ProfileCheck = { uid: string; complete: boolean };
+type ProfileCheck = { uid: string; complete: boolean; needsCreatedAt?: boolean };
 
 function isComplete(name: string, email: string, phone: string) {
   return Boolean(name.trim() && email.trim() && phone.trim());
@@ -22,12 +28,17 @@ function isComplete(name: string, email: string, phone: string) {
 export default function ProfileCompletionGate({ children }: { children: React.ReactNode }) {
   const user = useAuthUser();
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const profileRequestRef = useRef(0);
+  const saveControllerRef = useRef(createProfileSaveController());
   const [profile, setProfile] = useState<ProfileCheck | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [saveState, setSaveState] = useState(IDLE_PROFILE_SAVE_STATE);
+  const { saving, pending: savePending, failed: saveFailed } = getProfileSaveStateForUser(saveState, user?.uid);
+  const [profileLoadFailed, setProfileLoadFailed] = useState(false);
+  const [profileAttempt, setProfileAttempt] = useState(0);
   const [incompleteReadyForUid, setIncompleteReadyForUid] = useState<string | null>(null);
   const isGoogleAccount = user?.providerData.some((provider) => provider.providerId === "google.com") ?? false;
 
@@ -48,8 +59,9 @@ export default function ProfileCompletionGate({ children }: { children: React.Re
     if (!user) return;
 
     let active = true;
-    if (sessionStorage.getItem(COMPLETED_PROFILE_UID_KEY) === user.uid) {
-      sessionStorage.removeItem(COMPLETED_PROFILE_UID_KEY);
+    let settled = false;
+    const requestId = ++profileRequestRef.current;
+    if (consumeCompletedProfile(user.uid)) {
       queueMicrotask(() => {
         if (active) setProfile({ uid: user.uid, complete: true });
       });
@@ -58,9 +70,23 @@ export default function ProfileCompletionGate({ children }: { children: React.Re
       };
     }
 
-    getDoc(doc(getFirebaseDb(), "users", user.uid))
+    const canApply = () => active && !settled && requestId === profileRequestRef.current;
+    function failProfileLoad() {
+      if (!canApply() || !user) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      setProfileLoadFailed(true);
+      setError("We couldn't load your saved profile. Check your connection and retry.");
+      setProfile({ uid: user.uid, complete: false });
+    }
+    // Firestore can remain pending offline. Offer a retry instead of leaving
+    // a successfully signed-in visitor underneath an endless loading cover.
+    const timeout = window.setTimeout(failProfileLoad, 10000);
+    Promise.resolve().then(() => getDoc(doc(getFirebaseDb(), "users", user.uid)))
       .then((profileDocument) => {
-        if (!active) return;
+        if (!canApply()) return;
+        settled = true;
+        window.clearTimeout(timeout);
         const data = profileDocument.data();
         const nextName = typeof data?.name === "string" ? data.name : user.displayName ?? "";
         const nextEmail =
@@ -74,20 +100,17 @@ export default function ProfileCompletionGate({ children }: { children: React.Re
         setName(nextName);
         setEmail(nextEmail);
         setPhone(nextPhone || "+91");
-        setProfile({ uid: user.uid, complete: isComplete(nextName, nextEmail, nextPhone) });
+        setProfileLoadFailed(false);
+        setError("");
+        setProfile({ uid: user.uid, complete: isComplete(nextName, nextEmail, nextPhone), needsCreatedAt: !data?.createdAt });
       })
-      .catch(() => {
-        if (!active) return;
-        setName(user.displayName ?? "");
-        setEmail(user.email ?? "");
-        setPhone("+91");
-        setProfile({ uid: user.uid, complete: false });
-      });
+      .catch(failProfileLoad);
 
     return () => {
       active = false;
+      window.clearTimeout(timeout);
     };
-  }, [user]);
+  }, [user, profileAttempt]);
 
   useEffect(() => {
     if (!user) return;
@@ -95,6 +118,8 @@ export default function ProfileCompletionGate({ children }: { children: React.Re
     function handleProfileSaved(event: Event) {
       const detail = (event as CustomEvent<UserProfileSavedDetail>).detail;
       if (detail?.uid === user?.uid) {
+        // An older in-flight read must not undo a profile just saved at signup.
+        profileRequestRef.current++;
         setProfile({ uid: detail.uid, complete: true });
       }
     }
@@ -119,7 +144,7 @@ export default function ProfileCompletionGate({ children }: { children: React.Re
 
   async function saveProfile(event: React.FormEvent) {
     event.preventDefault();
-    if (!user) return;
+    if (!user || profileLoadFailed) return;
 
     const cleanName = name.trim();
     const cleanEmail = (isGoogleAccount ? user.email ?? "" : email).trim().toLowerCase();
@@ -139,28 +164,57 @@ export default function ProfileCompletionGate({ children }: { children: React.Re
       return;
     }
 
-    setSaving(true);
+    setSaveState({ uid: user.uid, saving: true, pending: true, failed: false });
     setError("");
+    const stillSignedIn = () => getFirebaseAuth().currentUser?.uid === user.uid;
     try {
-      await Promise.all([
+      await saveControllerRef.current.start(user.uid, async () => {
+        const results = await Promise.allSettled([
         setDoc(
           doc(getFirebaseDb(), "users", user.uid),
           {
             name: cleanName,
             email: cleanEmail,
             phone: cleanPhone,
+            ...(isGoogleAccount ? { provider: "google" } : {}),
+            ...(profile?.uid === user.uid && profile.needsCreatedAt ? { createdAt: serverTimestamp() } : {}),
             profileCompletedAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           },
           { merge: true },
         ),
         user.displayName === cleanName ? Promise.resolve() : updateProfile(user, { displayName: cleanName }),
-      ]);
-      setProfile({ uid: user.uid, complete: true });
+        ]);
+        const failure = results.find((result) => result.status === "rejected");
+        if (failure?.status === "rejected") throw failure.reason;
+      }, () => {
+        if (!stillSignedIn()) return;
+        profileRequestRef.current++;
+        setProfile({ uid: user.uid, complete: true });
+        setSaveState({ uid: user.uid, saving: false, pending: false, failed: false });
+        setError("");
+      });
     } catch (cause) {
+      if (!stillSignedIn()) return;
+      setSaveState({ uid: user.uid, saving: false, pending: cause instanceof ProfileSaveTimeoutError, failed: true });
       setError(cause instanceof Error ? cause.message : "Your details could not be saved. Please try again.");
     } finally {
-      setSaving(false);
+      if (stillSignedIn()) setSaveState((current) => current.uid === user.uid ? { ...current, saving: false } : current);
+    }
+  }
+
+  function retryProfile() {
+    setError("");
+    setProfileLoadFailed(false);
+    setProfile(null);
+    setProfileAttempt((attempt) => attempt + 1);
+  }
+
+  async function leaveAccount() {
+    try {
+      await signOut(getFirebaseAuth());
+    } catch {
+      setError("We couldn't sign you out. Please retry.");
     }
   }
 
@@ -168,7 +222,8 @@ export default function ProfileCompletionGate({ children }: { children: React.Re
     <>
       {children}
 
-      {status === "checking" || (status === "incomplete" && !showIncomplete) ? (
+      {/* Public content is already usable while anonymous auth initializes. */}
+      {user && (status === "checking" || (status === "incomplete" && !showIncomplete)) ? (
         <div className="fixed inset-0 z-[10000] grid place-items-center bg-white" aria-busy="true">
           <LoaderCircle className="size-8 animate-spin text-cmt-primary-600" aria-hidden="true" />
           <span className="sr-only">Checking your profile</span>
@@ -190,10 +245,12 @@ export default function ProfileCompletionGate({ children }: { children: React.Re
               <UserRound className="size-5" aria-hidden="true" />
             </span>
             <h1 id="complete-profile-title" className="mt-5 font-display text-2xl font-semibold">
-              Complete your profile
+              {profileLoadFailed ? "Your profile couldn't load" : "Complete your profile"}
             </h1>
             <p className="mt-2 text-sm leading-6 text-cmt-neutral-600">
-              Your name, email address and phone number are required before you can continue.
+              {profileLoadFailed
+                ? "Retry to recover your saved details, or sign out and continue browsing."
+                : "Your name, email address and phone number are required before you can continue."}
             </p>
 
             {error ? (
@@ -202,7 +259,7 @@ export default function ProfileCompletionGate({ children }: { children: React.Re
               </p>
             ) : null}
 
-            <div className="mt-6 space-y-4">
+            {!profileLoadFailed ? <fieldset disabled={savePending} className="mt-6 space-y-4">
               <label className="block">
                 <span className="mb-1.5 block text-sm font-semibold">Full name</span>
                 <span className="relative block">
@@ -221,15 +278,15 @@ export default function ProfileCompletionGate({ children }: { children: React.Re
                 </span>
               </label>
               <PhoneNumberField required value={phone} onChange={setPhone} />
-            </div>
+            </fieldset> : null}
 
-            <button type="submit" disabled={saving} className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold shadow-cmt-primary transition-colors hover:bg-cmt-primary-600 disabled:cursor-wait disabled:opacity-60">
+            <button type={profileLoadFailed ? "button" : "submit"} onClick={profileLoadFailed ? retryProfile : undefined} disabled={saving} className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold shadow-cmt-primary transition-colors hover:bg-cmt-primary-600 disabled:cursor-wait disabled:opacity-60">
               {saving ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
-              {saving ? "Saving details…" : "Save and continue"}
+              {saving ? "Saving details…" : profileLoadFailed ? "Retry loading profile" : savePending ? "Check save again" : "Save and continue"}
             </button>
-            <p className="mt-3 text-center text-xs text-cmt-neutral-500">
+            {profileLoadFailed || saveFailed ? <button type="button" onClick={leaveAccount} className="mt-3 h-11 w-full text-sm font-semibold text-cmt-neutral-600 underline">Sign out and browse</button> : <p className="mt-3 text-center text-xs text-cmt-neutral-500">
               All fields are mandatory. Complete your profile to use CompareMyTrip.
-            </p>
+            </p>}
           </form>
         </dialog>
       ) : null}

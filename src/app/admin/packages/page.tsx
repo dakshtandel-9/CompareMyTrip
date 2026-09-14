@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import AdminPackagesManager from "./AdminPackagesManager";
 
 export const metadata: Metadata = {
@@ -7,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminPackagesPage() {
-  return <AdminPackagesManager />;
+  return <Suspense fallback={<p role="status" className="p-6 text-sm text-cmt-neutral-500">Loading packages…</p>}><AdminPackagesManager /></Suspense>;
 }

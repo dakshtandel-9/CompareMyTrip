@@ -49,16 +49,26 @@ for (const closeOuterFirst of [false, true]) {
   });
 }
 
-test('repeated cleanup cannot release another open phone overlay', () => {
-  const { body, lock } = setup();
-  const first = lock();
-  first();
-  const second = lock();
-  first();
-  assert.equal(body.style.position, 'fixed');
-  second();
-  assert.equal(body.style.overflow, '');
-});
+for (const phone of [false, true]) {
+  test(`repeated cleanup cannot release another open ${phone ? 'phone' : 'desktop'} overlay`, () => {
+    const { body, root, lock } = setup(phone);
+    const first = lock();
+    const second = lock({ root: true });
+    first();
+    first();
+    assert.equal(body.style.overflow, phone ? 'clip' : 'hidden');
+    assert.equal(root.style.overflow, 'hidden');
+    second();
+    const third = lock({ root: true });
+    first();
+    second();
+    assert.equal(body.style.overflow, phone ? 'clip' : 'hidden');
+    assert.equal(root.style.overflow, 'hidden');
+    third();
+    assert.equal(body.style.overflow, '');
+    assert.equal(root.style.overflow, 'clip');
+  });
+}
 
 test('rotating across the breakpoint keeps active phone locks coordinated', () => {
   const { body, viewport, lock } = setup();
@@ -79,6 +89,59 @@ test('phone unlock restores existing body layout styles', () => {
   assert.equal(body.style.width, '100vw');
   unlock();
   assert.deepEqual(body.style, before);
+});
+
+for (const closeMenuFirst of [false, true]) {
+  test(`desktop menu and prompt restore scrolling when ${closeMenuFirst ? 'menu' : 'prompt'} closes first`, () => {
+    const { body, root, scrolls, lock } = setup(false);
+    const menu = lock();
+    const prompt = lock({ root: true });
+    const [first, last] = closeMenuFirst ? [menu, prompt] : [prompt, menu];
+    first();
+    assert.equal(body.style.overflow, 'hidden');
+    assert.equal(root.style.overflow, closeMenuFirst ? 'hidden' : 'clip');
+    last();
+    assert.equal(body.style.overflow, '');
+    assert.equal(root.style.overflow, 'clip');
+    assert.equal(root.style.overscrollBehavior, 'auto');
+    assert.equal(body.style.position, '');
+    assert.equal(scrolls.length, 0);
+  });
+
+  test(`desktop-to-phone overlap restores original styles when ${closeMenuFirst ? 'desktop' : 'phone'} overlay closes first`, () => {
+    const { body, root, viewport, scrolls, lock } = setup(false);
+    const menu = lock();
+    viewport.phone = true;
+    const prompt = lock({ root: true });
+    const [first, last] = closeMenuFirst ? [menu, prompt] : [prompt, menu];
+    first();
+    assert.equal(body.style.position, 'fixed');
+    assert.equal(body.style.top, '-640px');
+    assert.equal(body.style.overflow, 'clip');
+    assert.equal(root.style.overflow, 'hidden');
+    assert.equal(scrolls.length, 0);
+    last();
+    assert.equal(body.style.position, '');
+    assert.equal(body.style.top, '');
+    assert.equal(body.style.overflow, '');
+    assert.equal(root.style.overflow, 'clip');
+    assert.equal(root.style.overscrollBehavior, 'auto');
+    assert.deepEqual(scrolls, [{ left: 0, top: 640, behavior: 'instant' }]);
+  });
+}
+
+test('the root remains locked until the last desktop prompt closes', () => {
+  const { body, root, lock } = setup(false);
+  const menu = lock();
+  const firstPrompt = lock({ root: true });
+  const secondPrompt = lock({ root: true });
+  firstPrompt();
+  assert.equal(root.style.overflow, 'hidden');
+  secondPrompt();
+  assert.equal(root.style.overflow, 'clip');
+  assert.equal(body.style.overflow, 'hidden');
+  menu();
+  assert.equal(body.style.overflow, '');
 });
 
 test('desktop retains body-only locking and the prompt root-lock option', () => {

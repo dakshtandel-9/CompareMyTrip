@@ -1,193 +1,207 @@
-# CompareMyTrip manual deployment
+# CompareMyTrip deployment — 13 September 2026
 
-Target origin: **https://comparemytrip.in**. Nothing was deployed during this remediation.
-PayU intentionally remains in **test** mode at the owner's request. Test checkout is labelled;
-real payments remain guarded until policies and live settings are approved.
+Target origin: **https://comparemytrip.in**. The current deployment uses **Vercel**.
+Local application changes have not been deployed. The Firebase Authentication domain
+configuration was updated directly to fix the production Google-login configuration.
+The existing CMS coming-soon switch remains enabled. PayU remains in test mode.
 
-## Local checks
+## Release status
 
-Use Node.js 22 and the committed package lock:
+Code validation and account provisioning are separate checks. See
+[the performance audit](docs/performance-audit.md) for current test/build evidence.
+`npm run check:release` intentionally fails while either of these required settings is absent:
+
+- `CLOUDFLARE_R2_QUOTE_BUCKET_NAME`: no private quote bucket has been verified.
+- `NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY`: App Check has no Enterprise provider key.
+
+The existing R2 object credentials cannot list buckets (403). The Google service account
+can read App Check configuration, which confirms no site key and Firestore enforcement
+`UNENFORCED`; the reCAPTCHA Enterprise API reports `SERVICE_DISABLED`. These are account
+setup tasks, not values that can safely be invented or bypassed to make a check green.
+
+## Local verification
+
+Use Node.js 22 and preserve the real environment in ignored `.env.local`:
 
 ```sh
 npm ci
 npm test
-npm run test:worker:firestore
 npm run lint
-npx tsc --noEmit
+npm run check:assets
+npm run check:auth
 npm run check:release
-npm run build:cloudflare
-npx wrangler deploy --dry-run --outdir /tmp/comparemytrip-dry-run
+npm run build
+npm run start -- --port 3100
+# From another terminal, when coming-soon is disabled:
+npm run test:smoke
+# Or, when coming-soon is enabled:
+npm run test:smoke:maintenance
 ```
 
-With `npm run start -- --port 3100` running, run `npm run test:smoke` for read-only HTTP
-checks. To test the actual Worker, prepare an ignored `.dev.vars` with the runtime settings,
-run `npx wrangler dev --local --port 8787`, then run
-`SMOKE_BASE_URL=http://localhost:8787 npm run test:smoke`. Stop servers before rebuilding.
-Do not trigger the scheduled event in local testing against real credentials: it deletes
-expired data. Local cache bindings are emulated; this is not a remote preview deployment.
+Build includes TypeScript checking and the asset budget check. `check:auth` reads Firebase
+configuration and helper endpoints without signing anyone in or changing settings.
+Smoke tests make read-only or deliberately unauthorized requests; they create no records,
+bookings or payments. Stop the local server before rebuilding.
 
-`check:release` checks local configuration without printing secrets. It deliberately fails when
-required settings are missing. It cannot prove remote secrets, App Check enforcement, bucket
-existence, rules or payment behavior. The build runs static-asset limit checks before and after
-OpenNext packaging; building and Wrangler `--dry-run` do not deploy anything.
+## Vercel release
 
-### Validation and current limits
+1. Use the existing `comparemytrip` project linked to this repository. Keep the Next.js
+   framework preset, Node 22, and `npm run build` (Webpack). Do not publish the Cloudflare
+   `.open-next` output to Vercel.
+2. Set all required values from `.env.example` in the intended Vercel environment.
+   `.env.local` is not the deployment secret store. Firebase public values and the App Check
+   key are embedded at build time; rebuild after changing them. Keep server credentials,
+   PayU salt and R2 credentials server-only.
+3. `vercel.json` schedules `/api/cron/quote-cleanup` daily at `0 0 * * *` and
+   `/api/cron/pending-payments` daily at `15 0 * * *`, in UTC. Set runtime `CRON_SECRET`
+   to the existing secret securely; Vercel supplies the bearer header automatically.
+   Daily schedules work with Hobby limits. Timing can vary within the hour. Hourly
+   operation requires an eligible plan or a separately configured authenticated scheduler;
+   do not promise hourly cleanup with the committed daily schedules.
+4. Quote access checks expiry independently of cron. Scheduled deletion removes expired
+   data later; pending-payment cleanup likewise runs on the configured cadence. Inspect
+   production cron logs after release; local tests do not run authenticated cleanup against
+   real data. Monitor failures and backlog against each endpoint's batch/runtime limits.
+5. Deploy the reviewed revision through the project's existing Git/Vercel workflow after
+   required account setup. Include both new versioned MP4s and the new source/scripts in
+   that revision; archived originals deliberately stay out of the deployment. Keep coming-soon enabled while verifying protected/admin flows.
+   Turn it off through the CMS only when the launch checks below are complete.
 
-- 24 unit tests pass, including payment/coupon logic and Firestore serialization with
-  request-time code generation disabled. Lint and the production TypeScript build pass.
-- The isolated Worker transport test passes document reads, queries, simulated writes and
-  error decoding using native response streams. It intercepts every RPC, has no Firebase
-  credentials and changes no real records.
-- The read-only page suite checks 24 routes on both Node and local workerd, including
-  headers, prerendered catalogue content, auth forms, policy metadata and real 404s.
-- **Firebase returned `429 RESOURCE_EXHAUSTED: Quota exceeded` during final validation.**
-  Further real-database checks were stopped. Final builds/page checks use the app's seed
-  fallback with Admin access disabled. Check Firebase usage and quota, then rebuild with
-  the real environment after service recovers so the initial catalogue comes from the CRM.
-  Run `SMOKE_DATABASE=1 npm run test:smoke` against a credentialed local server and inspect
-  its logs for failed data reads. The isolated fixture does not prove live database access.
-- `npm run check:release` currently reports two missing local settings:
-  `CLOUDFLARE_R2_QUOTE_BUCKET_NAME` and `NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY`.
-  Complete the account steps below before opening the site to traffic.
+References: [Vercel cron setup](https://vercel.com/docs/cron-jobs/quickstart),
+[cron security](https://vercel.com/docs/cron-jobs/manage-cron-jobs),
+[plan limits and timing](https://vercel.com/docs/cron-jobs/usage-and-pricing).
 
-Next builds use Webpack: this adapter/Next combination failed at runtime with the
-Turbopack route handler. The browser Firebase client uses its browser transport during SSR.
-Server Firestore uses REST/native fetch in Workers, with protobuf schemas compiled during
-startup by `src/instrumentation.ts`. The transport dependencies are pinned and externalized
-so the startup preparation and request handlers share the same schema cache. Rerun the
-isolated Worker test and actual Worker smoke checks after SDK/Next/adapter upgrades.
+## Required service configuration
 
-OpenNext 1.20.6 emits a non-fatal `Failed to copy ... data-uri-to-buffer` diagnostic when
-processing that package's string-valued export. The build completes and runtime checks
-pass; record this upstream adapter diagnostic separately from build/runtime failures.
+### Administrator access during coming-soon mode
 
-## Required account configuration before opening the site to traffic
+Open `https://comparemytrip.in/admin` or use **Admin sign in** in the coming-soon
+page header. Signed-out visitors are sent to the regular login form with the requested
+admin destination preserved. Email/password and Google sign-in both work with an
+existing administrator account. Password-reset navigation keeps that destination too.
+Before this revision is deployed, use
+`https://comparemytrip.in/login?next=%2Fadmin%2Fcontent` directly.
 
-1. **Firebase rules:** review and manually deploy the repository's rules to the correct project:
-   `firebase deploy --only firestore:rules,storage:rules --project YOUR_PROJECT_ID`.
-   Storage writes now require an `admins/{uid}` document, matching Firestore. Allow the
-   cross-service permissions requested by Firebase for the Storage-to-Firestore rule lookup.
-   Recheck unauthenticated access to `siteContent/googleReviews`, and confirm an ordinary
-   registered user cannot write homepage/package/blog images or access CRM records.
-   The locally tested browser still reports permission denied on Google reviews with the
-   currently deployed rules; this is unresolved until that manual rules release.
-2. **Firebase App Check:** create/register a reCAPTCHA Enterprise website key for
-   `comparemytrip.in` (and any preview hostname used for testing). Set
-   `NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY` before the build. The client initializes
-   App Check before Firebase services. In Firebase Console, inspect valid requests, then
-   enable **Cloud Firestore enforcement**. Merely setting the key does not block direct
-   REST abuse. Check contact, newsletter and trip-planning forms after enforcement.
-   App Check is attestation, not a per-user rate limiter; monitor usage/billing and set alerts.
-3. **Quote PDFs:** create a separate private R2 bucket, e.g. `comparemytrip-quotes-private`;
-   keep its public r2.dev endpoint and custom domains disabled. Set
-   `CLOUDFLARE_R2_QUOTE_BUCKET_NAME` to the actual bucket name and give the existing R2
-   access credentials object read/write/delete access to it. Never use the public images
-   bucket for quotes. Configure bucket CORS for `https://comparemytrip.in`, method `PUT`,
-   allowed headers `Content-Type`, `Cache-Control`, `Content-Length`, and any checksum
-   headers required by the signed request. Add localhost only to a testing configuration.
-   Confirm an upload, expired-link refusal, and cleanup with a disposable test PDF.
-4. **Cron secret:** a missing local `CRON_SECRET` was generated in ignored `.env.local`.
-   Copy its value securely into the Worker's runtime secrets; never commit it. The Worker
-   runs quote cleanup hourly. Check the scheduled invocation in Cloudflare logs after launch.
-   PDFs expire after 72 hours; cleanup removes the data afterwards. Configure a Firestore
-   TTL policy on `quoteUploadLimits.expiresAt` to remove expired rate-limit records.
-5. **Domain and services:** configure the Cloudflare custom domain `comparemytrip.in`,
-   HTTPS, the `comparemytrip-next-cache` R2 bucket, Images binding and the Durable Object
-   migration in `wrangler.jsonc`. Add the domain to Firebase Authentication authorized
-   domains and Google/reCAPTCHA configuration. Update the Google Business Profile OAuth
-   redirect URI if that integration is enabled. Set Worker runtime values as well as the
-   build environment; `.env.local` is not a Cloudflare secret store.
-6. **Secrets:** provide Firebase Admin credentials, PayU test key/salt, `CRON_SECRET`,
-   and the R2 settings listed in `.env.example` through Cloudflare's secret store. Keep
-   `PAYU_MODE=test`. `NEXT_PUBLIC_*` values are embedded at build time: rebuild after
-   changing them. Do not put secrets in `NEXT_PUBLIC_*` variables or `wrangler.jsonc`.
+Admin and authentication routes do not require the customer phone/profile form.
+The admin gate still verifies membership from the server before mounting the CRM;
+network failures show retry, and non-admin accounts can sign out and choose another
+account. Firestore rules and protected API checks remain the source of authorization.
 
-## Policies and eventual live payments
+An existing Firebase user is not automatically an administrator. The project owner
+must provision `admins/{uid}` through the Firebase console or a trusted server, using
+the account's exact Authentication UID; a boolean field such as `enabled: true` is
+sufficient to create the document. The current authorization model uses document
+existence, so remove the document to revoke access. Clients cannot grant themselves
+membership. Do not create membership for an unverified account.
 
-Review public CRM content before launch as well: local browser testing showed a destination
-named `dsvf`. Remove or unpublish test entries through the CRM, and verify the displayed
-accreditations, cancellation promises and support numbers against the actual business.
+Once signed in, open **Website content → Coming-soon page**, turn the switch off and
+publish when ready to launch. Verify this path with coming-soon mode still enabled
+after deploying the updated application.
 
-The three original policy drafts are in `src/lib/legalPolicies.ts`. They use the verified
-brand and domain plus the direct-support number already present in `SupportPhones.tsx`.
-The legal name, address and email remain blank because neither repository nor CRM provided
-real values. A sample office entry is hidden from the public Contact page.
+### Google login
 
-Before accepting real bookings:
+`comparemytrip.in` and `www.comparemytrip.in` have been added to Firebase Authentication's
+authorized domains, preserving localhost and both default Firebase domains. The Google
+provider is enabled and its helper endpoints respond. Keep the existing working
+`*.firebaseapp.com` auth domain for the popup flow; changing it to the custom site hostname
+requires correctly hosting/proxying Firebase's `/__/auth/` helpers.
 
-- Supply the legal business name, registered address, support/grievance email and confirm
-  the phone. Approve cancellation charges, refund handling deadlines and retention practices.
-  The drafts defer package-specific terms to a written offer; they must reflect actual operations.
-- Review the drafts with the business's legal adviser and replace review-only passages.
-  Set `LEGAL_POLICIES_APPROVED = true`, set the three pages' metadata to indexable and
-  add them back to the sitemap in the same change.
-- Set `PAYU_MODE=live`, live key/salt and `PAYU_LIVE_PAYMENTS_ENABLED=true` in the intended
-  runtime; keep `NEXT_PUBLIC_SITE_URL=https://comparemytrip.in`. No API URL edit is needed:
-  `src/lib/payu.ts` selects PayU's live endpoint. Test mode is the current intentional setting.
-- Run `npm run check:live`, rebuild, and manually exercise success, failure, callback replay,
-  coupon use, account trip visibility, and a refund with the appropriate PayU environment.
-  Review `trips` after sandbox testing so test records are not mistaken for real bookings.
+The application starts the Google popup directly from the click, preserves the validated
+return page and Remember me preference, and separates authentication from profile saving.
+The returning-user flow completed successfully in the local production build and preserved
+the `/account` return address. On the deployed domain, verify Google sign-in, canceled popup,
+returning user, new-user profile completion,
+and a checkout return on the deployed domain. An automated configuration check does not
+complete Google's account consent or prove physical Safari/Android behavior.
 
-Reference structure was researched from [MakeMyTrip's user agreement](https://www.makemytrip.com/legal/in/eng/user_agreement.html),
-[Thomas Cook's booking terms](https://customize.thomascook.in/terms_conditions/) and
-[Thomas Cook's privacy policy](https://www.thomascook.in/privacy-policy).
-The drafts are original, tailored to this app, and are not a claim of legal approval.
-App Check setup follows [Firebase's Enterprise provider guide](https://firebase.google.com/docs/app-check/web/recaptcha-enterprise-provider).
+Reference: [Firebase Google sign-in](https://firebase.google.com/docs/auth/web/google-signin).
 
-## Media and caching
+### App Check
 
-Only the selected hero video (6.25 MiB), compressed train video (about 0.52 MiB) and their
-posters ship. Unused originals and all candidate hero clips were preserved locally under
-ignored `media-source/prelaunch/`; they are not deleted from the user's machine. `/home1`
-through `/home4` have no source routes and return 404. Mobile, reduced-motion and data-saving
-visitors use posters; desktop video downloads are about 6.8 MiB combined. Actual total page
-transfer/LCP needs measurement on the real host; moving bytes to a CDN alone would not shrink them.
+Enable the reCAPTCHA Enterprise API and create a website key for the real site domains.
+Register the web app's provider in Firebase App Check. Put the site key into
+`NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY` in both the build environment and local testing
+configuration. Inspect valid requests, then enable **Cloud Firestore enforcement** and
+exercise contact, newsletter and trip-planning forms. Do not enforce before a valid client
+configuration is deployed. Monitor usage and billing; App Check does not provide per-user
+rate limiting. [Enterprise provider setup](https://firebase.google.com/docs/app-check/web/recaptcha-enterprise-provider).
 
-`NEXT_PUBLIC_VIDEO_CDN_URL` optionally serves `/videos/hero-scroll.mp4` and `/videos/train.mp4`
-from an HTTPS CDN. Leave it blank to use the small bundled files; no media upload is needed
-for that fallback. Upload the selected assets and verify URLs before setting the CDN value.
+### Private quote uploads
 
-`/packages` and `/destinations` prerender their content with hourly ISR, then hydrate URL
-filters. Catalogue, blog and destination-cover reads use the existing
-OpenNext incremental data cache across requests, serializing dates explicitly. React `cache`
-still deduplicates reads within a request. `unstable_cache` is used intentionally with this
-project's ISR configuration: enabling Cache Components globally changes route caching and
-404 behavior. Allow up to one hour for server-rendered catalogue changes to refresh.
+Create or identify a separate private R2 bucket. Keep its r2.dev endpoint and custom domains
+disabled. Set its actual name as `CLOUDFLARE_R2_QUOTE_BUCKET_NAME`; it must differ from the
+public images bucket. Give the server's existing R2 credentials object read/write/delete
+access to that bucket. Configure CORS for `https://comparemytrip.in`, method `PUT`, headers
+`Content-Type`, `Cache-Control`, `Content-Length` and any checksum headers required by the
+signed request. Add localhost only to test CORS. Verify a disposable PDF upload, refusal
+of an expired download, and cleanup. Do not publish private PDFs to the images bucket.
 
-Security headers are configured for application responses in Next and assets in `_headers`.
-Framing, objects and base URI restrictions are enforced; the wider CSP remains Report-Only
-for integration tuning. Monitor browser violations before tightening the policy.
+### Firebase data and rules
 
-## Report disposition
+Review and deploy the repository's Firestore/Storage rules to the correct Firebase project:
 
-| Report item | Disposition |
-| --- | --- |
-| B1 | jose traced; Webpack handler, browser client transport and startup-prepared Firestore REST transport fix additional workerd failures. Build, dry run and isolated runtime checks pass; real Firebase quota remains a release check. |
-| B2, H2 | Unused large media archived; train compressed; small bundle passes 25 MiB limit; mobile uses stills. |
-| B3 | Test gateway intentionally retained; production origin corrected; explicit live-payment safeguards. |
-| B4 | Local secret generated; hourly cron. Worker secret still needs manual setup. |
-| B5 | Private R2 bucket and runtime bucket name still need manual provisioning. |
-| B6 | Original drafts provided; actual business details and approval still required. |
-| B7 | Repository rules ready; manual Firebase deployment and public-read verification still required. |
-| H1 | Hero image uses Next 16 preload, not lazy loading. |
-| H3 | Static catalogue routes plus cross-request catalogue cache; client filter navigation preserved. |
-| H4 | Security headers added to app and static assets; broad CSP initially Report-Only. |
-| H5 | App Check client integrated; site key and Firestore enforcement still required in Firebase. |
-| H6 | Storage writes restricted to admins. |
-| M1 | Root streaming loader removed; unknown package/destination/blog routes return actual HTTP 404. |
-| M2 | Unapproved/noindex policy drafts removed from sitemap. |
-| M3 | Preview routes absent and tested 404; candidate media archived. |
-| M4 | Guest gate renders auth content during session initialization; login avoids a query-dependent SSR bailout. |
-| L1 | Required field semantics added, including phone. |
-| L2 | Small badges raised to 12px; catalogue checkbox labels have 44px minimum height. |
-| L3 | Loader logo sizes fixed to 190px. |
-| L4 | Added PayU hash, pricing, gateway/origin and coupon eligibility/resolution regression tests. |
+```sh
+firebase deploy --only firestore:rules,storage:rules --project compare-my-trip-8e035
+```
 
-## Manual release commands — not executed by the assistant
+Storage admin checks use Firestore `admins/{uid}`; grant the cross-service permission
+Firebase requests for that lookup. Verify ordinary users cannot change package/homepage
+images or access CRM records. Current public probes return homepage 200 and Google reviews
+404 NOT_FOUND (the review document is absent), not the earlier permission-denied error.
+The earlier audit's Firebase quota failure is historical; final launch still needs live
+usage/quota review and end-to-end form checks. Configure TTL for `quoteUploadLimits.expiresAt`.
 
-Once the account configuration above is complete, build again in the final environment and
-run your own deployment with `npm run deploy:cloudflare`. Check response headers, mobile
-layout and media transfer on the real domain. Verify cold-start performance, quote uploads,
-App Check and authorized admin workflows there; local build/HTTP checks do not substitute
-for those account-dependent end-to-end checks. Do not call the site live-payment-ready while
-test mode, draft policies or the account configuration steps remain outstanding.
+Review CRM content before publishing: remove test entries and verify published contact
+numbers, package data, accreditations, review authenticity and traveller-count claims.
+
+## Payments and policies
+
+Real payments remain guarded. `npm run check:live` additionally fails on disabled live PayU,
+unapproved policies, and missing legal business name, address and support email. Supply real
+business details in `src/lib/legalPolicies.ts`, approve cancellation/refund/retention terms,
+and have the business review them. Do not set approval flags just to pass checks.
+
+After approval, update the policy pages from noindex drafts and add them to the sitemap.
+Set `PAYU_MODE=live`, actual live key/salt and `PAYU_LIVE_PAYMENTS_ENABLED=true`, retaining
+`NEXT_PUBLIC_SITE_URL=https://comparemytrip.in`. Test success, failure, callback replay,
+coupons, account trip visibility and refunds in the appropriate environment. Review test
+records so they cannot be mistaken for real bookings.
+
+## Cloudflare alternative
+
+The repository retains the Workers/OpenNext option; this is not the currently observed host:
+
+```sh
+npm run test:worker:firestore
+npm run build:cloudflare
+npx wrangler deploy --dry-run --outdir tmp/worker-dry-run
+```
+
+For a deliberate migration, provision the R2 incremental-cache bucket, Images binding,
+Durable Object migration, custom domain and Worker secrets from `wrangler.jsonc`. The
+existing Worker scheduled handler runs both cleanup jobs hourly. Do not run both hosting
+schedulers against one project unintentionally. Use `npm run deploy:cloudflare` only for
+that chosen migration, not to update the existing Vercel deployment.
+
+The browser Firebase transport is selected during SSR. Server Firestore uses native REST
+in Workers with startup-prepared protobuf schemas. Keep its pinned transport dependencies
+until the isolated Worker test and actual Worker page checks pass after any upgrade.
+Next's middleware deprecation notice is expected: this adapter still uses the Edge
+middleware convention. OpenNext's existing `data-uri-to-buffer` copy diagnostic and
+third-party bundling warnings must be distinguished from a failed build or runtime test.
+
+## Media and launch verification
+
+The versioned hero renditions ship with the project; see
+[hero-scroll-performance.md](docs/hero-scroll-performance.md). They are same-origin.
+`NEXT_PUBLIC_VIDEO_CDN_URL` applies to the train video only; upload `/videos/train.mp4`
+before enabling it. Archived originals are local-only under ignored `media-source/`.
+
+After deploying, verify both new media URLs with GET 200, range GET 206, MP4 content type,
+and `Cache-Control: public, max-age=31536000, immutable`. Use the smoke command against the
+deployed origin in the appropriate maintenance mode. Inspect server-rendered public pages,
+expected 404s, browser errors, Google login, private uploads, forms and scheduled jobs.
+Recheck cold-load performance and fast forward/reverse touch scrolling on physical iOS and
+Android phones. Local phone-width Chrome checks do not certify those devices or establish
+production Core Web Vitals. Do not call the site fully launch-ready while account setup,
+policy approval or these end-to-end checks are outstanding.

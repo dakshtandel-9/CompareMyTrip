@@ -9,11 +9,14 @@ import Button from "../_components/Button";
 import SplitAuthShell from "../_components/SplitAuthShell";
 import TextField from "../_components/TextField";
 import { getAuthErrorMessage, requestPasswordReset } from "@/lib/firebase/auth";
+import { getAuthPageHref } from "@/lib/firebase/authDestination";
+import { useAuthDestination } from "@/lib/firebase/useAuthDestination";
 import { useSiteContent } from "@/lib/useSiteContent";
 
 export default function ForgotPasswordPage() {
   const { auth } = useSiteContent();
   const copy = auth.login;
+  const loginHref = getAuthPageHref("/login", useAuthDestination());
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -41,7 +44,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <SplitAuthShell
-      navPrompt={<Link href="/login" className="font-semibold text-cmt-primary-900 hover:underline">Back to sign in</Link>}
+      navPrompt={<Link href={loginHref} className="font-semibold text-cmt-primary-900 hover:underline">Back to sign in</Link>}
       title="Reset your password"
       subtitle="Enter the email address connected to your account."
       imageSrc={copy.image}
@@ -55,7 +58,7 @@ export default function ForgotPasswordPage() {
         {message ? <p role="status" className="rounded-cmt-control border border-cmt-success-500/20 bg-cmt-success-100 px-4 py-3 text-sm text-cmt-success-700">{message}</p> : null}
         <TextField label="Email address" type="email" name="email" autoComplete="email" required icon={<Mail size={20} aria-hidden="true" />} value={email} onChange={(event) => setEmail(event.target.value)} />
         <Button type="submit" isLoading={submitting}>Send reset link</Button>
-        <Link href="/login" className="mx-auto inline-flex items-center gap-2 text-sm font-semibold text-cmt-neutral-700 hover:text-cmt-neutral-900">
+        <Link href={loginHref} className="mx-auto inline-flex items-center gap-2 text-sm font-semibold text-cmt-neutral-700 hover:text-cmt-neutral-900">
           <ArrowLeft className="size-4" aria-hidden="true" /> Back to sign in
         </Link>
       </form>

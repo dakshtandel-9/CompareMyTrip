@@ -1,25 +1,35 @@
 # CompareMyTrip
 
-Next.js travel comparison site targeting Cloudflare Workers through OpenNext.
-Production domain: https://comparemytrip.in.
+Next.js travel comparison site. The current live domain, https://comparemytrip.in, uses
+Vercel; the repository also supports Cloudflare Workers through OpenNext.
+
+Use Node.js 22 and the committed package lock. Preserve an existing `.env.local`.
 
 ```sh
 npm ci
-cp .env.example .env.local
-# Fill the Firebase, R2 and PayU test settings in .env.local.
+cp .env.example .env.local # only on a new checkout; fill the required settings
 npm run dev
 ```
 
-For an existing checkout, preserve its `.env.local` rather than overwriting credentials.
+Release checks:
 
 ```sh
 npm test
 npm run lint
-npx tsc --noEmit
+npm run check:assets
+npm run check:auth
 npm run check:release
-npm run build:cloudflare
+npm run build
+npm run start -- --port 3100
+# In a second terminal:
+npm run test:smoke
+# If the CMS coming-soon switch is enabled, use this instead:
+npm run test:smoke:maintenance
 ```
 
-PayU remains in test mode. Live payments require approved business policies and explicit
-enablement. See [DEPLOYMENT.md](DEPLOYMENT.md) for the audit fixes, unresolved account setup,
-manual release checklist, optional media CDN and production verification steps.
+The local release check deliberately fails until the private quote bucket and App Check
+site key are configured. PayU remains in test mode; do not enable live payments without
+approved business policies and live merchant settings.
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for hosting, account setup and launch verification,
+and [the performance audit](docs/performance-audit.md) for fixes and validation evidence.

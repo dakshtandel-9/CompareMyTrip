@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen, ChevronLeft, ChevronRight, Edit3, ExternalLink, ImagePlus, PenLine, Search, Trash2 } from "lucide-react";
 
@@ -14,13 +15,19 @@ import AdminBlogEditor from "./AdminBlogEditor";
 
 const PAGE_SIZE = 10;
 
+import { catalogueEditorMode, catalogueListHref } from "../packages/catalogueEditorState";
+
 export default function AdminBlogManager() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { posts, loading, error } = useBlogState();
-  const [editing, setEditing] = useState<BlogPost | "new" | null>(null);
+  const [editing, setEditing] = useState<BlogPost | null>(null);
   const [actionError, setActionError] = useState("");
   const [working, setWorking] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [status, setStatus] = useState("all");
+  const [success, setSuccess] = useState("");
 
   /* Images uploaded into an editor that was never saved are deleted here, so
      an abandoned draft cannot leave paid-for objects in the bucket. */
@@ -34,25 +41,29 @@ export default function AdminBlogManager() {
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) return posts;
-    return posts.filter((post) =>
-      [post.title, post.category, post.destination, post.author, post.id, ...post.tags]
-        .some((value) => value.toLowerCase().includes(query)),
-    );
-  }, [posts, search]);
+    return posts.filter((post) => (status === "all" || post.status === status) &&
+      (!query || [post.title, post.category, post.destination, post.author, post.id, ...post.tags]
+        .some((value) => value.toLowerCase().includes(query))));
+  }, [posts, search, status]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const publishedCount = posts.filter((post) => post.status === "published").length;
 
-  if (editing) {
+  const currentEditing = catalogueEditorMode(editing, searchParams.get("create"), !loading && !error);
+  const closeEditor = () => {
+    setEditing(null);
+    if (searchParams.has("create")) router.replace(catalogueListHref("/admin/blog", searchParams.toString()), { scroll: false });
+  };
+
+  if (currentEditing) {
     return (
       <AdminBlogEditor
-        initialPost={editing === "new" ? undefined : editing}
+        initialPost={currentEditing === "new" ? undefined : currentEditing}
         existingIds={posts.map((post) => post.id)}
-        onCancel={() => setEditing(null)}
-        onSaved={() => setEditing(null)}
+        onCancel={closeEditor}
+        onSaved={(message) => { setSuccess(message); closeEditor(); }}
       />
     );
   }
@@ -62,6 +73,7 @@ export default function AdminBlogManager() {
     setActionError("");
     try {
       await saveBlogPost({ ...post, status: post.status === "published" ? "draft" : "published" });
+      setSuccess(post.status === "published" ? `“${post.title}” is now a private draft.` : `“${post.title}” is now live on your website.`);
     } catch (cause) {
       setActionError(cause instanceof Error ? cause.message : "The post could not be updated.");
     } finally {
@@ -74,8 +86,8 @@ export default function AdminBlogManager() {
     setActionError("");
     try {
       const { added, skipped } = await seedBlogPosts(BLOG_SEED_POSTS, posts.map((post) => post.id));
-      if (!added) setActionError("Those starter guides are already in the database.");
-      else if (skipped) setActionError(`Added ${added} guides. ${skipped} were already present and left untouched.`);
+      if (!added) setSuccess("These starter guides have already been added.");
+      else setSuccess(`Added ${added} guides.${skipped ? ` ${skipped} were already present.` : ""} You can edit each article below.`);
     } catch (cause) {
       setActionError(cause instanceof Error ? cause.message : "The starter guides could not be added.");
     } finally {
@@ -90,6 +102,7 @@ export default function AdminBlogManager() {
     try {
       await deleteBlogPost(post.id);
       await Promise.all(blogPostImages(post).map(deleteImageFromCloudflare));
+      setSuccess(`“${post.title}” was deleted.`);
     } catch (cause) {
       setActionError(cause instanceof Error ? cause.message : "The post could not be deleted.");
     } finally {
@@ -102,19 +115,23 @@ export default function AdminBlogManager() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-700">Content</p>
-          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Blog</h1>
+          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Blog & travel guides</h1>
           <p className="mt-2 text-sm text-cmt-neutral-600">
-            Write and publish the travel guides shown at <Link href="/blog" className="font-semibold underline">/blog</Link>.
+            Create helpful travel articles for your <Link href="/blog" target="_blank" className="font-semibold underline">website blog</Link>. Drafts stay private until you publish.
           </p>
         </div>
         <button
-          onClick={() => setEditing("new")}
+          onClick={() => router.push("/admin/blog?create=1", { scroll: false })}
           className="inline-flex h-11 items-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold shadow-cmt-primary hover:bg-cmt-primary-600"
         >
-          <PenLine className="size-4" /> Write post
+          <PenLine className="size-4" /> Write an article
         </button>
       </div>
 
+      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        {[{ value: "all", label: "All articles", count: posts.length, hint: "Every guide you have created" }, { value: "published", label: "Live on website", count: publishedCount, hint: "Available for travellers to read" }, { value: "draft", label: "Drafts", count: posts.length - publishedCount, hint: "Private articles in progress" }].map((item) => <button type="button" key={item.value} aria-pressed={status === item.value} onClick={() => { setStatus(item.value); setPage(1); }} className={`rounded-2xl border p-5 text-left ${status === item.value ? "border-emerald-300 bg-emerald-50/70" : "border-cmt-neutral-200 bg-white hover:border-emerald-200"}`}><span className="text-sm font-semibold text-cmt-neutral-600">{item.label}</span><span className="mt-2 block text-3xl font-semibold tracking-tight">{loading ? "—" : item.count}</span><span className="mt-1 block text-xs text-cmt-neutral-500">{item.hint}</span></button>)}
+      </div>
+      {success && <p role="status" className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{success}</p>}
       {!loading && !posts.length && !error && (
         <section className="mt-7 flex flex-wrap items-center justify-between gap-4 rounded-cmt-md border border-cmt-primary-200 bg-cmt-primary-50 p-5">
           <div className="flex gap-3">
@@ -163,14 +180,18 @@ export default function AdminBlogManager() {
           </label>
         </div>
 
+        <div className="flex flex-wrap items-center gap-2 border-b border-cmt-neutral-100 px-5 py-3" aria-label="Filter articles by visibility">
+          {[{ value: "all", label: "All articles" }, { value: "published", label: "Live on website" }, { value: "draft", label: "Drafts" }].map((item) => <button key={item.value} type="button" aria-pressed={status === item.value} onClick={() => { setStatus(item.value); setPage(1); }} className={`rounded-lg px-3 py-2 text-xs font-semibold ${status === item.value ? "bg-emerald-50 text-emerald-800" : "text-cmt-neutral-500 hover:bg-cmt-neutral-50"}`}>{item.label}</button>)}
+          {(search || status !== "all") && <button type="button" onClick={() => { setStatus("all"); setSearch(""); setPage(1); }} className="ml-auto px-2 py-2 text-xs font-semibold text-emerald-800">Clear filters</button>}
+        </div>
         <div className="divide-y divide-cmt-neutral-200">
           {visible.map((post) => {
             const image = blogPostImage(post);
             const busy = working === post.id;
 
             return (
-              <article key={post.id} className="grid gap-4 p-4 sm:grid-cols-[88px_minmax(0,1fr)_auto] sm:items-center sm:px-5">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-cmt-sm bg-cmt-neutral-100">
+              <article key={post.id} className="grid gap-4 p-4 xl:grid-cols-[88px_minmax(0,1fr)_auto] xl:items-center sm:px-5">
+                <div className="relative aspect-[4/3] w-28 xl:w-full overflow-hidden rounded-cmt-sm bg-cmt-neutral-100">
                   {image ? (
                     <Image src={image} alt="" fill sizes="88px" className="object-cover" unoptimized={image.startsWith("data:")} />
                   ) : (
@@ -186,7 +207,7 @@ export default function AdminBlogManager() {
                         ? "bg-cmt-success-100 text-cmt-success-700"
                         : "bg-cmt-neutral-100 text-cmt-neutral-500"
                     }`}>
-                      {post.status === "published" ? "Published" : "Draft"}
+                      {post.status === "published" ? "Live on website" : "Draft · private"}
                     </span>
                     {post.featured && (
                       <span className="rounded-cmt-full bg-cmt-primary-100 px-2 py-0.5 text-[10px] font-semibold text-cmt-primary-900">Featured</span>
@@ -206,7 +227,7 @@ export default function AdminBlogManager() {
                     onClick={() => void togglePublished(post)}
                     className="inline-flex h-9 items-center rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold disabled:opacity-40"
                   >
-                    {post.status === "published" ? "Unpublish" : "Publish"}
+                    {post.status === "published" ? "Move to draft" : "Publish"}
                   </button>
                   {post.status === "published" && (
                     <Link
@@ -237,7 +258,7 @@ export default function AdminBlogManager() {
 
           {!loading && filtered.length === 0 && (
             <p className="p-8 text-center text-sm text-cmt-neutral-500">
-              {search ? "No posts match your search." : "No blog posts yet. Write your first travel guide."}
+              {search || status !== "all" ? "No articles match these filters. Try another search or clear the filters." : "No blog posts yet. Select Write an article to create your first travel guide."}
             </p>
           )}
         </div>

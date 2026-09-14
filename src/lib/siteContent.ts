@@ -724,12 +724,20 @@ export type AddOnServiceContent = {
 export type AddOnContent = {
   /** Controls the top band only; the enquiry forms remain available. */
   enabled: boolean;
-  services: Record<"flights" | "hotels" | "visa" | "byq", AddOnServiceContent>;
+  services: Record<"flights" | "hotels" | "visa" | "transport" | "byq", AddOnServiceContent>;
 };
 
 /* ------------------------- The whole page ------------------------- */
 
+export type FooterBadgesContent = {
+  enabled: boolean;
+  /** Empty URLs retain the original footer artwork. */
+  paymentImages: Record<string, string>;
+  accreditationImages: Record<string, string>;
+};
+
 export type SiteContent = {
+  footerBadges: FooterBadgesContent;
   comingSoon: ComingSoonContent;
   header: HeaderContent;
   /* Deliberately absent from SECTION_ORDER: banners are edited on their own
@@ -780,6 +788,7 @@ export const SECTION_ORDER = [
   "guides",
   "faq",
   "newsletter",
+  "footerBadges",
 ] as const satisfies readonly (keyof SiteContent)[];
 
 export type SectionKey = (typeof SECTION_ORDER)[number];
@@ -790,6 +799,11 @@ export type SectionKey = (typeof SECTION_ORDER)[number];
    guess at what the copy used to say. */
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
+  footerBadges: {
+    enabled: true,
+    paymentImages: { visa: "", mastercard: "", amex: "", upi: "", googlePay: "", phonepe: "", paytm: "" },
+    accreditationImages: { google: "", iata: "", iso: "", pci: "", secure: "" },
+  },
   comingSoon: DEFAULT_COMING_SOON,
   addOn: {
     enabled: true,
@@ -811,6 +825,12 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         title: "Your next journey starts with the right visa.",
         description:
           "Tell us where you’re travelling and when. Our desk will help you understand the visa options, documents and next steps for your trip, so you can plan with a clearer picture.",
+      },
+      transport: {
+        eyebrow: "Transport bookings",
+        title: "A comfortable ride, wherever you’re headed.",
+        description:
+          "Plan an outstation one-way or round trip, an airport transfer or an hourly rental. Share your route, dates, pickup time and any stops, and we’ll help you find the right cab for your journey.",
       },
       byq: {
         eyebrow: "Bring Your Quote",
@@ -1013,6 +1033,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
           { id: "nav-addon-1", label: "Flights", href: "/add-on?service=flights" },
           { id: "nav-addon-2", label: "Hotels", href: "/add-on?service=hotels" },
           { id: "nav-addon-3", label: "Visa", href: "/add-on?service=visa" },
+          { id: "nav-addon-5", label: "Transport", href: "/add-on?service=transport" },
           { id: "nav-addon-4", label: "Bring Your Quote", href: "/add-on?service=byq#add-on-enquiry" },
         ],
       },
@@ -2015,6 +2036,14 @@ const section = (raw: unknown): Record<string, unknown> => (isRecord(raw) ? raw 
 export function normalizeSiteContent(raw: unknown): SiteContent {
   const base = DEFAULT_SITE_CONTENT;
   const root = isRecord(raw) ? raw : {};
+  const footerBadgesRaw = section(root.footerBadges);
+  const badgeImages = (raw: unknown, defaults: Record<string, string>) => {
+    const images = section(raw);
+    return Object.fromEntries(Object.entries(defaults).map(([key, fallback]) => {
+      const image = str(images[key], fallback).trim();
+      return [key, /^(https?:\/\/[^\s]+|\/(?!\/)[^\s]*)$/i.test(image) ? image : fallback];
+    }));
+  };
 
   /* --- banners --- */
   const bannersRaw = (() => {
@@ -2109,15 +2138,25 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     "nav-4": "International Holidays",
   };
   const upgradedHeaderItems = normalizedHeaderItems.map((item) => {
-    // Add the quote form to headers already saved in the CRM as well.
+    // New services also reach headers already saved in the CRM, while
+    // existing service labels, links and positions remain editable.
     if (item.id === "nav-addon") {
-      const quoteLink = base.header.items
-        .find((entry) => entry.id === "nav-addon")?.children
-        .find((child) => child.id === "nav-addon-4");
-      const hasQuoteLink = item.children.some((child) =>
-        child.id === "nav-addon-4" || child.href.split("#")[0] === "/add-on?service=byq",
+      const shippedChildren = base.header.items.find((entry) => entry.id === "nav-addon")?.children ?? [];
+      const quoteLink = shippedChildren.find((child) => child.id === "nav-addon-4");
+      const children = [...item.children];
+      const isQuoteLink = (child: NavChildContent) =>
+        child.id === "nav-addon-4" || child.href.split("#")[0] === "/add-on?service=byq";
+      if (quoteLink && !children.some(isQuoteLink)) children.push(quoteLink);
+
+      const transportLink = shippedChildren.find((child) => child.id === "nav-addon-5");
+      const hasTransportLink = children.some((child) =>
+        child.id === "nav-addon-5" || child.href.split("#")[0] === "/add-on?service=transport",
       );
-      if (quoteLink && !hasQuoteLink) return { ...item, children: [...item.children, quoteLink] };
+      if (transportLink && !hasTransportLink) {
+        const quoteIndex = children.findIndex(isQuoteLink);
+        children.splice(quoteIndex < 0 ? children.length : quoteIndex, 0, transportLink);
+      }
+      if (children.length !== item.children.length) return { ...item, children };
     }
     if (legacyHeaderLabels[item.id] !== item.label) return item;
     return base.header.items.find((defaultItem) => defaultItem.id === item.id) ?? item;
@@ -2183,12 +2222,18 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
 
   return {
     comingSoon: normalizeComingSoon(root.comingSoon),
+    footerBadges: {
+      enabled: bool(footerBadgesRaw.enabled, base.footerBadges.enabled),
+      paymentImages: badgeImages(footerBadgesRaw.paymentImages, base.footerBadges.paymentImages),
+      accreditationImages: badgeImages(footerBadgesRaw.accreditationImages, base.footerBadges.accreditationImages),
+    },
     addOn: {
       enabled: bool(addOnRaw.enabled, base.addOn.enabled),
       services: {
         flights: addOnService("flights"),
         hotels: addOnService("hotels"),
         visa: addOnService("visa"),
+        transport: addOnService("transport"),
         byq: addOnService("byq"),
       },
     },

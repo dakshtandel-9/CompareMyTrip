@@ -1,20 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  BadgeIndianRupee,
-  CalendarClock,
-  CalendarDays,
-  Download,
-  Mail,
-  MapPin,
-  Phone,
-  Search,
-  Sparkles,
-  Trash2,
-  UsersRound,
-  UtensilsCrossed,
-} from "lucide-react";
+import { ChevronDown, Download, Trash2 } from "lucide-react";
+import { csvCell } from "../enquiries/csv";
+import { ContactLinks, InboxFilters, InboxSearch, InboxState, OperationsHeader, WorkflowGuide } from "../enquiries/OperationsUI";
 
 import {
   deletePopupLead,
@@ -52,19 +41,12 @@ const statusClass = (status: PopupLeadStatus) =>
         ? "border-cmt-primary-500/40 bg-cmt-primary-50 text-cmt-primary-900"
         : "border-cmt-primary-500/40 bg-cmt-primary-50 text-cmt-primary-900";
 
-/* Quotes a value for CSV: wrap in quotes and double any inner quote. The
-   leading apostrophe guard stops a spreadsheet treating +91… or =… as a
-   formula when the travel desk opens the export. */
-const csvCell = (value: string) => {
-  const guarded = /^[=+\-@]/.test(value) ? `'${value}` : value;
-  return `"${guarded.replace(/"/g, '""')}"`;
-};
-
 export default function AdminPopupLeadsList() {
   const authUser = useAuthUser();
   const [leads, setLeads] = useState<PopupLead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<PopupLeadStatus | "all">("all");
   const [updatingId, setUpdatingId] = useState("");
@@ -101,6 +83,7 @@ export default function AdminPopupLeadsList() {
   const changeStatus = async (lead: PopupLead, status: PopupLeadStatus) => {
     setUpdatingId(lead.id);
     setError("");
+    setNotice("");
     const previousStatus = lead.status;
     const setLocalStatus = (nextStatus: PopupLeadStatus) =>
       setLeads((current) =>
@@ -112,6 +95,7 @@ export default function AdminPopupLeadsList() {
       /* Keep the controlled select on the confirmed value even if an older
          cached snapshot arrived while the write was in flight. */
       setLocalStatus(status);
+      setNotice(`Status saved for ${lead.name || "this customer"}.`);
     } catch (cause) {
       setLocalStatus(previousStatus);
       setError(cause instanceof Error ? cause.message : "The lead status could not be updated.");
@@ -121,11 +105,12 @@ export default function AdminPopupLeadsList() {
   };
 
   const removeLead = async (lead: PopupLead) => {
-    if (!window.confirm(`Delete the pop-up form lead from ${lead.name}? This cannot be undone.`)) return;
+    if (!window.confirm(`Delete the trip planning request from ${lead.name}? This cannot be undone.`)) return;
     setDeletingId(lead.id);
     setError("");
     try {
       await deletePopupLead(lead.id);
+      setNotice("Trip planning request deleted.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "The lead could not be deleted.");
     } finally {
@@ -162,217 +147,51 @@ export default function AdminPopupLeadsList() {
   };
 
   const isLoading = authUser === undefined || (authUser !== null && loading);
-  const displayError = authUser === null ? "Sign in to your CRM account to view pop-up form leads." : error;
+  const displayError = authUser === null ? "Sign in to your admin account to view trip planning requests." : error;
 
-  return (
-    <div className="font-body text-cmt-neutral-900">
-      <header className="flex flex-wrap items-end justify-between gap-5">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-700">Lead inbox</p>
-          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Pop-up Form</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-cmt-neutral-600">
-            Trip requests submitted through the website&rsquo;s timed pop-up. Every visitor who fills
-            it in lands here — call them back with quotes and track the outcome.
-          </p>
-        </div>
-        <div className="flex min-w-[190px] items-center gap-3 rounded-cmt-md border border-cmt-neutral-200 bg-white px-4 py-3 shadow-cmt-xs">
-          <span className="grid size-10 place-items-center rounded-cmt-full bg-cmt-primary-50 text-cmt-primary-900">
-            <Sparkles className="size-5" aria-hidden="true" />
-          </span>
-          <div>
-            <p className="font-display text-2xl font-semibold tabular-nums">{isLoading ? "—" : newCount}</p>
-            <p className="text-xs text-cmt-neutral-500">New leads</p>
+  const inProgress = leads.filter(lead => lead.status === "contacted" || lead.status === "quoted").length;
+  const statusLabel = (status: PopupLeadStatus) => status === "new" ? "Needs a reply" : status === "converted" ? "Booked" : status === "quoted" ? "Quote sent" : POPUP_LEAD_STATUS_LABELS[status];
+
+  return <div className="text-slate-900">
+    <OperationsHeader eyebrow="Customer requests" title="Trip planning requests"
+      description="Customers who asked for help through the website’s trip planning pop-up. Review their preferences, get in touch, and track the next step."
+      action={<button type="button" onClick={exportCsv} disabled={!visibleLeads.length} className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"><Download className="size-4" aria-hidden="true" />Export visible requests</button>}
+      metrics={[
+        { label: "Needs a reply", value: isLoading ? "—" : newCount, hint: "New customers to contact", attention: true },
+        { label: "In progress", value: isLoading ? "—" : inProgress, hint: "Contacted or waiting on a quote" },
+        { label: "All trip requests", value: isLoading ? "—" : leads.length, hint: "From the trip planning pop-up" },
+      ]} />
+    <WorkflowGuide steps={["Check the travel preferences", "Contact the customer and share a quote", "Update their request status"]} />
+    {displayError && <p role="alert" className="my-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{displayError}</p>}
+    {notice && !displayError && <p role="status" className="my-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</p>}
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="space-y-4 border-b border-slate-200 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-base font-semibold">Trip planning inbox</h2><p className="mt-1 text-xs text-slate-500">{isLoading ? "Connecting to your inbox…" : `${visibleLeads.length} of ${leads.length} requests · newest first`}</p></div><InboxSearch value={search} onChange={setSearch} label="Search trip planning requests" /></div>
+        <InboxFilters value={statusFilter} onChange={setStatusFilter} options={[{ value: "all", label: "All requests", count: leads.length }, ...STATUS_ORDER.map(status => ({ value: status, label: statusLabel(status), count: leads.filter(lead => lead.status === status).length }))]} />
+      </div>
+      <div className="divide-y divide-slate-100">
+        {visibleLeads.map(lead => <article key={lead.id} className="p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="text-base font-semibold">{lead.name || "Customer name not provided"}</h3><span className="text-xs text-slate-400">{lead.submittedAt ? dateTimeFormatter.format(lead.submittedAt) : "Just submitted"}</span></div><ContactLinks email={lead.email} phone={lead.phone} /></div>
+            <label className="w-full sm:w-48"><span className="mb-1.5 block text-xs font-medium text-slate-500">{updatingId === lead.id ? "Saving status…" : "Request status · saves automatically"}</span><select disabled={Boolean(updatingId) || deletingId === lead.id} value={lead.status} onChange={event => void changeStatus(lead, event.target.value as PopupLeadStatus)} aria-label={`Request status for ${lead.name}`} className={`h-10 w-full rounded-xl border px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-100 disabled:opacity-60 ${statusClass(lead.status)}`}>{STATUS_ORDER.map(status => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label>
           </div>
-        </div>
-      </header>
-
-      {displayError ? (
-        <p
-          role="alert"
-          className="mt-6 rounded-cmt-control border border-cmt-error-500/20 bg-cmt-error-100 px-4 py-3 text-sm text-cmt-error-700"
-        >
-          {displayError}
-        </p>
-      ) : null}
-
-      <section className="mt-7 overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cmt-neutral-200 px-5 py-4">
-          <p className="text-sm font-semibold">
-            {isLoading
-              ? "Loading leads…"
-              : `${visibleLeads.length} ${visibleLeads.length === 1 ? "lead" : "leads"}`}
-          </p>
-
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <label className="relative min-w-0 flex-1 sm:w-72 sm:flex-none">
-              <span className="sr-only">Search leads</span>
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-400"
-                aria-hidden="true"
-              />
-              <input
-                type="search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search name, email, phone or place"
-                className="h-10 w-full rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-50 pl-9 pr-3 text-sm outline-none focus:border-cmt-primary-500 focus:ring-2 focus:ring-cmt-primary-500/20"
-              />
-            </label>
-
-            <label>
-              <span className="sr-only">Filter by status</span>
-              <select
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value as PopupLeadStatus | "all")}
-                className="h-10 rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-50 px-3 text-sm font-semibold outline-none focus:border-cmt-primary-500 focus:ring-2 focus:ring-cmt-primary-500/20"
-              >
-                <option value="all">All statuses</option>
-                {STATUS_ORDER.map((status) => (
-                  <option key={status} value={status}>
-                    {POPUP_LEAD_STATUS_LABELS[status]}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <button
-              type="button"
-              onClick={exportCsv}
-              disabled={!visibleLeads.length}
-              className="inline-flex h-10 items-center gap-2 rounded-cmt-control border border-cmt-neutral-200 px-3 text-sm font-semibold transition hover:bg-cmt-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Download className="size-4" aria-hidden="true" /> Export
-            </button>
-          </div>
-        </div>
-
-        <div className="divide-y divide-cmt-neutral-200">
-          {visibleLeads.map((lead) => (
-            <article key={lead.id} className="p-5 sm:p-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 className="font-display text-lg font-semibold">{lead.name}</h2>
-                  <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm text-cmt-neutral-600">
-                    <a href={`mailto:${lead.email}`} className="inline-flex items-center gap-1.5 hover:text-cmt-neutral-900">
-                      <Mail className="size-4" aria-hidden="true" />
-                      {lead.email}
-                    </a>
-                    <a href={`tel:${lead.phone}`} className="inline-flex items-center gap-1.5 hover:text-cmt-neutral-900">
-                      <Phone className="size-4" aria-hidden="true" />
-                      {lead.phone}
-                    </a>
-                    <span className="inline-flex items-center gap-1.5">
-                      <CalendarClock className="size-4" aria-hidden="true" />
-                      {lead.submittedAt ? dateTimeFormatter.format(lead.submittedAt) : "Saving…"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <label className="min-w-[150px]">
-                    <span className="sr-only">Status for {lead.name}</span>
-                    <select
-                      disabled={updatingId === lead.id}
-                      value={lead.status}
-                      onChange={(event) => void changeStatus(lead, event.target.value as PopupLeadStatus)}
-                      className={`h-10 w-full rounded-cmt-control border px-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-cmt-primary-500/20 ${statusClass(lead.status)}`}
-                    >
-                      {STATUS_ORDER.map((status) => (
-                        <option key={status} value={status}>
-                          {POPUP_LEAD_STATUS_LABELS[status]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <button
-                    type="button"
-                    onClick={() => void removeLead(lead)}
-                    disabled={deletingId === lead.id}
-                    title="Delete lead"
-                    aria-label={`Delete lead from ${lead.name}`}
-                    className="grid size-10 shrink-0 place-items-center rounded-cmt-control border border-cmt-neutral-200 text-cmt-neutral-500 transition hover:border-cmt-error-500/40 hover:bg-cmt-error-100 hover:text-cmt-error-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <Trash2 className="size-4" aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-4 rounded-cmt-control border border-cmt-primary-200 bg-cmt-primary-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-cmt-primary-800">Wants to visit</p>
-                <p className="mt-1.5 flex flex-wrap gap-1.5">
-                  {lead.destinations.length ? (
-                    lead.destinations.map((destination) => (
-                      <span
-                        key={destination}
-                        className="inline-flex items-center gap-1 rounded-cmt-full bg-white px-3 py-1 text-[13px] font-semibold text-cmt-primary-900"
-                      >
-                        <MapPin className="size-3.5" aria-hidden="true" />
-                        {destination}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-sm">Not specified</span>
-                  )}
-                </p>
-              </div>
-
-              <div className="mt-4 grid gap-3 rounded-cmt-control bg-cmt-neutral-50 p-4 text-sm sm:grid-cols-2 lg:grid-cols-5">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Departure type</p>
-                  <p className="mt-1 font-semibold">{DEPARTURE_TYPE_LABELS[lead.departureType]}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Food</p>
-                  <p className="mt-1 inline-flex items-center gap-1.5">
-                    <UtensilsCrossed className="size-4 text-cmt-neutral-400" aria-hidden="true" />
-                    {FOOD_PREFERENCE_LABELS[lead.foodPreference]}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Travel date</p>
-                  <p className="mt-1 inline-flex items-center gap-1.5">
-                    <CalendarDays className="size-4 text-cmt-neutral-400" aria-hidden="true" />
-                    {lead.travelDate ? formatTravelDate(lead.travelDate) : "Not specified"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Travellers</p>
-                  <p className="mt-1 inline-flex items-center gap-1.5">
-                    <UsersRound className="size-4 text-cmt-neutral-400" aria-hidden="true" />
-                    {lead.travellers}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-cmt-neutral-400">Budget / person</p>
-                  <p className="mt-1 inline-flex items-center gap-1.5 font-semibold">
-                    <BadgeIndianRupee className="size-4 text-cmt-neutral-400" aria-hidden="true" />
-                    {lead.budgetPerPerson ? formatINR(lead.budgetPerPerson) : "Not stated"}
-                  </p>
-                </div>
-              </div>
-
-              {lead.pagePath ? (
-                <p className="mt-3 text-xs text-cmt-neutral-500">
-                  Submitted from <span className="font-semibold text-cmt-neutral-700">{lead.pagePath}</span>
-                </p>
-              ) : null}
-            </article>
-          ))}
-
-          {!isLoading && !displayError && visibleLeads.length === 0 ? (
-            <div className="px-5 py-12 text-center">
-              <Sparkles className="mx-auto size-8 text-cmt-neutral-300" aria-hidden="true" />
-              <p className="mt-3 text-sm font-semibold">
-                {leads.length ? "No leads match your filters" : "No pop-up form leads yet"}
-              </p>
-              <p className="mt-1 text-xs text-cmt-neutral-500">
-                New submissions will appear here automatically.
-              </p>
+          <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3"><p className="text-sm font-medium text-slate-800">{lead.destinations.length ? lead.destinations.join(" · ") : "Destination not specified"}</p><p className="mt-1 text-xs leading-5 text-slate-500">{lead.travellers} travellers · {lead.travelDate ? formatTravelDate(lead.travelDate) : "Travel date flexible"} · {lead.budgetPerPerson ? `${formatINR(lead.budgetPerPerson)} per person` : "Budget not specified"}</p></div>
+          <details className="group mt-4"><summary className="flex w-fit cursor-pointer list-none items-center gap-2 rounded-md py-1 text-sm font-semibold text-emerald-700 [&::-webkit-details-marker]:hidden"><ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden="true" />View travel preferences</summary>
+            <div className="mt-4 rounded-xl border border-slate-200 p-4">
+              <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                <div><dt className="text-xs text-slate-500">Destinations</dt><dd className="mt-1 font-medium">{lead.destinations.join(", ") || "Not specified"}</dd></div>
+                <div><dt className="text-xs text-slate-500">Type of trip</dt><dd className="mt-1 font-medium">{DEPARTURE_TYPE_LABELS[lead.departureType]}</dd></div>
+                <div><dt className="text-xs text-slate-500">Food preference</dt><dd className="mt-1 font-medium">{FOOD_PREFERENCE_LABELS[lead.foodPreference]}</dd></div>
+                <div><dt className="text-xs text-slate-500">Travel date</dt><dd className="mt-1 font-medium">{lead.travelDate ? formatTravelDate(lead.travelDate) : "Not specified"}</dd></div>
+                <div><dt className="text-xs text-slate-500">Number of travellers</dt><dd className="mt-1 font-medium">{lead.travellers}</dd></div>
+                <div><dt className="text-xs text-slate-500">Budget per person</dt><dd className="mt-1 font-medium">{lead.budgetPerPerson ? formatINR(lead.budgetPerPerson) : "Not specified"}</dd></div>
+              </dl>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3"><p className="break-all text-xs text-slate-400">{lead.pagePath ? `Submitted from ${lead.pagePath}` : "Submitted through the trip planning pop-up"}</p><button type="button" onClick={() => void removeLead(lead)} disabled={Boolean(deletingId) || updatingId === lead.id} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"><Trash2 className="size-3.5" aria-hidden="true" />{deletingId === lead.id ? "Deleting…" : "Delete request"}</button></div>
             </div>
-          ) : null}
-        </div>
-      </section>
-    </div>
-  );
+          </details>
+        </article>)}
+        <InboxState loading={isLoading} empty={!displayError && visibleLeads.length === 0} title={leads.length ? "No requests match your filters" : "No trip planning requests yet"} description={leads.length ? "Try another search or clear the filters to see every request." : "New submissions from the website’s trip planning pop-up will appear here automatically."} onReset={search || statusFilter !== "all" ? () => { setSearch(""); setStatusFilter("all"); } : undefined} />
+      </div>
+    </section>
+  </div>;
 }

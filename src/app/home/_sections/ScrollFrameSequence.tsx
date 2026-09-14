@@ -7,9 +7,10 @@ import HeroSearch from "../_components/HeroSearch";
 import { startScrollVideo } from "@/lib/scrollVideo";
 import { useSiteContent } from "@/lib/useSiteContent";
 
-// Derived from FINAL_COMBINED_FIRST_3SEC_2X.mp4 with a keyframe every five
-// frames for smooth scroll seeking. Serve locally alongside its matching poster.
-const VIDEO_SRC = "/videos/hero-combined-scroll.mp4";
+// Versioned, fast-start encodes with a keyframe every two frames. Phones
+// download the smaller rendition; both retain the full original sequence.
+const DESKTOP_VIDEO_SRC = "/videos/hero-scroll-desktop-v2.mp4";
+const MOBILE_VIDEO_SRC = "/videos/hero-scroll-mobile-v2.mp4";
 const POSTER_SRC = "/videos/hero-combined-poster.jpg";
 
 // The slice of the hero's scroll that comes after the clip's last frame,
@@ -50,10 +51,12 @@ export default function ScrollFrameSequence() {
   // inline styles gone.
   const heroCopyRef = useRef(heroCopy);
   const copyDirtyRef = useRef(true);
+  const refreshCopyRef = useRef<(() => void) | undefined>(undefined);
 
   useEffect(() => {
     heroCopyRef.current = heroCopy;
     copyDirtyRef.current = true;
+    refreshCopyRef.current?.();
   }, [heroCopy]);
 
   useEffect(() => {
@@ -65,14 +68,17 @@ export default function ScrollFrameSequence() {
     const motion = window.matchMedia("(prefers-reduced-motion: no-preference)");
     const phone = window.matchMedia("(max-width: 767px)");
     const reducedData = window.matchMedia("(prefers-reduced-data: reduce)");
+    const connection = (navigator as Navigator & { connection?: EventTarget }).connection;
     // Last values written to the DOM, so the copy only touches style when it
     // has really moved. Rebuilt whenever the blocks themselves change.
     let lastShown: number[] = [];
+    let lastProgress = 0;
 
     // Progress is split into one equal window per copy block. Blocks cross
     // over at each window boundary: the outgoing one is fully gone before the
     // incoming one arrives, so the two never overlap mid-fade.
     const drawCopy = (progress: number) => {
+      lastProgress = progress;
       const blocks = heroCopyRef.current;
       const count = blocks.length;
       if (count === 0) return;
@@ -104,42 +110,50 @@ export default function ScrollFrameSequence() {
         }px, 0)`;
       }
     };
+    refreshCopyRef.current = () => drawCopy(lastProgress);
 
     let stopSequence: (() => void) | undefined;
     let stopPhoneMeasure: (() => void) | undefined;
+    let activeLayout: string | undefined;
     const syncLayout = () => {
+      const enabled = shouldLoadVideo({ allowMobile: true });
+      const nextLayout = `${enabled}:${phone.matches}`;
+      // Network estimates can change frequently without changing the policy.
+      // Preserve the decoded video unless its rendition or eligibility changes.
+      if (activeLayout === nextLayout) return;
+      activeLayout = nextLayout;
       stopSequence?.();
       stopPhoneMeasure?.();
       stopSequence = undefined;
       stopPhoneMeasure = undefined;
       copyDirtyRef.current = true;
-      const enabled = shouldLoadVideo({ allowMobile: true });
       wrapper.classList.toggle("cmt-hero-static", !enabled);
       if (!enabled) { drawCopy(0); return; }
       if (phone.matches) {
-        // The panel can be taller than a small phone. Measure its real height
-        // so the sticky runway ends exactly where the next section begins.
-        const search = stage.querySelector<HTMLElement>(".cmt-hero-search");
-        const measure = () => {
-          if (search) wrapper.style.setProperty("--cmt-phone-search-height", `${search.offsetHeight}px`);
-          wrapper.style.setProperty("--cmt-phone-stage-height", `${stage.offsetHeight}px`);
-        };
+        // Reserve a scroll runway behind the complete phone panel. Keep its
+        // top fixed while the video plays, then release all the content.
+        const measure = () => wrapper.style.setProperty("--cmt-phone-stage-height", `${stage.offsetHeight}px`);
         measure();
         const observer = new ResizeObserver(measure);
         observer.observe(stage);
-        if (search) observer.observe(search);
         stopPhoneMeasure = () => {
           observer.disconnect();
           wrapper.style.removeProperty("--cmt-phone-stage-height");
-          wrapper.style.removeProperty("--cmt-phone-search-height");
         };
       }
       stopSequence = startScrollVideo({
         wrapper,
         video,
-        src: VIDEO_SRC,
+        src: phone.matches ? MOBILE_VIDEO_SRC : DESKTOP_VIDEO_SRC,
         tailHold: TAIL_HOLD,
-        onProgress: drawCopy,
+        scrubDuration: phone.matches ? 0.18 : 0.1,
+        // Phone copy is below the video, so keep it readable as the video
+        // scrolls away. Desktop retains its synchronized rotating headlines.
+        onFrame: (progress) => drawCopy(phone.matches ? 0 : progress),
+        onError: () => {
+          wrapper.classList.add("cmt-hero-static");
+          drawCopy(0);
+        },
         scrollDistance: () => phone.matches
           ? wrapper.offsetHeight - stage.offsetHeight
           : wrapper.offsetHeight - window.innerHeight,
@@ -148,10 +162,13 @@ export default function ScrollFrameSequence() {
     syncLayout();
     const queries = [motion, phone, reducedData];
     queries.forEach(query => query.addEventListener("change", syncLayout));
+    connection?.addEventListener("change", syncLayout);
     return () => {
+      refreshCopyRef.current = undefined;
       stopSequence?.();
       stopPhoneMeasure?.();
       queries.forEach(query => query.removeEventListener("change", syncLayout));
+      connection?.removeEventListener("change", syncLayout);
     };
   }, [hero.enabled]);
 

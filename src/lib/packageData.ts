@@ -27,6 +27,11 @@ export type PackageStay = {
 };
 
 export type PackageDetails = {
+  /** Missing uses the six standard boxes; an empty list intentionally removes the bar. */
+  facts?: PackageFact[];
+  factsHidden?: boolean;
+  /** Set per package by the admin; required permits link to Aranya Vihaara. */
+  permitRequired?: boolean;
   gallery: string[];
   summary: string;
   places: string[];
@@ -39,6 +44,18 @@ export type PackageDetails = {
   transfers: string;
   flights: string;
   cancellationPolicy: string;
+};
+
+export type PackageFactSource = "duration" | "groupSize" | "stay" | "transfers" | "meals" | "flights";
+
+export type PackageFact = {
+  id: string;
+  icon: string;
+  label: string;
+  visible: boolean;
+  /** Standard boxes follow package fields until the editor supplies custom text. */
+  source?: PackageFactSource;
+  value?: string;
 };
 
 export type TravelPackage = {
