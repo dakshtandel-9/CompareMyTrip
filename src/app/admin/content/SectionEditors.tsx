@@ -1917,6 +1917,7 @@ export function ReviewsEditor({
         >
           {(item, patch) => (
             <div className="space-y-4">
+              <Toggle label="Verified traveller review" description="Publish only a real review with permission to display it. Sample reviews must remain unverified." checked={item.verified === true} onChange={(verified) => patch({ verified })} />
               <TextArea
                 label="Quote"
                 value={item.quote}

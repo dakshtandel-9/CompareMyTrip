@@ -250,7 +250,7 @@ export default function ScrollFrameSequence() {
               <p className="cmt-hero-scroll-hint hidden" aria-hidden="true"><span /> Scroll to discover your next trip</p>
 
               {/* Static under the rotating copy — it's true of every clip. */}
-              {hero.trust.enabled && (
+              {hero.trust.enabled && hero.trust.verified === true && (
                 <div className="cmt-hero-proof mt-5 flex items-center gap-3 sm:mt-6">
                   <div className="flex shrink-0 -space-x-2">
                     {hero.trust.faces.map((face, index) => (

@@ -5,10 +5,17 @@ import vm from 'node:vm';
 import ts from 'typescript';
 
 const exports = {};
+const sectionExports = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/lib/packageDetailSections.ts', 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText, { exports: sectionExports, URL });
 const code = ts.transpileModule(fs.readFileSync('src/app/admin/packages/catalogueEditorState.ts', 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;
-vm.runInNewContext(code, { exports, URLSearchParams });
+vm.runInNewContext(code, { exports, URLSearchParams, require: (name) => {
+  assert.equal(name, '@/lib/packageDetailSections');
+  return sectionExports;
+} });
 const { packageValidationIssue: validate, catalogueEditorMode: mode, catalogueListHref: listHref } = exports;
 
 const validPackage = () => ({
@@ -66,6 +73,28 @@ test('automatic and hidden facts remain valid while visible custom facts need a 
   assert.equal(validate({ ...validPackage(), factsHidden: true, facts: [{ label: '', value: '' }] }), null);
   assert.equal(validate({ ...validPackage(), facts: [{ label: 'Custom' }] })?.step, 5);
   assert.equal(validate({ ...validPackage(), facts: [{ label: 'Meals', source: 'meals', value: '' }] })?.step, 5);
+});
+
+test('hidden standard sections can be saved empty and require content again when shown', () => {
+  const pageSections = sectionExports.defaultPackagePageSections();
+  pageSections.hiddenSections = ['about', 'itinerary', 'stays'];
+  const form = { ...validPackage(), pageSections, summary: '', places: '', itinerary: [], stays: [] };
+  assert.equal(validate(form), null);
+  pageSections.hiddenSections = ['about', 'stays'];
+  assert.equal(validate(form)?.step, 4);
+});
+
+test('optional page content validates in the page sections step and survives hiding', () => {
+  const pageSections = sectionExports.defaultPackagePageSections();
+  pageSections.sections = [{ id: 'packing', title: 'Packing list', layout: 'box', body: '', visible: true, items: [] }];
+  const form = { ...validPackage(), pageSections };
+  assert.equal(validate(form)?.step, 6);
+  pageSections.sections[0].visible = false;
+  assert.equal(validate(form), null);
+  pageSections.sections[0].body = 'Bring walking shoes.';
+  pageSections.sections[0].visible = true;
+  pageSections.gallery.enabled = true;
+  assert.equal(validate(form), null);
 });
 
 test('create shortcuts wait for the catalogue and only recognize create=1', () => {

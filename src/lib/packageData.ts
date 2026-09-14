@@ -1,3 +1,5 @@
+import type { PackagePageSections } from "@/lib/packageDetailSections";
+
 export type PackageCategory =
   | "Honeymoon"
   | "Family"
@@ -27,6 +29,8 @@ export type PackageStay = {
 };
 
 export type PackageDetails = {
+  /** Optional content and visibility choices for this package's detail page. */
+  pageSections?: PackagePageSections;
   /** Missing uses the six standard boxes; an empty list intentionally removes the bar. */
   facts?: PackageFact[];
   factsHidden?: boolean;
@@ -3823,19 +3827,6 @@ export function writeAdminPackages(packages: TravelPackage[]) {
   window.dispatchEvent(new Event(PACKAGE_UPDATE_EVENT));
 }
 
-const DEFAULT_GALLERY = [
-  "/destinations/kerala.jpg",
-  "/destinations/goa.jpg",
-  "/destinations/rajasthan.jpg",
-  "/destinations/ladakh.jpg",
-  "/destinations/andaman.jpg",
-  "/destinations/meghalaya.jpg",
-  "/destinations/spiti.jpg",
-  "/popular-destinations/dharmashala.png",
-  "/popular-destinations/mumbai.png",
-  "/package-gallery/kerala-houseboat.jpg",
-];
-
 /* ------------------- Publication and index gating ------------------ */
 
 /** Firestore hands back documents written by older versions of the CRM, so
@@ -3847,13 +3838,12 @@ export function isPublishedPackage(pkg: Pick<TravelPackage, "status">): boolean 
 }
 
 export function publishedPackages(packages: TravelPackage[]): TravelPackage[] {
-  return packages.filter(isPublishedPackage);
+  return packages.filter(isIndexablePackage);
 }
 
 /* An address or a link in the title is never marketing copy — it is a record
-   somebody typed into the CRM to try the form out. Such a package still
-   renders for whoever is looking at it, but it must not reach the sitemap or
-   the index, where a stray address would be republished by search engines and
+   somebody typed into the CRM to try the form out. Such a package remains available in the CRM, but must not reach public
+   listings, the sitemap or the index, where a stray address would be republished by search engines and
    scraped. Correcting the title in the CRM makes it indexable again. */
 const JUNK_TITLE = /[\w.+-]+@[\w-]+\.[\w.]+|https?:\/\/|\bwww\./i;
 
@@ -3867,38 +3857,21 @@ export function getPackageDetails(pkg: TravelPackage): PackageDetails {
   if (pkg.details) return pkg.details;
 
   const places = pkg.location.split("·").map((place) => place.trim()).filter(Boolean);
-  const gallery = [pkg.image, ...DEFAULT_GALLERY.filter((image) => image !== pkg.image)].slice(0, 10);
-  const itinerary: PackageItineraryDay[] = Array.from({ length: pkg.days }, (_, index) => {
-    const day = index + 1;
-    const place = places[Math.min(index, places.length - 1)] || pkg.location;
-    const isFirst = day === 1;
-    const isLast = day === pkg.days;
-    return {
-      day,
-      title: isFirst ? `Arrival in ${place}` : isLast ? `Departure from ${place}` : `Explore ${place}`,
-      route: index === 0 ? place : `${places[Math.max(0, index - 1)] || place} → ${place}`,
-      description: isFirst
-        ? "Meet your local representative, transfer to the hotel and settle in at your own pace."
-        : isLast
-          ? "After breakfast, check out and transfer to the airport or railway station for your onward journey."
-          : `Enjoy a thoughtfully paced day around ${place}, with time for signature sights and local experiences.`,
-      meals: isFirst ? "Dinner" : "Breakfast",
-    };
-  });
-
+  // Never invent a schedule, inclusions, hotel, cancellation promise or
+  // unrelated gallery photos for a package the operator has not completed.
   return {
-    gallery,
-    summary: `${pkg.title} is a ${pkg.days}-day journey through ${pkg.location}. It combines comfortable stays, dependable transfers and enough unhurried time to experience each destination.`,
+    gallery: pkg.image ? [pkg.image] : [],
+    summary: `${pkg.title}: ${pkg.nights} night${pkg.nights === 1 ? "" : "s"} / ${pkg.days} day${pkg.days === 1 ? "" : "s"} in ${pkg.location}. Contact the travel team for the detailed trip plan.`,
     places,
-    highlights: ["Handpicked stays", "Private sightseeing", "Flexible travel plan", "Verified local operator"],
-    itinerary,
-    stays: [{ name: `${pkg.hotelStars}-star comfort stay`, nights: pkg.nights, place: places[0] || pkg.location, comfort: "Comfort room with daily breakfast" }],
-    inclusions: ["Accommodation", "Daily breakfast", "Intercity transfers", "Sightseeing as per itinerary"],
-    exclusions: ["Flights or train tickets", "Personal expenses", "Travel insurance", "Anything not listed in inclusions"],
-    meals: "Daily breakfast",
-    transfers: "Private transfers included",
-    flights: "Not included",
-    cancellationPolicy: "Free cancellation up to 15 days before departure. Date changes are subject to availability.",
+    highlights: [],
+    itinerary: [],
+    stays: [],
+    inclusions: [],
+    exclusions: [],
+    meals: "Confirm with the travel team",
+    transfers: "Confirm with the travel team",
+    flights: "Confirm with the travel team",
+    cancellationPolicy: "Request the package-specific cancellation and change terms from the travel team before booking.",
   };
 }
 

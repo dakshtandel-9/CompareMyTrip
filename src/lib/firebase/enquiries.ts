@@ -11,6 +11,7 @@ import {
   type Timestamp,
 } from "firebase/firestore";
 import { FirebaseError } from "firebase/app";
+import { isValidQuoteTravellers, QUOTE_TRAVELLERS_ERROR } from "@/lib/quoteTravellers";
 import { getFirebaseDb } from "./client";
 
 export type EnquiryStatus = "not_contacted" | "contacted" | "under_review" | "accepted" | "rejected" | "completed";
@@ -78,6 +79,7 @@ export async function saveContactEnquiry(enquiry: NewEnquiry) {
   const source = enquiry.source?.trim() || "contact";
   const userId = enquiry.userId?.trim() ?? "";
   if (source === "custom_quote" && !userId) throw new Error("Sign in before sending a customized quote request.");
+  if (source === "custom_quote" && !isValidQuoteTravellers(enquiry.travellers)) throw new Error(QUOTE_TRAVELLERS_ERROR);
   await addDoc(collection(getFirebaseDb(), "contactEnquiries"), {
     name: enquiry.name.trim(),
     email: enquiry.email.trim().toLowerCase(),

@@ -98,7 +98,7 @@ export default function TravellerReviews() {
      Computed up here with the hooks rather than after the `enabled` early
      return, because the drift effect below measures the track and has to
      re-run when a sync changes how many cards are on it. */
-  const items = mergeReviews(reviews.items, googleReviews);
+  const items = mergeReviews(reviews.items.filter((review) => review.verified === true), googleReviews);
 
   /* The pause reasons are refs, not state: the animation frame reads them
      every frame and nothing in the tree renders differently for them, so
@@ -185,7 +185,7 @@ export default function TravellerReviews() {
   };
 
   /* After the drift effect, never before. */
-  if (!reviews.enabled) return null;
+  if (!reviews.enabled || !items.length) return null;
 
   const { header } = reviews;
 

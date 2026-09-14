@@ -19,13 +19,7 @@ const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
 const CHIP = "inline-flex items-center gap-1.5 rounded-cmt-full border border-cmt-neutral-200 bg-white px-2.5 py-1 text-xs font-medium text-cmt-neutral-700";
 
-/* Small stable spread over package ids — enough to make the viewer count
-   differ between packages without pretending to be real analytics. */
-const hash = (value: string) => {
-  let total = 0;
-  for (let index = 0; index < value.length; index += 1) total = (total * 31 + value.charCodeAt(index)) % 100_000;
-  return total;
-};
+
 
 type Props = {
   pkg: TravelPackage;
@@ -48,7 +42,6 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
   /* Demand is a signal, not data we hold, so it is hashed out of the
      package id: a different number per package, but the same one on the
      server and in the browser, which keeps hydration quiet. */
-  const viewers = 4 + (hash(pkg.id) % 11);
 
   const step = (delta: number) => onTravellersChange(Math.min(Math.max(travellers + delta, 1), 20));
 
@@ -128,7 +121,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           )}
           <p className="mt-2.5 flex items-center gap-1.5 text-sm font-medium text-cmt-coral-700">
             <Flame className="size-4 shrink-0" strokeWidth={2.25} aria-hidden="true" />
-            Available on request · {viewers} viewing now
+            Availability confirmed with your quote
           </p>
         </div>
 

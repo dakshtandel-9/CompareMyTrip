@@ -1,3 +1,4 @@
+import { revalidatePublicContent } from "./revalidateContent";
 import { doc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 
 import {
@@ -50,6 +51,7 @@ export async function saveHomepageContent(content: SiteContent) {
     updatedByUid: auth.currentUser?.uid ?? null,
     schemaVersion: 1,
   });
+  await revalidatePublicContent();
 }
 
 /**
@@ -82,6 +84,7 @@ export async function saveSiteContentSection<Key extends keyof SiteContent>(
     },
     { merge: true },
   );
+  await revalidatePublicContent();
 }
 
 /** Images live in Cloudflare R2; Firestore stores only their durable URL. */

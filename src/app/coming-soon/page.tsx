@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import ComingSoonScreen from "@/components/ComingSoonScreen";
-import { readComingSoonEnabled } from "@/lib/comingSoonServer";
 
 export const metadata: Metadata = {
   title: "Coming soon",
@@ -10,8 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ComingSoonPage() {
-  // The uncached settings read makes this decision on every request,
-  // before rendering, so disabled mode returns an actual HTTP 404.
-  if (!await readComingSoonEnabled()) notFound();
+  // Middleware owns the setting lookup and the HTTP status for this request.
+  if ((await headers()).get("x-cmt-coming-soon") !== "enabled") notFound();
   return <ComingSoonScreen />;
 }

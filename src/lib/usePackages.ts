@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useSyncExternalStore } from "react";
-import { DUMMY_PACKAGES, publishedPackages, type TravelPackage } from "@/lib/packageData";
+import { useEffect, useSyncExternalStore } from "react";
+import { DUMMY_PACKAGES, type TravelPackage } from "@/lib/packageData";
+import { usePublicContent } from "@/lib/usePublicContent";
 import { subscribeToPackages } from "@/lib/firebase/packages";
 
 type PackageState = { packages: TravelPackage[]; loading: boolean; error: string; databaseInitialized: boolean };
@@ -50,9 +51,8 @@ export function useAllPackages() {
     the catalogue does not change shape when the subscription hydrates over
     the server-rendered markup. */
 export function usePackagesState() {
-  const state = useAllPackagesState();
-  const packages = useMemo(() => publishedPackages(state.packages), [state.packages]);
-  return { ...state, packages };
+  const { packages, loading, error } = usePublicContent();
+  return { packages, loading, error, databaseInitialized: !loading && !error };
 }
 
 export function usePackages() {

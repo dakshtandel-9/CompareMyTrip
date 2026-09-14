@@ -1,3 +1,4 @@
+import { revalidatePublicContent } from "./revalidateContent";
 import {
   collection,
   deleteDoc,
@@ -65,11 +66,13 @@ export async function saveDestinationCover(name: string, image: string) {
     updatedAt: serverTimestamp(),
     updatedByUid: user.uid,
   });
+  await revalidatePublicContent();
 }
 
 export async function clearDestinationCover(name: string) {
   requireUser();
   await deleteDoc(doc(getFirebaseDb(), COLLECTION, coverId(name)));
+  await revalidatePublicContent();
 }
 
 /** Same route, limits and compression as package photography. */

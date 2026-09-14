@@ -306,6 +306,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           <select
             id={id}
             name={field.name}
+            required={field.required}
             value={values[field.name] ?? ""}
             onChange={(event) => set(field.name, event.target.value)}
             aria-invalid={Boolean(error)}
@@ -323,6 +324,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
           <input
             id={id}
             name={field.name}
+            required={field.required}
             type={field.kind}
             placeholder={field.placeholder}
             value={values[field.name] ?? ""}
@@ -461,6 +463,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
         <input
           id={fieldId("name")}
           name="name"
+          required
           autoComplete="name"
           placeholder="Priya Sharma"
           value={values.name}
@@ -479,6 +482,7 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
         <input
           id={fieldId("email")}
           name="email"
+          required
           type="email"
           autoComplete="email"
           placeholder="you@example.com"

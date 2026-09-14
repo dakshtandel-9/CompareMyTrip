@@ -1,3 +1,4 @@
+import { revalidatePublicContent } from "./revalidateContent";
 import { collection, deleteDoc, doc, onSnapshot, serverTimestamp, setDoc, writeBatch } from "firebase/firestore";
 import type { TravelPackage } from "@/lib/packageData";
 import { uploadImageToCloudflare } from "@/lib/cloudflareUpload";
@@ -43,18 +44,20 @@ export async function savePackage(pkg: TravelPackage) {
   const db = getFirebaseDb();
   await Promise.all([
     setDoc(doc(db, "packages", pkg.id), {
-      package: clean(pkg),
+      package: clean({ ...pkg, status: pkg.status ?? "published" }),
       position: Date.now(),
       updatedAt: serverTimestamp(),
       updatedByUid: user.uid,
     }, { merge: true }),
     setDoc(doc(db, "packages", CATALOG_MARKER), { initialized: true, updatedAt: serverTimestamp() }, { merge: true }),
   ]);
+  await revalidatePublicContent();
 }
 
 export async function deletePackage(packageId: string) {
   requireUser();
   await deleteDoc(doc(getFirebaseDb(), "packages", packageId));
+  await revalidatePublicContent();
 }
 
 export async function seedPackages(packages: TravelPackage[]) {
@@ -63,11 +66,12 @@ export async function seedPackages(packages: TravelPackage[]) {
   const batch = writeBatch(db);
   packages.forEach((pkg, position) => {
     batch.set(doc(db, "packages", pkg.id), {
-      package: clean(pkg), position, updatedAt: serverTimestamp(), updatedByUid: user.uid,
+      package: clean({ ...pkg, status: pkg.status ?? "published" }), position, updatedAt: serverTimestamp(), updatedByUid: user.uid,
     });
   });
   batch.set(doc(db, "packages", CATALOG_MARKER), { initialized: true, updatedAt: serverTimestamp(), updatedByUid: user.uid });
   await batch.commit();
+  await revalidatePublicContent();
 }
 
 export async function uploadPackageImage(file: File) {

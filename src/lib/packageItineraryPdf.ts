@@ -17,13 +17,14 @@ export function itineraryFilename(title: string) {
 
 export function createPackageItineraryPdf(pkg: TravelPackage, packageUrl: string) {
   const details = getPackageDetails(pkg);
+  const hasItinerary = details.itinerary.length > 0;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const margin = 18;
   const width = 174;
   const bottom = 272;
   let y = 36;
 
-  doc.setProperties({ title: `${pkg.title} - Detailed itinerary`, author: "CompareMyTrip", subject: "Package itinerary and travel details" });
+  doc.setProperties({ title: `${pkg.title} - ${hasItinerary ? "Detailed itinerary" : "Package overview"}`, author: "CompareMyTrip", subject: "Package itinerary and travel details" });
 
   function header() {
     doc.setFillColor("#ffc400");
@@ -31,7 +32,7 @@ export function createPackageItineraryPdf(pkg: TravelPackage, packageUrl: string
     doc.setFont("helvetica", "bold").setFontSize(12).setTextColor("#0f172a");
     doc.text("COMPAREMYTRIP", margin, 17);
     doc.setFont("helvetica", "normal").setFontSize(8).setTextColor("#64748b");
-    doc.text("DETAILED TRIP ITINERARY", 192, 17, { align: "right" });
+    doc.text(hasItinerary ? "DETAILED TRIP ITINERARY" : "PACKAGE OVERVIEW", 192, 17, { align: "right" });
     doc.setDrawColor("#e2e8f0").line(margin, 23, 192, 23);
   }
 
@@ -73,7 +74,7 @@ export function createPackageItineraryPdf(pkg: TravelPackage, packageUrl: string
   header();
   paragraph(pkg.title, 25, true, "#0f172a", 4);
   paragraph(pkg.location, 12, false, "#64748b", 5);
-  paragraph(`${pkg.nights} nights / ${pkg.days} days  |  ${pkg.pax}  |  ${pkg.hotelStars}-star stays`, 10, true);
+  paragraph(`${pkg.nights} night${pkg.nights === 1 ? "" : "s"} / ${pkg.days} day${pkg.days === 1 ? "" : "s"}  |  ${pkg.pax}  |  ${pkg.hotelStars}-star stays`, 10, true);
   paragraph(`INR ${pkg.price.toLocaleString("en-IN")} per person`, 18, true, "#0f172a");
   if (pkg.originalPrice > pkg.price) paragraph(`Original price: INR ${pkg.originalPrice.toLocaleString("en-IN")} per person`, 9);
   paragraph("Listed package price; your final quote depends on dates, availability and customizations.", 9, false, "#64748b");
@@ -88,12 +89,14 @@ export function createPackageItineraryPdf(pkg: TravelPackage, packageUrl: string
   paragraph(`Flights: ${details.flights}`);
   const departures = departureDaysLabel(pkg);
   if (departures) paragraph(`Departures: ${departures}`);
-  section("Trip highlights");
-  list(details.highlights);
+  if (details.highlights.length) {
+    section("Trip highlights");
+    list(details.highlights);
+  }
 
   // Leave room for the opening day without creating a nearly empty page
   // when a long overview has already continued onto the next one.
-  ensureSpace(90);
+  ensureSpace(42);
   section("Day-by-day itinerary");
   if (!details.itinerary.length) paragraph("A detailed daily itinerary has not been provided for this package.");
   for (const day of details.itinerary) {
@@ -104,17 +107,17 @@ export function createPackageItineraryPdf(pkg: TravelPackage, packageUrl: string
     paragraph(`Meals: ${day.meals || "Not specified"}`, 9, true, "#334155", 7);
   }
 
-  section("Comfort stays");
-  if (!details.stays.length) paragraph("Stay details have not been provided for this package.");
+  if (details.stays.length) section("Comfort stays");
   for (const stay of details.stays) {
     ensureSpace(24);
     paragraph(`${stay.name} - ${stay.nights} night${stay.nights === 1 ? "" : "s"}`, 11, true);
     paragraph(`${stay.place}\n${stay.comfort}`);
   }
-  section("Included");
-  list(details.inclusions);
-  section("Not included");
-  list(details.exclusions);
+  if (details.inclusions.length) { section("Included"); list(details.inclusions); }
+  if (details.exclusions.length) { section("Not included"); list(details.exclusions); }
+  if (!details.stays.length || !details.inclusions.length || !details.exclusions.length) {
+    paragraph("Ask the travel team to confirm any missing accommodation, inclusion and exclusion details in your written quote.", 9);
+  }
   section("Cancellation policy");
   paragraph(details.cancellationPolicy);
 

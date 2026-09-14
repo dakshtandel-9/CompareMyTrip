@@ -18,8 +18,15 @@ const PACKAGE_MARKER = "_catalog";
 
 /* The seed posts stand in whenever Firestore is unavailable. They are public
    content like any other, so they go through the same published-only gate. */
-const seedBlogPosts = () =>
-  sortBlogPosts(BLOG_SEED_POSTS.filter((post) => post.status === "published"));
+function developmentFallback<T>(name: string, fallback: () => T): T {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(`Cannot load published ${name}. Release content must come from the CMS; seed fallback is disabled in production.`);
+  }
+  console.warn(`Using development seed content for ${name}.`);
+  return fallback();
+}
+const seedBlogPosts = () => developmentFallback("blog posts", () =>
+  sortBlogPosts(BLOG_SEED_POSTS.filter((post) => post.status === "published")));
 
 /* One read serves both the catalogue and the sitemap's lastModified dates.
    `updatedAt` is the CRM's write timestamp, which belongs to the document
@@ -31,10 +38,10 @@ type PackageCatalogue = {
   updatedAt: Map<string, Date>;
 };
 
-const seedCatalogue = (): PackageCatalogue => ({
+const seedCatalogue = (): PackageCatalogue => developmentFallback("packages", () => ({
   packages: publishedPackages(DUMMY_PACKAGES),
   updatedAt: new Map(),
-});
+}));
 
 const readPackageCatalogue = async (): Promise<PackageCatalogue> => {
   const db = getAdminDb();
@@ -87,7 +94,7 @@ const readCachedCatalogue = unstable_cache(async () => {
     packages: catalogue.packages,
     updatedAt: Array.from(catalogue.updatedAt, ([id, date]) => [id, date.toISOString()]),
   };
-}, ["published-catalogue-v1"], { revalidate: 3600 });
+}, ["published-catalogue-v2"], { revalidate: 3600, tags: ["public-content"] });
 const loadPackageCatalogue = cache(async (): Promise<PackageCatalogue> => {
   const catalogue = await readCachedCatalogue();
   return {
@@ -131,7 +138,7 @@ export const getPublishedBlogPosts = cache(unstable_cache(async (): Promise<Blog
     console.error("Unable to load blog posts for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return seedBlogPosts();
   }
-}, ["published-blog-v1"], { revalidate: 3600 }));
+}, ["published-blog-v2"], { revalidate: 3600, tags: ["public-content"] }));
 
 export const getPublishedBlogPost = cache(async (slug: string) => {
   const posts = await getPublishedBlogPosts();
@@ -156,4 +163,4 @@ export const getDestinationCovers = cache(unstable_cache(async (): Promise<Recor
     console.error("Unable to load destination covers for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return {};
   }
-}, ["destination-covers-v1"], { revalidate: 3600 }));
+}, ["destination-covers-v1"], { revalidate: 3600, tags: ["public-content"] }));

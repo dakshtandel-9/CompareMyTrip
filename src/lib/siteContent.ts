@@ -39,6 +39,7 @@ export type HeroCopyBlock = {
 /** The social-proof row under the rotating copy. */
 export type HeroTrust = {
   enabled: boolean;
+  verified?: boolean;
   /** Small round thumbnails — public paths or uploaded data URLs. */
   faces: string[];
   /** "Trusted by" · "50K+" · "travellers" */
@@ -432,6 +433,7 @@ export type GalleryContent = {
 
 export type Review = {
   id: string;
+  verified?: boolean;
   quote: string;
   name: string;
   initials: string;
@@ -734,6 +736,8 @@ export type FooterBadgesContent = {
   /** Empty URLs retain the original footer artwork. */
   paymentImages: Record<string, string>;
   accreditationImages: Record<string, string>;
+  verifiedAccreditations?: string[];
+  tourismPartnersVerified?: boolean;
 };
 
 export type SiteContent = {
@@ -803,6 +807,8 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     enabled: true,
     paymentImages: { visa: "", mastercard: "", amex: "", upi: "", googlePay: "", phonepe: "", paytm: "" },
     accreditationImages: { google: "", iata: "", iso: "", pci: "", secure: "" },
+    verifiedAccreditations: [],
+    tourismPartnersVerified: false,
   },
   comingSoon: DEFAULT_COMING_SOON,
   addOn: {
@@ -2224,6 +2230,8 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     comingSoon: normalizeComingSoon(root.comingSoon),
     footerBadges: {
       enabled: bool(footerBadgesRaw.enabled, base.footerBadges.enabled),
+      tourismPartnersVerified: footerBadgesRaw.tourismPartnersVerified === true,
+      verifiedAccreditations: strings(footerBadgesRaw.verifiedAccreditations, []).filter((id) => ["google", "iata", "iso", "pci", "secure"].includes(id)),
       paymentImages: badgeImages(footerBadgesRaw.paymentImages, base.footerBadges.paymentImages),
       accreditationImages: badgeImages(footerBadgesRaw.accreditationImages, base.footerBadges.accreditationImages),
     },
@@ -2346,6 +2354,7 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
       })),
       trust: {
         enabled: bool(trustRaw.enabled, base.hero.trust.enabled),
+        verified: trustRaw.verified === true,
         faces: strings(trustRaw.faces, base.hero.trust.faces),
         prefix: str(trustRaw.prefix, base.hero.trust.prefix),
         highlight: str(trustRaw.highlight, base.hero.trust.highlight),
@@ -2535,6 +2544,7 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
       header: header(reviewsRaw.header, base.reviews.header),
       items: list(reviewsRaw.items, base.reviews.items, (item, index) => ({
         id: str(item.id, `rev-${index + 1}`),
+        verified: item.verified === true,
         quote: str(item.quote, ""),
         name: str(item.name, "Anonymous"),
         initials: str(item.initials, "").slice(0, 3),

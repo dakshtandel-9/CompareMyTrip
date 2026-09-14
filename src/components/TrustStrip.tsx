@@ -201,6 +201,7 @@ export default function TrustStrip() {
 
 export function TrustStripPreview({ value }: { value: FooterBadgesContent }) {
   if (!value.enabled) return null;
+  const verified = ACCREDITATIONS.filter(({ id }) => value.verifiedAccreditations?.includes(id));
   return (
     <div className="mt-12 grid gap-8 border-t border-cmt-neutral-200 pt-8 lg:mt-8 lg:grid-cols-2 lg:gap-10 lg:pt-7">
       <section aria-labelledby="footer-payment-modes">
@@ -226,13 +227,13 @@ export function TrustStripPreview({ value }: { value: FooterBadgesContent }) {
         </ul>
       </section>
 
-      <section aria-labelledby="footer-accreditations" className="lg:justify-self-end">
+      {verified.length > 0 && <section aria-labelledby="footer-accreditations" className="lg:justify-self-end">
         <h2 id="footer-accreditations" className={headingClass}>
-          Accredited by
+          Verified credentials
         </h2>
 
         <ul className="mt-4 flex flex-wrap items-center gap-2.5">
-          {ACCREDITATIONS.map(({ id, label, mark: Mark }) => (
+          {verified.map(({ id, label, mark: Mark }) => (
             <li key={label} className={chipClass} title={label}>
               <span className="sr-only">{label}</span>
               <span aria-hidden="true" className="flex items-center">
@@ -250,7 +251,7 @@ export function TrustStripPreview({ value }: { value: FooterBadgesContent }) {
             </li>
           ))}
         </ul>
-      </section>
+      </section>}
     </div>
   );
 }

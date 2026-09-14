@@ -322,7 +322,7 @@ export function DestinationsContent({
 
                         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent" />
 
-                        <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-cmt-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-cmt-neutral-900 backdrop-blur-sm">
+                        <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-cmt-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-cmt-neutral-900 backdrop-blur-sm">
                           <Mountain className="size-3.5" strokeWidth={2.5} aria-hidden="true" />
                           Weekend Treks
                         </span>
@@ -344,7 +344,7 @@ export function DestinationsContent({
                               {track.styles.map((style) => (
                                 <li
                                   key={style}
-                                  className="rounded-cmt-full bg-white/15 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm"
+                                  className="rounded-cmt-full bg-white/15 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm"
                                 >
                                   {style}
                                 </li>
@@ -412,7 +412,7 @@ export function DestinationsContent({
                           title, a meta line, chips and a price over the photo. */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent" />
 
-                      <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-cmt-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-cmt-neutral-900 backdrop-blur-sm">
+                      <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-cmt-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-cmt-neutral-900 backdrop-blur-sm">
                         <MapPin className="size-3.5" strokeWidth={2.5} aria-hidden="true" />
                         {destination.region}
                       </span>
@@ -434,7 +434,7 @@ export function DestinationsContent({
                             {destination.styles.map((style) => (
                               <li
                                 key={style}
-                                className="rounded-cmt-full bg-white/15 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm"
+                                className="rounded-cmt-full bg-white/15 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm"
                               >
                                 {style}
                               </li>

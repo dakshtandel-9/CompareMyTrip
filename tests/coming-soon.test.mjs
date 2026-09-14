@@ -12,7 +12,7 @@ function load(file, dependencies = {}, globals = {}) {
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
-  vm.runInNewContext(code, { exports, URL, URLSearchParams, AbortSignal, ...globals, require: (name) => {
+  vm.runInNewContext(code, { exports, Headers, URL, URLSearchParams, AbortSignal, ...globals, require: (name) => {
     assert.ok(dependencies[name], `Unexpected dependency: ${name}`);
     return dependencies[name];
   } });
@@ -88,17 +88,17 @@ test('settings read is uncached, requests only the switch, and tolerates unavail
     process: { env: { NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'test-project' } },
     fetch: async (url, options) => {
       fetchCalls++;
-      assert.equal(url.searchParams.get('mask.fieldPaths'), 'content.comingSoon.enabled');
+      assert.equal(url.pathname, '/api/content/status');
       assert.equal(options.cache, 'no-store');
       if (!available) throw new Error('offline');
-      return { ok: true, json: async () => ({ fields: { content: { mapValue: { fields: { comingSoon: { mapValue: { fields: { enabled: { booleanValue: true } } } } } } } } }) };
+      return { ok: true, json: async () => ({ enabled: true }) };
     },
   });
   assert.equal(await readComingSoonEnabled(), true);
   assert.equal(await readComingSoonEnabled(), true);
   assert.equal(fetchCalls, 2);
   available = false;
-  assert.equal(await readComingSoonEnabled(), false);
+  assert.equal(await readComingSoonEnabled(), true, "outage retains last verified mode");
 });
 
 test('coming-soon page renders only while enabled and becomes not-found again after switching off', async () => {
@@ -109,7 +109,7 @@ test('coming-soon page renders only while enabled and becomes not-found again af
     'react/jsx-runtime': { jsx: (type, props) => ({ type, props }) },
     'next/navigation': { notFound: () => { throw notFoundError; } },
     '@/components/ComingSoonScreen': { default: screen },
-    '@/lib/comingSoonServer': { readComingSoonEnabled: async () => enabled },
+    'next/headers': { headers: async () => new Headers(enabled ? { 'x-cmt-coming-soon': 'enabled' } : {}) },
   });
   await assert.rejects(page, (error) => error === notFoundError);
   enabled = true;

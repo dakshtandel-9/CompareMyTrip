@@ -37,7 +37,9 @@ function startFirestoreListener() {
   stopFirestoreListener = subscribeToHomepageContent(
     (content, exists) => emit({ content, loading: false, error: "", exists }),
     (error) =>
-      emit({ content: DEFAULT_SITE_CONTENT, loading: false, error, exists: false }),
+      emit({ ...currentState, content: currentState.loading
+        ? { ...DEFAULT_SITE_CONTENT, comingSoon: { ...DEFAULT_SITE_CONTENT.comingSoon, enabled: true } }
+        : currentState.content, loading: false, error }),
   );
 }
 

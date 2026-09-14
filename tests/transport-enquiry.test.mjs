@@ -160,6 +160,7 @@ test('the existing contact enquiry writer saves transport details with the conta
     },
     'firebase/app': {},
     './client': { getFirebaseDb: () => ({}) },
+    '@/lib/quoteTravellers': load('src/lib/quoteTravellers.ts'),
   });
   const message = composeMessage(service, base, 'Large suitcase');
   await saveContactEnquiry({

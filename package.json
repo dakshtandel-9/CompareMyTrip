@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
-    "prebuild": "npm run check:assets",
+    "prebuild": "npm run check:assets && npm run check:content",
     "start": "next start",
     "lint": "eslint",
     "build:cloudflare": "opennextjs-cloudflare build",
@@ -20,11 +20,12 @@
     "check:release": "node scripts/check-release.mjs",
     "check:live": "node scripts/check-release.mjs --live",
     "check:auth": "node scripts/check-google-auth.mjs",
-    "prebuild:cloudflare": "npm run check:assets",
+    "prebuild:cloudflare": "npm run check:assets && npm run check:content",
     "postbuild:cloudflare": "node scripts/check-assets.mjs .open-next/assets",
     "test:smoke": "node scripts/smoke.mjs",
     "test:smoke:maintenance": "node scripts/smoke.mjs --maintenance",
-    "test:worker:firestore": "node scripts/test-firestore-worker.mjs"
+    "test:worker:firestore": "node scripts/test-firestore-worker.mjs",
+    "check:content": "node scripts/check-content.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1121.0",

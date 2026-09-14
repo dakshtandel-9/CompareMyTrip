@@ -8,7 +8,15 @@ import { ADMIN_PREVIEW_COOKIE } from "@/lib/adminPreview";
 // project's Cloudflare adapter does not offer stable Node proxy support.
 export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname === "/coming-soon" && ["GET", "HEAD"].includes(request.method)) {
-    if (await readComingSoonEnabled()) return NextResponse.next();
+    if (await readComingSoonEnabled(request.nextUrl.origin)) {
+      const headers = new Headers(request.headers);
+      // Overwrite any caller-supplied value. The page uses this same decision
+      // instead of performing a second, potentially contradictory read.
+      headers.set("x-cmt-coming-soon", "enabled");
+      const response = NextResponse.next({ request: { headers } });
+      response.headers.set("Cache-Control", "no-store, max-age=0");
+      return response;
+    }
     // Decide before Next starts streaming; a page-level notFound() alone
     // can leave the HTTP status at 200 once the root shell has been sent.
     const response = NextResponse.rewrite(new URL("/404", request.url), { status: 404 });
@@ -19,7 +27,7 @@ export async function middleware(request: NextRequest) {
   if (bypassComingSoon(request.nextUrl.pathname) || !["GET", "HEAD"].includes(request.method)) {
     return NextResponse.next();
   }
-  if (!await readComingSoonEnabled()) return NextResponse.next();
+  if (!await readComingSoonEnabled(request.nextUrl.origin)) return NextResponse.next();
 
   const token = request.cookies.get(ADMIN_PREVIEW_COOKIE)?.value;
   if (token) {

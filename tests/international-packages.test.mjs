@@ -20,7 +20,7 @@ const data = load('src/lib/packageData.ts');
 const { internationalCardPackage: resolve } = load('src/lib/internationalPackages.ts', {
   '@/lib/packageData': data,
 });
-const trip = (id, destination, extra = {}) => ({ id, destination, region: 'International', ...extra });
+const trip = (id, destination, extra = {}) => ({ id, title: id, destination, region: 'International', ...extra });
 const card = (country, href = '/packages?region=international') => ({ country, href });
 
 test('existing country cards choose a matching published package consistently', () => {

@@ -100,6 +100,7 @@ service cloud.firestore {
               && request.resource.data.status == 'not_contacted')
             ||
             (request.resource.data.source == 'custom_quote'
+              && request.resource.data.travellers.matches('^([1-9]|1[0-9]|20)$')
               && request.auth != null
               && request.resource.data.userId == request.auth.uid
               && request.resource.data.status == 'under_review')
@@ -202,17 +203,18 @@ service cloud.firestore {
     }
 
     match /packages/{packageId} {
-      // Package products are public; only admins can manage them.
-      allow read: if true;
+      // Public collection queries go through /api/content. Direct reads of
+      // published legacy documents remain compatible; drafts require admin.
+      allow read: if isAdmin() || (packageId != '_catalog'
+        && resource.data.package.get('status', 'published') != 'draft'
+        && resource.data.package.title is string
+        && resource.data.package.title.size() > 0
+        && !resource.data.package.title.matches('.*(@|https?://|[wW][wW][wW][.]).*'));
       allow create, update, delete: if isAdmin();
     }
 
     match /blogPosts/{postId} {
-      // Travel guides are public content; only admins can write them.
-      // Drafts live in the same collection, so an unpublished post is
-      // readable by anyone who guesses its slug — treat a draft as
-      // "not linked from the website yet", not as a secret.
-      allow read: if true;
+      allow read: if isAdmin() || resource.data.post.status == 'published';
       allow create, update, delete: if isAdmin();
     }
 

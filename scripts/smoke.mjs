@@ -21,12 +21,13 @@ assert.match(html, /<h1/);
 if (maintenance) {
   assert.match(html, /noindex/, 'coming-soon page should not be indexed');
   assert.match(html, /<header[\s\S]*href="\/admin\/content"[\s\S]*Admin sign in[\s\S]*<\/header>/, 'admin sign-in must be visible in the coming-soon header');
-  for (const path of ['/', ...catalogue, '/signup', ...missingPages, ...publicPages]) {
+  for (const path of ['/', '/packages?q=Kerala&travellers=2', ...catalogue, '/signup', ...missingPages, ...publicPages]) {
     const { res } = await get(path, 307);
     const destination = new URL(res.headers.get('location'), base);
     assert.equal(destination.origin, new URL(base).origin, `${path}: same-origin maintenance redirect`);
     assert.equal(destination.pathname, '/coming-soon', `${path}: maintenance redirect`);
-    assert.equal(destination.search, '', `${path}: maintenance redirect query`);
+    assert.equal(destination.searchParams.get('next'), path, `${path}: original path and query preserved`);
+    assert.deepEqual([...destination.searchParams.keys()], ['next'], `${path}: maintenance redirect query`);
     assert.match(res.headers.get('cache-control') || '', /no-store/, `${path}: maintenance redirect must not be cached`);
   }
   for (const path of ['/account', '/checkout/status', '/pay/status']) await get(path);

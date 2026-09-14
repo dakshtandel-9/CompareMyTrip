@@ -3,6 +3,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 
 import type { BlogPost } from "@/lib/blogData";
+import { usePublicContent } from "@/lib/usePublicContent";
 import { subscribeToBlogPosts } from "@/lib/firebase/blog";
 
 /* One Firestore listener for the whole tab, shared by the index, the article
@@ -41,6 +42,6 @@ export function useBlogState() {
 
 /** Only what the website should show: published posts, newest first. */
 export function usePublishedBlogPosts() {
-  const { posts, loading, error } = useBlogState();
+  const { posts, loading, error } = usePublicContent();
   return { posts: posts.filter((post) => post.status === "published"), loading, error };
 }

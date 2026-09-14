@@ -1,6 +1,6 @@
 "use client";
 
-import { lockPageScroll } from "@/lib/lockPageScroll";
+import Modal from "@/components/Modal";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -19,8 +19,8 @@ const defaultGalleryImages = [
   { src: "/package-gallery/kerala-houseboats.jpg", alt: "Houseboats gathered on the Kerala backwaters", position: "object-center" },
 ];
 
-export default function PackageGallery({ images }: { images?: string[] }) {
-  const galleryImages = (images?.length ? images.slice(0, 10) : defaultGalleryImages).map(
+export default function PackageGallery({ images, maxImages = 10 }: { images?: string[]; maxImages?: number }) {
+  const galleryImages = (images?.length ? images.slice(0, maxImages) : defaultGalleryImages).map(
     (image, index) =>
       typeof image === "string"
         ? { src: image, alt: `Package gallery image ${index + 1}`, position: "object-center" }
@@ -32,10 +32,8 @@ export default function PackageGallery({ images }: { images?: string[] }) {
   useEffect(() => {
     if (!isOpen) return;
 
-    const unlockScroll = lockPageScroll();
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedIndex(null);
       if (event.key === "ArrowLeft") {
         setSelectedIndex((current) =>
           current === null ? null : (current - 1 + galleryImages.length) % galleryImages.length,
@@ -50,7 +48,6 @@ export default function PackageGallery({ images }: { images?: string[] }) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => {
-      unlockScroll();
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, galleryImages.length]);
@@ -148,14 +145,10 @@ export default function PackageGallery({ images }: { images?: string[] }) {
       </div>
 
       {isOpen && selectedIndex !== null && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Package image gallery"
+        <Modal
+          onClose={() => setSelectedIndex(null)}
+          label="Package image gallery"
           className="fixed inset-0 z-[100] flex flex-col bg-cmt-neutral-900/95 p-3 backdrop-blur-md sm:p-6"
-          onMouseDown={(event) => {
-            if (event.currentTarget === event.target) setSelectedIndex(null);
-          }}
         >
           <div className="mx-auto flex w-full max-w-7xl items-center justify-between pb-3 text-white sm:pb-5">
             <div>
@@ -164,6 +157,7 @@ export default function PackageGallery({ images }: { images?: string[] }) {
             </div>
             <button
               type="button"
+              data-modal-initial-focus
               aria-label="Close gallery"
               onClick={() => setSelectedIndex(null)}
               className="grid size-11 place-items-center rounded-full border border-white/15 bg-white/10 text-white transition-colors hover:bg-white/20"
@@ -217,7 +211,7 @@ export default function PackageGallery({ images }: { images?: string[] }) {
               </button>
             ))}
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );

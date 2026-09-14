@@ -12,7 +12,7 @@ function load(file, dependencies = {}, globals = {}) {
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
-  vm.runInNewContext(code, { exports, Request, Response, URL, AbortSignal, ...globals, require(name) {
+  vm.runInNewContext(code, { exports, Headers, Request, Response, URL, AbortSignal, ...globals, require(name) {
     assert.ok(Object.hasOwn(dependencies, name), `Unexpected dependency: ${name}`);
     return dependencies[name];
   } });

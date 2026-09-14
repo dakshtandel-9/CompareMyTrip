@@ -53,6 +53,9 @@ export default function FooterBadgesEditor({ value, onChange }: {
         </p>
         <TrustStripPreview value={{ ...value, enabled: true }} />
       </Card>
+      <Card title="Tourism partner logos" description="The tourism-board logo strip stays hidden until the business has confirmed all displayed partnerships and permission to use the logos.">
+        <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={value.tourismPartnersVerified === true} onChange={(event) => { const tourismPartnersVerified = event.target.checked; onChange((current) => ({ ...current, tourismPartnersVerified })); }} /> Tourism partnerships and logo permissions verified</label>
+      </Card>
       {groups.map((group) => (
         <Card key={group.key} title={group.title}>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -62,6 +65,7 @@ export default function FooterBadgesEditor({ value, onChange }: {
               return (
                 <div key={key} className="rounded-cmt-sm border border-cmt-neutral-200 p-4">
                   <h3 className="text-sm font-semibold">{item.label}</h3>
+                  {group.key === "accreditationImages" && <label className="mt-3 flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={value.verifiedAccreditations?.includes(item.id) ?? false} onChange={(event) => { const verified = event.target.checked; onChange((current) => ({ ...current, verifiedAccreditations: verified ? [...new Set([...(current.verifiedAccreditations ?? []), item.id])] : (current.verifiedAccreditations ?? []).filter((id) => id !== item.id) })); }} /> Verified against current business records</label>}
                   <p className="mt-1 text-xs text-cmt-neutral-500">{value[group.key][item.id] ? "Custom image" : "Original artwork"}</p>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <label className={`relative inline-flex min-h-11 items-center gap-2 rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 text-xs font-semibold focus-within:outline-2 focus-within:outline-cmt-primary-500 ${busy ? "opacity-50" : "cursor-pointer hover:bg-cmt-neutral-50"}`}>

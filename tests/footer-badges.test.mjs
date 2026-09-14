@@ -80,6 +80,7 @@ test('the live footer renders published replacements and keeps other original ma
   renderedContent = normalizeSiteContent({ footerBadges: {
     paymentImages: { visa: 'https://images.example.com/custom-visa.png' },
     accreditationImages: { iata: 'https://images.example.com/custom-iata.png' },
+    verifiedAccreditations: ['iata', 'iso'],
   } });
   const html = renderToStaticMarkup(React.createElement(TrustStrip));
   assert.match(html, /src="https:\/\/images.example.com\/custom-visa.png"/);
@@ -93,7 +94,7 @@ test('the live footer restores original marks and respects the visibility settin
   renderedContent = normalizeSiteContent({ footerBadges: { paymentImages: { visa: '' } } });
   const html = renderToStaticMarkup(React.createElement(TrustStrip));
   assert.match(html, /src="\/payments\/visa.svg"/);
-  assert.match(html, /IATA/);
+  assert.doesNotMatch(html, /IATA/);
   renderedContent = normalizeSiteContent({ footerBadges: { enabled: false } });
   assert.equal(renderToStaticMarkup(React.createElement(TrustStrip)), '');
 });

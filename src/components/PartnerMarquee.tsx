@@ -1,3 +1,6 @@
+"use client";
+
+import { useSiteContent } from "@/lib/useSiteContent";
 import Image from "next/image";
 
 /* ------------------------------------------------------------------ */
@@ -46,6 +49,8 @@ const LOGOS = [
 ];
 
 export default function PartnerMarquee() {
+  const { footerBadges } = useSiteContent();
+  if (footerBadges.tourismPartnersVerified !== true) return null;
   return (
     <div
       className="relative overflow-hidden border-b border-cmt-neutral-200 bg-white py-6"

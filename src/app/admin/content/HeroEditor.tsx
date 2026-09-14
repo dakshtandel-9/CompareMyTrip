@@ -295,6 +295,8 @@ export default function HeroEditor({
           onChange={(next) => setTrust({ enabled: next })}
         />
 
+        <Toggle label="Traveller total and photos verified" description="Enable only after checking the displayed claim against real business records." checked={hero.trust.verified === true} onChange={(verified) => setTrust({ verified })} />
+
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
           <TextField
             label="Leading text"

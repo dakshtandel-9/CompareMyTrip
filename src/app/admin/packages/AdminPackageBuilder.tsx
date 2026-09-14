@@ -9,11 +9,14 @@ import { deleteImageFromCloudflare, PACKAGE_DRAFT_IMAGE_KEY_PREFIX } from "@/lib
 
 import { defaultPackageFacts } from "@/lib/packageFacts";
 import PackageFactsEditor from "./PackageFactsEditor";
+import PackagePageSectionsEditor from "./PackagePageSectionsEditor";
+import { defaultPackagePageSections, getPackagePageSections, packagePageSectionImages, packagePageSectionsIssue } from "@/lib/packageDetailSections";
 import EditorSteps, { ReadinessList } from "./EditorSteps";
 import { useUnsavedContentChanges } from "../content/useUnsavedContentChanges";
 import { packageValidationIssue, type PackageForm } from "./catalogueEditorState";
 
-const EDITOR_STEPS = ["Trip basics", "Price & dates", "Photos", "Description", "Itinerary & stays", "Details bar", "Review & save"] as const;
+const EDITOR_STEPS = ["Trip basics", "Price & dates", "Photos", "Description", "Itinerary & stays", "Details bar", "Page sections", "Review & save"] as const;
+const SAVE_STEP = EDITOR_STEPS.length - 1;
 
 
 
@@ -25,6 +28,7 @@ const makeDays = (count = 5): PackageItineraryDay[] => Array.from({ length: coun
 
 const initialForm: PackageForm = {
   facts: defaultPackageFacts(), factsHidden: false, permitRequired: false,
+  pageSections: defaultPackagePageSections(),
   title: "", location: "", destination: "", operator: "CompareMyTrip Partner", region: "India",
   gallery: [],
   nights: "4", days: "5", pax: "2–10 pax", hotelStars: "4", originalPrice: "24999", price: "19999", discount: "20", deal: false, tags: ["Family"],
@@ -45,6 +49,7 @@ function formFromPackage(pkg?: TravelPackage): PackageForm {
   const details = getPackageDetails(pkg);
   return {
     facts: details.facts ?? defaultPackageFacts(), factsHidden: details.factsHidden ?? false, permitRequired: details.permitRequired === true,
+    pageSections: getPackagePageSections(details),
     title: pkg.title, location: pkg.location, destination: pkg.destination, operator: pkg.operator,
     region: pkg.region, gallery: details.gallery, nights: String(pkg.nights), days: String(pkg.days), pax: pkg.pax,
     hotelStars: String(pkg.hotelStars), originalPrice: String(pkg.originalPrice), price: String(pkg.price),
@@ -79,11 +84,13 @@ function TextList({ label, value, onChange }: { label: string; value: string; on
 export default function AdminPackageBuilder({ initialPackage, filedUnderOptions, onCancel, onSaved }: { initialPackage?: TravelPackage; filedUnderOptions: Record<TravelPackage["region"], string[]>; onCancel: () => void; onSaved: (message: string) => void }) {
   const draftStorageKey = `${PACKAGE_DRAFT_IMAGE_KEY_PREFIX}${initialPackage?.id ?? "new"}`;
   const draftImagesRef = useRef<string[]>([]);
+  const sectionUploadRef = useRef(false);
   const [form, setForm] = useState<PackageForm>(() => formFromPackage(initialPackage));
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadWarning, setUploadWarning] = useState("");
   const [step, setStep] = useState(0);
   const [originalForm] = useState(() => JSON.stringify(form));
   const dirty = JSON.stringify(form) !== originalForm;
@@ -96,13 +103,15 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
   };
   useUnsavedContentChanges(dirty && !saving);
   const fail = (message: string, section: number) => { setError(message); goToStep(section); };
+  const sectionHidden = (section: "about" | "itinerary" | "stays") => form.pageSections.hiddenSections.includes(section);
   const readiness = [
     { label: "Title, route and category", ready: Boolean(form.title.trim() && form.location.trim() && form.tags.length), step: 0 },
     { label: "Price and departure days", ready: Number(form.price) > 0 && Number(form.originalPrice) >= Number(form.price) && form.departureDays.length > 0, step: 1 },
     { label: "At least 3 package photos", ready: form.gallery.length >= 3, step: 2 },
-    { label: "Overview and places", ready: Boolean(form.summary.trim() && splitPlaces(form.places).length), step: 3 },
-    { label: "Itinerary and accommodation", ready: form.itinerary.length > 0 && form.itinerary.every((day) => day.title.trim()) && form.stays.length > 0 && form.stays.every((stay) => stay.name.trim()), step: 4 },
+    { label: "Overview and places", ready: sectionHidden("about") || Boolean(form.summary.trim() && splitPlaces(form.places).length), step: 3 },
+    { label: "Itinerary and accommodation", ready: (sectionHidden("itinerary") || form.itinerary.length > 0 && form.itinerary.every((day) => day.title.trim())) && (sectionHidden("stays") || form.stays.length > 0 && form.stays.every((stay) => stay.name.trim())), step: 4 },
     { label: "Details bar checked", ready: form.factsHidden || form.facts.every((fact) => fact.visible === false || Boolean(fact.label.trim() && (fact.value === undefined ? fact.source : fact.value.trim()))), step: 5 },
+    { label: "Page sections checked", ready: !packagePageSectionsIssue(form.pageSections), step: 6 },
   ];
 
   useEffect(() => {
@@ -123,11 +132,6 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
   const rememberDraftImages = (images: string[]) => {
     draftImagesRef.current = [...new Set([...draftImagesRef.current, ...images])];
     sessionStorage.setItem(draftStorageKey, JSON.stringify(draftImagesRef.current));
-  };
-  const forgetDraftImage = (image: string) => {
-    draftImagesRef.current = draftImagesRef.current.filter((item) => item !== image);
-    if (draftImagesRef.current.length) sessionStorage.setItem(draftStorageKey, JSON.stringify(draftImagesRef.current));
-    else sessionStorage.removeItem(draftStorageKey);
   };
   const abandonDraft = async () => {
     const images = [...draftImagesRef.current];
@@ -196,30 +200,38 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
     } catch (cause) { setError(cause instanceof Error ? cause.message : "The images could not be uploaded."); }
     finally { setUploading(false); }
   };
-  const handleImageDelete = async (image: string) => {
-    if (saving || uploading) return;
+  const handleSectionImageUpload = async (files: File[]): Promise<string[]> => {
+    if (!files.length) return [];
+    if (uploading || saving || sectionUploadRef.current) throw new Error("Wait for the current upload to finish.");
+    if (files.some((file) => !["image/jpeg", "image/png", "image/webp"].includes(file.type))) throw new Error("Choose JPG, PNG or WebP images.");
+    if (files.some((file) => file.size > 5_000_000)) throw new Error("Each image must be 5 MB or smaller.");
+    sectionUploadRef.current = true;
+    setUploading(true); setError(""); setUploadWarning("");
     try {
-      setUploading(true);
-      setError("");
-      await deleteImageFromCloudflare(image);
-      forgetDraftImage(image);
-      const gallery = form.gallery.filter((item) => item !== image);
-      update("gallery", gallery);
-      if (initialPackage) {
-        await savePackage({
-          ...initialPackage,
-          image: gallery[0] || "/destinations/kerala.jpg",
-          details: { ...getPackageDetails(initialPackage), gallery },
-        });
+      const results = await Promise.allSettled(files.map(uploadPackageImage));
+      const uploaded = results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
+      if (uploaded.length) rememberDraftImages(uploaded);
+      const failed = results.find((result) => result.status === "rejected");
+      if (failed?.status === "rejected") {
+        const message = failed.reason instanceof Error ? failed.reason.message : "Some images could not be uploaded.";
+        if (!uploaded.length) throw new Error(message);
+        setUploadWarning(`${uploaded.length} image${uploaded.length === 1 ? "" : "s"} uploaded. ${message}`);
       }
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "The image could not be deleted."); }
-    finally { setUploading(false); }
+      return uploaded;
+    } finally {
+      sectionUploadRef.current = false;
+      setUploading(false);
+    }
+  };
+  const handleImageDelete = (image: string) => {
+    if (saving || uploading) return;
+    update("gallery", form.gallery.filter((item) => item !== image));
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); setMessage(""); setError("");
     if (saving || uploading) return;
-    if (step !== 6) { goToStep(Math.min(step + 1, 6)); return; }
+    if (step !== SAVE_STEP) { goToStep(Math.min(step + 1, SAVE_STEP)); return; }
     const validation = packageValidationIssue(form);
     if (validation) return fail(validation.message, validation.step);
     const newPackage: TravelPackage = {
@@ -237,15 +249,25 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
         itinerary: form.itinerary.map((day) => ({ ...day, title: day.title.trim(), route: day.route.trim(), description: day.description.trim() || day.route.trim() || day.title.trim() })),
         stays: form.stays.map((stay) => ({ ...stay, name: stay.name.trim(), place: stay.place.trim() || form.destination.trim() || form.location.trim() })),
         inclusions: lines(form.inclusions), exclusions: lines(form.exclusions), meals: form.meals.trim(), transfers: form.transfers.trim(),
-        flights: form.flights.trim(), permitRequired: form.permitRequired, cancellationPolicy: form.cancellationPolicy.trim() },
+        flights: form.flights.trim(), permitRequired: form.permitRequired, cancellationPolicy: form.cancellationPolicy.trim(), pageSections: form.pageSections },
     };
     try {
       setSaving(true); await savePackage(newPackage);
+      // Retain images in hidden sections. Clean removed uploads only after the
+      // package has saved successfully, so cancelling never breaks a live page.
+      const retained = new Set([newPackage.image, ...form.gallery, ...packagePageSectionImages(form.pageSections)]);
+      const previousDetails = initialPackage ? getPackageDetails(initialPackage) : null;
+      const previousImages = previousDetails ? [initialPackage!.image, ...previousDetails.gallery, ...packagePageSectionImages(getPackagePageSections(previousDetails))] : [];
+      const removed = [...new Set([...draftImagesRef.current, ...previousImages])].filter((image) => image.startsWith("https://") && !retained.has(image));
       draftImagesRef.current = [];
       sessionStorage.removeItem(draftStorageKey);
-      onSaved(newPackage.status === "draft"
+      const cleanup = await Promise.allSettled(removed.map(deleteImageFromCloudflare));
+      const failedCleanup = removed.filter((_, index) => cleanup[index].status === "rejected");
+      if (failedCleanup.length) sessionStorage.setItem(draftStorageKey, JSON.stringify(failedCleanup));
+      const savedMessage = newPackage.status === "draft"
         ? `“${newPackage.title}” was saved as a draft. It is hidden from the website.`
-        : `“${newPackage.title}” was saved and is live on the website.`);
+        : `“${newPackage.title}” was saved and is live on the website.`;
+      onSaved(savedMessage + (failedCleanup.length ? " Unused image cleanup will retry next time." : ""));
     } catch (cause) { setError(cause instanceof Error ? cause.message : "This package could not be saved."); }
     finally { setSaving(false); }
   };
@@ -268,6 +290,7 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
         </div>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm"><h2 id="package-step-heading" tabIndex={-1} className="font-semibold">Step {step + 1} of {EDITOR_STEPS.length} · {EDITOR_STEPS[step]}</h2><p className="text-xs text-cmt-neutral-500">{dirty ? "Unsaved changes" : initialPackage ? "Editing saved package" : "New package · starts as a draft"}</p></div>
         {error && <p role="alert" className="mb-5 rounded-xl border border-cmt-error-500/20 bg-cmt-error-100 px-4 py-3 text-sm text-cmt-error-700">{error}</p>}
+        {uploadWarning && <p role="status" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">{uploadWarning}</p>}
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
           <form noValidate onSubmit={handleSubmit} className="space-y-6">
             <section hidden={step !== 0} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
@@ -349,7 +372,7 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
             <section hidden={step !== 2} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
               <SectionTitle icon={<ImagePlus className="size-5" />} title="3. Add package photos" copy="Minimum 3 images, maximum 10. The first image becomes the card cover." />
               <label className="mt-6 block cursor-pointer rounded-cmt-md border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 p-5 text-center hover:border-cmt-primary-500"><ImagePlus className="mx-auto size-6 text-cmt-neutral-500" /><span className="mt-2 block text-sm font-semibold">{uploading ? "Processing and uploading…" : `Add gallery images (${form.gallery.length}/10)`}</span><span className="mt-1 block text-xs text-cmt-neutral-500">JPG, PNG or WebP · up to 5 MB per photo</span><input disabled={uploading || saving || form.gallery.length >= 10} type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={(e) => { void handleImageUpload(e.target.files); e.target.value = ""; }} className="sr-only" /></label>
-              <p className="mt-3 text-xs leading-5 text-cmt-neutral-500">Removing a saved photo updates the website immediately. Other changes apply when you save the package.</p>
+              <p className="mt-3 text-xs leading-5 text-cmt-neutral-500">Photo changes apply when you save the package. Images still used in another section are kept.</p>
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{form.gallery.map((image, index) => <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-cmt-sm bg-cmt-neutral-100"><Image src={image} alt={`Gallery ${index + 1}`} fill className="object-cover" unoptimized={image.startsWith("data:")} />{index === 0 && <span className="absolute left-2 top-2 rounded-full bg-white px-2 py-1 text-[10px] font-semibold">Cover</span>}<button type="button" disabled={uploading || saving} aria-label={`Delete image ${index + 1}`} onClick={() => handleImageDelete(image)} className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-cmt-neutral-900/80 text-white"><Trash2 className="size-3.5" /></button></div>)}</div>
             </section>
 
@@ -361,6 +384,14 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
               onChange={(facts) => update("facts", facts)}
               onHiddenChange={(hidden) => update("factsHidden", hidden)}
               onPermitRequiredChange={(required) => update("permitRequired", required)}
+            /></div>
+
+            <div hidden={step !== 6}><PackagePageSectionsEditor
+              value={form.pageSections}
+              onChange={(pageSections) => update("pageSections", pageSections)}
+              onUploadImages={handleSectionImageUpload}
+              busy={saving || uploading}
+              allowReviews={Boolean(initialPackage)}
             /></div>
 
             <section hidden={step !== 3} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
@@ -388,8 +419,8 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
               <div className="mt-6 space-y-4">{form.stays.map((stay, index) => <article key={index} className="rounded-cmt-md border border-cmt-neutral-200 p-4"><div className="mb-4 flex items-center justify-between"><p className="font-semibold">Stay {index + 1}</p>{form.stays.length > 1 && <button type="button" aria-label={`Remove stay ${index + 1}`} onClick={() => update("stays", form.stays.filter((_, stayIndex) => stayIndex !== index))} className="text-cmt-error-700"><Trash2 className="size-4" /></button>}</div><div className="grid gap-4 sm:grid-cols-2"><label><FieldLabel>Hotel / stay name *</FieldLabel><input value={stay.name} onChange={(e) => updateStay(index, "name", e.target.value)} className={inputClass} /></label><label><FieldLabel>Place</FieldLabel><input value={stay.place} onChange={(e) => updateStay(index, "place", e.target.value)} className={inputClass} /></label><label><FieldLabel>Nights</FieldLabel><input type="number" min="1" value={stay.nights} onChange={(e) => updateStay(index, "nights", Number(e.target.value))} className={inputClass} /></label><label><FieldLabel>Comfort / room details</FieldLabel><input value={stay.comfort} onChange={(e) => updateStay(index, "comfort", e.target.value)} className={inputClass} /></label></div></article>)}</div>
             </section>
 
-            <section hidden={step !== 6} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-              <SectionTitle icon={<Globe2 className="size-5" />} title="7. Review and save" copy="Check your package, then choose whether it should appear on the website." />
+            <section hidden={step !== SAVE_STEP} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
+              <SectionTitle icon={<Globe2 className="size-5" />} title="8. Review and save" copy="Check your package, then choose whether it should appear on the website." />
               <div className="mt-5"><ReadinessList items={readiness} onSelect={goToStep} /></div>
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 {([
@@ -407,7 +438,7 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
             {message && <p role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{message}</p>}
             <div className="sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cmt-neutral-200 bg-white/95 p-4 shadow-cmt-md backdrop-blur-sm">
               <button disabled={step === 0 || saving || uploading} type="button" onClick={() => goToStep(step - 1)} className="inline-flex h-11 items-center gap-2 rounded-xl border border-cmt-neutral-200 px-4 text-sm font-semibold disabled:opacity-40"><ArrowLeft className="size-4" /> Previous</button>
-              {step < 6 ? <button disabled={saving || uploading} type="button" onClick={() => goToStep(step + 1)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white disabled:opacity-50">Continue <ArrowRight className="size-4" /></button> : <button disabled={saving || uploading} type="submit" className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white disabled:opacity-50"><Save className="size-4" />{saving ? "Saving…" : form.status === "draft" ? "Save as draft" : "Save and publish"}</button>}
+              {step < SAVE_STEP ? <button disabled={saving || uploading} type="button" onClick={() => goToStep(step + 1)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white disabled:opacity-50">Continue <ArrowRight className="size-4" /></button> : <button disabled={saving || uploading} type="submit" className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white disabled:opacity-50"><Save className="size-4" />{saving ? "Saving…" : form.status === "draft" ? "Save as draft" : "Save and publish"}</button>}
             </div>
           </form>
 

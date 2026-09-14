@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Database, Edit3, ExternalLink, PackagePlus, Search, Trash2 } from "lucide-react";
 import { deletePackage, seedPackages } from "@/lib/firebase/packages";
 import { DUMMY_PACKAGES, getPackageDetails, isPublishedPackage, type TravelPackage } from "@/lib/packageData";
+import { getPackagePageSections, packagePageSectionImages } from "@/lib/packageDetailSections";
 import { cleanupAbandonedPackageImages, deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
 import { INDIA_STATES, toIndiaState } from "@/lib/indiaStates";
 import { useAllPackagesState } from "@/lib/usePackages";
@@ -83,7 +84,8 @@ export default function AdminPackagesManager() {
     setWorking(true); setActionError("");
     try {
       await deletePackage(pkg.id);
-      const images = [...new Set([pkg.image, ...getPackageDetails(pkg).gallery])];
+      const details = getPackageDetails(pkg);
+      const images = [...new Set([pkg.image, ...details.gallery, ...packagePageSectionImages(getPackagePageSections(details))])];
       await Promise.all(images.map(deleteImageFromCloudflare));
       setSuccess(`“${pkg.title}” was deleted.`);
     }

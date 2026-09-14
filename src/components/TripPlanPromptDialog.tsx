@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 import PhoneNumberField from "@/components/PhoneNumberField";
-import { useAllPackages } from "@/lib/usePackages";
+import { usePackages } from "@/lib/usePackages";
 import { buildDestinations } from "@/lib/destinations";
 import {
   DEPARTURE_TYPES,
@@ -68,7 +68,7 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 
 export default function TripPlanPromptDialog() {
   const pathname = usePathname();
-  const packages = useAllPackages();
+  const packages = usePackages();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const [delayElapsed, setDelayElapsed] = useState(false);
