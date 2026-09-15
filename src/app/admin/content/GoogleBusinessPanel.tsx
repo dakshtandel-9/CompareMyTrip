@@ -80,7 +80,7 @@ function Link({ href, children }: { href: string; children: React.ReactNode }) {
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center gap-1 font-semibold text-cmt-primary-700 underline underline-offset-2 hover:text-cmt-primary-900"
+      className="inline-flex items-center gap-1 font-semibold text-cmt-primary-900 underline underline-offset-2 hover:text-cmt-primary-900"
     >
       {children}
       <ExternalLink className="size-3" aria-hidden="true" />

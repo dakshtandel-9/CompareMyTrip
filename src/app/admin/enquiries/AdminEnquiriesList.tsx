@@ -139,7 +139,7 @@ export default function AdminEnquiriesList({ kind }: { kind: "contact" | "packag
               </div>
               <label className="w-full sm:w-48"><span className="mb-1.5 block text-xs font-medium text-slate-500">{updatingId === enquiry.id ? "Saving status…" : "Request status · saves automatically"}</span>
                 <select disabled={Boolean(updatingId) || deletingId === enquiry.id} value={enquiry.status} onChange={event => void changeStatus(enquiry, event.target.value as EnquiryStatus)} aria-label={`Request status for ${enquiry.name}`}
-                  className={`h-10 w-full rounded-xl border px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-100 disabled:opacity-60 ${enquiry.status === "rejected" ? "border-red-200 bg-red-50 text-red-700" : enquiry.status === "completed" || enquiry.status === "contacted" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-white text-slate-700"}`}>
+                  className={`h-10 w-full rounded-xl border px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-cmt-primary-100 disabled:opacity-60 ${enquiry.status === "rejected" ? "border-red-200 bg-red-50 text-red-700" : enquiry.status === "completed" || enquiry.status === "contacted" ? "border-cmt-success-500/30 bg-cmt-success-100 text-cmt-success-700" : "border-slate-200 bg-white text-slate-700"}`}>
                   {statusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
               </label>
@@ -149,7 +149,7 @@ export default function AdminEnquiriesList({ kind }: { kind: "contact" | "packag
               <p className="mt-1 text-xs leading-5 text-slate-500">{isPackageInbox ? `${enquiry.destination || "Destination not specified"} · ` : ""}{enquiry.travellers ? `${enquiry.travellers} travellers` : "Traveller count not specified"}{enquiry.departure ? ` · Departure: ${enquiry.departure}` : ""}</p>
             </div>
             <details className="group mt-4">
-              <summary className="flex w-fit cursor-pointer list-none items-center gap-2 rounded-md py-1 text-sm font-semibold text-emerald-700 [&::-webkit-details-marker]:hidden"><ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden="true" />View request details</summary>
+              <summary className="flex w-fit cursor-pointer list-none items-center gap-2 rounded-md py-1 text-sm font-semibold text-cmt-primary-900 [&::-webkit-details-marker]:hidden"><ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden="true" />View request details</summary>
               <div className="mt-4 space-y-4 rounded-xl border border-slate-200 p-4">
                 <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
                   <div><dt className="text-xs text-slate-500">Destination</dt><dd className="mt-1 font-medium">{enquiry.destination || "Not specified"}</dd></div>

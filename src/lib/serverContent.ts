@@ -94,7 +94,7 @@ const readCachedCatalogue = unstable_cache(async () => {
     packages: catalogue.packages,
     updatedAt: Array.from(catalogue.updatedAt, ([id, date]) => [id, date.toISOString()]),
   };
-}, ["published-catalogue-v2"], { revalidate: 3600, tags: ["public-content"] });
+}, ["published-catalogue-v3"], { revalidate: 3600, tags: ["public-content"] });
 const loadPackageCatalogue = cache(async (): Promise<PackageCatalogue> => {
   const catalogue = await readCachedCatalogue();
   return {

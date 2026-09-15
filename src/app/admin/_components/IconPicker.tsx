@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ComponentType } from "react";
+import { createPortal } from "react-dom";
 import { Check, Search, X } from "lucide-react";
 
 import { Glyph, ICON_GROUPS, ICON_LIBRARY, humanizeIconName } from "@/lib/adminIcons";
@@ -16,7 +17,11 @@ export default function IconPicker({
   label = "Icon",
   value,
   onChange,
+  iconNames,
+  renderIcon: Icon = Glyph,
 }: {
+  iconNames?: string[];
+  renderIcon?: ComponentType<{ name: string; className?: string }>;
   label?: string;
   value: string;
   onChange: (name: string) => void;
@@ -28,13 +33,13 @@ export default function IconPicker({
      rather than 227 undifferentiated glyphs. */
   const groups = useMemo(() => {
     const term = query.trim().toLowerCase();
-    if (!term) return ICON_GROUPS;
+    if (!term) return iconNames ? [{ title: `${iconNames.length} product icons`, icons: iconNames }] : ICON_GROUPS;
 
-    const matches = Object.keys(ICON_LIBRARY).filter((name) =>
+    const matches = (iconNames ?? Object.keys(ICON_LIBRARY)).filter((name) =>
       humanizeIconName(name).toLowerCase().includes(term),
     );
     return [{ title: `${matches.length} matching`, icons: matches }];
-  }, [query]);
+  }, [query, iconNames]);
 
   return (
     <div>
@@ -46,7 +51,7 @@ export default function IconPicker({
         className="flex h-11 w-full items-center gap-3 rounded-cmt-control border border-cmt-neutral-200 bg-white px-2.5 text-left transition-colors hover:border-cmt-neutral-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
       >
         <span className="grid size-8 shrink-0 place-items-center rounded-cmt-full bg-cmt-primary-500 text-cmt-neutral-900">
-          <Glyph name={value} className="size-4" />
+          <Icon name={value} className="size-4" />
         </span>
         <span className="min-w-0 flex-1 truncate text-sm text-cmt-neutral-900">
           {humanizeIconName(value)}
@@ -54,7 +59,7 @@ export default function IconPicker({
         <span className="shrink-0 text-xs font-semibold text-cmt-primary-800">Change</span>
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
           role="dialog"
           aria-modal="true"
@@ -114,7 +119,7 @@ export default function IconPicker({
                           {active && (
                             <Check className="absolute right-1 top-1 size-3 text-cmt-primary-800" />
                           )}
-                          <Glyph name={name} className="size-5 text-cmt-neutral-800" />
+                          <Icon name={name} className="size-5 text-cmt-neutral-800" />
                           <span className="line-clamp-2 text-center text-[10px] leading-tight text-cmt-neutral-500">
                             {humanizeIconName(name)}
                           </span>
@@ -132,7 +137,7 @@ export default function IconPicker({
               )}
             </div>
           </div>
-        </div>
+        </div>, document.body
       )}
     </div>
   );

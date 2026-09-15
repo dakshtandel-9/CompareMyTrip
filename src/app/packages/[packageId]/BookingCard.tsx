@@ -36,8 +36,9 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
   const compared = isCompared(pkg.id);
 
   const discount = getDiscountPercent(pkg);
-  const tier = getPackageTier(pkg.hotelStars);
-  const flightLabel = /not included|no flight/i.test(details.flights) ? "Land only" : "Flights included";
+  const hasStay = details.stays.length > 0;
+  const tier = hasStay ? getPackageTier(pkg.hotelStars) : "Trip package";
+  const flightLabel = details.flights.trim() ? (/not included|no flight/i.test(details.flights) ? "Land only" : details.flights) : "";
 
   /* Demand is a signal, not data we hold, so it is hashed out of the
      package id: a different number per package, but the same one on the
@@ -82,21 +83,17 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           <span className="inline-flex items-center rounded-cmt-full border border-cmt-success-500/30 bg-cmt-success-100 px-2.5 py-1 text-xs font-semibold text-cmt-success-700">
             {tier}
           </span>
-          <span className={CHIP}>
+          {hasStay && <span className={CHIP}>
             <BedDouble className="size-3.5 text-cmt-neutral-500" aria-hidden="true" />
             STAY {pkg.hotelStars}★ hotels
-          </span>
-          <span className={CHIP}>
+          </span>}
+          {flightLabel && <span className={CHIP}>
             <Plane className="size-3.5 text-cmt-neutral-500" aria-hidden="true" />
             {flightLabel}
-          </span>
+          </span>}
         </div>
 
-        <div className="flex items-center justify-between gap-3 rounded-cmt-control border border-cmt-success-500/40 bg-cmt-success-100/60 px-4 py-3">
-          <span className="font-display text-base font-semibold">{tier}</span>
-          <span className="text-xs text-cmt-neutral-600">{pkg.hotelStars}★ hotels</span>
-          <span className="font-display text-base font-bold">{formatINR(pkg.price)}</span>
-        </div>
+
 
         <div className="border-t border-cmt-neutral-100 pt-5">
           {/* Same editorial pick as the "Best deal" badge on the listing card,
@@ -226,10 +223,10 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           </button>
         </div>
 
-        <p className="flex items-center justify-center gap-1.5 border-t border-cmt-neutral-100 pt-4 text-xs text-cmt-neutral-600">
+        {details.cancellationPolicy.trim() && <p className="flex items-center justify-center gap-1.5 border-t border-cmt-neutral-100 pt-4 text-xs text-cmt-neutral-600">
           <ShieldCheck className="size-3.5 shrink-0 text-cmt-success-700" strokeWidth={2.25} aria-hidden="true" />
-          Free cancellation
-        </p>
+          <a href="#package-policy" className="underline underline-offset-2">View cancellation policy</a>
+        </p>}
       </div>
     </div>
   );

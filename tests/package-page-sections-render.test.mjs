@@ -29,12 +29,17 @@ const imageMock = (props) => {
   delete imageProps.fill;
   return React.createElement('img', imageProps);
 };
+const inlineEditing = load('src/app/packages/_components/PackageInlineEditing.tsx', {
+  react: React, 'react/jsx-runtime': jsxRuntime, 'lucide-react': icons,
+  './PackageInlineEditing.module.css': { default: {} }, './PackageGallery': { default: galleryMock },
+});
 const pageSectionComponents = load('src/app/packages/_components/PackagePageSections.tsx', {
   'react/jsx-runtime': jsxRuntime,
   'next/image': { default: imageMock },
   'lucide-react': icons,
   '@/lib/packageDetailSections': model,
   './PackageGallery': { default: galleryMock },
+  './PackageInlineEditing': inlineEditing,
 });
 const { default: PackagePageSections } = pageSectionComponents;
 const renderSections = (pageSections) => renderToStaticMarkup(React.createElement(PackagePageSections, {
@@ -105,7 +110,7 @@ const { default: SectionsWithRealGallery } = load('src/app/packages/_components/
   'next/image': { default: imageMock },
   'lucide-react': icons,
   '@/lib/packageDetailSections': model,
-  './PackageGallery': { default: RealPackageGallery },
+  './PackageInlineEditing': { ...inlineEditing, EditableGallery: RealPackageGallery },
 });
 
 test('optional trip gallery exposes all 20 uploaded photos in the real viewer', () => {
@@ -180,7 +185,8 @@ const { default: PackageDetailClient } = load('src/app/packages/[packageId]/Pack
   '@/lib/packageFacts': { getPackageFacts: () => [] },
   '@/lib/packageDetailSections': model,
   '../_components/PackageFactsBar': { default: noOp },
-  '../_components/PackageGallery': { default: galleryMock },
+  '../_components/PackageInlineEditing': inlineEditing,
+  '../_components/SimplePackagePage.module.css': { default: {} },
   '../_components/PackagePageSections': pageSectionComponents,
   '../_components/PackageShareButton': { default: noOp },
   '../_components/ItineraryDownloadButton': { default: noOp },
@@ -190,15 +196,15 @@ const { default: PackageDetailClient } = load('src/app/packages/[packageId]/Pack
   '@/lib/firebase/useAuthUser': { useAuthUser: () => null },
   '@/lib/usePackages': { usePackagesState: () => ({ packages: [activePackage], loading: false, error: null }) },
 });
-const renderDetail = (pageSections) => {
-  activePackage = { ...original, details: { ...data.getPackageDetails(original), pageSections } };
+const renderDetail = (pageSections, detailsPatch = {}) => {
+  activePackage = { ...original, details: { ...data.getPackageDetails(original), ...detailsPatch, pageSections } };
   return renderToStaticMarkup(React.createElement(PackageDetailClient, { initialPackage: activePackage }));
 };
 
 test('existing detail sections remain visible by default and each can be hidden independently', () => {
   const sections = [
     ['about', 'About this trip'], ['highlights', 'Trip highlights'], ['itinerary', 'Day-by-day itinerary'],
-    ['stays', 'Comfort stays'], ['inclusions', 'Included'], ['exclusions', 'Not included'], ['cancellation', 'Cancellation policy'],
+    ['stays', 'Hotels &amp; accommodation'], ['transfers', 'Transfers'], ['inclusions', 'Included'], ['exclusions', 'Not included'], ['cancellation', 'Cancellation policy'],
   ];
   for (const [hiddenId, hiddenTitle] of sections) {
     const html = renderDetail({ hiddenSections: [hiddenId] });
@@ -249,4 +255,79 @@ test('individual grouped boxes and dropdown items can be hidden without losing t
     assert.doesNotMatch(html, /Hidden item|Retained instructions/);
     assert.equal(renderSections({ sections: [section({ layout, body: '', items: items.map((item) => ({ ...item, visible: false })) })] }), '');
   }
+});
+
+
+test('brochure sections follow overview, highlights, itinerary, practical details, pickup, coverage, FAQs and reviews', () => {
+  const html = renderDetail({
+    tagline: 'Walk above the clouds.', introduction: 'An overnight escape.',
+    sections: [
+      section({ id: 'faq', title: 'Frequently asked questions', placement: 'faq', layout: 'dropdown', body: '', items: [{ id: 'weather', title: 'Is sunrise guaranteed?', body: 'Visibility depends on the weather.' }] }),
+      section({ id: 'packing', title: 'Things to carry', placement: 'practical' }),
+      section({ id: 'why', title: 'Why choose this trip?', placement: 'overview' }),
+      section({ id: 'experiences', title: 'Experience highlights', placement: 'highlights' }),
+      section({ id: 'hidden', title: 'Private draft', placement: 'faq', visible: false }),
+    ],
+    locations: { enabled: true, items: [location()] },
+    reviews: { enabled: true, items: [review()] },
+  });
+  const ids = ['package-about', 'package-section-why', 'package-highlights', 'package-section-experiences', 'package-itinerary', 'package-stays', 'package-transfers', 'package-section-packing', 'package-locations', 'package-inclusions', 'package-exclusions', 'package-section-faq', 'package-reviews'];
+  for (let i = 1; i < ids.length; i++) assert.ok(html.indexOf(`id="${ids[i - 1]}"`) < html.indexOf(`id="${ids[i]}"`), ids[i]);
+  for (const id of ids) {
+    assert.match(html, new RegExp(`href="#${id}"`));
+    assert.equal(html.split(`id="${id}"`).length - 1, 1);
+  }
+  assert.doesNotMatch(html, /Private draft|href="#package-section-hidden"/);
+  assert.match(html, /Walk above the clouds/);
+  assert.match(html, /An overnight escape/);
+  assert.match(html, /Visibility depends on the weather/);
+});
+
+test('Day 0 opens first, timed activities preserve paragraphs, and hotel fields render without inventing data', () => {
+  const html = renderDetail({ itineraryNote: 'Timings may vary.', stayNote: 'Subject to availability.', inclusionNote: 'Entry tickets excluded.', bookingNote: 'Double sharing.' }, {
+    itinerary: [
+      { day: 0, title: 'Overnight pickup', route: 'Bangalore', meals: '', description: 'Meet your group.\nBoard the bus.', activities: [{ time: '10:30 PM', title: 'Bangalore pickup', description: 'Meet at the designated stop.' }] },
+      { day: 1, title: 'Trek', route: '', meals: '', description: 'Sunrise trek.' },
+    ],
+    stays: [{ name: 'Hotel Madikeri Heritage', place: 'Coorg', nights: 2, comfort: '3-star hotel', roomType: 'Double sharing', mealPlan: 'Breakfast', checkIn: 'Day 1', checkOut: 'Day 3' }],
+  });
+  assert.match(html, /<details open=""[^>]*><summary[^>]*>.*?Day 0/s);
+  assert.match(html, /10:30 PM/);
+  assert.match(html, /Meet your group.\nBoard the bus/);
+  for (const text of ['Hotel Madikeri Heritage', 'Double sharing', 'Breakfast', 'Check-in', 'Check-out', 'Timings may vary.', 'Subject to availability.', 'Entry tickets excluded.']) assert.ok(html.includes(text), text);
+  const noHotel = renderDetail(undefined, { stays: [] });
+  assert.doesNotMatch(noHotel, /id="package-stays"|href="#package-stays"/);
+});
+
+
+test('the two imported packages render their PDF sections in order without sample testimonials', () => {
+  for (const [file, expected] of [
+    ['coorg-2-nights-3-days-holiday-package', ['package-about','package-section-why-coorg','package-section-coorg-highlights','package-itinerary','package-stays','package-section-coorg-transfers','package-inclusions','package-exclusions','package-section-coorg-faqs']],
+    ['skandagiri-sunrise-trek-from-bangalore', ['package-about','package-section-skandagiri-story','package-section-why-skandagiri','package-section-skandagiri-highlights','package-itinerary','package-section-skandagiri-packing','package-section-skandagiri-trail','package-locations','package-inclusions','package-exclusions','package-section-skandagiri-faqs']],
+  ]) {
+    activePackage = JSON.parse(fs.readFileSync(`content/package-imports/${file}.json`, 'utf8'));
+    const html = renderToStaticMarkup(React.createElement(PackageDetailClient, { initialPackage: activePackage }));
+    let previous = -1;
+    for (const id of expected) {
+      const position = html.indexOf(`id="${id}"`);
+      assert.ok(position > previous, `${file}: ${id} must follow the previous section`);
+      previous = position;
+    }
+    assert.doesNotMatch(html, /Beautiful Weekend Escape|An Amazing Sunrise Experience|A Great First Trek/);
+    if (file.startsWith('coorg')) assert.match(html, /5,643/);
+    else assert.match(html, /Day 0/);
+  }
+});
+
+test('saved Day 0 switch controls the first visible and expanded day on the website', () => {
+  const itinerary = [
+    { day: 1, title: 'Daytime sightseeing', route: '', meals: '', description: 'Visit Coorg.' },
+    { day: 0, title: 'Overnight pickup', route: '', meals: '', description: 'Meet at 10:30 PM.' },
+  ];
+  const enabled = renderDetail(undefined, { itinerary, dayZeroEnabled: true });
+  assert.ok(enabled.indexOf('Overnight pickup') < enabled.indexOf('Daytime sightseeing'));
+  assert.match(enabled, /<details open=""[^>]*><summary[^>]*>.*?Day 0/s);
+  const disabled = renderDetail(undefined, { itinerary, dayZeroEnabled: false });
+  assert.doesNotMatch(disabled, /Day 0|Overnight pickup|Meet at 10:30 PM/);
+  assert.match(disabled, /<details open=""[^>]*><summary[^>]*>.*?Day 1/s);
 });

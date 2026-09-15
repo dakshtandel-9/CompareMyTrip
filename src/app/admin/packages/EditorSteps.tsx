@@ -9,12 +9,12 @@ export default function EditorSteps({ steps, current, onChange }: {
 }) {
   return (
     <nav aria-label="Editor sections" className="mb-6 rounded-2xl border border-cmt-neutral-200 bg-white p-2 shadow-cmt-xs">
-      <ol className="flex flex-wrap gap-1">
+      <ol className={`flex gap-1 ${steps.length > 10 ? "overflow-x-auto" : "flex-wrap"}`}>
         {steps.map((label, index) => (
           <li key={label} className="min-w-[140px] flex-1">
             <button type="button" aria-current={current === index ? "step" : undefined} onClick={() => onChange(index)}
-              className={`flex min-h-14 w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors ${current === index ? "bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-200" : "text-cmt-neutral-500 hover:bg-cmt-neutral-50 hover:text-cmt-neutral-900"}`}>
-              <span className={`grid size-6 shrink-0 place-items-center rounded-full text-[11px] ${current === index ? "bg-emerald-700 text-white" : "border border-cmt-neutral-200 bg-white"}`}>{index + 1}</span>
+              className={`flex min-h-14 w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors ${current === index ? "bg-cmt-primary-50 text-cmt-primary-900 ring-1 ring-inset ring-cmt-primary-100" : "text-cmt-neutral-500 hover:bg-cmt-neutral-50 hover:text-cmt-neutral-900"}`}>
+              <span className={`grid size-6 shrink-0 place-items-center rounded-full text-[11px] ${current === index ? "bg-cmt-primary-500 text-cmt-neutral-900" : "border border-cmt-neutral-200 bg-white"}`}>{index + 1}</span>
               {label}
             </button>
           </li>

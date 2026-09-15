@@ -1,6 +1,10 @@
-import { Glyph } from "@/lib/adminIcons";
+"use client";
+
+import { PackageGlyph as Glyph } from "@/lib/PackageGlyph";
 import { ArrowUpRight, Ticket } from "lucide-react";
 import type { PackageFact } from "@/lib/packageData";
+import { InlineText, EditAction, usePackageEditing } from "./PackageInlineEditing";
+import { getPackageFacts } from "@/lib/packageFacts";
 import { PERMIT_BOOKING_URL } from "@/lib/packageFacts";
 import styles from "./PackageFactsBar.module.css";
 
@@ -9,20 +13,23 @@ export default function PackageFactsBar({ facts, permitRequired = false, classNa
   permitRequired?: boolean;
   className?: string;
 }) {
-  const visible = facts.filter((fact) => fact.visible !== false);
-  if (!visible.length) return null;
+  const editor = usePackageEditing();
+  const source = editor?.value.details?.facts ?? [];
+  const visible = editor ? getPackageFacts({ ...editor.value, details: { ...editor.value.details!, factsHidden: false, facts: source.map(fact => ({ ...fact, visible: true })) } }) : facts.filter((fact) => fact.visible !== false);
+  if (!visible.length && !editor) return null;
 
   return (
-    <section aria-label="Package quick facts" className={`${styles.bar} ${className}`}>
+    <section aria-label="Package quick facts" className={`${styles.bar} ${editor ? styles.editing : ""} ${className}`}>
+      {editor && <label className="mb-3 block text-xs"><input type="checkbox" checked={!editor.value.details?.factsHidden} onChange={event => editor.change(["details", "factsHidden"], !event.target.checked)} /> Show quick details</label>}
       <div className={styles.layout}>
         <div className={styles.facts}>
-          {visible.map((fact) => (
+          {visible.map((fact, index) => (
             <div key={fact.id} className={styles.fact}>
               <div className={styles.heading}>
-                <span className={styles.icon}><Glyph name={fact.icon} className="size-[18px]" /></span>
-                <p className={styles.label}>{fact.label}</p>
+                <div className={styles.icon}>{editor ? <details className={styles.iconPicker}><summary aria-label={`Change ${fact.label} icon`} className="cursor-pointer list-none"><Glyph name={fact.icon} className="size-[18px]" /></summary><div className={styles.iconPopover}>{editor.renderIconPicker?.(fact.icon, name => editor.change(["details", "facts", index, "icon"], name))}</div></details> : <Glyph name={fact.icon} className="size-[18px]" />}</div>
+                <p className={styles.label}><InlineText value={fact.label} path={["details", "facts", index, "label"]} label="Quick detail label" /></p>
               </div>
-              <p className={styles.value}>{fact.value}</p>
+              <p className={styles.value}><InlineText value={fact.value} path={["details", "facts", index, "value"]} label={fact.label} /></p>{editor && <div className={styles.factActions}><label><input type="checkbox" checked={source[index]?.visible !== false} onChange={event => editor.change(["details", "facts", index, "visible"], event.target.checked)} /> Show</label><EditAction kind="remove" label="Remove fact" onClick={() => editor.change(["details", "facts"], source.filter((_, i) => i !== index))} /></div>}
             </div>
           ))}
         </div>
@@ -47,6 +54,7 @@ export default function PackageFactsBar({ facts, permitRequired = false, classNa
           )}
         </div>
       </div>
+      <EditAction label="Add quick detail" onClick={() => editor?.change(["details", "facts"], [...source, { id: crypto.randomUUID(), label: "New detail", value: "", icon: "MapPin", visible: true }])} />
     </section>
   );
 }

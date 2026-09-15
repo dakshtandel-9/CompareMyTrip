@@ -60,6 +60,27 @@ export async function deletePackage(packageId: string) {
   await revalidatePublicContent();
 }
 
+/** A single batch keeps a failed bulk delete from removing only some rows. */
+export async function deletePackages(packageIds: string[]) {
+  requireUser();
+  const ids = [...new Set(packageIds)];
+  if (!ids.length) return { refreshWarning: "" };
+  if (ids.length > 500) throw new Error("Select up to 500 packages at a time.");
+  if (ids.some((id) => !id || id === CATALOG_MARKER || id.includes("/"))) {
+    throw new Error("Invalid package selection.");
+  }
+  const db = getFirebaseDb();
+  const batch = writeBatch(db);
+  ids.forEach((id) => batch.delete(doc(db, "packages", id)));
+  await batch.commit();
+  try {
+    await revalidatePublicContent();
+    return { refreshWarning: "" };
+  } catch {
+    return { refreshWarning: "The packages were deleted, but public pages could not be refreshed immediately." };
+  }
+}
+
 export async function seedPackages(packages: TravelPackage[]) {
   const user = requireUser();
   const db = getFirebaseDb();

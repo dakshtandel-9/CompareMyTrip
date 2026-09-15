@@ -4,6 +4,8 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import type { PackageFact } from "@/lib/packageData";
 import { PERMIT_BOOKING_URL, packageFactValue, type PackageFactValues } from "@/lib/packageFacts";
 import PackageFactsBar from "@/app/packages/_components/PackageFactsBar";
+import packageIconNames from "@/lib/packageIconNames.json";
+import { PackageGlyph } from "@/lib/PackageGlyph";
 import IconPicker from "../_components/IconPicker";
 import { FieldLabel, inputClass } from "../_components/ui";
 
@@ -28,8 +30,8 @@ export default function PackageFactsEditor({ facts, hidden, permitRequired, valu
 
   return (
     <section className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-      <h2 className="font-display text-xl font-semibold">6. Customize the details bar</h2>
-      <p className="mt-1 text-xs leading-5 text-cmt-neutral-500">These quick facts appear below the package photos. The starting values follow your trip details automatically. Customize only what you need, then save the package in the final step.</p>
+      <h2 className="font-display text-xl font-semibold">Trip snapshot / quick details</h2>
+      <p className="mt-1 text-xs leading-5 text-cmt-neutral-500">These quick facts introduce the trip, including duration, meals, transport or trek difficulty. The starting values follow your trip details automatically. Customize only what you need, then save the package in the final step.</p>
       <label className="mt-5 flex items-center gap-2 text-sm font-semibold">
         <input type="checkbox" checked={!hidden} onChange={(event) => onHiddenChange(!event.target.checked)} className="size-4 accent-cmt-primary-500" />
         Show details bar
@@ -61,7 +63,7 @@ export default function PackageFactsEditor({ facts, hidden, permitRequired, valu
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <IconPicker value={fact.icon} onChange={(icon) => patch(fact.id, { icon })} />
+              <IconPicker iconNames={packageIconNames} renderIcon={PackageGlyph} value={fact.icon} onChange={(icon) => patch(fact.id, { icon })} />
               <label><FieldLabel>Box name</FieldLabel><input value={fact.label} onChange={(event) => patch(fact.id, { label: event.target.value })} className={inputClass} /></label>
               <label className="sm:col-span-2"><FieldLabel>Box value</FieldLabel><input value={packageFactValue(fact, values)} onChange={(event) => patch(fact.id, { value: event.target.value })} className={inputClass} /></label>
             </div>

@@ -6,6 +6,7 @@ export type PackageFactValues = Pick<TravelPackage, "nights" | "days" | "pax" | 
   meals: string;
   transfers: string;
   flights: string;
+  hasStay?: boolean;
 };
 
 export function defaultPackageFacts(): PackageFact[] {
@@ -22,9 +23,9 @@ export function defaultPackageFacts(): PackageFact[] {
 export function packageFactValue(fact: PackageFact, values: PackageFactValues): string {
   if (fact.value !== undefined) return fact.value;
   switch (fact.source) {
-    case "duration": return `${values.nights} nights / ${values.days} days`;
+    case "duration": return `${values.nights} night${values.nights === 1 ? "" : "s"} / ${values.days} day${values.days === 1 ? "" : "s"}`;
     case "groupSize": return values.pax;
-    case "stay": return `${values.hotelStars}★ verified stays`;
+    case "stay": return values.hasStay === false ? "No accommodation" : `${values.hotelStars}★ verified stays`;
     case "transfers": return values.transfers;
     case "meals": return values.meals;
     case "flights": return values.flights;
@@ -37,5 +38,5 @@ export function getPackageFacts(pkg: TravelPackage) {
   if (details.factsHidden) return [];
   return (details.facts ?? defaultPackageFacts())
     .filter((fact) => fact.visible !== false)
-    .map((fact) => ({ ...fact, value: packageFactValue(fact, { ...pkg, ...details }) }));
+    .map((fact) => ({ ...fact, value: packageFactValue(fact, { ...pkg, ...details, hasStay: pkg.details ? details.stays.length > 0 : undefined }) }));
 }

@@ -1,0 +1,476 @@
+{
+  "id": "coorg-2-nights-3-days-holiday-package",
+  "title": "Coorg 2 Nights / 3 Days Holiday Package",
+  "location": "Coorg, Karnataka",
+  "destination": "Karnataka",
+  "image": "/weekend-treks/tadiandamol.jpg",
+  "nights": 2,
+  "days": 3,
+  "pax": "Double sharing",
+  "hotelStars": 3,
+  "tags": [
+    "Family",
+    "Mountains"
+  ],
+  "region": "India",
+  "operator": "CompareMyTrip",
+  "rating": 0,
+  "reviews": 0,
+  "discount": 0,
+  "originalPrice": 5643,
+  "price": 5643,
+  "status": "published",
+  "departureDays": [],
+  "details": {
+    "gallery": [
+      "/weekend-treks/tadiandamol.jpg"
+    ],
+    "summary": "Nestled in the Western Ghats of Karnataka, Coorg (Kodagu) is known for its mist-covered hills, coffee estates, lush forests and distinctive Kodava culture.\n\nThis Coorg 2 Nights / 3 Days package is designed for travellers who want to experience the region's highlights without rushing through the destination.\n\nYour holiday begins with a comfortable transfer from Bengaluru Airport to Coorg, taking you through the scenic landscapes of Karnataka. Once you arrive in Coorg, explore its famous coffee plantations, visit a local honey or spice farm and enjoy the refreshing atmosphere of Abbey Falls.\n\nAs the day winds down, head to Raja's Seat, one of Madikeri's most popular viewpoints, for panoramic views of the misty Coorg valley.\n\nThe second day takes you deeper into Coorg's natural, cultural and historical attractions. Visit Talacauvery, traditionally regarded as the origin of the River Cauvery, followed by Bhagamandala, where the Cauvery and its tributaries meet. Later, explore Madikeri's historic landmarks before enjoying some free time for shopping and exploring the local town.\n\nWith comfortable accommodation, daily breakfast, private transfers and sightseeing included, this package offers an easy way to experience the highlights of Coorg, Karnataka.",
+    "places": [
+      "Coorg",
+      "Coffee plantations",
+      "Honey/spice plantations",
+      "Abbey Falls",
+      "Raja’s Seat",
+      "Talacauvery",
+      "Bhagamandala",
+      "Madikeri Fort",
+      "Omkareshwara Temple",
+      "Madikeri"
+    ],
+    "highlights": [],
+    "itinerary": [
+      {
+        "day": 1,
+        "title": "Bengaluru Airport → Coorg",
+        "route": "Bengaluru Airport → Coorg → Madikeri",
+        "description": "",
+        "meals": "Not specified for arrival day",
+        "activities": [
+          {
+            "time": "Arrival",
+            "title": "Bengaluru Airport pickup",
+            "description": "Arrive at Kempegowda International Airport, Bengaluru, where your private vehicle and experienced driver will be waiting for you.\n\nBegin your scenic journey towards Coorg."
+          },
+          {
+            "time": "En route",
+            "title": "Coffee, honey & spice plantations",
+            "description": "Upon reaching the Coorg region, experience the lush surroundings and famous coffee-growing landscapes.\n\nDepending on the operational schedule and arrival time, visit:\n\n• Coffee plantations • Honey farms • Cardamom/spice plantations\n\nDiscover how some of Coorg's most popular agricultural products are grown and processed."
+          },
+          {
+            "time": "Sightseeing",
+            "title": "Abbey Falls",
+            "description": "Continue to Abbey Falls, one of Coorg's most popular natural attractions.\n\nEnjoy the walk through the greenery and take in the sights and sounds of the cascading waterfall."
+          },
+          {
+            "time": "Later",
+            "title": "Raja’s Seat",
+            "description": "Later, visit Raja's Seat, a scenic viewpoint overlooking the Coorg valley.\n\nEnjoy the beautiful landscape and, if weather conditions are favourable, watch the sunset over the surrounding hills."
+          },
+          {
+            "time": "Evening",
+            "title": "Hotel check-in & leisure",
+            "description": "Proceed to your hotel in Madikeri/Coorg.\n\nCheck in, relax and enjoy the rest of the evening at leisure.\n\nOvernight stay in Coorg."
+          }
+        ]
+      },
+      {
+        "day": 2,
+        "title": "Coorg local sightseeing",
+        "route": "Madikeri → Talacauvery → Bhagamandala → Madikeri",
+        "description": "",
+        "meals": "Breakfast at the hotel",
+        "activities": [
+          {
+            "time": "Morning",
+            "title": "Breakfast at the hotel",
+            "description": "Start your day with breakfast at the hotel."
+          },
+          {
+            "time": "After breakfast",
+            "title": "Talacauvery",
+            "description": "Proceed towards Talacauvery, located in the Brahmagiri Hills.\n\nTraditionally regarded as the origin of the River Cauvery, this scenic destination offers beautiful views of the surrounding Western Ghats."
+          },
+          {
+            "time": "Sightseeing",
+            "title": "Bhagamandala",
+            "description": "Continue to Bhagamandala, an important pilgrimage destination associated with the meeting of the Cauvery and its tributaries.\n\nExplore the area and experience its peaceful atmosphere."
+          },
+          {
+            "time": "Sightseeing",
+            "title": "Madikeri Fort & Omkareshwara Temple",
+            "description": "Return towards Madikeri and explore some of the town's prominent attractions.\n\nVisit:\n\n• Madikeri Fort • Omkareshwara Temple\n\nDiscover the history and architecture of these important landmarks."
+          },
+          {
+            "time": "Evening",
+            "title": "Shopping in Madikeri",
+            "description": "Spend the evening exploring Madikeri's local markets and shops.\n\nYou can shop for Coorg coffee, spices, honey, chocolates and other regional products.\n\nReturn to the hotel.\n\nOvernight stay in Coorg."
+          }
+        ]
+      },
+      {
+        "day": 3,
+        "title": "Coorg → Bengaluru Airport",
+        "route": "Coorg → Bengaluru Airport",
+        "description": "",
+        "meals": "Breakfast at the hotel",
+        "activities": [
+          {
+            "time": "Morning",
+            "title": "Breakfast & hotel check-out",
+            "description": "Enjoy breakfast and check out from the hotel."
+          },
+          {
+            "time": "After check-out",
+            "title": "Return journey to Bengaluru",
+            "description": "Your private vehicle will take you from Coorg towards Bengaluru.\n\nRelax and enjoy the changing landscapes as you make your way back to the city."
+          },
+          {
+            "time": "Drop-off",
+            "title": "Bengaluru Airport",
+            "description": "Arrive at Bengaluru Airport for your onward journey.\n\nYour 2 Nights / 3 Days Coorg holiday comes to an end with wonderful memories of Karnataka's coffee country.\n\nTrip Ends."
+          }
+        ]
+      }
+    ],
+    "stays": [
+      {
+        "name": "Hotel Madikeri Heritage",
+        "nights": 2,
+        "place": "Coorg",
+        "comfort": "3-star hotel. Comfortable accommodation and a convenient base for Coorg sightseeing, suitable for couples and families.",
+        "roomType": "Double sharing",
+        "mealPlan": "Breakfast",
+        "checkIn": "Day 1",
+        "checkOut": "Day 3"
+      }
+    ],
+    "inclusions": [
+      "2 nights accommodation in a 3-star hotel",
+      "Daily breakfast",
+      "Private AC sedan for the entire itinerary",
+      "Experienced driver",
+      "Bengaluru Airport pickup and drop",
+      "Coorg sightseeing as mentioned in the itinerary",
+      "Coffee plantation visit",
+      "Honey/spice plantation visit",
+      "Abbey Falls visit",
+      "Raja's Seat visit",
+      "Talacauvery visit",
+      "Bhagamandala visit",
+      "Madikeri Fort visit",
+      "Omkareshwara Temple visit",
+      "Parking charges",
+      "Toll charges",
+      "Interstate permit charges",
+      "Applicable vehicle-related taxes and service charges"
+    ],
+    "exclusions": [
+      "Flights or air tickets",
+      "Train tickets",
+      "Entry fees to attractions",
+      "Activity or adventure charges",
+      "Lunch and dinner",
+      "Beverages and refreshments",
+      "Personal expenses",
+      "Laundry expenses",
+      "Telephone/mobile expenses",
+      "Tips and gratuities",
+      "Medical expenses",
+      "Travel insurance",
+      "Any additional sightseeing not mentioned in the itinerary",
+      "Any additional vehicle usage outside the agreed itinerary",
+      "Any services not specifically mentioned under Inclusions"
+    ],
+    "meals": "Breakfast",
+    "transfers": "Private AC sedan · 4 seater",
+    "flights": "Not included",
+    "cancellationPolicy": "",
+    "pageSections": {
+      "snapshotPlacement": "about",
+      "tagline": "Discover Coffee Plantations, Waterfalls & the Misty Hills of Coorg",
+      "introduction": "Escape to the lush hills of Coorg (Kodagu) with this carefully planned 2 Nights / 3 Days Coorg holiday package. From aromatic coffee plantations and cascading waterfalls to historic landmarks and breathtaking valley views, this short getaway brings together the best of Coorg in a relaxed itinerary.\n\nYour journey includes private AC transportation, hotel accommodation, breakfast and sightseeing, making it an ideal choice for couples, families and small groups looking for a convenient Coorg trip from Bangalore.",
+      "hiddenSections": [
+        "highlights",
+        "transfers",
+        "cancellation"
+      ],
+      "sections": [
+        {
+          "id": "why-coorg",
+          "title": "Why choose this Coorg package?",
+          "placement": "overview",
+          "visible": true,
+          "body": "• Explore the scenic coffee country of Karnataka\n• Visit Coorg's famous coffee plantations\n• Experience the beauty of Abbey Falls\n• Enjoy panoramic views from Raja's Seat\n• Visit Talacauvery, associated with the origin of River Cauvery\n• Explore Bhagamandala and Madikeri's heritage\n• Discover Madikeri Fort and Omkareshwara Temple\n• Enjoy shopping and local experiences in Madikeri\n• Travel comfortably in a private AC vehicle\n• Stay in a comfortable 3-star hotel\n• Enjoy daily breakfast\n• Travel with an experienced driver",
+          "layout": "box",
+          "items": []
+        },
+        {
+          "id": "coorg-highlights",
+          "title": "Highlights",
+          "placement": "highlights",
+          "visible": true,
+          "body": "",
+          "layout": "boxes",
+          "items": [
+            {
+              "id": "coorg-highlights-1",
+              "title": "Coorg Coffee Plantation Experience",
+              "body": "Explore the green coffee-growing landscapes that make Coorg one of Karnataka's most famous coffee regions."
+            },
+            {
+              "id": "coorg-highlights-2",
+              "title": "Spice & Honey Farm Visit",
+              "body": "Discover the flavours and aromas of Coorg with a visit to local plantations and farms featuring spices, honey and other regional produce."
+            },
+            {
+              "id": "coorg-highlights-3",
+              "title": "Abbey Falls",
+              "body": "Witness one of Coorg's popular waterfalls surrounded by lush greenery and tropical forest."
+            },
+            {
+              "id": "coorg-highlights-4",
+              "title": "Raja's Seat",
+              "body": "Enjoy panoramic views of the rolling hills and misty valleys of Coorg from this famous Madikeri viewpoint."
+            },
+            {
+              "id": "coorg-highlights-5",
+              "title": "Talacauvery",
+              "body": "Visit the sacred site traditionally regarded as the source of the River Cauvery and enjoy the peaceful mountain surroundings."
+            },
+            {
+              "id": "coorg-highlights-6",
+              "title": "Bhagamandala",
+              "body": "Explore the important pilgrimage destination where the Cauvery meets its tributaries."
+            },
+            {
+              "id": "coorg-highlights-7",
+              "title": "Madikeri Fort",
+              "body": "Step into Coorg's history while exploring one of the prominent heritage landmarks in Madikeri."
+            },
+            {
+              "id": "coorg-highlights-8",
+              "title": "Omkareshwara Temple",
+              "body": "Visit this historic temple located in the heart of Madikeri."
+            },
+            {
+              "id": "coorg-highlights-9",
+              "title": "Madikeri Shopping",
+              "body": "Spend some leisure time exploring local shops and picking up Coorg's famous coffee, spices, honey and regional products."
+            }
+          ]
+        },
+        {
+          "id": "coorg-transfers",
+          "title": "Private AC transportation throughout your trip",
+          "placement": "transfers",
+          "visible": true,
+          "body": "Travel comfortably with a private AC sedan for airport transfers and sightseeing as per the itinerary.",
+          "layout": "boxes",
+          "items": [
+            {
+              "id": "coorg-transfers-1",
+              "title": "Vehicle",
+              "body": "Sedan – 4 seater. Private AC transportation."
+            },
+            {
+              "id": "coorg-transfers-2",
+              "title": "Routes covered",
+              "body": "Bengaluru Airport → Coorg\nCoorg sightseeing\nCoorg → Bengaluru Airport\nAll transfers and sightseeing mentioned in the itinerary."
+            },
+            {
+              "id": "coorg-transfers-3",
+              "title": "Your driver",
+              "body": "You will be accompanied by an experienced driver familiar with the route and local destinations."
+            },
+            {
+              "id": "coorg-transfers-4",
+              "title": "Transportation includes",
+              "body": "• Private AC vehicle\n• Driver services\n• Driver allowance\n• Toll charges\n• Parking charges\n• Interstate permits\n• Applicable vehicle-related taxes and charges"
+            },
+            {
+              "id": "coorg-transfers-5",
+              "title": "Vehicle usage",
+              "body": "Vehicle usage is as per the itinerary. Any additional usage or route changes outside the agreed itinerary may incur additional charges."
+            }
+          ]
+        },
+        {
+          "id": "coorg-faqs",
+          "title": "Frequently asked questions",
+          "placement": "faq",
+          "visible": true,
+          "body": "",
+          "layout": "dropdown",
+          "items": [
+            {
+              "id": "coorg-faqs-1",
+              "title": "How many days are enough for a Coorg trip?",
+              "body": "A 2 Nights / 3 Days Coorg trip is ideal for covering the major attractions around Madikeri and experiencing the region without making the itinerary excessively rushed."
+            },
+            {
+              "id": "coorg-faqs-2",
+              "title": "What is included in this Coorg package?",
+              "body": "The package includes 2 nights' accommodation, daily breakfast, private AC transportation, Bengaluru Airport transfers, sightseeing and an experienced driver, as specified in the itinerary."
+            },
+            {
+              "id": "coorg-faqs-3",
+              "title": "Is this a Coorg package from Bangalore?",
+              "body": "Yes. The package starts with pickup from Bengaluru Airport and includes transportation to Coorg, local sightseeing and return transfer to Bengaluru Airport."
+            },
+            {
+              "id": "coorg-faqs-4",
+              "title": "Can I start the trip from Bangalore city instead of the airport?",
+              "body": "The standard itinerary is based on Bengaluru Airport pickup and drop. If you require pickup from another location in Bangalore, availability and additional charges can be checked while planning your trip."
+            },
+            {
+              "id": "coorg-faqs-5",
+              "title": "What type of vehicle is included?",
+              "body": "A private AC sedan with seating for up to 4 passengers is included in the package."
+            },
+            {
+              "id": "coorg-faqs-6",
+              "title": "Is breakfast included?",
+              "body": "Yes. Breakfast is included during your 2-night stay at the hotel."
+            },
+            {
+              "id": "coorg-faqs-7",
+              "title": "Is lunch and dinner included?",
+              "body": "No. Lunch and dinner are not included unless specifically mentioned in your booking."
+            },
+            {
+              "id": "coorg-faqs-8",
+              "title": "Which places are covered in the Coorg itinerary?",
+              "body": "The itinerary includes:\n\n• Coffee plantations • Honey/spice plantations • Abbey Falls • Raja's Seat • Talacauvery • Bhagamandala • Madikeri Fort • Omkareshwara Temple • Madikeri local shopping"
+            },
+            {
+              "id": "coorg-faqs-9",
+              "title": "Is Abbey Falls included?",
+              "body": "Yes. Abbey Falls is included as part of the Day 1 sightseeing itinerary."
+            },
+            {
+              "id": "coorg-faqs-10",
+              "title": "Is Talacauvery included?",
+              "body": "Yes. Talacauvery and Bhagamandala are covered during the Day 2 Coorg sightseeing tour."
+            },
+            {
+              "id": "coorg-faqs-11",
+              "title": "Is this Coorg package suitable for families?",
+              "body": "Yes. The itinerary is suitable for families, couples, friends and small groups looking for a comfortable Coorg holiday."
+            },
+            {
+              "id": "coorg-faqs-12",
+              "title": "Is this Coorg trip suitable for couples?",
+              "body": "Absolutely. The combination of scenic viewpoints, coffee plantations, waterfalls and comfortable accommodation makes this a good option for a Coorg couple trip."
+            },
+            {
+              "id": "coorg-faqs-13",
+              "title": "What is the best time to visit Coorg?",
+              "body": "Coorg can be visited throughout the year. October to March is generally popular for pleasant weather and sightseeing, while the monsoon months offer lush greenery and dramatic waterfalls."
+            },
+            {
+              "id": "coorg-faqs-14",
+              "title": "Can the itinerary be customised?",
+              "body": "Yes. Depending on availability, you can request changes to hotels, sightseeing, vehicle type, trip duration and other travel requirements."
+            },
+            {
+              "id": "coorg-faqs-15",
+              "title": "Are attraction entry tickets included?",
+              "body": "Entry tickets are not included unless specifically mentioned under the package inclusions."
+            },
+            {
+              "id": "coorg-faqs-16",
+              "title": "What happens if the flight is delayed?",
+              "body": "If your arrival flight is delayed, the pickup and sightseeing schedule may need to be adjusted based on the available time. Please inform the CompareMyTrip team as soon as possible if your flight schedule changes."
+            },
+            {
+              "id": "coorg-faqs-17",
+              "title": "Can the hotel be changed?",
+              "body": "Yes, subject to availability. If the confirmed hotel is unavailable, a similar-category hotel may be offered."
+            },
+            {
+              "id": "coorg-faqs-18",
+              "title": "Is the vehicle available for the entire trip?",
+              "body": "Yes. The private vehicle is provided for transfers and sightseeing according to the agreed itinerary."
+            }
+          ]
+        }
+      ],
+      "gallery": {
+        "enabled": false,
+        "images": []
+      },
+      "locations": {
+        "enabled": false,
+        "items": []
+      },
+      "reviews": {
+        "enabled": false,
+        "items": []
+      },
+      "itineraryNote": "Sightseeing order and timings may change depending on traffic, weather, attraction timings, hotel check-in/check-out requirements and local operating conditions.",
+      "stayNote": "Hotel allocation is subject to availability and may be replaced with a similar-category hotel if required. Any hotel change will be communicated before confirmation.",
+      "inclusionNote": "Attraction entry tickets and activity charges are included only where specifically mentioned in the package inclusions.",
+      "bookingNote": "Starting from ₹5,643 per person, on double sharing. Valid till 30 September 2026. Package price is subject to travel dates, hotel availability and applicable booking conditions."
+    },
+    "facts": [
+      {
+        "id": "destination",
+        "label": "Destination",
+        "value": "Coorg, Karnataka",
+        "icon": "MapPin",
+        "visible": true
+      },
+      {
+        "id": "duration",
+        "label": "Duration",
+        "value": "2 nights / 3 days",
+        "icon": "Clock3",
+        "visible": true
+      },
+      {
+        "id": "hotel",
+        "label": "Hotel category",
+        "value": "3-star",
+        "icon": "BedDouble",
+        "visible": true
+      },
+      {
+        "id": "room",
+        "label": "Room",
+        "value": "Double sharing",
+        "icon": "Users",
+        "visible": true
+      },
+      {
+        "id": "meals",
+        "label": "Meals",
+        "value": "Breakfast",
+        "icon": "PlateAndCup",
+        "visible": true
+      },
+      {
+        "id": "transport",
+        "label": "Transportation",
+        "value": "Private AC sedan",
+        "icon": "Car",
+        "visible": true
+      },
+      {
+        "id": "start",
+        "label": "Starting point",
+        "value": "Bengaluru Airport",
+        "icon": "MapPin",
+        "visible": true
+      },
+      {
+        "id": "ideal",
+        "label": "Ideal for",
+        "value": "Couples, families, friends & small groups",
+        "icon": "Users",
+        "visible": true
+      }
+    ],
+    "permitRequired": false
+  }
+}

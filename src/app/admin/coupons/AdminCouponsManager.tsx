@@ -656,7 +656,7 @@ function CouponEditor({
         </div>
       </Card>
       {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</p>}
-      <div className="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-white p-4 shadow-lg">
+      <div className="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cmt-primary-100 bg-white p-4 shadow-lg">
         <div><p className="text-sm font-semibold">Ready to save {draft.code || "your coupon"}?</p><p className="mt-1 text-xs text-slate-500">{draft.active ? "The offer will follow the dates and rules you selected." : "This coupon will be saved as paused."}</p></div>
         <div className="flex gap-2"><Button variant="ghost" onClick={onCancel} disabled={saving}>Cancel</Button><Button onClick={onSave} disabled={saving}><Check className="size-4" aria-hidden="true" />{saving ? "Saving…" : "Save coupon"}</Button></div>
       </div>

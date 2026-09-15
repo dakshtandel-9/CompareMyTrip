@@ -1,12 +1,25 @@
 import type { PackageDetails } from "@/lib/packageData";
 
-export type PackageBuiltinSection = "about" | "highlights" | "itinerary" | "stays" | "inclusions" | "exclusions" | "cancellation";
+export type PackageBuiltinSection = "about" | "highlights" | "itinerary" | "stays" | "transfers" | "inclusions" | "exclusions" | "cancellation";
+
+export const PACKAGE_SECTION_PLACEMENTS = [
+  { id: "overview", label: "After the overview" },
+  { id: "highlights", label: "With the highlights" },
+  { id: "transfers", label: "Transfers" },
+  { id: "carry", label: "Things to carry" },
+  { id: "guidelines", label: "Trail guidelines" },
+  { id: "practical", label: "Before pickup, inclusions and exclusions" },
+  { id: "faq", label: "FAQs, after inclusions and exclusions" },
+  { id: "extras", label: "Additional information, after the policy" },
+] as const;
+export type PackageSectionPlacement = typeof PACKAGE_SECTION_PLACEMENTS[number]["id"];
 
 export type PackageCustomSection = {
   id: string;
   title: string;
   layout: "box" | "boxes" | "dropdown";
   visible: boolean;
+  placement?: PackageSectionPlacement;
   body: string;
   items: { id: string; title: string; body: string; visible?: boolean }[];
 };
@@ -31,6 +44,13 @@ export type PackageWrittenReview = {
 };
 
 export type PackagePageSections = {
+  snapshotPlacement?: "intro" | "about";
+  tagline?: string;
+  introduction?: string;
+  itineraryNote?: string;
+  stayNote?: string;
+  inclusionNote?: string;
+  bookingNote?: string;
   hiddenSections: PackageBuiltinSection[];
   sections: PackageCustomSection[];
   gallery: { enabled: boolean; images: string[] };
@@ -43,6 +63,7 @@ export const BUILTIN_PACKAGE_SECTIONS: { id: PackageBuiltinSection; label: strin
   { id: "highlights", label: "Highlights" },
   { id: "itinerary", label: "Day-by-day itinerary" },
   { id: "stays", label: "Where you'll stay" },
+  { id: "transfers", label: "Transfers" },
   { id: "inclusions", label: "Included" },
   { id: "exclusions", label: "Not included" },
   { id: "cancellation", label: "Cancellation policy" },
@@ -81,12 +102,17 @@ export function getPackagePageSections(details: Pick<PackageDetails, "pageSectio
   const reviews = record(raw.reviews);
   const hidden = Array.isArray(raw.hiddenSections) ? raw.hiddenSections : [];
   return {
+    ...Object.fromEntries(["tagline", "introduction", "itineraryNote", "stayNote", "inclusionNote", "bookingNote"].filter((key) => typeof raw[key] === "string").map((key) => [key, text(raw[key])])),
+    ...(raw.snapshotPlacement === "intro" || raw.snapshotPlacement === "about" ? { snapshotPlacement: raw.snapshotPlacement } : {}),
     hiddenSections: BUILTIN_PACKAGE_SECTIONS.filter(({ id }) => hidden.includes(id)).map(({ id }) => id),
     sections: records(raw.sections).map((section, index) => ({
       id: text(section.id) || `section-${index + 1}`,
       title: text(section.title),
       layout: section.layout === "boxes" || section.layout === "dropdown" ? section.layout : "box",
       visible: section.visible !== false,
+      ...(PACKAGE_SECTION_PLACEMENTS.some(({ id }) => id === section.placement) ? { placement: section.placement === "practical" && ["Transport details", "Things to carry", "Trail guidelines"].includes(text(section.title))
+        ? ({ "Transport details": "transfers", "Things to carry": "carry", "Trail guidelines": "guidelines" } as const)[section.title as "Transport details" | "Things to carry" | "Trail guidelines"]
+        : section.placement as PackageSectionPlacement } : {}),
       body: text(section.body),
       items: records(section.items).map((item, itemIndex) => ({
         id: text(item.id) || `item-${index + 1}-${itemIndex + 1}`,
@@ -124,6 +150,34 @@ export function getPackagePageSections(details: Pick<PackageDetails, "pageSectio
     },
   };
 }
+
+export function isVisiblePackageSection(section: PackageCustomSection): boolean {
+  return section.visible && Boolean(section.title.trim()) && (section.layout === "box"
+    ? Boolean(section.body.trim())
+    : Boolean(section.body.trim()) || section.items.some((item) => item.visible !== false && Boolean(item.title.trim() || item.body.trim())));
+}
+
+/** Reorder within one document step while keeping every other step fixed. */
+export function movePackageSection(sections: PackageCustomSection[], id: string, direction: -1 | 1): PackageCustomSection[] {
+  const index = sections.findIndex((section) => section.id === id);
+  if (index < 0) return sections;
+  const placement = sections[index].placement ?? "extras";
+  const peers = sections.map((section, position) => (section.placement ?? "extras") === placement ? position : -1).filter((position) => position >= 0);
+  const target = peers[peers.indexOf(index) + direction];
+  if (target === undefined) return sections;
+  const reordered = [...sections];
+  [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+  return reordered;
+}
+
+export const PACKAGE_SECTION_TEMPLATES: { title: string; placement: PackageSectionPlacement; layout: PackageCustomSection["layout"]; items: string[] }[] = [
+  { title: "Why choose this trip?", placement: "overview", layout: "box", items: [] },
+  { title: "Experience highlights", placement: "highlights", layout: "boxes", items: ["Experience name"] },
+  { title: "Transport details", placement: "transfers", layout: "boxes", items: ["Vehicle & seating", "Routes covered", "Driver & included charges"] },
+  { title: "Things to carry", placement: "carry", layout: "boxes", items: ["Must carry", "During monsoon", "Packing tips"] },
+  { title: "Trail guidelines", placement: "guidelines", layout: "box", items: [] },
+  { title: "Frequently asked questions", placement: "faq", layout: "dropdown", items: ["What is included?", "Who is this trip suitable for?"] },
+];
 
 /** Only map providers are accepted; a pasted iframe or general website is never embedded. */
 export function safeMapUrl(value: string): string | null {

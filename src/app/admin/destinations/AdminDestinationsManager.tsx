@@ -100,7 +100,7 @@ export default function AdminDestinationsManager() {
     <div className="font-body text-cmt-neutral-900">
       <header className="flex flex-wrap items-end justify-between gap-5">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-700">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-900">
             Travel catalogue
           </p>
           <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -126,7 +126,7 @@ export default function AdminDestinationsManager() {
 
       <div className="mt-6 grid gap-4 rounded-2xl border border-cmt-neutral-200 bg-white p-5 sm:grid-cols-[1fr_auto] sm:items-center">
         <div><h2 className="text-sm font-semibold">Need to add a destination?</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-cmt-neutral-500">Create a package and choose its destination category. The destination appears automatically. Its name, trip count and starting price come from your packages.</p></div>
-        <Link href="/admin/packages" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">Manage packages <ArrowRight className="size-4" /></Link>
+        <Link href="/admin/packages" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-cmt-primary-500 px-4 text-sm font-semibold text-cmt-neutral-900">Manage packages <ArrowRight className="size-4" /></Link>
       </div>
       {displayError ? (
         <p
@@ -167,7 +167,7 @@ export default function AdminDestinationsManager() {
         </div>
 
         <div className="flex flex-wrap gap-2 border-b border-cmt-neutral-100 px-5 py-3" aria-label="Filter destination photos">
-          {[{ value: "all", label: "All destinations" }, { value: "custom", label: "Custom cover set" }, { value: "automatic", label: "Using a package photo" }].map((item) => <button type="button" key={item.value} aria-pressed={coverFilter === item.value} onClick={() => setCoverFilter(item.value)} className={`rounded-lg px-3 py-2 text-xs font-semibold ${coverFilter === item.value ? "bg-emerald-50 text-emerald-800" : "text-cmt-neutral-500 hover:bg-cmt-neutral-50"}`}>{item.label}</button>)}
+          {[{ value: "all", label: "All destinations" }, { value: "custom", label: "Custom cover set" }, { value: "automatic", label: "Using a package photo" }].map((item) => <button type="button" key={item.value} aria-pressed={coverFilter === item.value} onClick={() => setCoverFilter(item.value)} className={`rounded-lg px-3 py-2 text-xs font-semibold ${coverFilter === item.value ? "bg-cmt-primary-50 text-cmt-primary-900" : "text-cmt-neutral-500 hover:bg-cmt-neutral-50"}`}>{item.label}</button>)}
           <p className="ml-auto self-center text-xs text-cmt-neutral-500">Photo changes save automatically</p>
         </div>
         <div className="divide-y divide-cmt-neutral-200">

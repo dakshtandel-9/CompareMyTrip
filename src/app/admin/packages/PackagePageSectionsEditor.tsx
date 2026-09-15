@@ -5,6 +5,10 @@ import { useId, useState, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, ChevronDown, Eye, ImagePlus, LayoutGrid, MapPin, MessageSquare, Plus, Square, Trash2 } from "lucide-react";
 import {
   BUILTIN_PACKAGE_SECTIONS,
+  PACKAGE_SECTION_PLACEMENTS,
+  PACKAGE_SECTION_TEMPLATES,
+  movePackageSection,
+  type PackageSectionPlacement,
   type PackageCustomSection,
   type PackageLocation,
   type PackagePageSections,
@@ -52,24 +56,30 @@ function UploadInput({ label, multiple = false, disabled = false, onSelect }: { 
   return <label className="block"><FieldLabel>{label}</FieldLabel><input type="file" accept="image/jpeg,image/png,image/webp" multiple={multiple} disabled={disabled} onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; if (files.length) onSelect(files); }} className="block w-full rounded-cmt-control border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 p-3 text-xs text-cmt-neutral-600 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:text-xs file:font-semibold file:text-cmt-neutral-900 disabled:opacity-40" /><span className={`mt-1 block ${mutedClass}`}>JPG, PNG or WebP, up to 5 MB each.</span></label>;
 }
 
-export default function PackagePageSectionsEditor({ value, onChange, onUploadImages, busy, allowReviews }: {
+export default function PackagePageSectionsEditor({ value, onChange, onUploadImages, busy, allowReviews, focus }: {
+  focus?: PackageSectionPlacement | "locations" | "reviews";
   value: PackagePageSections;
   onChange: (value: PackagePageSections) => void;
   onUploadImages: (files: File[]) => Promise<string[]>;
   busy: boolean;
   allowReviews: boolean;
 }) {
-  const [newLayout, setNewLayout] = useState<PackageCustomSection["layout"]>("box");
+  const [newLayout, setNewLayout] = useState<PackageCustomSection["layout"]>(focus === "faq" ? "dropdown" : "box");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const disabled = busy || uploading;
+  const scoped = Boolean(focus);
+  const customFocus = focus && focus !== "locations" && focus !== "reviews" ? focus : undefined;
+  const focusedTitle = focus === "locations" ? "Pickup & drop locations" : focus === "reviews" ? "Traveller reviews" : PACKAGE_SECTION_PLACEMENTS.find((item) => item.id === focus)?.label;
+  const sectionInScope = (section: PackageCustomSection) => (section.placement ?? "extras") === (customFocus ?? "extras");
+  const scopedSections = value.sections.filter(sectionInScope);
   const patchSection = (id: string, patch: Partial<PackageCustomSection>) => onChange({ ...value, sections: value.sections.map((section) => section.id === id ? { ...section, ...patch } : section) });
   const patchLocation = (id: string, patch: Partial<PackageLocation>) => onChange({ ...value, locations: { ...value.locations, items: value.locations.items.map((location) => location.id === id ? { ...location, ...patch } : location) } });
   const patchReview = (id: string, patch: Partial<PackageWrittenReview>) => onChange({ ...value, reviews: { ...value.reviews, items: value.reviews.items.map((review) => review.id === id ? { ...review, ...patch } : review) } });
 
   const addSection = () => {
-    const section: PackageCustomSection = { id: crypto.randomUUID(), title: "", layout: newLayout, visible: true, body: "", items: newLayout === "box" ? [] : [{ id: crypto.randomUUID(), title: "", body: "" }] };
+    const section: PackageCustomSection = { id: crypto.randomUUID(), placement: customFocus ?? "extras", title: "", layout: newLayout, visible: true, body: "", items: newLayout === "box" ? [] : [{ id: crypto.randomUUID(), title: "", body: "" }] };
     onChange({ ...value, sections: [...value.sections, section] });
   };
   const addLocation = (type: PackageLocation["type"]) => onChange({ ...value, locations: { ...value.locations, items: [...value.locations.items, { id: crypto.randomUUID(), type, name: "", address: "", notes: "", mapUrl: "", image: "", visible: true }] } });
@@ -94,28 +104,30 @@ export default function PackagePageSectionsEditor({ value, onChange, onUploadIma
 
   return (
     <section className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-      <h2 className="font-display text-xl font-semibold">7. Customize the detail page</h2>
-      <p className={`mt-1 ${mutedClass}`}>Choose the sections travellers see, then add your own boxes, photos and meeting points below the package details. Every choice applies only to this package.</p>
+      <h2 className="font-display text-xl font-semibold">{focusedTitle ?? "Additional content & visibility"}</h2>
+      <p className={`mt-1 ${mutedClass}`}>Fill in this section, then continue to the next step. It appears in the same order on the package page.</p>
       <fieldset disabled={disabled} className="mt-6 min-w-0 space-y-6 disabled:opacity-70" aria-busy={disabled}>
         <legend className="sr-only">Package detail page sections</legend>
-        <div>
+        <div hidden={scoped}>
           <BlockHeading icon={<Eye className="size-5" />} title="Show or hide existing sections" copy="Turn a section off to hide its box. Your saved text stays available when you turn it back on." />
           <div className="grid gap-2 sm:grid-cols-2">
             {BUILTIN_PACKAGE_SECTIONS.map((section) => <Toggle key={section.id} label={section.label} checked={!value.hiddenSections.includes(section.id)} onChange={(checked) => onChange({ ...value, hiddenSections: checked ? value.hiddenSections.filter((id) => id !== section.id) : [...value.hiddenSections, section.id] })} />)}
           </div>
         </div>
 
-        <div className="border-t border-cmt-neutral-200 pt-6">
-          <BlockHeading icon={<LayoutGrid className="size-5" />} title="Your own sections" copy="Add anything useful: things to carry, travel tips, optional activities or FAQs. Use the arrows to set their order at the bottom of the page." />
+        <div hidden={focus === "locations" || focus === "reviews"} className="border-t border-cmt-neutral-200 pt-6">
+          <BlockHeading icon={<LayoutGrid className="size-5" />} title="Trip content sections" copy="Start with a section template, fill in your content and choose where it appears. Arrows set the order within each position." />
+          <div className="mb-5 flex flex-wrap gap-2">{PACKAGE_SECTION_TEMPLATES.filter((template) => template.placement === (customFocus ?? "extras")).map((template) => <button key={template.title} type="button" className={addButtonClass} onClick={() => onChange({ ...value, sections: [...value.sections, { id: crypto.randomUUID(), title: template.title, placement: template.placement, layout: template.layout, visible: true, body: "", items: template.items.map((title) => ({ id: crypto.randomUUID(), title, body: "" })) }] })}><Plus className="size-3.5" />{template.title}</button>)}</div>
           <div className="space-y-4">
-            {value.sections.map((section, index) => (
+            {scopedSections.map((section, index) => (
               <div key={section.id} className={panelClass}>
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <h4 className="min-w-0 break-words text-sm font-semibold">{index + 1}. {section.title || "Untitled section"}{!section.visible && <span className="ml-2 rounded-full bg-cmt-neutral-100 px-2 py-1 text-[10px] font-medium text-cmt-neutral-500">Hidden</span>}</h4>
-                  <div className="flex flex-wrap gap-1.5"><OrderButtons label={`section ${index + 1}`} index={index} length={value.sections.length} onMove={(direction) => onChange({ ...value, sections: moveItem(value.sections, index, direction) })} /><button type="button" className={`${buttonClass} text-cmt-error-700`} aria-label={`Remove section ${index + 1}`} onClick={() => onChange({ ...value, sections: value.sections.filter((item) => item.id !== section.id) })}><Trash2 className="size-3.5" />Remove</button></div>
+                  <div className="flex flex-wrap gap-1.5"><OrderButtons label={`section ${index + 1}`} index={index} length={scopedSections.length} onMove={(direction) => onChange({ ...value, sections: movePackageSection(value.sections, section.id, direction) })} /><button type="button" className={`${buttonClass} text-cmt-error-700`} aria-label={`Remove section ${index + 1}`} onClick={() => onChange({ ...value, sections: value.sections.filter((item) => item.id !== section.id) })}><Trash2 className="size-3.5" />Remove</button></div>
                 </div>
                 <div className="space-y-4">
                   <Visibility label={`Show section ${index + 1} on the website`} checked={section.visible} onChange={(visible) => patchSection(section.id, { visible })} />
+                  <label hidden={scoped} className="block"><FieldLabel>Position on the detail page</FieldLabel><select value={section.placement ?? "extras"} onChange={(event) => patchSection(section.id, { placement: event.target.value as PackageSectionPlacement })} className={inputClass}>{PACKAGE_SECTION_PLACEMENTS.map((position) => <option key={position.id} value={position.id}>{position.label}</option>)}</select></label>
                   <label className="block"><FieldLabel>Section title</FieldLabel><input value={section.title} onChange={(event) => patchSection(section.id, { title: event.target.value })} placeholder="e.g. Things to carry" className={inputClass} /></label>
                   <LayoutSelector value={section.layout} onChange={(layout) => patchSection(section.id, { layout, items: layout !== "box" && !section.items.length ? [{ id: crypto.randomUUID(), title: "", body: "" }] : section.items })} />
                   <label className="block"><FieldLabel>{section.layout === "box" ? "Box content" : "Introduction (optional)"}</FieldLabel><textarea value={section.body} onChange={(event) => patchSection(section.id, { body: event.target.value })} placeholder="Write the details you want travellers to see." className={textareaClass} /></label>
@@ -132,15 +144,15 @@ export default function PackagePageSectionsEditor({ value, onChange, onUploadIma
               </div>
             ))}
           </div>
-          <div className="mt-4 rounded-cmt-control border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 p-4">
+          <div hidden={Boolean(customFocus && PACKAGE_SECTION_TEMPLATES.some((template) => template.placement === customFocus))} className="mt-4 rounded-cmt-control border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end"><label className="block flex-1"><FieldLabel>I need a...</FieldLabel><select className={inputClass} value={newLayout} onChange={(event) => setNewLayout(event.target.value as PackageCustomSection["layout"])}><option value="box">Box</option><option value="boxes">Multiple boxes</option><option value="dropdown">Dropdown</option></select></label><button type="button" onClick={addSection} className="inline-flex h-11 items-center justify-center gap-2 rounded-cmt-control bg-cmt-neutral-900 px-4 text-sm font-semibold text-white hover:bg-cmt-neutral-800"><Plus className="size-4" />Add section</button></div>
             <p className={`mt-2 ${mutedClass}`}>Switch layouts at any time. Text and extra boxes are kept if you switch back.</p>
           </div>
-          {value.sections.length > 0 && <div className="mt-4"><button type="button" className={buttonClass} aria-expanded={showPreview} onClick={() => setShowPreview(!showPreview)}><Eye className="size-4" />{showPreview ? "Hide section preview" : "Preview your sections"}</button>{showPreview && <div className="mt-3 rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-50 p-3 sm:p-4"><p className={`mb-3 ${mutedClass}`}>Only visible sections with content appear in this preview.</p><PackagePageSectionsPreview value={{ ...value, gallery: { ...value.gallery, enabled: false }, locations: { ...value.locations, enabled: false }, reviews: { ...value.reviews, enabled: false } }} /></div>}</div>}
+          {value.sections.length > 0 && <div className="mt-4"><button type="button" className={buttonClass} aria-expanded={showPreview} onClick={() => setShowPreview(!showPreview)}><Eye className="size-4" />{showPreview ? "Hide section preview" : "Preview your sections"}</button>{showPreview && <div className="mt-3 rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-50 p-3 sm:p-4"><p className={`mb-3 ${mutedClass}`}>Only visible sections with content appear in this preview.</p><PackagePageSectionsPreview area={customFocus ?? "extras"} value={{ ...value, gallery: { ...value.gallery, enabled: false }, locations: { ...value.locations, enabled: false }, reviews: { ...value.reviews, enabled: false } }} /></div>}</div>}
         </div>
 
-        <div className="border-t border-cmt-neutral-200 pt-6">
-          <BlockHeading icon={<ImagePlus className="size-5" />} title="Optional photo gallery" copy="Add a separate gallery near the bottom of the page. The main package photos are managed in the Photos step." />
+        <div hidden={scoped} className="border-t border-cmt-neutral-200 pt-6">
+          <BlockHeading icon={<ImagePlus className="size-5" />} title="Optional photo gallery" copy="Add a separate gallery near the bottom of the page. The main package photos are managed in the Title & quick details step." />
           <Toggle label="Show extra photo gallery" description="Turn this off to hide the gallery and keep its photos for later." checked={value.gallery.enabled} onChange={(enabled) => onChange({ ...value, gallery: { ...value.gallery, enabled } })} />
           {value.gallery.enabled && <div className="mt-4 space-y-4">
             <UploadInput label={`Upload gallery photos (${value.gallery.images.length}/20)`} multiple disabled={value.gallery.images.length >= 20} onSelect={(files) => { void uploadImages(files); }} />
@@ -149,7 +161,7 @@ export default function PackagePageSectionsEditor({ value, onChange, onUploadIma
           </div>}
         </div>
 
-        <div className="border-t border-cmt-neutral-200 pt-6">
+        <div hidden={focus !== "locations"} className="border-t border-cmt-neutral-200 pt-6">
           <BlockHeading icon={<MapPin className="size-5" />} title="Pickup & drop locations" copy="Add several meeting points, with a name, directions, map link and an optional photo for each." />
           <Toggle label="Show pickup & drop locations" description="Turning this off keeps all locations saved for later." checked={value.locations.enabled} onChange={(enabled) => onChange({ ...value, locations: { ...value.locations, enabled } })} />
           {value.locations.enabled && <div className="mt-4 space-y-4">
@@ -169,7 +181,7 @@ export default function PackagePageSectionsEditor({ value, onChange, onUploadIma
           </div>}
         </div>
 
-        {allowReviews && <div className="border-t border-cmt-neutral-200 pt-6">
+        {allowReviews && <div hidden={focus !== "reviews"} className="border-t border-cmt-neutral-200 pt-6">
           <BlockHeading icon={<MessageSquare className="size-5" />} title="Optional reviews" copy="Add reviews supplied by your travellers. These reviews are entered by the package editor; saved, visible reviews appear on the website." />
           <Toggle label="Write reviews" description="Turn on to add reviews for this package. Turn off to hide saved reviews and keep them for later." checked={value.reviews.enabled} onChange={(enabled) => onChange({ ...value, reviews: { ...value.reviews, enabled } })} />
           {value.reviews.enabled && <div className="mt-4 space-y-4">

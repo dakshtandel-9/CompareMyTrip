@@ -4,7 +4,7 @@ import Modal from "@/components/Modal";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Images, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 const defaultGalleryImages = [
   { src: "/destinations/kerala.jpg", alt: "Houseboat cruising through the Kerala backwaters", position: "object-center" },
@@ -27,6 +27,7 @@ export default function PackageGallery({ images, maxImages = 10 }: { images?: st
         : image,
   );
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
   const isOpen = selectedIndex !== null;
 
   useEffect(() => {
@@ -64,85 +65,24 @@ export default function PackageGallery({ images, maxImages = 10 }: { images?: st
     );
   };
 
-  /* Operators upload as few as one photo, so the mosaic adapts instead of
-     indexing into slots that may not exist. */
+  /* Keep the frame bounded and preserve the full image, including portrait
+     uploads. Thumbnails stay compact regardless of the image count. */
   if (galleryImages.length === 0) return null;
 
-  const [hero, ...rest] = galleryImages;
-  const sideImages = rest.slice(0, 2);
-
+  const active = Math.min(activeIndex, galleryImages.length - 1);
   return (
     <>
-      {galleryImages.length > 1 && <p className="mb-2 text-xs text-cmt-neutral-500 md:hidden">Swipe to explore · Tap a photo to view</p>}
-      <div
-        className={`cmt-package-gallery grid gap-3 overflow-hidden rounded-cmt-lg sm:gap-4 ${
-          sideImages.length > 0 ? "sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" : ""
-        }`}
-      >
-        <button
-          type="button"
-          onClick={() => setSelectedIndex(0)}
-          aria-label="Open package gallery at image 1"
-          className="relative aspect-[16/10] overflow-hidden rounded-cmt-lg bg-cmt-neutral-100 sm:aspect-auto sm:min-h-[360px] lg:min-h-[520px]"
-        >
-          <Image
-            src={hero.src}
-            alt={hero.alt}
-            fill
-            loading="eager"
-            sizes={sideImages.length > 0 ? "(max-width: 640px) 100vw, 67vw" : "100vw"}
-            className="object-cover transition-transform duration-500 hover:scale-[1.02]"
-          />
+      <div className="relative overflow-hidden rounded-xl border border-cmt-neutral-200 bg-cmt-neutral-50">
+        <button type="button" onClick={() => setSelectedIndex(active)} aria-label={`Open package gallery at image ${active + 1}`} className="relative block h-[clamp(220px,42vw,420px)] w-full">
+          <Image src={galleryImages[active].src} alt={galleryImages[active].alt} fill loading="eager" sizes="(max-width: 1023px) 100vw, 65vw" className="object-contain" />
         </button>
-
-        {sideImages.length > 0 && (
-          <div
-            className={`grid gap-3 sm:grid-cols-1 sm:gap-4 ${
-              sideImages.length > 1 ? "grid-cols-2" : "grid-cols-1"
-            }`}
-          >
-            {sideImages.map((image, index) => {
-              // The last tile carries the "show more" affordance.
-              const isLast = index === sideImages.length - 1;
-              const position = index === 0 ? "object-[80%_center]" : "object-[15%_center]";
-              return (
-                <div
-                  key={`${image.src}-${index}`}
-                  className="relative min-h-[110px] sm:min-h-[150px] overflow-hidden rounded-cmt-lg bg-cmt-neutral-100"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedIndex(index + 1)}
-                    aria-label={`Open package gallery at image ${index + 2}`}
-                    className="absolute inset-0"
-                  >
-                    <Image
-                      src={image.src}
-                      alt={image.alt}
-                      fill
-                      loading="eager"
-                      sizes="(max-width: 640px) 50vw, 33vw"
-                      className={`object-cover ${position} transition-transform duration-500 hover:scale-[1.03]`}
-                    />
-                    {isLast && (
-                      <span className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                    )}
-                  </button>
-                  {isLast && galleryImages.length > 2 && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedIndex(index + 1)}
-                      className="absolute bottom-2 right-2 z-10 inline-flex min-h-11 max-w-[calc(100%-1rem)] items-center justify-center gap-1.5 sm:bottom-3 sm:right-3 sm:h-9 sm:min-h-0 sm:gap-2 rounded-cmt-control bg-white/95 px-3.5 text-xs font-semibold text-cmt-neutral-900 shadow-cmt-md transition-colors hover:bg-white"
-                    >
-                      <Images className="size-4 shrink-0" /><span className="sm:hidden">All photos</span><span className="hidden sm:inline">Show more images</span>
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+        {galleryImages.length > 1 && <>
+          <button type="button" aria-label="Previous photo" onClick={() => setActiveIndex((active - 1 + galleryImages.length) % galleryImages.length)} className="absolute left-3 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white/95"><ChevronLeft size={18} /></button>
+          <button type="button" aria-label="Next photo" onClick={() => setActiveIndex((active + 1) % galleryImages.length)} className="absolute right-3 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white/95"><ChevronRight size={18} /></button>
+          <span className="absolute bottom-3 right-3 rounded-full bg-black/50 px-3 py-1 text-xs text-white">{active + 1} / {galleryImages.length}</span>
+        </>}
       </div>
+      {galleryImages.length > 1 && <div className="mt-3 flex max-w-full gap-2 overflow-x-auto pb-1">{galleryImages.map((image, index) => <button type="button" key={`${image.src}-${index}`} aria-label={`Show photo ${index + 1}`} aria-pressed={active === index} onClick={() => setActiveIndex(index)} className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 bg-cmt-neutral-50 ${active === index ? "border-cmt-primary-500" : "border-transparent"}`}><Image src={image.src} alt="" fill sizes="96px" className="object-contain p-1" /></button>)}</div>}
 
       {isOpen && selectedIndex !== null && (
         <Modal

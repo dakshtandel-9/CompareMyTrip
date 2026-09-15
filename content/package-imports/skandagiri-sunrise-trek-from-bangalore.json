@@ -1,0 +1,509 @@
+{
+  "id": "skandagiri-sunrise-trek-from-bangalore",
+  "title": "Skandagiri Sunrise Trek from Bangalore",
+  "location": "Skandagiri Hills, Chikkaballapur, Karnataka",
+  "destination": "Karnataka",
+  "image": "/weekend-treks/skandagiri.jpg",
+  "nights": 1,
+  "days": 1,
+  "pax": "Group trek",
+  "hotelStars": 0,
+  "tags": [
+    "Weekend Treks",
+    "Treks",
+    "Adventure",
+    "Mountains"
+  ],
+  "region": "India",
+  "operator": "CompareMyTrip",
+  "rating": 0,
+  "reviews": 0,
+  "discount": 0,
+  "originalPrice": 0,
+  "price": 0,
+  "status": "draft",
+  "departureDays": [],
+  "details": {
+    "gallery": [
+      "/weekend-treks/skandagiri.jpg"
+    ],
+    "summary": "The Skandagiri Sunrise Trek is one of the most rewarding early-morning trekking experiences near Bangalore.\n\nLocated near Chikkaballapur, approximately 60–70 km from Bangalore, Skandagiri Hills rises to around 1,450 metres above sea level. The trail combines rocky terrain, forest sections, historic ruins and panoramic hilltop views, making it an ideal choice for travellers looking for a short but memorable adventure.\n\nYour journey begins late at night in Bangalore. Travel comfortably to Skandagiri, meet your trek leader and begin your ascent in the early hours of the morning.\n\nAs you climb through the darkness, the excitement builds with every step. The reward comes at the summit, where you can watch the sky slowly change colour as the sun rises over the surrounding hills.\n\nOn favourable mornings, mist and clouds may cover the valleys below, creating Skandagiri's famous sea-of- clouds experience.",
+    "places": [
+      "Skandagiri Hills",
+      "Kalavara Durga",
+      "Chikkaballapur",
+      "Bangalore"
+    ],
+    "highlights": [],
+    "itinerary": [
+      {
+        "day": 0,
+        "title": "Bangalore to Skandagiri",
+        "route": "Bangalore → Skandagiri base",
+        "description": "",
+        "meals": "Not included",
+        "activities": [
+          {
+            "time": "10:30 PM onwards",
+            "title": "Pickup from Bangalore",
+            "description": "Your Skandagiri adventure begins late at night.\n\nMeet your trip coordinator at the designated pickup point and board the vehicle for your journey towards Chikkaballapur.\n\nSit back, relax and get to know your fellow travellers as you leave Bangalore behind."
+          },
+          {
+            "time": "Early morning",
+            "title": "Arrive at Skandagiri base",
+            "description": "Reach the designated base/parking area and prepare for the trek.\n\nAfter a short safety briefing from your trek leader, get your headlamp ready and begin the climb."
+          }
+        ]
+      },
+      {
+        "day": 1,
+        "title": "Skandagiri sunrise trek",
+        "route": "Skandagiri base → Summit → Base → Bangalore",
+        "description": "",
+        "meals": "Breakfast stop at your own expense unless included in your selected package",
+        "activities": [
+          {
+            "time": "Early Morning",
+            "title": "Begin the Trek",
+            "description": "Start your ascent towards the Skandagiri summit under the night sky.\n\nThe trail takes you through forested sections and uneven terrain, gradually becoming more rocky as you gain elevation.\n\nMaintain a comfortable pace and stay together with the group."
+          },
+          {
+            "time": "Before Sunrise",
+            "title": "Approach the Summit",
+            "description": "As you climb higher, the darkness slowly begins to fade.\n\nThe surrounding landscape starts appearing in the first light of dawn, building anticipation for the sunrise ahead."
+          },
+          {
+            "time": "Sunrise",
+            "title": "Reach the Summit",
+            "description": "Reach the summit and settle in for the highlight of your Skandagiri Sunrise Trek.\n\nWatch the morning sky transform as the sun rises over the surrounding hills.\n\nOn favourable mornings, you may see clouds and mist spread across the valleys below.\n\nTake photographs, enjoy the views and spend some quiet time soaking in the atmosphere."
+          },
+          {
+            "time": "Morning",
+            "title": "Explore Kalavara Durga",
+            "description": "After sunrise, explore the historic remains around the summit.\n\nLearn more about the old fortifications and enjoy panoramic views of the surrounding countryside."
+          },
+          {
+            "time": "Morning",
+            "title": "Begin the Descent",
+            "description": "Start your descent with your trek leader.\n\nWith daylight now covering the trail, you'll get to experience Skandagiri from an entirely different perspective."
+          },
+          {
+            "time": "Approx. 9:30–10:00 AM",
+            "title": "Trek Ends",
+            "description": "Reach the base and take some time to rest and freshen up."
+          },
+          {
+            "time": "Late Morning",
+            "title": "Breakfast Stop",
+            "description": "Stop at a local restaurant or en-route eatery for breakfast.\n\nBreakfast is not included unless specifically mentioned in the selected package."
+          },
+          {
+            "time": "11:30 AM onwards",
+            "title": "Return to Bangalore",
+            "description": "Board the vehicle and begin your journey back to Bangalore."
+          },
+          {
+            "time": "Approx. 1:00 PM onwards",
+            "title": "Bangalore Drop",
+            "description": "Arrive back in Bangalore and conclude your Skandagiri Hills Trek experience."
+          }
+        ]
+      }
+    ],
+    "stays": [],
+    "inclusions": [
+      "Round-trip transportation from Bangalore",
+      "Guided Skandagiri Sunrise Trek",
+      "Experienced trek leader",
+      "Trip coordination and assistance",
+      "Basic first-aid support",
+      "Applicable trekking/Forest Department permissions, where included in the selected package"
+    ],
+    "exclusions": [
+      "Breakfast and meals",
+      "Drinking water",
+      "Personal snacks",
+      "Personal expenses",
+      "Personal medication",
+      "Travel or accident insurance",
+      "Personal trekking equipment",
+      "Photography/videography services",
+      "Expenses arising from unforeseen circumstances",
+      "Any service not specifically mentioned under Inclusions"
+    ],
+    "meals": "Not included unless specified",
+    "transfers": "Round-trip transportation from Bangalore",
+    "flights": "Not included",
+    "cancellationPolicy": "",
+    "pageSections": {
+      "snapshotPlacement": "intro",
+      "tagline": "Chase the Sunrise. Walk Above the Clouds.",
+      "introduction": "Looking for an exciting weekend trek from Bangalore? Escape the city and experience the magic of a sunrise from Skandagiri Hills, one of Karnataka's most popular trekking destinations.\n\nJoin CompareMyTrip for an unforgettable Skandagiri Sunrise Trek from Bangalore, complete with convenient transportation, trek coordination and an experienced trek leader.",
+      "hiddenSections": [
+        "highlights",
+        "stays",
+        "transfers",
+        "cancellation"
+      ],
+      "sections": [
+        {
+          "id": "skandagiri-story",
+          "title": "A trek with a story",
+          "placement": "overview",
+          "visible": true,
+          "body": "Skandagiri isn't only about sunrise views.\n\nThe hill is also known as Kalavara Durga and is home to the remains of an old hill fort traditionally associated with the Palegar era of Karnataka.\n\nAs you explore the summit, you'll come across remnants of the historic fortifications and structures that once occupied the hill.\n\nThe hill is also locally associated with the name Kalavara Betta, while the name Skandagiri is connected with Skanda, another name for Lord Subramanya.\n\nThis combination of history, nature and adventure gives the Skandagiri Trek a character of its own.",
+          "layout": "box",
+          "items": []
+        },
+        {
+          "id": "why-skandagiri",
+          "title": "Why choose Skandagiri for your next weekend escape?",
+          "placement": "overview",
+          "visible": true,
+          "body": "If you're searching for a sunrise trek near Bangalore, Skandagiri offers an excellent mix of adventure and accessibility.\n\nYou don't need to take several days off work or travel deep into the mountains. With an overnight journey from Bangalore, you can trek to the summit, experience the sunrise and return to the city the same day.\n\nIt is perfect for:\n\n• First-time trekkers looking for a moderate challenge • Friends planning a weekend adventure • Couples looking for an outdoor experience • Solo travellers who enjoy group trips • Adventure enthusiasts looking for treks near Bangalore\n\nImportant: Trek timings and access are subject to Forest Department regulations, weather conditions and operational requirements. Sunrise and sea-of-cloud views are natural phenomena and cannot be guaranteed.",
+          "layout": "box",
+          "items": []
+        },
+        {
+          "id": "skandagiri-highlights",
+          "title": "Skandagiri trek highlights",
+          "placement": "highlights",
+          "visible": true,
+          "body": "",
+          "layout": "boxes",
+          "items": [
+            {
+              "id": "skandagiri-highlights-1",
+              "title": "Sunrise at Skandagiri",
+              "body": "Reach the summit around sunrise and watch the first rays of light spread across the surrounding landscape."
+            },
+            {
+              "id": "skandagiri-highlights-2",
+              "title": "Sea of Clouds",
+              "body": "On favourable-weather days, mist and clouds may cover the valleys below, creating the spectacular sea-of- clouds effect Skandagiri is known for."
+            },
+            {
+              "id": "skandagiri-highlights-3",
+              "title": "Historic Kalavara Durga",
+              "body": "Explore the remains of the historic hill fort and discover a glimpse of Karnataka's past."
+            },
+            {
+              "id": "skandagiri-highlights-4",
+              "title": "Moderate Trek",
+              "body": "Enjoy a rewarding 7–9 KM trek featuring forest trails, rocky sections and gradual elevation gain."
+            },
+            {
+              "id": "skandagiri-highlights-5",
+              "title": "1,450 Metre Summit",
+              "body": "Climb to one of the prominent hilltops near Bangalore and enjoy expansive views from the summit."
+            },
+            {
+              "id": "skandagiri-highlights-6",
+              "title": "Nature Escape",
+              "body": "Trade Bangalore's traffic and busy streets for quiet trails, fresh air and open landscapes."
+            },
+            {
+              "id": "skandagiri-highlights-7",
+              "title": "Picture-Perfect Views",
+              "body": "Capture sunrise colours, mist-covered valleys, rocky trails and historic ruins."
+            },
+            {
+              "id": "skandagiri-highlights-8",
+              "title": "Bangalore Pickup & Drop",
+              "body": "Travel conveniently from designated pickup points in Bangalore and return after completing the trek."
+            },
+            {
+              "id": "skandagiri-highlights-9",
+              "title": "Group Adventure",
+              "body": "Meet fellow travellers and share the experience with an enthusiastic trekking community."
+            }
+          ]
+        },
+        {
+          "id": "skandagiri-packing",
+          "title": "Things to carry",
+          "placement": "carry",
+          "visible": true,
+          "body": "Since the trek begins during the early hours, packing the right essentials is important.",
+          "layout": "boxes",
+          "items": [
+            {
+              "id": "skandagiri-packing-1",
+              "title": "Must carry",
+              "body": "• Small trekking backpack\n• At least 2 litres of drinking water\n• Headlamp or torch\n• Trekking shoes with good grip\n• Light jacket or windcheater\n• Extra pair of socks\n• Cap\n• Sunglasses\n• Sunscreen\n• Energy bars or dry fruits\n• Personal medication\n• Fully charged mobile phone\n• Power bank\n• Valid government-issued ID"
+            },
+            {
+              "id": "skandagiri-packing-2",
+              "title": "During monsoon",
+              "body": "• Rain jacket or poncho\n• Waterproof backpack cover\n• Waterproof phone pouch\n• Extra clothes/socks"
+            },
+            {
+              "id": "skandagiri-packing-3",
+              "title": "Packing tip",
+              "body": "Keep your backpack light. Avoid carrying unnecessary items as you'll be walking for several hours over uneven terrain."
+            }
+          ]
+        },
+        {
+          "id": "skandagiri-trail",
+          "title": "Skandagiri trek trail guidelines",
+          "placement": "guidelines",
+          "visible": true,
+          "body": "Trek Responsibly. Respect the Hills. 🌿\n\nSkandagiri is both a natural and historical destination. Help preserve it for future travellers.\n\n• Follow your trek leader's instructions at all times. • Follow Forest Department rules and restrictions. • Stay with the group. • Remain on the designated trekking trail. • Do not litter. • Carry all waste back with you.\n\n• Avoid single-use plastic. • Do not smoke or consume alcohol during the trek. • Do not light fires or campfires. • Do not disturb wildlife. • Do not damage plants or historical structures. • Be careful around steep and rocky sections. • Avoid standing too close to edges for photographs. • Wear appropriate trekking footwear. • Stay hydrated. • Take breaks whenever required. • Avoid loud music that may disturb wildlife and fellow trekkers.\n\nLeave Only Footprints. Take Only Memories.",
+          "layout": "box",
+          "items": []
+        },
+        {
+          "id": "skandagiri-faqs",
+          "title": "Skandagiri trek FAQs",
+          "placement": "faq",
+          "visible": true,
+          "body": "",
+          "layout": "dropdown",
+          "items": [
+            {
+              "id": "skandagiri-faqs-1",
+              "title": "Is Skandagiri Sunrise Trek suitable for beginners?",
+              "body": "Yes. The Skandagiri Trek is generally considered a moderate trek and is suitable for beginners with reasonable fitness.\n\nThe trail includes rocky, uneven and occasionally steep sections."
+            },
+            {
+              "id": "skandagiri-faqs-2",
+              "title": "How difficult is Skandagiri Trek?",
+              "body": "Skandagiri is rated Moderate.\n\nYou should be comfortable walking for several hours over uneven terrain and handling uphill and downhill sections."
+            },
+            {
+              "id": "skandagiri-faqs-3",
+              "title": "How far is Skandagiri from Bangalore?",
+              "body": "Skandagiri Hills is approximately 60–70 KM from Bangalore, depending on your starting point and route."
+            },
+            {
+              "id": "skandagiri-faqs-4",
+              "title": "How long is the Skandagiri Trek?",
+              "body": "The total trekking distance is approximately 7–9 KM round trip."
+            },
+            {
+              "id": "skandagiri-faqs-5",
+              "title": "What is the altitude of Skandagiri?",
+              "body": "Skandagiri reaches approximately 1,450 metres / 4,750 feet above sea level."
+            },
+            {
+              "id": "skandagiri-faqs-6",
+              "title": "Is Skandagiri a sunrise trek?",
+              "body": "Yes. The Skandagiri Sunrise Trek is designed around reaching the summit around sunrise.\n\nHowever, exact timings can vary depending on Forest Department regulations and operating conditions."
+            },
+            {
+              "id": "skandagiri-faqs-7",
+              "title": "Will we definitely see the sunrise?",
+              "body": "Sunrise visibility depends on weather and cloud conditions.\n\nWhile Skandagiri is famous for its sunrise views, sunrise visibility cannot be guaranteed."
+            },
+            {
+              "id": "skandagiri-faqs-8",
+              "title": "Can we see the sea of clouds?",
+              "body": "You may experience Skandagiri's famous sea of clouds during favourable weather conditions.\n\nIt is a natural phenomenon and therefore cannot be guaranteed."
+            },
+            {
+              "id": "skandagiri-faqs-9",
+              "title": "What shoes should I wear for Skandagiri Trek?",
+              "body": "Wear trekking shoes or sturdy sports shoes with good grip.\n\nAvoid slippers, sandals and smooth-soled footwear."
+            },
+            {
+              "id": "skandagiri-faqs-10",
+              "title": "How much water should I carry?",
+              "body": "Carry approximately 2 litres of water per person."
+            },
+            {
+              "id": "skandagiri-faqs-11",
+              "title": "Is breakfast included in the Skandagiri Trek package?",
+              "body": "Breakfast is not included unless specifically mentioned in your selected package.\n\nA breakfast stop may be arranged during the return journey."
+            },
+            {
+              "id": "skandagiri-faqs-12",
+              "title": "Can solo travellers join the Skandagiri Trek?",
+              "body": "Yes. Solo travellers are welcome to join our group departures.\n\nIt's a great opportunity to meet fellow travellers while exploring the hills."
+            },
+            {
+              "id": "skandagiri-faqs-13",
+              "title": "Is Skandagiri good for couples?",
+              "body": "Yes. Skandagiri is a popular weekend adventure for couples who enjoy nature, trekking and sunrise experiences."
+            },
+            {
+              "id": "skandagiri-faqs-14",
+              "title": "Can children join the trek?",
+              "body": "Age eligibility can vary depending on the selected departure and applicable regulations.\n\nPlease check the specific departure details before booking."
+            },
+            {
+              "id": "skandagiri-faqs-15",
+              "title": "What happens if it rains?",
+              "body": "Rain can make the trail slippery and more challenging.\n\nIf weather conditions create a safety concern, trek timings or the itinerary may be modified."
+            },
+            {
+              "id": "skandagiri-faqs-16",
+              "title": "Is transportation included?",
+              "body": "Yes. Round-trip transportation from designated Bangalore pickup points is included in the standard CompareMyTrip Skandagiri Sunrise Trek package."
+            },
+            {
+              "id": "skandagiri-faqs-17",
+              "title": "Is Skandagiri Trek safe?",
+              "body": "The trek should be undertaken with the designated trek leader and according to Forest Department guidelines.\n\nStay with the group, follow safety instructions and avoid taking unnecessary risks."
+            }
+          ]
+        }
+      ],
+      "gallery": {
+        "enabled": false,
+        "images": []
+      },
+      "locations": {
+        "enabled": true,
+        "items": [
+          {
+            "id": "bangalore-pickup-1",
+            "type": "pickup",
+            "name": "Rajarajeshwari Nagar",
+            "address": "Rajarajeshwari Nagar, Bengaluru, Karnataka",
+            "mapUrl": "",
+            "image": "",
+            "visible": true,
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed meeting point and reporting time will be shared after booking. Arrive 10–15 minutes before the confirmed reporting time. Return drop-off is at the designated pickup locations; timings depend on traffic and vehicle routing."
+          },
+          {
+            "id": "bangalore-pickup-2",
+            "type": "pickup",
+            "name": "Banashankari",
+            "address": "Banashankari, Bengaluru, Karnataka",
+            "mapUrl": "",
+            "image": "",
+            "visible": true,
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed meeting point and reporting time will be shared after booking. Arrive 10–15 minutes before the confirmed reporting time. Return drop-off is at the designated pickup locations; timings depend on traffic and vehicle routing."
+          },
+          {
+            "id": "bangalore-pickup-3",
+            "type": "pickup",
+            "name": "BTM Layout",
+            "address": "BTM Layout, Bengaluru, Karnataka",
+            "mapUrl": "",
+            "image": "",
+            "visible": true,
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed meeting point and reporting time will be shared after booking. Arrive 10–15 minutes before the confirmed reporting time. Return drop-off is at the designated pickup locations; timings depend on traffic and vehicle routing."
+          },
+          {
+            "id": "bangalore-pickup-4",
+            "type": "pickup",
+            "name": "Silk Board",
+            "address": "Silk Board, Bengaluru, Karnataka",
+            "mapUrl": "",
+            "image": "",
+            "visible": true,
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed meeting point and reporting time will be shared after booking. Arrive 10–15 minutes before the confirmed reporting time. Return drop-off is at the designated pickup locations; timings depend on traffic and vehicle routing."
+          },
+          {
+            "id": "bangalore-pickup-5",
+            "type": "pickup",
+            "name": "Bellandur",
+            "address": "Bellandur, Bengaluru, Karnataka",
+            "mapUrl": "",
+            "image": "",
+            "visible": true,
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed meeting point and reporting time will be shared after booking. Arrive 10–15 minutes before the confirmed reporting time. Return drop-off is at the designated pickup locations; timings depend on traffic and vehicle routing."
+          },
+          {
+            "id": "bangalore-pickup-6",
+            "type": "pickup",
+            "name": "Marathahalli",
+            "address": "Marathahalli, Bengaluru, Karnataka",
+            "mapUrl": "",
+            "image": "",
+            "visible": true,
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed meeting point and reporting time will be shared after booking. Arrive 10–15 minutes before the confirmed reporting time. Return drop-off is at the designated pickup locations; timings depend on traffic and vehicle routing."
+          },
+          {
+            "id": "bangalore-pickup-7",
+            "type": "pickup",
+            "name": "Tin Factory",
+            "address": "Tin Factory, Bengaluru, Karnataka",
+            "mapUrl": "",
+            "image": "",
+            "visible": true,
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed meeting point and reporting time will be shared after booking. Arrive 10–15 minutes before the confirmed reporting time. Return drop-off is at the designated pickup locations; timings depend on traffic and vehicle routing."
+          },
+          {
+            "id": "bangalore-pickup-8",
+            "type": "pickup",
+            "name": "Hebbal",
+            "address": "Hebbal, Bengaluru, Karnataka",
+            "mapUrl": "",
+            "image": "",
+            "visible": true,
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed meeting point and reporting time will be shared after booking. Arrive 10–15 minutes before the confirmed reporting time. Return drop-off is at the designated pickup locations; timings depend on traffic and vehicle routing."
+          }
+        ]
+      },
+      "reviews": {
+        "enabled": false,
+        "items": []
+      },
+      "itineraryNote": "Actual timings may vary depending on traffic, weather conditions, Forest Department regulations and group pace. Sunrise and sea-of-cloud views cannot be guaranteed.",
+      "inclusionNote": "Please check the selected departure's inclusions before booking, as package components may vary. Applicable trekking / Forest Department permissions are included only where specified in the selected package.",
+      "bookingNote": "Package price and next departure to be confirmed. Breakfast and meals are not included unless specifically mentioned in the selected package."
+    },
+    "facts": [
+      {
+        "id": "destination",
+        "label": "Destination",
+        "value": "Skandagiri Hills, Chikkaballapur",
+        "icon": "MapPin",
+        "visible": true
+      },
+      {
+        "id": "distance",
+        "label": "Trek distance",
+        "value": "Approx. 7–9 km",
+        "icon": "Route",
+        "visible": true
+      },
+      {
+        "id": "altitude",
+        "label": "Altitude",
+        "value": "Approx. 1,450 m / 4,750 ft",
+        "icon": "Mountain",
+        "visible": true
+      },
+      {
+        "id": "difficulty",
+        "label": "Difficulty",
+        "value": "Moderate",
+        "icon": "Activity",
+        "visible": true
+      },
+      {
+        "id": "duration",
+        "label": "Duration",
+        "value": "1 night / 1 day",
+        "icon": "Clock3",
+        "visible": true
+      },
+      {
+        "id": "type",
+        "label": "Trek type",
+        "value": "Sunrise trek",
+        "icon": "Sunrise",
+        "visible": true
+      },
+      {
+        "id": "start",
+        "label": "Starting point",
+        "value": "Bangalore",
+        "icon": "MapPin",
+        "visible": true
+      },
+      {
+        "id": "ideal",
+        "label": "Best for",
+        "value": "Solo travellers, couples, friends & groups",
+        "icon": "Users",
+        "visible": true
+      }
+    ],
+    "permitRequired": true
+  }
+}

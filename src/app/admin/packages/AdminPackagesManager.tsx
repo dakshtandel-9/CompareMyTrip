@@ -3,15 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Database, Edit3, ExternalLink, PackagePlus, Search, Trash2 } from "lucide-react";
-import { deletePackage, seedPackages } from "@/lib/firebase/packages";
+import { deletePackages, seedPackages } from "@/lib/firebase/packages";
 import { DUMMY_PACKAGES, getPackageDetails, isPublishedPackage, type TravelPackage } from "@/lib/packageData";
 import { getPackagePageSections, packagePageSectionImages } from "@/lib/packageDetailSections";
 import { cleanupAbandonedPackageImages, deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
 import { INDIA_STATES, toIndiaState } from "@/lib/indiaStates";
 import { useAllPackagesState } from "@/lib/usePackages";
 import AdminPackageBuilder from "./AdminPackageBuilder";
+import DeletePackageDialog from "./DeletePackageDialog";
 
 import { catalogueEditorMode, catalogueListHref } from "./catalogueEditorState";
 
@@ -28,6 +29,9 @@ export default function AdminPackagesManager() {
   const [status, setStatus] = useState("all");
   const [region, setRegion] = useState("all");
   const [success, setSuccess] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<TravelPackage[] | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const deleting = useRef(false);
 
   useEffect(() => {
     void cleanupAbandonedPackageImages().then(({ failedCount }) => {
@@ -45,6 +49,16 @@ export default function AdminPackagesManager() {
   const totalPages = Math.max(1, Math.ceil(filteredPackages.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const visiblePackages = filteredPackages.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  // Only matching rows are actionable, so hidden selections cannot be deleted.
+  const selectedPackages = filteredPackages.filter((pkg) => selectedIds.has(pkg.id));
+  const allPageSelected = visiblePackages.length > 0 && visiblePackages.every((pkg) => selectedIds.has(pkg.id));
+  const toggleSelection = (ids: string[], checked: boolean) => {
+    setSelectedIds(() => {
+      const next = new Set(selectedPackages.map((pkg) => pkg.id));
+      ids.forEach((id) => { if (checked) next.add(id); else next.delete(id); });
+      return next;
+    });
+  };
   /* What the builder's "Filed under" field offers, split by region. India lists
      every state, so a state enters the public destination filter the moment a
      package is filed under it — nothing is hardcoded on the site itself.
@@ -79,23 +93,34 @@ export default function AdminPackagesManager() {
     finally { setWorking(false); }
   };
 
-  const remove = async (pkg: TravelPackage) => {
-    if (!window.confirm(`Delete “${pkg.title}”? This removes it from the website too.`)) return;
-    setWorking(true); setActionError("");
+  const remove = async (targets: TravelPackage[]) => {
+    if (deleting.current || !targets.length) return;
+    deleting.current = true;
+    setWorking(true); setActionError(""); setSuccess("");
     try {
-      await deletePackage(pkg.id);
-      const details = getPackageDetails(pkg);
-      const images = [...new Set([pkg.image, ...details.gallery, ...packagePageSectionImages(getPackagePageSections(details))])];
-      await Promise.all(images.map(deleteImageFromCloudflare));
-      setSuccess(`“${pkg.title}” was deleted.`);
+      const { refreshWarning } = await deletePackages(targets.map((pkg) => pkg.id));
+      const deletedIds = new Set(targets.map((pkg) => pkg.id));
+      setSelectedIds((previous) => new Set([...previous].filter((id) => !deletedIds.has(id))));
+      const packageImages = (pkg: TravelPackage) => {
+        const details = getPackageDetails(pkg);
+        return [pkg.image, ...details.gallery, ...packagePageSectionImages(getPackagePageSections(details))];
+      };
+      const retainedImages = new Set(packages.filter((pkg) => !deletedIds.has(pkg.id)).flatMap(packageImages));
+      const images = [...new Set(targets.flatMap(packageImages))].filter((image) => !retainedImages.has(image));
+      const cleanup = await Promise.allSettled(images.map(deleteImageFromCloudflare));
+      setSuccess(targets.length === 1 ? `“${targets[0].title}” was deleted.` : `${targets.length} packages were deleted.`);
+      const cleanupWarning = cleanup.some((result) => result.status === "rejected")
+        ? "The packages were deleted, but some uploaded images could not be removed from storage." : "";
+      setActionError([refreshWarning, cleanupWarning].filter(Boolean).join(" "));
     }
-    catch (cause) { setActionError(cause instanceof Error ? cause.message : "The package could not be deleted."); }
-    finally { setWorking(false); }
+    catch (cause) { setActionError(cause instanceof Error ? cause.message : "The packages could not be deleted. Please try again."); }
+    finally { deleting.current = false; setWorking(false); setPendingDelete(null); }
   };
 
   return <div className="font-body text-cmt-neutral-900">
+    {pendingDelete && <DeletePackageDialog packages={pendingDelete} busy={working} onCancel={() => setPendingDelete(null)} onConfirm={() => void remove(pendingDelete)} />}
     <div className="flex flex-wrap items-end justify-between gap-4">
-      <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-700">Travel catalogue</p><h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Packages</h1><p className="mt-2 text-sm text-cmt-neutral-600">Manage every trip in one place. Drafts stay private; published packages appear on your website.</p></div>
+      <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-900">Travel catalogue</p><h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Packages</h1><p className="mt-2 text-sm text-cmt-neutral-600">Manage every trip in one place. Drafts stay private; published packages appear on your website.</p></div>
       <button disabled={!databaseInitialized} title={!databaseInitialized ? "Import the existing catalogue first" : undefined} onClick={() => router.push("/admin/packages?create=1", { scroll: false })} className="inline-flex h-11 items-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold shadow-cmt-primary hover:bg-cmt-primary-600 disabled:cursor-not-allowed disabled:opacity-50"><PackagePlus className="size-4" /> Create package</button>
     </div>
 
@@ -105,7 +130,7 @@ export default function AdminPackagesManager() {
     </section>}
 
     <div className="mt-6 grid gap-3 sm:grid-cols-3">
-      {[{ label: "All packages", value: "all", count: packages.length, hint: "Your complete travel catalogue" }, { label: "Live on website", value: "published", count: packages.length - draftCount, hint: "Travellers can view and book" }, { label: "Drafts", value: "draft", count: draftCount, hint: "Private until you publish" }].map((item) => <button key={item.value} type="button" aria-pressed={status === item.value} onClick={() => { setStatus(item.value); setPage(1); }} className={`rounded-2xl border p-5 text-left transition-colors ${status === item.value ? "border-emerald-300 bg-emerald-50/70" : "border-cmt-neutral-200 bg-white hover:border-emerald-200"}`}><span className="text-sm font-semibold text-cmt-neutral-600">{item.label}</span><span className="mt-2 block text-3xl font-semibold tracking-tight">{loading ? "—" : item.count}</span><span className="mt-1 block text-xs text-cmt-neutral-500">{item.hint}</span></button>)}
+      {[{ label: "All packages", value: "all", count: packages.length, hint: "Your complete travel catalogue" }, { label: "Live on website", value: "published", count: packages.length - draftCount, hint: "Travellers can view and book" }, { label: "Drafts", value: "draft", count: draftCount, hint: "Private until you publish" }].map((item) => <button key={item.value} type="button" aria-pressed={status === item.value} onClick={() => { setStatus(item.value); setPage(1); }} className={`rounded-2xl border p-5 text-left transition-colors ${status === item.value ? "border-cmt-primary-400 bg-cmt-primary-50/70" : "border-cmt-neutral-200 bg-white hover:border-cmt-primary-100"}`}><span className="text-sm font-semibold text-cmt-neutral-600">{item.label}</span><span className="mt-2 block text-3xl font-semibold tracking-tight">{loading ? "—" : item.count}</span><span className="mt-1 block text-xs text-cmt-neutral-500">{item.hint}</span></button>)}
     </div>
     {success && <p role="status" className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{success}</p>}
     {(error || actionError) && <p role="alert" className="mt-5 rounded-cmt-control border border-cmt-error-500/20 bg-cmt-error-100 px-4 py-3 text-sm text-cmt-error-700">{actionError || error}</p>}
@@ -118,14 +143,28 @@ export default function AdminPackagesManager() {
       <div className="flex flex-wrap items-end gap-3 border-b border-cmt-neutral-100 bg-cmt-neutral-50/50 px-5 py-4">
         <label className="text-xs font-semibold text-cmt-neutral-600">Visibility<select aria-label="Filter packages by visibility" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }} className="mt-1.5 block h-10 min-w-40 rounded-xl border border-cmt-neutral-200 bg-white px-3 text-sm"><option value="all">All packages</option><option value="published">Live on website</option><option value="draft">Drafts</option></select></label>
         <label className="text-xs font-semibold text-cmt-neutral-600">Destination region<select aria-label="Filter packages by region" value={region} onChange={(event) => { setRegion(event.target.value); setPage(1); }} className="mt-1.5 block h-10 min-w-40 rounded-xl border border-cmt-neutral-200 bg-white px-3 text-sm"><option value="all">All destinations</option><option value="India">India</option><option value="International">International</option></select></label>
-        {(status !== "all" || region !== "all" || search) && <button type="button" onClick={() => { setStatus("all"); setRegion("all"); setSearch(""); setPage(1); }} className="h-10 px-2 text-xs font-semibold text-emerald-800">Clear filters</button>}
+        {(status !== "all" || region !== "all" || search) && <button type="button" onClick={() => { setStatus("all"); setRegion("all"); setSearch(""); setPage(1); }} className="h-10 px-2 text-xs font-semibold text-cmt-primary-900">Clear filters</button>}
         <p className="ml-auto pb-3 text-xs text-cmt-neutral-500">{loading ? "Loading…" : `${filteredPackages.length} package${filteredPackages.length === 1 ? "" : "s"} shown`}</p>
       </div>
+      {!loading && filteredPackages.length > 0 && <div className="flex flex-wrap items-center gap-3 border-b border-cmt-neutral-200 bg-cmt-primary-50/40 px-5 py-3">
+        <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 text-sm font-medium">
+          <input type="checkbox" checked={allPageSelected} ref={(input) => { if (input) input.indeterminate = !allPageSelected && visiblePackages.some((pkg) => selectedIds.has(pkg.id)); }} disabled={working || !databaseInitialized} onChange={(event) => toggleSelection(visiblePackages.map((pkg) => pkg.id), event.target.checked)} className="size-4 accent-cmt-primary-700" />
+          Select this page
+        </label>
+        {selectedPackages.length > 0 && <>
+          <span role="status" className="text-xs font-semibold text-cmt-primary-800">{selectedPackages.length} selected across pages</span>
+          {selectedPackages.length < filteredPackages.length && filteredPackages.length <= 500 && <button type="button" disabled={working} onClick={() => setSelectedIds(new Set(filteredPackages.map((pkg) => pkg.id)))} className="min-h-9 text-xs font-semibold text-cmt-primary-800 underline underline-offset-4">Select all {filteredPackages.length} matching packages</button>}
+          <button type="button" disabled={working} onClick={() => setSelectedIds(new Set())} className="min-h-9 text-xs font-semibold text-cmt-neutral-600">Clear selection</button>
+          <button type="button" disabled={working || selectedPackages.length > 500} onClick={() => setPendingDelete(selectedPackages)} className="ml-auto inline-flex min-h-9 items-center gap-2 rounded-xl bg-red-600 px-4 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-40"><Trash2 className="size-4" />Delete selected ({selectedPackages.length})</button>
+          {selectedPackages.length > 500 && <p className="w-full text-xs text-red-700">Select up to 500 packages at a time.</p>}
+        </>}
+      </div>}
       <div className="divide-y divide-cmt-neutral-200">
-        {visiblePackages.map((pkg) => <article key={pkg.id} className="grid gap-4 p-4 lg:grid-cols-[88px_minmax(0,1fr)_auto] lg:items-center sm:px-5">
+        {visiblePackages.map((pkg) => <article key={pkg.id} className="grid gap-4 p-4 lg:grid-cols-[24px_88px_minmax(0,1fr)_auto] lg:items-center sm:px-5">
+          <input type="checkbox" aria-label={`Select ${pkg.title}`} checked={selectedIds.has(pkg.id)} disabled={working || !databaseInitialized} onChange={(event) => toggleSelection([pkg.id], event.target.checked)} className="size-4 cursor-pointer accent-cmt-primary-700" />
           <div className="relative aspect-[4/3] w-28 lg:w-full overflow-hidden rounded-cmt-sm bg-cmt-neutral-100"><Image src={pkg.image} alt="" fill sizes="112px" className="object-cover" /></div>
           <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="break-words font-display text-base font-semibold">{pkg.title}</h2><span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${isPublishedPackage(pkg) ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>{isPublishedPackage(pkg) ? "Live on website" : "Draft · private"}</span></div><p className="mt-1 truncate text-xs text-cmt-neutral-500">{pkg.location} · {pkg.nights} nights / {pkg.days} days · ₹{pkg.price.toLocaleString("en-IN")} per person</p></div>
-          <div className="flex flex-wrap gap-2">{isPublishedPackage(pkg) && <Link href={`/packages/${pkg.id}`} target="_blank" className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold"><ExternalLink className="size-3.5" /> View</Link>}<button disabled={!databaseInitialized} title={!databaseInitialized ? "Import the existing catalogue first" : undefined} onClick={() => setEditing(pkg)} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold disabled:opacity-40"><Edit3 className="size-3.5" /> Edit</button><button disabled={working || !databaseInitialized} onClick={() => remove(pkg)} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-error-500/30 px-3 text-xs font-semibold text-cmt-error-700 disabled:opacity-40"><Trash2 className="size-3.5" /> Delete</button></div>
+          <div className="flex flex-wrap gap-2">{isPublishedPackage(pkg) && <Link href={`/packages/${pkg.id}`} target="_blank" className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold"><ExternalLink className="size-3.5" /> View</Link>}<button disabled={!databaseInitialized} title={!databaseInitialized ? "Import the existing catalogue first" : undefined} onClick={() => setEditing(pkg)} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold disabled:opacity-40"><Edit3 className="size-3.5" /> Edit</button><button disabled={working || !databaseInitialized} onClick={() => setPendingDelete([pkg])} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-error-500/30 px-3 text-xs font-semibold text-cmt-error-700 disabled:opacity-40"><Trash2 className="size-3.5" /> Delete</button></div>
         </article>)}
         {!loading && filteredPackages.length === 0 && <p className="p-8 text-center text-sm text-cmt-neutral-500">{search || status !== "all" || region !== "all" ? "No packages match these filters. Try another search or clear the filters." : "Your catalogue is ready for its first trip. Select Create package to get started."}</p>}
       </div>

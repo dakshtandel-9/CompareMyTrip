@@ -87,9 +87,10 @@ test('empty and fully hidden bars never fall back to standard boxes after reopen
 
 const { default: PackageFactsBar } = load('src/app/packages/_components/PackageFactsBar.tsx', {
   './PackageFactsBar.module.css': { default: {} },
+  './PackageInlineEditing': { usePackageEditing: () => null, InlineText: ({ value }) => value, EditAction: () => null },
   'react/jsx-runtime': jsxRuntime,
   'lucide-react': icons,
-  '@/lib/adminIcons': { Glyph: () => null },
+  '@/lib/PackageGlyph': { PackageGlyph: () => null },
   '@/lib/packageFacts': load('src/lib/packageFacts.ts', { '@/lib/packageData': data }),
 });
 const renderFacts = (pkg) => renderToStaticMarkup(React.createElement(PackageFactsBar, {
@@ -128,4 +129,13 @@ test('hiding the details bar also hides the permit box', () => {
   const pkg = withFacts(defaultPackageFacts(), true);
   pkg.details.permitRequired = true;
   assert.equal(renderFacts(pkg), '');
+});
+
+
+test('one-day treks without a hotel do not advertise automatic starred stays', () => {
+  const pkg = { ...original, nights: 1, days: 1, details: { ...data.getPackageDetails(original), stays: [] } };
+  assert.equal(getPackageFacts(pkg).find((fact) => fact.source === 'duration').value, '1 night / 1 day');
+  assert.equal(getPackageFacts(pkg).find((fact) => fact.source === 'stay').value, 'No accommodation');
+  pkg.details.facts = [{ id: 'stay', source: 'stay', label: 'Stay', value: 'Camping available separately', visible: true }];
+  assert.equal(getPackageFacts(pkg)[0].value, 'Camping available separately');
 });

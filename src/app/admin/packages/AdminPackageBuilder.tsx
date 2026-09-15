@@ -1,119 +1,60 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { ArrowLeft, ArrowRight, BedDouble, Check, Clock3, Globe2, ImagePlus, MapPin, PackagePlus, Plus, Save, Star, Trash2, Users } from "lucide-react";
-import { PACKAGE_CATEGORIES, WEEKDAYS, departureDays, departureDaysLabel, discountToPrice, getDiscountPercent, getPackageDetails, type PackageCategory, type PackageItineraryDay, type PackageStay, type TravelPackage } from "@/lib/packageData";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Save, Undo2, Eye, Pencil } from "lucide-react";
+import { getPackageDetails, type TravelPackage } from "@/lib/packageData";
+import { getPackagePageSections, packagePageSectionImages } from "@/lib/packageDetailSections";
 import { savePackage, uploadPackageImage } from "@/lib/firebase/packages";
 import { deleteImageFromCloudflare, PACKAGE_DRAFT_IMAGE_KEY_PREFIX } from "@/lib/cloudflareUpload";
-
-import { defaultPackageFacts } from "@/lib/packageFacts";
-import PackageFactsEditor from "./PackageFactsEditor";
-import PackagePageSectionsEditor from "./PackagePageSectionsEditor";
-import { defaultPackagePageSections, getPackagePageSections, packagePageSectionImages, packagePageSectionsIssue } from "@/lib/packageDetailSections";
-import EditorSteps, { ReadinessList } from "./EditorSteps";
-import { useUnsavedContentChanges } from "../content/useUnsavedContentChanges";
+import { applyPackageImport } from "@/lib/packageAiImport";
+import PackageDetailClient from "@/app/packages/[packageId]/PackageDetailClient";
+import { PackageEditingContext, type ContentPath } from "@/app/packages/_components/PackageInlineEditing";
+import styles from "./AdminPackageBuilder.module.css";
+import PackageAiImporter from "./PackageAiImporter";
+import IconPicker from "../_components/IconPicker";
+import iconNames from "@/lib/packageIconNames.json";
+import { PackageGlyph } from "@/lib/PackageGlyph";
+import PackagePreviewSettings from "./PackagePreviewSettings";
+import { formFromPackage, packageFromForm, applyPackagePreviewChange } from "./packageFormModel";
 import { packageValidationIssue, type PackageForm } from "./catalogueEditorState";
+import { useUnsavedContentChanges } from "../content/useUnsavedContentChanges";
 
-const EDITOR_STEPS = ["Trip basics", "Price & dates", "Photos", "Description", "Itinerary & stays", "Details bar", "Page sections", "Review & save"] as const;
-const SAVE_STEP = EDITOR_STEPS.length - 1;
-
-
-
-const makeDays = (count = 5): PackageItineraryDay[] => Array.from({ length: count }, (_, index) => ({
-  day: index + 1,
-  title: index === 0 ? "Arrival and check-in" : index === count - 1 ? "Departure" : "Local experiences",
-  route: "", description: "", meals: index === 0 ? "Dinner" : "Breakfast",
-}));
-
-const initialForm: PackageForm = {
-  facts: defaultPackageFacts(), factsHidden: false, permitRequired: false,
-  pageSections: defaultPackagePageSections(),
-  title: "", location: "", destination: "", operator: "CompareMyTrip Partner", region: "India",
-  gallery: [],
-  nights: "4", days: "5", pax: "2–10 pax", hotelStars: "4", originalPrice: "24999", price: "19999", discount: "20", deal: false, tags: ["Family"],
-  summary: "", places: "", highlights: "Curated local experiences\nComfortable verified stays\nPrivate transfers",
-  inclusions: "Accommodation\nDaily breakfast\nTransfers and sightseeing", exclusions: "Flights or train tickets\nPersonal expenses\nTravel insurance",
-  meals: "Daily breakfast", transfers: "Private transfers included", flights: "Not included",
-  cancellationPolicy: "Free cancellation up to 15 days before departure. Date changes are subject to availability.",
-  itinerary: makeDays(), stays: [{ name: "Comfort hotel", nights: 4, place: "", comfort: "4-star room with daily breakfast" }],
-  // Every day, until somebody narrows it.
-  departureDays: [0, 1, 2, 3, 4, 5, 6],
-  /* New packages start as drafts: nothing reaches the website or the sitemap
-     until somebody has read it back and chosen to publish. */
-  status: "draft",
-};
-
-function formFromPackage(pkg?: TravelPackage): PackageForm {
-  if (!pkg) return initialForm;
-  const details = getPackageDetails(pkg);
-  return {
-    facts: details.facts ?? defaultPackageFacts(), factsHidden: details.factsHidden ?? false, permitRequired: details.permitRequired === true,
-    pageSections: getPackagePageSections(details),
-    title: pkg.title, location: pkg.location, destination: pkg.destination, operator: pkg.operator,
-    region: pkg.region, gallery: details.gallery, nights: String(pkg.nights), days: String(pkg.days), pax: pkg.pax,
-    hotelStars: String(pkg.hotelStars), originalPrice: String(pkg.originalPrice), price: String(pkg.price),
-    discount: String(pkg.discount), deal: Boolean(pkg.deal), tags: pkg.tags, summary: details.summary,
-    places: details.places.join(", "), highlights: details.highlights.join("\n"), inclusions: details.inclusions.join("\n"),
-    exclusions: details.exclusions.join("\n"), meals: details.meals, transfers: details.transfers, flights: details.flights,
-    cancellationPolicy: details.cancellationPolicy, itinerary: details.itinerary, stays: details.stays,
-    status: pkg.status === "draft" ? "draft" : "published",
-    /* An empty list on the package means "no restriction", which shows here
-       as every day ticked — the form is the editable view of the rule, not a
-       copy of how it is stored. */
-    departureDays: departureDays(pkg).length ? departureDays(pkg) : [0, 1, 2, 3, 4, 5, 6],
-  };
-}
-
-const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
-const lines = (value: string) => value.split("\n").map((item) => item.trim()).filter(Boolean);
-const splitPlaces = (value: string) => value.split(/[,·]/).map((item) => item.trim()).filter(Boolean);
-const inputClass = "h-12 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 text-sm outline-none focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]";
-const textareaClass = "min-h-28 w-full resize-y rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 py-3 text-sm leading-6 outline-none focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]";
-
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <span className="mb-2 block text-sm font-semibold text-cmt-neutral-700">{children}</span>;
-}
-function SectionTitle({ icon, title, copy }: { icon: React.ReactNode; title: string; copy: string }) {
-  return <div className="flex items-center gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-cmt-control bg-cmt-primary-50 text-cmt-primary-900">{icon}</span><div><h2 className="font-display text-xl font-semibold">{title}</h2><p className="text-xs text-cmt-neutral-500">{copy}</p></div></div>;
-}
-function TextList({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  return <label><FieldLabel>{label}</FieldLabel><textarea value={value} onChange={(event) => onChange(event.target.value)} className={textareaClass} /></label>;
-}
-
+const button = "inline-flex items-center gap-2 rounded-lg border border-cmt-neutral-200 bg-white px-3 py-2 text-xs font-semibold disabled:opacity-40";
 export default function AdminPackageBuilder({ initialPackage, filedUnderOptions, onCancel, onSaved }: { initialPackage?: TravelPackage; filedUnderOptions: Record<TravelPackage["region"], string[]>; onCancel: () => void; onSaved: (message: string) => void }) {
   const draftStorageKey = `${PACKAGE_DRAFT_IMAGE_KEY_PREFIX}${initialPackage?.id ?? "new"}`;
   const draftImagesRef = useRef<string[]>([]);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const toolbar = toolbarRef.current;
+    if (!toolbar) return;
+    const measure = () => toolbar.parentElement?.style.setProperty("--package-toolbar-height", `${toolbar.getBoundingClientRect().height}px`);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(toolbar);
+    return () => observer.disconnect();
+  }, []);
   const sectionUploadRef = useRef(false);
   const [form, setForm] = useState<PackageForm>(() => formFromPackage(initialPackage));
-  const [message, setMessage] = useState("");
+  const [originalForm] = useState(() => JSON.stringify(form));
+  const [history, setHistory] = useState<PackageForm[]>([]);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadWarning, setUploadWarning] = useState("");
-  const [step, setStep] = useState(0);
-  const [originalForm] = useState(() => JSON.stringify(form));
+  const [editing, setEditing] = useState(true);
+  const formRef = useRef(form);
   const dirty = JSON.stringify(form) !== originalForm;
-  const goToStep = (next: number) => {
-    setStep(next);
-    window.requestAnimationFrame(() => {
-      document.getElementById("package-step-heading")?.focus({ preventScroll: true });
-      document.getElementById("package-editor-start")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  };
+  const pkg = packageFromForm(form, initialPackage);
   useUnsavedContentChanges(dirty && !saving);
-  const fail = (message: string, section: number) => { setError(message); goToStep(section); };
-  const sectionHidden = (section: "about" | "itinerary" | "stays") => form.pageSections.hiddenSections.includes(section);
-  const readiness = [
-    { label: "Title, route and category", ready: Boolean(form.title.trim() && form.location.trim() && form.tags.length), step: 0 },
-    { label: "Price and departure days", ready: Number(form.price) > 0 && Number(form.originalPrice) >= Number(form.price) && form.departureDays.length > 0, step: 1 },
-    { label: "At least 3 package photos", ready: form.gallery.length >= 3, step: 2 },
-    { label: "Overview and places", ready: sectionHidden("about") || Boolean(form.summary.trim() && splitPlaces(form.places).length), step: 3 },
-    { label: "Itinerary and accommodation", ready: (sectionHidden("itinerary") || form.itinerary.length > 0 && form.itinerary.every((day) => day.title.trim())) && (sectionHidden("stays") || form.stays.length > 0 && form.stays.every((stay) => stay.name.trim())), step: 4 },
-    { label: "Details bar checked", ready: form.factsHidden || form.facts.every((fact) => fact.visible === false || Boolean(fact.label.trim() && (fact.value === undefined ? fact.source : fact.value.trim()))), step: 5 },
-    { label: "Page sections checked", ready: !packagePageSectionsIssue(form.pageSections), step: 6 },
-  ];
-
+  const replaceForm = (next: PackageForm) => {
+    const previous = formRef.current;
+    setHistory(items => [...items.slice(-29), previous]);
+    formRef.current = next; setForm(next); setError("");
+  };
+  const change = (path: ContentPath, value: unknown) => {
+    if (saving || uploading) return;
+    replaceForm(applyPackagePreviewChange(formRef.current, path, value, initialPackage));
+  };
   useEffect(() => {
     const stored = sessionStorage.getItem(draftStorageKey);
     if (!stored) return;
@@ -141,65 +82,6 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
     if (failed.length) sessionStorage.setItem(draftStorageKey, JSON.stringify(failed));
     else sessionStorage.removeItem(draftStorageKey);
   };
-  const update = <Key extends keyof PackageForm>(key: Key, value: PackageForm[Key]) => {
-    setForm((current) => ({ ...current, [key]: value })); setMessage(""); setError("");
-  };
-  const preview = useMemo(() => ({
-    title: form.title || "Your package title", location: form.location || "Destination · Route",
-    operator: form.operator || "Travel partner", nights: Number(form.nights) || 0, days: Number(form.days) || 0,
-    price: Number(form.price) || 0, originalPrice: Number(form.originalPrice) || 0,
-    discount: Number(form.discount) || 0, hotelStars: Number(form.hotelStars) || 3,
-    image: form.gallery[0] || "/destinations/kerala.jpg",
-  }), [form]);
-
-  const toggleTag = (tag: PackageCategory) => update("tags", form.tags.includes(tag) ? form.tags.filter((item) => item !== tag) : [...form.tags, tag]);
-  const updateDay = (index: number, key: keyof PackageItineraryDay, value: string | number) =>
-    update("itinerary", form.itinerary.map((day, dayIndex) => dayIndex === index ? { ...day, [key]: value } : day));
-  const updateStay = (index: number, key: keyof PackageStay, value: string | number) =>
-    update("stays", form.stays.map((stay, stayIndex) => stayIndex === index ? { ...stay, [key]: value } : stay));
-  /* Pricing is one number and one percentage: the operator names the
-     discount and the sale price follows, or types a sale price and the
-     percentage follows. Whichever they touch last is the one we trust. */
-  const setPricing = (patch: Partial<Pick<PackageForm, "originalPrice" | "price" | "discount">>) => {
-    setForm((current) => ({ ...current, ...patch })); setMessage(""); setError("");
-  };
-  const handleOriginalPriceChange = (value: string) =>
-    setPricing({ originalPrice: value, price: String(discountToPrice(Number(value) || 0, Number(form.discount) || 0)) });
-  const handleDiscountChange = (value: string) => {
-    const percent = Math.max(0, Math.min(90, Number(value) || 0));
-    setPricing({ discount: value, price: String(discountToPrice(Number(form.originalPrice) || 0, percent)) });
-  };
-  const handleSalePriceChange = (value: string) =>
-    setPricing({
-      price: value,
-      discount: String(getDiscountPercent({ discount: 0, originalPrice: Number(form.originalPrice) || 0, price: Number(value) || 0 })),
-    });
-
-  const handleDaysChange = (value: string) => {
-    const count = Math.max(2, Math.min(30, Number(value) || 2));
-    const defaults = makeDays(count);
-    setForm((current) => ({ ...current, days: value, itinerary: Array.from({ length: count }, (_, index) => current.itinerary[index] ?? defaults[index]) }));
-  };
-  const handleImageUpload = async (files?: FileList | null) => {
-    if (!files?.length || uploading || saving || form.gallery.length >= 10) return;
-    const selected = Array.from(files).slice(0, 10 - form.gallery.length);
-    if (selected.some((file) => !file.type.startsWith("image/"))) return setError("Please choose image files only.");
-    if (selected.some((file) => file.size > 5_000_000)) return setError("Each image must be 5 MB or smaller.");
-    try {
-      setUploading(true); setError("");
-      const results = await Promise.allSettled(selected.map(uploadPackageImage));
-      const uploaded = results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
-      if (uploaded.length) {
-        rememberDraftImages(uploaded);
-        update("gallery", [...form.gallery, ...uploaded].slice(0, 10));
-      }
-      const failed = results.find((result) => result.status === "rejected");
-      if (failed?.status === "rejected") {
-        setError(failed.reason instanceof Error ? failed.reason.message : "Some images could not be uploaded.");
-      }
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "The images could not be uploaded."); }
-    finally { setUploading(false); }
-  };
   const handleSectionImageUpload = async (files: File[]): Promise<string[]> => {
     if (!files.length) return [];
     if (uploading || saving || sectionUploadRef.current) throw new Error("Wait for the current upload to finish.");
@@ -223,34 +105,13 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
       setUploading(false);
     }
   };
-  const handleImageDelete = (image: string) => {
+  const handleSubmit = async () => {
+    setError("");
     if (saving || uploading) return;
-    update("gallery", form.gallery.filter((item) => item !== image));
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); setMessage(""); setError("");
-    if (saving || uploading) return;
-    if (step !== SAVE_STEP) { goToStep(Math.min(step + 1, SAVE_STEP)); return; }
     const validation = packageValidationIssue(form);
-    if (validation) return fail(validation.message, validation.step);
-    const newPackage: TravelPackage = {
-      id: initialPackage?.id ?? `${form.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${Date.now().toString(36)}`,
-      title: form.title.trim(), location: form.location.trim(), operator: initialPackage?.operator || "CompareMyTrip", region: form.region,
-      /* Headline destination for the catalogue's destination filter: the first
-         place of the route unless one was typed explicitly. */
-      destination: form.destination.trim() || splitPlaces(form.places)[0] || form.location.trim(),
-      image: form.gallery[0], nights: Number(form.nights), days: Number(form.days), pax: form.pax.trim(), hotelStars: Number(form.hotelStars), tags: form.tags,
-      rating: initialPackage?.rating ?? 5, reviews: initialPackage?.reviews ?? 0, discount: Number(form.discount), originalPrice: Number(form.originalPrice), price: Number(form.price), deal: form.deal, status: form.status,
-      /* Stored empty when every day is ticked: "departs any day" is the
-         absence of a rule, not a list of seven. */
-      departureDays: form.departureDays.length === 7 ? [] : [...form.departureDays].sort((a, b) => a - b),
-      details: { facts: form.facts.map((fact) => ({ ...fact, label: fact.label.trim(), ...(fact.value !== undefined ? { value: fact.value.trim() } : {}) })), factsHidden: form.factsHidden, gallery: form.gallery, summary: form.summary.trim(), places: splitPlaces(form.places), highlights: lines(form.highlights),
-        itinerary: form.itinerary.map((day) => ({ ...day, title: day.title.trim(), route: day.route.trim(), description: day.description.trim() || day.route.trim() || day.title.trim() })),
-        stays: form.stays.map((stay) => ({ ...stay, name: stay.name.trim(), place: stay.place.trim() || form.destination.trim() || form.location.trim() })),
-        inclusions: lines(form.inclusions), exclusions: lines(form.exclusions), meals: form.meals.trim(), transfers: form.transfers.trim(),
-        flights: form.flights.trim(), permitRequired: form.permitRequired, cancellationPolicy: form.cancellationPolicy.trim(), pageSections: form.pageSections },
-    };
+    if (validation) { setError(validation.message); window.requestAnimationFrame(() => document.getElementById("package-save-error")?.scrollIntoView({ behavior: "smooth", block: "center" })); return; }
+    const newPackage = packageFromForm(form, initialPackage);
+    if (!initialPackage) newPackage.id = `${form.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${Date.now().toString(36)}`;
     try {
       setSaving(true); await savePackage(newPackage);
       // Retain images in hidden sections. Clean removed uploads only after the
@@ -271,7 +132,6 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
     } catch (cause) { setError(cause instanceof Error ? cause.message : "This package could not be saved."); }
     finally { setSaving(false); }
   };
-
   const handleCancel = async () => {
     if (dirty && !window.confirm("Leave the package editor? Unsaved changes will be lost.")) return;
     setSaving(true);
@@ -279,177 +139,24 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
     onCancel();
   };
 
-  return (
-    <div className="font-body text-cmt-neutral-900">
-      <div>
-        <div className="mb-8">
-          <div><button type="button" disabled={saving || uploading} onClick={() => void handleCancel()} className="inline-flex items-center gap-1.5 text-xs font-semibold text-cmt-neutral-500 disabled:opacity-50"><ArrowLeft className="size-3.5" /> Back to packages</button><h1 className="mt-4 font-display text-3xl font-semibold tracking-tight sm:text-4xl">{initialPackage ? "Edit package" : "Create package"}</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-cmt-neutral-600">Build your package one section at a time. Your changes go live only after you choose Publish and save. Fields marked * are required.</p></div>
-        </div>
-        <div id="package-editor-start" className="scroll-mt-24">
-          <EditorSteps steps={EDITOR_STEPS} current={step} onChange={goToStep} />
-        </div>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm"><h2 id="package-step-heading" tabIndex={-1} className="font-semibold">Step {step + 1} of {EDITOR_STEPS.length} · {EDITOR_STEPS[step]}</h2><p className="text-xs text-cmt-neutral-500">{dirty ? "Unsaved changes" : initialPackage ? "Editing saved package" : "New package · starts as a draft"}</p></div>
-        {error && <p role="alert" className="mb-5 rounded-xl border border-cmt-error-500/20 bg-cmt-error-100 px-4 py-3 text-sm text-cmt-error-700">{error}</p>}
-        {uploadWarning && <p role="status" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">{uploadWarning}</p>}
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
-          <form noValidate onSubmit={handleSubmit} className="space-y-6">
-            <section hidden={step !== 0} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-              <SectionTitle icon={<PackagePlus className="size-5" />} title="1. Introduce the trip" copy="Give travellers a clear name, destination and duration." />
-              <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                <label className="sm:col-span-2"><FieldLabel>Package title *</FieldLabel><input required value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Kerala Backwaters & Hills Escape" className={inputClass} /></label>
-                <label><FieldLabel>Destination / route *</FieldLabel><input required value={form.location} onChange={(e) => update("location", e.target.value)} placeholder="Kochi · Munnar · Alleppey" className={inputClass} /></label>
-                {/* The single name this package is filed under in the catalogue's
-                    destination filter — the region, not the full route. India
-                    files by state, so the list follows the Region select. */}
-                <label><FieldLabel>Destination category</FieldLabel><input list="filed-under-options" value={form.destination} onChange={(e) => update("destination", e.target.value)} placeholder={form.region === "India" ? "Select a state" : "Select or type a country"} autoComplete="off" className={inputClass} /><datalist id="filed-under-options">{filedUnderOptions[form.region].map((destination) => <option key={destination} value={destination} />)}</datalist><span className="mt-1.5 block text-xs text-cmt-neutral-500">{form.region === "India" ? "Choose the state travellers will use to find this package. It appears on the website after publishing." : "Choose or type the country travellers will use to find this package. It appears on the website after publishing."}</span></label>
-                <label><FieldLabel>Region</FieldLabel><select value={form.region} onChange={(e) => update("region", e.target.value as PackageForm["region"])} className={inputClass}><option>India</option><option>International</option></select></label>
-                <label><FieldLabel>Group size</FieldLabel><input value={form.pax} onChange={(e) => update("pax", e.target.value)} placeholder="2–10 pax" className={inputClass} /></label>
-                <label><FieldLabel>Nights *</FieldLabel><input type="number" min="1" value={form.nights} onChange={(e) => update("nights", e.target.value)} className={inputClass} /></label>
-                <label><FieldLabel>Days *</FieldLabel><input type="number" min="2" max="30" value={form.days} onChange={(e) => handleDaysChange(e.target.value)} className={inputClass} /></label>
-                <label><FieldLabel>Hotel stars</FieldLabel><select value={form.hotelStars} onChange={(e) => update("hotelStars", e.target.value)} className={inputClass}><option value="3">3 star</option><option value="4">4 star</option><option value="5">5 star</option></select></label>
-              </div>
-              <div className="mt-5"><FieldLabel>Categories *</FieldLabel><p className="mb-3 text-xs text-cmt-neutral-500">Choose at least one. Travellers use these categories to find the right trip.</p><div className="flex flex-wrap gap-2">{PACKAGE_CATEGORIES.map((tag) => <button key={tag} type="button" aria-pressed={form.tags.includes(tag)} onClick={() => toggleTag(tag)} className={`inline-flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-xs font-semibold ${form.tags.includes(tag) ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-cmt-neutral-200 bg-white text-cmt-neutral-600"}`}>{form.tags.includes(tag) && <Check className="size-3.5" />}{tag}</button>)}</div></div>
-            </section>
-            <section hidden={step !== 1} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-              <SectionTitle icon={<Clock3 className="size-5" />} title="2. Set price and departure days" copy="All prices are in Indian rupees (₹), per person." />
-              <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                <label><FieldLabel>Original price (₹) *</FieldLabel><input type="number" min="1" value={form.originalPrice} onChange={(e) => handleOriginalPriceChange(e.target.value)} className={inputClass} /></label>
-                <label className="sm:col-span-2"><FieldLabel>How much discount do you want to give? (%)</FieldLabel><div className="flex flex-wrap items-center gap-2"><input type="number" min="0" max="90" value={form.discount} onChange={(e) => handleDiscountChange(e.target.value)} className={`${inputClass} sm:max-w-40`} />{[10, 15, 20, 25, 30].map((percent) => <button key={percent} type="button" onClick={() => handleDiscountChange(String(percent))} className={`inline-flex h-9 items-center rounded-cmt-full border px-3.5 text-xs font-semibold ${Number(form.discount) === percent ? "border-cmt-neutral-900 bg-cmt-neutral-900 text-white" : "border-cmt-neutral-200 bg-white text-cmt-neutral-600"}`}>{percent}%</button>)}</div><p className="mt-2 text-xs text-cmt-neutral-500">Shown as the “{Number(form.discount) || 0}% off” badge on the card and the booking box. Changing it recalculates the sale price below.</p></label>
-                <label><FieldLabel>Sale price per person (₹) *</FieldLabel><input type="number" min="1" value={form.price} onChange={(e) => handleSalePriceChange(e.target.value)} className={inputClass} /></label>
-              </div>
-
-              {/* Flags the package into the catalogue's "Best deals" toggle and
-                  puts a badge on its price card. */}
-              <label className="mt-5 flex cursor-pointer items-center gap-2.5 text-sm text-cmt-neutral-700"><input type="checkbox" checked={form.deal} onChange={(e) => update("deal", e.target.checked)} className="size-4 accent-[var(--cmt-color-primary-500)]" />Mark as a best deal</label>
-
-              {/* Which days this trip actually leaves on. A Sundays-only trek
-                  ticks Sun alone, and every other day is then greyed out in
-                  the traveller's calendar rather than being bookable and
-                  refused later. Leave all seven ticked for a trip that runs
-                  any day — that is stored as no rule at all. */}
-              <div className="mt-6 border-t border-cmt-neutral-200 pt-5">
-                <FieldLabel>Departure days</FieldLabel>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {WEEKDAYS.map((day) => {
-                    const on = form.departureDays.includes(day.value);
-                    return (
-                      <button
-                        key={day.value}
-                        type="button"
-                        aria-pressed={on}
-                        onClick={() =>
-                          update(
-                            "departureDays",
-                            on
-                              ? form.departureDays.filter((value) => value !== day.value)
-                              : [...form.departureDays, day.value],
-                          )
-                        }
-                        className={`h-10 min-w-[52px] rounded-cmt-sm border px-2.5 text-sm font-semibold transition-colors ${
-                          on
-                            ? "border-cmt-neutral-900 bg-cmt-neutral-900 text-white"
-                            : "border-cmt-neutral-200 bg-white text-cmt-neutral-500 hover:border-cmt-neutral-300"
-                        }`}
-                      >
-                        {day.short}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                  <button type="button" onClick={() => update("departureDays", [0, 1, 2, 3, 4, 5, 6])} className="text-xs font-semibold text-cmt-neutral-600 underline-offset-2 hover:underline">Every day</button>
-                  <button type="button" onClick={() => update("departureDays", [0, 6])} className="text-xs font-semibold text-cmt-neutral-600 underline-offset-2 hover:underline">Weekends</button>
-                  <button type="button" onClick={() => update("departureDays", [0])} className="text-xs font-semibold text-cmt-neutral-600 underline-offset-2 hover:underline">Sundays</button>
-                  <p className={`text-xs font-medium ${form.departureDays.length === 0 ? "text-cmt-error-700" : "text-cmt-neutral-500"}`}>
-                    {form.departureDays.length === 0
-                      ? "Pick at least one day, or no date can ever be booked."
-                      : departureDaysLabel({ departureDays: form.departureDays }) || "Departs any day"}
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            <section hidden={step !== 2} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-              <SectionTitle icon={<ImagePlus className="size-5" />} title="3. Add package photos" copy="Minimum 3 images, maximum 10. The first image becomes the card cover." />
-              <label className="mt-6 block cursor-pointer rounded-cmt-md border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 p-5 text-center hover:border-cmt-primary-500"><ImagePlus className="mx-auto size-6 text-cmt-neutral-500" /><span className="mt-2 block text-sm font-semibold">{uploading ? "Processing and uploading…" : `Add gallery images (${form.gallery.length}/10)`}</span><span className="mt-1 block text-xs text-cmt-neutral-500">JPG, PNG or WebP · up to 5 MB per photo</span><input disabled={uploading || saving || form.gallery.length >= 10} type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={(e) => { void handleImageUpload(e.target.files); e.target.value = ""; }} className="sr-only" /></label>
-              <p className="mt-3 text-xs leading-5 text-cmt-neutral-500">Photo changes apply when you save the package. Images still used in another section are kept.</p>
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{form.gallery.map((image, index) => <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-cmt-sm bg-cmt-neutral-100"><Image src={image} alt={`Gallery ${index + 1}`} fill className="object-cover" unoptimized={image.startsWith("data:")} />{index === 0 && <span className="absolute left-2 top-2 rounded-full bg-white px-2 py-1 text-[10px] font-semibold">Cover</span>}<button type="button" disabled={uploading || saving} aria-label={`Delete image ${index + 1}`} onClick={() => handleImageDelete(image)} className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-cmt-neutral-900/80 text-white"><Trash2 className="size-3.5" /></button></div>)}</div>
-            </section>
-
-            <div hidden={step !== 5}><PackageFactsEditor
-              facts={form.facts}
-              hidden={form.factsHidden}
-              permitRequired={form.permitRequired}
-              values={{ nights: Number(form.nights) || 0, days: Number(form.days) || 0, pax: form.pax, hotelStars: Number(form.hotelStars) || 0, meals: form.meals, transfers: form.transfers, flights: form.flights }}
-              onChange={(facts) => update("facts", facts)}
-              onHiddenChange={(hidden) => update("factsHidden", hidden)}
-              onPermitRequiredChange={(required) => update("permitRequired", required)}
-            /></div>
-
-            <div hidden={step !== 6}><PackagePageSectionsEditor
-              value={form.pageSections}
-              onChange={(pageSections) => update("pageSections", pageSections)}
-              onUploadImages={handleSectionImageUpload}
-              busy={saving || uploading}
-              allowReviews={Boolean(initialPackage)}
-            /></div>
-
-            <section hidden={step !== 3} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-              <SectionTitle icon={<MapPin className="size-5" />} title="4. Describe the experience" copy="Explain the experience, places and what is covered." />
-              <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                <label className="sm:col-span-2"><FieldLabel>Package overview *</FieldLabel><textarea value={form.summary} onChange={(e) => update("summary", e.target.value)} placeholder="Describe the pace, experience and ideal traveller..." className={textareaClass} /></label>
-                <label className="sm:col-span-2"><FieldLabel>Places covered * (separate with commas)</FieldLabel><input value={form.places} onChange={(e) => update("places", e.target.value)} placeholder="Kochi, Munnar, Thekkady, Alleppey" className={inputClass} /></label>
-                <TextList label="Highlights (one per line)" value={form.highlights} onChange={(value) => update("highlights", value)} />
-                <TextList label="Inclusions (one per line)" value={form.inclusions} onChange={(value) => update("inclusions", value)} />
-                <TextList label="Exclusions (one per line)" value={form.exclusions} onChange={(value) => update("exclusions", value)} />
-                <label><FieldLabel>Meal plan</FieldLabel><input value={form.meals} onChange={(e) => update("meals", e.target.value)} className={inputClass} /></label>
-                <label><FieldLabel>Transfers</FieldLabel><input value={form.transfers} onChange={(e) => update("transfers", e.target.value)} className={inputClass} /></label>
-                <label><FieldLabel>Flights</FieldLabel><input value={form.flights} onChange={(e) => update("flights", e.target.value)} className={inputClass} /></label>
-                <label className="sm:col-span-2"><FieldLabel>Cancellation policy</FieldLabel><textarea value={form.cancellationPolicy} onChange={(e) => update("cancellationPolicy", e.target.value)} className={textareaClass} /></label>
-              </div>
-            </section>
-
-            <section hidden={step !== 4} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-              <SectionTitle icon={<Clock3 className="size-5" />} title="5. Plan each travel day" copy="The number of days comes from Trip basics. Add a clear title and activities for each day." />
-              <div className="mt-6 space-y-4">{form.itinerary.map((day, index) => <details key={day.day} open={index === 0} className="group rounded-cmt-md border border-cmt-neutral-200 bg-cmt-neutral-50 p-4 sm:p-5"><summary className="cursor-pointer text-sm font-semibold"><span className="ml-2">Day {index + 1} · {day.title || "Add a day title"}</span><span className="ml-2 text-xs font-normal text-cmt-neutral-500">Select to edit</span></summary><div className="mt-5 grid gap-4 sm:grid-cols-2"><label><FieldLabel>Day title *</FieldLabel><input value={day.title} onChange={(e) => updateDay(index, "title", e.target.value)} placeholder="Arrival in Kochi" className={inputClass} /></label><label><FieldLabel>Route / place</FieldLabel><input value={day.route} onChange={(e) => updateDay(index, "route", e.target.value)} placeholder="Kochi → Munnar" className={inputClass} /></label><label className="sm:col-span-2"><FieldLabel>What happens this day</FieldLabel><textarea value={day.description} onChange={(e) => updateDay(index, "description", e.target.value)} placeholder="Pickup, sightseeing, experiences and check-in..." className={textareaClass} /></label><label><FieldLabel>Meals</FieldLabel><input value={day.meals} onChange={(e) => updateDay(index, "meals", e.target.value)} className={inputClass} /></label></div></details>)}</div>
-            </section>
-
-            <section hidden={step !== 4} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-              <div className="flex items-start justify-between gap-4"><SectionTitle icon={<BedDouble className="size-5" />} title="Hotels and accommodation" copy="Hotels, locations, nights and room comfort." /><button type="button" onClick={() => update("stays", [...form.stays, { name: "", nights: 1, place: "", comfort: "" }])} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-cmt-control bg-cmt-neutral-900 px-3 text-xs font-semibold text-white"><Plus className="size-3.5" /> Add stay</button></div>
-              <div className="mt-6 space-y-4">{form.stays.map((stay, index) => <article key={index} className="rounded-cmt-md border border-cmt-neutral-200 p-4"><div className="mb-4 flex items-center justify-between"><p className="font-semibold">Stay {index + 1}</p>{form.stays.length > 1 && <button type="button" aria-label={`Remove stay ${index + 1}`} onClick={() => update("stays", form.stays.filter((_, stayIndex) => stayIndex !== index))} className="text-cmt-error-700"><Trash2 className="size-4" /></button>}</div><div className="grid gap-4 sm:grid-cols-2"><label><FieldLabel>Hotel / stay name *</FieldLabel><input value={stay.name} onChange={(e) => updateStay(index, "name", e.target.value)} className={inputClass} /></label><label><FieldLabel>Place</FieldLabel><input value={stay.place} onChange={(e) => updateStay(index, "place", e.target.value)} className={inputClass} /></label><label><FieldLabel>Nights</FieldLabel><input type="number" min="1" value={stay.nights} onChange={(e) => updateStay(index, "nights", Number(e.target.value))} className={inputClass} /></label><label><FieldLabel>Comfort / room details</FieldLabel><input value={stay.comfort} onChange={(e) => updateStay(index, "comfort", e.target.value)} className={inputClass} /></label></div></article>)}</div>
-            </section>
-
-            <section hidden={step !== SAVE_STEP} className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
-              <SectionTitle icon={<Globe2 className="size-5" />} title="8. Review and save" copy="Check your package, then choose whether it should appear on the website." />
-              <div className="mt-5"><ReadinessList items={readiness} onSelect={goToStep} /></div>
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                {([
-                  { value: "published", title: "Publish on the website", copy: "Travellers can find and book this package after you save." },
-                  { value: "draft", title: "Keep as a draft", copy: "Save privately. Travellers cannot see or book this package." },
-                ] as const).map((option) => (
-                  <label key={option.value} className={`flex cursor-pointer gap-3 rounded-cmt-md border p-4 ${form.status === option.value ? "border-cmt-primary-500 bg-cmt-primary-50" : "border-cmt-neutral-200"}`}>
-                    <input type="radio" name="package-status" value={option.value} checked={form.status === option.value} onChange={() => update("status", option.value)} className="mt-1 size-4 accent-cmt-primary-500" />
-                    <span><span className="block text-sm font-semibold">{option.title}</span><span className="mt-1 block text-xs leading-5 text-cmt-neutral-600">{option.copy}</span></span>
-                  </label>
-                ))}
-              </div>
-            </section>
-
-            {message && <p role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{message}</p>}
-            <div className="sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cmt-neutral-200 bg-white/95 p-4 shadow-cmt-md backdrop-blur-sm">
-              <button disabled={step === 0 || saving || uploading} type="button" onClick={() => goToStep(step - 1)} className="inline-flex h-11 items-center gap-2 rounded-xl border border-cmt-neutral-200 px-4 text-sm font-semibold disabled:opacity-40"><ArrowLeft className="size-4" /> Previous</button>
-              {step < SAVE_STEP ? <button disabled={saving || uploading} type="button" onClick={() => goToStep(step + 1)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white disabled:opacity-50">Continue <ArrowRight className="size-4" /></button> : <button disabled={saving || uploading} type="submit" className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white disabled:opacity-50"><Save className="size-4" />{saving ? "Saving…" : form.status === "draft" ? "Save as draft" : "Save and publish"}</button>}
-            </div>
-          </form>
-
-          <aside className="space-y-5 xl:sticky xl:top-24">
-            <ReadinessList items={readiness} onSelect={goToStep} />
-            <div className="mb-3 flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-neutral-500">Website card preview</p><span className="text-[11px] text-cmt-success-700">Preview only</span></div>
-            <article className="overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-md"><div className="relative aspect-[4/3] bg-cmt-neutral-100"><Image src={preview.image} alt="Package preview" fill className="object-cover" unoptimized={preview.image.startsWith("data:")} /><span className="absolute left-3 top-3 rounded-full bg-cmt-coral-100 px-2.5 py-1 text-[11px] font-semibold text-cmt-coral-700">{preview.discount}% off</span></div><div className="p-4"><div className="flex justify-between gap-3"><p className="flex min-w-0 items-center gap-1 truncate text-xs text-cmt-neutral-500"><MapPin className="size-3.5" />{preview.location}</p><span className="inline-flex items-center gap-1 text-xs font-semibold"><Star className="size-3.5 fill-cmt-primary-500 text-cmt-primary-500" />5.0</span></div><h2 className="mt-2 font-display text-lg font-semibold">{preview.title}</h2><div className="mt-3 flex flex-wrap gap-3 text-xs text-cmt-neutral-600"><span className="inline-flex items-center gap-1"><Clock3 className="size-3.5" />{preview.nights}N / {preview.days}D</span><span className="inline-flex items-center gap-1"><Users className="size-3.5" />{form.pax}</span><span className="inline-flex items-center gap-1"><BedDouble className="size-3.5" />{preview.hotelStars}★</span></div><div className="mt-4 flex items-end justify-between border-t pt-4"><div><p className="text-xs text-cmt-neutral-400 line-through">{formatINR(preview.originalPrice)}</p><p className="font-display text-xl font-bold">{formatINR(preview.price)}<span className="ml-1 text-[11px] font-normal text-cmt-neutral-500">/person</span></p></div><span className="rounded-cmt-control bg-cmt-primary-500 px-4 py-2.5 text-sm font-semibold">View package</span></div></div></article>
-            <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm leading-6 text-emerald-900">{form.status === "draft" ? "This package will stay private when you save. Choose Publish in the final step when it is ready." : "Saving will update the package on your website. Review the price, photos and itinerary first."}</div>
-          </aside>
-        </div>
+  return <div className={styles.editor}>
+    <div ref={toolbarRef} className={styles.toolbar}>
+      <div><button type="button" className="mb-1 inline-flex items-center gap-1 text-xs text-cmt-neutral-500" disabled={saving || uploading} onClick={() => void handleCancel()}><ArrowLeft size={13} />Back to packages</button><h1 className="text-lg font-semibold">{initialPackage ? "Edit package" : "Create package"}</h1><p className="text-xs text-cmt-neutral-500">{dirty ? "Unsaved changes" : "Click any text to edit it"} · Changes go live after you save as Published.</p></div>
+      <div className={styles.actions}>
+        <button className={button} type="button" disabled={!history.length || saving || uploading} onClick={() => { const previous = history[history.length - 1]; setHistory(items => items.slice(0, -1)); formRef.current = previous; setForm(previous); setError(""); }}><Undo2 size={14} />Undo</button>
+        <button className={button} type="button" onClick={() => setEditing(value => !value)}>{editing ? <Eye size={14} /> : <Pencil size={14} />}{editing ? "View as traveller" : "Edit preview"}</button>
+        <select aria-label="Publication status" value={form.status} disabled={saving || uploading} className={button} onChange={event => replaceForm({ ...formRef.current, status: event.target.value as PackageForm["status"] })}><option value="draft">Draft</option><option value="published">Published</option></select>
+        <button className="inline-flex items-center gap-2 rounded-lg bg-cmt-primary-500 px-4 py-2 text-sm font-semibold disabled:opacity-40" type="button" disabled={saving || uploading} onClick={() => void handleSubmit()}><Save size={15} />{saving ? "Saving…" : "Save package"}</button>
       </div>
     </div>
-  );
+    {error && <p id="package-save-error" role="alert" className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">{error}</p>}
+    {uploadWarning && <p role="status" className="mb-4 text-sm text-amber-800">{uploadWarning}</p>}
+    <details className="mb-5 rounded-lg border border-cmt-neutral-200 bg-white p-4"><summary className="cursor-pointer text-sm font-semibold">Import a package with AI</summary><div className="mt-4"><PackageAiImporter disabled={saving || uploading} onApply={product => replaceForm(applyPackageImport(formRef.current, product))} /></div></details>
+    <PackageEditingContext.Provider value={editing ? { value: pkg, change, renderIconPicker: (value, onChange) => <IconPicker value={value} onChange={onChange} iconNames={iconNames} renderIcon={PackageGlyph} />, upload: handleSectionImageUpload, disabled: saving || uploading } : null}>
+      <div className={styles.preview}>
+        {editing && <p className={styles.hint}>Click text to edit · Click outside to apply · Escape to cancel · Photos and sections can be added in place</p>}
+        <PackageDetailClient initialPackage={pkg} preview previewSidebar={<PackagePreviewSettings pkg={pkg} editing={editing} change={change} disabled={saving || uploading} filedUnderOptions={filedUnderOptions} />} />
+      </div>
+    </PackageEditingContext.Provider>
+  </div>;
 }

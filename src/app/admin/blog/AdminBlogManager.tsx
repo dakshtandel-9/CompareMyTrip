@@ -114,7 +114,7 @@ export default function AdminBlogManager() {
     <div className="font-body text-cmt-neutral-900">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-700">Content</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-900">Content</p>
           <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">Blog & travel guides</h1>
           <p className="mt-2 text-sm text-cmt-neutral-600">
             Create helpful travel articles for your <Link href="/blog" target="_blank" className="font-semibold underline">website blog</Link>. Drafts stay private until you publish.
@@ -129,7 +129,7 @@ export default function AdminBlogManager() {
       </div>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
-        {[{ value: "all", label: "All articles", count: posts.length, hint: "Every guide you have created" }, { value: "published", label: "Live on website", count: publishedCount, hint: "Available for travellers to read" }, { value: "draft", label: "Drafts", count: posts.length - publishedCount, hint: "Private articles in progress" }].map((item) => <button type="button" key={item.value} aria-pressed={status === item.value} onClick={() => { setStatus(item.value); setPage(1); }} className={`rounded-2xl border p-5 text-left ${status === item.value ? "border-emerald-300 bg-emerald-50/70" : "border-cmt-neutral-200 bg-white hover:border-emerald-200"}`}><span className="text-sm font-semibold text-cmt-neutral-600">{item.label}</span><span className="mt-2 block text-3xl font-semibold tracking-tight">{loading ? "—" : item.count}</span><span className="mt-1 block text-xs text-cmt-neutral-500">{item.hint}</span></button>)}
+        {[{ value: "all", label: "All articles", count: posts.length, hint: "Every guide you have created" }, { value: "published", label: "Live on website", count: publishedCount, hint: "Available for travellers to read" }, { value: "draft", label: "Drafts", count: posts.length - publishedCount, hint: "Private articles in progress" }].map((item) => <button type="button" key={item.value} aria-pressed={status === item.value} onClick={() => { setStatus(item.value); setPage(1); }} className={`rounded-2xl border p-5 text-left ${status === item.value ? "border-cmt-primary-400 bg-cmt-primary-50/70" : "border-cmt-neutral-200 bg-white hover:border-cmt-primary-100"}`}><span className="text-sm font-semibold text-cmt-neutral-600">{item.label}</span><span className="mt-2 block text-3xl font-semibold tracking-tight">{loading ? "—" : item.count}</span><span className="mt-1 block text-xs text-cmt-neutral-500">{item.hint}</span></button>)}
       </div>
       {success && <p role="status" className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{success}</p>}
       {!loading && !posts.length && !error && (
@@ -181,8 +181,8 @@ export default function AdminBlogManager() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 border-b border-cmt-neutral-100 px-5 py-3" aria-label="Filter articles by visibility">
-          {[{ value: "all", label: "All articles" }, { value: "published", label: "Live on website" }, { value: "draft", label: "Drafts" }].map((item) => <button key={item.value} type="button" aria-pressed={status === item.value} onClick={() => { setStatus(item.value); setPage(1); }} className={`rounded-lg px-3 py-2 text-xs font-semibold ${status === item.value ? "bg-emerald-50 text-emerald-800" : "text-cmt-neutral-500 hover:bg-cmt-neutral-50"}`}>{item.label}</button>)}
-          {(search || status !== "all") && <button type="button" onClick={() => { setStatus("all"); setSearch(""); setPage(1); }} className="ml-auto px-2 py-2 text-xs font-semibold text-emerald-800">Clear filters</button>}
+          {[{ value: "all", label: "All articles" }, { value: "published", label: "Live on website" }, { value: "draft", label: "Drafts" }].map((item) => <button key={item.value} type="button" aria-pressed={status === item.value} onClick={() => { setStatus(item.value); setPage(1); }} className={`rounded-lg px-3 py-2 text-xs font-semibold ${status === item.value ? "bg-cmt-primary-50 text-cmt-primary-900" : "text-cmt-neutral-500 hover:bg-cmt-neutral-50"}`}>{item.label}</button>)}
+          {(search || status !== "all") && <button type="button" onClick={() => { setStatus("all"); setSearch(""); setPage(1); }} className="ml-auto px-2 py-2 text-xs font-semibold text-cmt-primary-900">Clear filters</button>}
         </div>
         <div className="divide-y divide-cmt-neutral-200">
           {visible.map((post) => {

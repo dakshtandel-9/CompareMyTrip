@@ -209,7 +209,7 @@ export function ListEditor<Item extends { id: string }>({
 
   return (
     <div>
-      {items.length > 1 && <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-cmt-neutral-500"><span>{items.length} items · Open an item to edit its details</span><button type="button" className="min-h-9 rounded-lg px-2 font-semibold text-emerald-700 hover:bg-emerald-50" onClick={() => setOpen(open.length ? [] : items.map((item) => item.id))}>{open.length ? "Collapse all" : "Expand all"}</button></div>}
+      {items.length > 1 && <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-cmt-neutral-500"><span>{items.length} items · Open an item to edit its details</span><button type="button" className="min-h-9 rounded-lg px-2 font-semibold text-cmt-primary-900 hover:bg-cmt-primary-50" onClick={() => setOpen(open.length ? [] : items.map((item) => item.id))}>{open.length ? "Collapse all" : "Expand all"}</button></div>}
       <ul className="space-y-3">
         {items.map((item, index) => (
           <li

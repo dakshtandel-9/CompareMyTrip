@@ -175,7 +175,7 @@ export function Button({
 }) {
   const styles = {
     primary:
-      "bg-emerald-700 text-white shadow-cmt-xs hover:bg-emerald-800 disabled:bg-cmt-neutral-200 disabled:text-cmt-neutral-500 disabled:shadow-none",
+      "bg-cmt-primary-500 text-cmt-neutral-900 shadow-cmt-xs hover:bg-cmt-primary-600 disabled:bg-cmt-neutral-200 disabled:text-cmt-neutral-500 disabled:shadow-none",
     ghost:
       "border border-cmt-neutral-200 bg-white text-cmt-neutral-700 hover:border-cmt-neutral-300 hover:bg-cmt-neutral-50",
     danger:
@@ -219,7 +219,7 @@ export function SegmentedControl<Value extends string>({
         {options.map((option) => (
           <label key={option.value} className="relative cursor-pointer">
             <input type="radio" name={groupName} value={option.value} checked={value === option.value} onChange={() => onChange(option.value)} className="peer sr-only" />
-            <span className={`block rounded-lg px-4 py-2 text-sm font-semibold transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-emerald-700 ${value === option.value ? "bg-white text-cmt-neutral-900 shadow-cmt-xs" : "text-cmt-neutral-500 hover:text-cmt-neutral-700"}`}>{option.label}</span>
+            <span className={`block rounded-lg px-4 py-2 text-sm font-semibold transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-cmt-primary-800 ${value === option.value ? "bg-white text-cmt-neutral-900 shadow-cmt-xs" : "text-cmt-neutral-500 hover:text-cmt-neutral-700"}`}>{option.label}</span>
           </label>
         ))}
       </div>

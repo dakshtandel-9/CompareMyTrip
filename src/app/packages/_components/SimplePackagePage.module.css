@@ -1,0 +1,12 @@
+.page { background: #fff; }
+.page h1 { font-size: clamp(26px, 3vw, 38px); line-height: 1.2; }
+.page h2 { font-size: 22px; }
+.page h3 { font-size: 16px; }
+.page section { box-shadow: none; }
+.page :global(.cmt-package-columns) { gap: 32px; }
+.page :global(nav[aria-label="Trip sections"]) { position: static; border: 0; border-bottom: 1px solid #e5e9ee; border-radius: 0; box-shadow: none; padding: 0 0 6px; margin-top: 24px; }
+.page :global(nav[aria-label="Trip sections"]) a { padding: 8px 12px; }
+.page :global(.cmt-booking-panel) { top: 110px; }
+.page details { border-radius: 8px; }
+.page details > summary { padding: 16px; }
+@media (max-width: 1023px) { .page :global(.cmt-package-columns) { grid-template-columns: minmax(0, 1fr); } }

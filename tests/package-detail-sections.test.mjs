@@ -32,7 +32,7 @@ const location = (extra = {}) => ({ id: 'airport', type: 'pickup', name: 'Airpor
 const review = (extra = {}) => ({ id: 'review-1', name: 'Guest', rating: 5, text: 'A lovely trip.', visible: true, ...extra });
 
 test('all existing packages retain their standard sections and default extras to off', () => {
-  assert.equal(BUILTIN_PACKAGE_SECTIONS.length, 7);
+  assert.equal(BUILTIN_PACKAGE_SECTIONS.length, 8);
   for (const pkg of DUMMY_PACKAGES) {
     const config = getPackagePageSections(getPackageDetails(pkg));
     assert.equal(config.hiddenSections.length, 0);
@@ -210,4 +210,28 @@ test('individual boxes retain their text and visibility when hidden and reopened
   assert.equal(typeof packagePageSectionsIssue(saved), 'string');
   saved.sections[0].items[0].body = 'Walking shoes';
   assert.equal(packagePageSectionsIssue(saved), null);
+});
+
+
+test('brochure text and section positions survive saving and reopening', () => {
+  const config = defaultPackagePageSections();
+  config.tagline = 'Walk above the clouds.';
+  config.introduction = 'An overnight escape.\nReturn the next afternoon.';
+  config.itineraryNote = 'Timings depend on weather.';
+  config.stayNote = 'Similar-category hotel subject to availability.';
+  config.inclusionNote = 'Entry tickets excluded.';
+  config.bookingNote = 'Double sharing.';
+  config.sections = ['overview', 'highlights', 'practical', 'faq', 'extras'].map((placement) => box({ id: placement, placement }));
+  assert.deepEqual(plain(reopen(config)), plain(config));
+  assert.equal(reopen({ sections: [box({ placement: 'invalid' })] }).sections[0].placement, undefined);
+  assert.equal(reopen({ tagline: 42 }).tagline, undefined);
+});
+
+test('moving sections keeps the PDF steps fixed and only changes order inside their step', () => {
+  const { movePackageSection } = load('src/lib/packageDetailSections.ts');
+  const sections = [box({ id: 'why', placement: 'overview' }), box({ id: 'faq-a', placement: 'faq' }), box({ id: 'packing', placement: 'carry' }), box({ id: 'faq-b', placement: 'faq' })];
+  const moved = movePackageSection(sections, 'faq-b', -1);
+  assert.deepEqual(plain(moved.map((section) => section.id)), ['why', 'faq-b', 'packing', 'faq-a']);
+  assert.deepEqual(plain(sections.map((section) => section.id)), ['why', 'faq-a', 'packing', 'faq-b']);
+  assert.equal(movePackageSection(sections, 'why', 1), sections);
 });

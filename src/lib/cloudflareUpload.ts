@@ -32,6 +32,12 @@ export async function uploadImageToCloudflare(file: File, folder: UploadFolder) 
 }
 
 export async function deleteImageFromCloudflare(url: string) {
+  // Built-in assets and empty image slots are not Cloudflare uploads.
+  let image: URL;
+  try { image = new URL(url); }
+  catch { return; }
+  if (image.protocol !== "https:" && image.protocol !== "http:") return;
+
   const auth = getFirebaseAuth();
   await auth.authStateReady();
   const token = await auth.currentUser?.getIdToken();

@@ -19,6 +19,7 @@ export type PackageItineraryDay = {
   route: string;
   description: string;
   meals: string;
+  activities?: { time: string; title: string; description: string }[];
 };
 
 export type PackageStay = {
@@ -26,6 +27,10 @@ export type PackageStay = {
   nights: number;
   place: string;
   comfort: string;
+  roomType?: string;
+  mealPlan?: string;
+  checkIn?: string;
+  checkOut?: string;
 };
 
 export type PackageDetails = {
@@ -41,6 +46,8 @@ export type PackageDetails = {
   places: string[];
   highlights: string[];
   itinerary: PackageItineraryDay[];
+  /** False hides Day 0 while retaining its content for later. Missing preserves older packages. */
+  dayZeroEnabled?: boolean;
   stays: PackageStay[];
   inclusions: string[];
   exclusions: string[];
@@ -3851,6 +3858,23 @@ const JUNK_TITLE = /[\w.+-]+@[\w-]+\.[\w.]+|https?:\/\/|\bwww\./i;
     the placeholder text that marks a half-finished record. */
 export function isIndexablePackage(pkg: TravelPackage): boolean {
   return isPublishedPackage(pkg) && Boolean(pkg.title?.trim()) && !JUNK_TITLE.test(pkg.title);
+}
+
+export function isPackageDayZeroEnabled(details: Pick<PackageDetails, "itinerary" | "dayZeroEnabled">): boolean {
+  return details.dayZeroEnabled ?? details.itinerary.some((day) => day.day === 0);
+}
+
+export function getPackageItinerary(details: Pick<PackageDetails, "itinerary" | "dayZeroEnabled">): PackageItineraryDay[] {
+  return details.itinerary.filter((day) => day.day !== 0 || isPackageDayZeroEnabled(details)).sort((a, b) => a.day - b.day);
+}
+
+export function setPackageDayZero(details: Pick<PackageDetails, "itinerary" | "dayZeroEnabled">, enabled: boolean) {
+  return {
+    dayZeroEnabled: enabled,
+    itinerary: enabled && !details.itinerary.some((day) => day.day === 0)
+      ? [{ day: 0, title: "Overnight pickup & departure", route: "", description: "", meals: "" }, ...details.itinerary]
+      : details.itinerary,
+  };
 }
 
 export function getPackageDetails(pkg: TravelPackage): PackageDetails {
