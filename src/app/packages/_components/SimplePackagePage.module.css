@@ -1,12 +1,156 @@
-.page { background: #fff; }
-.page h1 { font-size: clamp(26px, 3vw, 38px); line-height: 1.2; }
-.page h2 { font-size: 22px; }
-.page h3 { font-size: 16px; }
-.page section { box-shadow: none; }
+/* Shared presentation for the traveller page and the CRM's editable preview. */
+.page {
+  --package-border: #e5e8ee;
+  --package-ink: #172338;
+  --package-gold: #bd8610;
+  background: #f7f8fa;
+  color: var(--package-ink);
+}
+
+.page h1 {
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.18;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+.page h2 { font-size: clamp(21px, 2vw, 25px); line-height: 1.3; letter-spacing: -.025em; }
+.page h3 { font-size: 16px; line-height: 1.5; letter-spacing: -.01em; }
 .page :global(.cmt-package-columns) { gap: 32px; }
-.page :global(nav[aria-label="Trip sections"]) { position: static; border: 0; border-bottom: 1px solid #e5e9ee; border-radius: 0; box-shadow: none; padding: 0 0 6px; margin-top: 24px; }
-.page :global(nav[aria-label="Trip sections"]) a { padding: 8px 12px; }
+.page :global(.cmt-package-header) { padding-bottom: 4px; }
+.page :global(nav[aria-label="Breadcrumb"]) { font-size: 11px; }
+.page :global(nav[aria-label="Breadcrumb"]) a:hover { color: var(--package-gold); }
+.page :global(.cmt-package-header) > div:last-child > :is(button, a) {
+  border-radius: 12px;
+  border-color: var(--package-border);
+  box-shadow: 0 2px 3px #17233803;
+}
+
+/* Keep the full-image fit and compact thumbnail sizes. */
+.page :global(.cmt-package-gallery-frame) {
+  border-color: var(--package-border);
+  border-radius: 22px;
+  background: #eef1f5;
+  box-shadow: 0 6px 24px #17233808;
+}
+.page :global(.cmt-package-gallery-frame) > button:not(:first-child) {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #fff;
+  box-shadow: 0 4px 14px #17233812;
+}
+.page :global(.cmt-package-gallery-frame) > span { background: #172338d9; font-weight: 600; }
+.page :global(.cmt-package-thumbnails) { gap: 10px; padding: 3px 2px 5px; }
+.page :global(.cmt-package-thumbnails) button { border-radius: 12px; background: white; }
+.page :global(.cmt-package-thumbnails) button[aria-pressed="true"] {
+  border-color: #e6a900;
+  box-shadow: 0 0 0 2px #ffedb1;
+}
+
+.page :global(.cmt-package-intro) { padding: 6px 2px; }
+.page :global(.cmt-package-intro) > p:first-child {
+  border-left: 3px solid #efb815;
+  padding-left: 14px;
+  color: var(--package-ink);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.55;
+  letter-spacing: -.015em;
+}
+.page :global(.cmt-package-intro) > div { font-size: 12px; line-height: 1.7; }
+.page :global(.cmt-package-intro) > div svg { color: var(--package-gold); }
+
+.page :global(nav[aria-label="Trip sections"]) {
+  position: static;
+  gap: 4px;
+  margin-top: 24px;
+  padding: 7px;
+  border: 1px solid var(--package-border);
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 3px 12px #17233804;
+  scrollbar-width: thin;
+  scrollbar-color: #d7dce3 transparent;
+}
+.page :global(nav[aria-label="Trip sections"]) a { padding: 8px 14px; min-height: 38px; border-radius: 9px; }
+.page :global(nav[aria-label="Trip sections"]) a:hover,
+.page :global(nav[aria-label="Trip sections"]) a:focus-visible { background: #fff4cf; color: #785400; }
+
+/* Style existing sections in place; content order and visibility stay intact. */
+.page section[id] {
+  padding: clamp(20px, 2.3vw, 30px);
+  border: 1px solid var(--package-border);
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 3px 14px #17233803;
+}
+.page section[id] > h2 { padding-left: 14px; border-left: 3px solid #efb815; margin-bottom: 22px; }
+.page section[id] > p:first-child:not(:last-child) { color: #986a07; }
+.page section[id] p { line-height: 1.9; }
+.page section[id] article { border-radius: 14px; border-color: var(--package-border); background: #fbfcfd; }
+.page section[id] details {
+  border-radius: 14px;
+  border-color: var(--package-border);
+  background: white;
+  transition: border-color 160ms, box-shadow 160ms;
+}
+.page section[id] details[open] { border-color: #e6d5a2; box-shadow: 0 3px 12px #17233804; }
+.page section[id] details > summary { padding: 18px; border-radius: 13px; }
+.page section[id] details > summary:hover { background: #f8f9fb; }
+.page section[id] details[open] > summary { background: #fffaf0; border-radius: 13px 13px 0 0; }
+.page :global(#package-itinerary) summary > span:first-child {
+  border-radius: 13px;
+  background: var(--package-ink);
+  color: #ffd85d;
+  box-shadow: 0 3px 8px #17233812;
+}
+.page :global(#package-itinerary) ol { border-color: #f3df9f; }
+.page :global(#package-itinerary) ol h3 { margin-top: 3px; }
+.page :global(#package-highlights) > div > div {
+  border: 1px solid #f2e9d0;
+  border-radius: 14px;
+  background: #fffcf4;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.page :global(#package-inclusions) { border-top: 3px solid #5ca082; }
+.page :global(#package-exclusions) { border-top: 3px solid #d6a198; }
+.page :global(#package-inclusions) > h2 { border-left-color: #5ca082; }
+.page :global(#package-exclusions) > h2 { border-left-color: #d6a198; }
+.page :global(#package-inclusions) li + li,
+.page :global(#package-exclusions) li + li { padding-top: 12px; border-top: 1px solid #eef0f3; }
+
 .page :global(.cmt-booking-panel) { top: 110px; }
-.page details { border-radius: 8px; }
-.page details > summary { padding: 16px; }
-@media (max-width: 1023px) { .page :global(.cmt-package-columns) { grid-template-columns: minmax(0, 1fr); } }
+.page :global(.cmt-booking-panel) > div:first-child {
+  border: 1px solid var(--package-border);
+  border-top: 4px solid #f4be23;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px #1723380a, 0 2px 6px #17233803;
+}
+.page :global(.cmt-package-booking-heading) { background: #fffbef; border-bottom-color: #f1e9d2; }
+.page :global(.cmt-package-price) { padding-top: 20px; }
+.page :global(.cmt-package-price) > div > span:first-child { font-size: 36px; color: var(--package-ink); letter-spacing: -.045em; }
+.page :global(.cmt-package-price) > p:last-child:not(:first-child) { font-size: 12px; line-height: 1.6; }
+.page :global(.cmt-package-booking-field) { padding: 14px; border-color: #e9edf2; border-radius: 14px; background: #f8fafc; }
+.page :global(.cmt-package-booking-field) input { background: white; }
+.page :global(.cmt-package-booking-field) button[aria-label="Remove a traveller"],
+.page :global(.cmt-package-booking-field) button[aria-label="Add a traveller"] { background: white; }
+.page :global(.cmt-package-booking-actions) > :is(button, a) { border-radius: 12px; }
+.page :global(.cmt-package-booking-actions) > button:first-child { box-shadow: 0 4px 12px #f4be232b; }
+.page :global(.cmt-package-booking-actions) > a { background: var(--package-ink); }
+.page :global(.cmt-package-booking-actions) > a:hover { background: #293b56; }
+.page :global(.cmt-booking-dock) { box-shadow: 0 -4px 24px #1723380a; }
+.page :global(.cmt-booking-dock) :is(button, a) { border-radius: 10px; }
+
+@media (max-width: 1023px) {
+  .page :global(.cmt-package-columns) { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 639px) {
+  .page section[id] { padding: 20px 16px; border-radius: 16px; }
+  .page section[id] > h2 { padding-left: 10px; margin-bottom: 18px; }
+  .page :global(.cmt-package-gallery-frame) { border-radius: 16px; }
+  .page :global(.cmt-package-intro) > p:first-child { font-size: 18px; }
+  .page section[id] details > summary { padding: 14px; gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page section[id] details { transition: none; }
+}

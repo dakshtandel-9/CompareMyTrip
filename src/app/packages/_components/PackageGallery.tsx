@@ -72,7 +72,7 @@ export default function PackageGallery({ images, maxImages = 10 }: { images?: st
   const active = Math.min(activeIndex, galleryImages.length - 1);
   return (
     <>
-      <div className="relative overflow-hidden rounded-xl border border-cmt-neutral-200 bg-cmt-neutral-50">
+      <div className="cmt-package-gallery-frame relative overflow-hidden rounded-xl border border-cmt-neutral-200 bg-cmt-neutral-50">
         <button type="button" onClick={() => setSelectedIndex(active)} aria-label={`Open package gallery at image ${active + 1}`} className="relative block h-[clamp(220px,42vw,420px)] w-full">
           <Image src={galleryImages[active].src} alt={galleryImages[active].alt} fill loading="eager" sizes="(max-width: 1023px) 100vw, 65vw" className="object-contain" />
         </button>
@@ -82,7 +82,7 @@ export default function PackageGallery({ images, maxImages = 10 }: { images?: st
           <span className="absolute bottom-3 right-3 rounded-full bg-black/50 px-3 py-1 text-xs text-white">{active + 1} / {galleryImages.length}</span>
         </>}
       </div>
-      {galleryImages.length > 1 && <div className="mt-3 flex max-w-full gap-2 overflow-x-auto pb-1">{galleryImages.map((image, index) => <button type="button" key={`${image.src}-${index}`} aria-label={`Show photo ${index + 1}`} aria-pressed={active === index} onClick={() => setActiveIndex(index)} className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 bg-cmt-neutral-50 ${active === index ? "border-cmt-primary-500" : "border-transparent"}`}><Image src={image.src} alt="" fill sizes="96px" className="object-contain p-1" /></button>)}</div>}
+      {galleryImages.length > 1 && <div className="cmt-package-thumbnails mt-3 flex max-w-full gap-2 overflow-x-auto pb-1">{galleryImages.map((image, index) => <button type="button" key={`${image.src}-${index}`} aria-label={`Show photo ${index + 1}`} aria-pressed={active === index} onClick={() => setActiveIndex(index)} className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 bg-cmt-neutral-50 ${active === index ? "border-cmt-primary-500" : "border-transparent"}`}><Image src={image.src} alt="" fill sizes="96px" className="object-contain p-1" /></button>)}</div>}
 
       {isOpen && selectedIndex !== null && (
         <Modal

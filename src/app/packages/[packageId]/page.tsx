@@ -7,6 +7,7 @@ import PackageDetailClient from "./PackageDetailClient";
 import { isIndexablePackage } from "@/lib/packageData";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import { getPublishedPackage, getPublishedPackages } from "@/lib/serverContent";
+import { getSimilarPackages } from "@/lib/similarPackages";
 
 export const revalidate = 3600;
 
@@ -56,6 +57,7 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
 
   const packageUrl = absoluteUrl(`/packages/${pkg.id}`);
   const schemaImages = pkg.details?.gallery?.length ? pkg.details.gallery : [pkg.image];
+  const similarPackages = getSimilarPackages(pkg, await getPublishedPackages());
 
   return (
     <>
@@ -88,7 +90,7 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
           },
         ]}
       />
-      <PackageDetailClient initialPackage={pkg} />
+      <PackageDetailClient initialPackage={pkg} initialSimilarPackages={similarPackages} />
       <Footer />
     </>
   );

@@ -173,8 +173,11 @@ test('enabled reviews show complete visible testimonials without a public writin
 });
 
 const data = load('src/lib/packageData.ts');
+const { getSimilarPackages } = load('src/lib/similarPackages.ts');
 const original = data.DUMMY_PACKAGES.find((pkg) => pkg.details?.itinerary?.length && pkg.details?.inclusions?.length && pkg.details?.exclusions?.length && pkg.details?.stays?.length && pkg.details?.highlights?.length);
 let activePackage;
+let relatedCatalogue = [];
+let catalogueLoading = false;
 const { default: PackageDetailClient } = load('src/app/packages/[packageId]/PackageDetailClient.tsx', {
   'react/jsx-runtime': jsxRuntime,
   react: React,
@@ -182,6 +185,8 @@ const { default: PackageDetailClient } = load('src/app/packages/[packageId]/Pack
   'next/navigation': { useParams: () => ({ packageId: activePackage.id }), useRouter: () => ({ push: noOp }) },
   'lucide-react': icons,
   '@/lib/packageData': data,
+  '@/lib/similarPackages': load('src/lib/similarPackages.ts'),
+  '@/app/home/_components/PackageCard': { default: ({ pkg }) => React.createElement('article', { 'data-related-package': pkg.id }, pkg.title) },
   '@/lib/packageFacts': { getPackageFacts: () => [] },
   '@/lib/packageDetailSections': model,
   '../_components/PackageFactsBar': { default: noOp },
@@ -194,12 +199,52 @@ const { default: PackageDetailClient } = load('src/app/packages/[packageId]/Pack
   './BookingCard': { default: noOp },
   './QuoteModal': { default: noOp },
   '@/lib/firebase/useAuthUser': { useAuthUser: () => null },
-  '@/lib/usePackages': { usePackagesState: () => ({ packages: [activePackage], loading: false, error: null }) },
+  '@/lib/usePackages': { usePackagesState: () => ({ packages: [activePackage, ...relatedCatalogue], loading: catalogueLoading, error: null }) },
 });
 const renderDetail = (pageSections, detailsPatch = {}) => {
   activePackage = { ...original, details: { ...data.getPackageDetails(original), ...detailsPatch, pageSections } };
   return renderToStaticMarkup(React.createElement(PackageDetailClient, { initialPackage: activePackage }));
 };
+
+test('similar packages exclude the current package and drafts, rank relevance, and cap the list', () => {
+  const current = { ...original, id: 'current', destination: 'Coorg', tags: ['Family'], days: 3 };
+  const candidate = (id, patch = {}) => ({ ...current, id, destination: 'Elsewhere', tags: [], status: 'published', ...patch });
+  const catalogue = [current, candidate('draft', { destination: 'Coorg', status: 'draft' }), candidate('fallback'), candidate('category', { tags: ['Family'] }), candidate('destination', { destination: 'coorg' }), candidate('longer', { days: 8 }), candidate('last', { days: 10 })];
+  const before = catalogue.map(pkg => pkg.id);
+  assert.deepEqual(Array.from(getSimilarPackages(current, catalogue), pkg => pkg.id), ['destination', 'category', 'fallback', 'longer']);
+  assert.deepEqual(catalogue.map(pkg => pkg.id), before);
+  assert.equal(getSimilarPackages(current, [current, catalogue[1]]).length, 0);
+});
+
+test('similar package cards appear last and the section is hidden when there are no alternatives', () => {
+  assert.doesNotMatch(renderDetail({}), /similar-packages-title/);
+  relatedCatalogue = [{ ...original, id: 'related-trip', title: 'Another holiday', status: 'published' }];
+  try {
+    const html = renderDetail({});
+    assert.match(html, /You may also like/);
+    assert.match(html, /Similar packages/);
+    assert.match(html, /data-related-package="related-trip"/);
+    assert.ok(html.indexOf('similar-packages-title') > html.indexOf('id="booking-options"'));
+    const preview = renderToStaticMarkup(React.createElement(PackageDetailClient, { initialPackage: activePackage, preview: true }));
+    assert.doesNotMatch(preview, /similar-packages-title/);
+  } finally {
+    relatedCatalogue = [];
+  }
+});
+
+test('server-provided similar packages render before the live catalogue has loaded', () => {
+  activePackage = original;
+  catalogueLoading = true;
+  try {
+    const html = renderToStaticMarkup(React.createElement(PackageDetailClient, {
+      initialPackage: original,
+      initialSimilarPackages: [{ ...original, id: 'server-related', status: 'published' }],
+    }));
+    assert.match(html, /data-related-package="server-related"/);
+  } finally {
+    catalogueLoading = false;
+  }
+});
 
 test('existing detail sections remain visible by default and each can be hidden independently', () => {
   const sections = [

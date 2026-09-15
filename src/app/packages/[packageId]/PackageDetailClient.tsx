@@ -19,10 +19,12 @@ import QuoteModal from "./QuoteModal";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
 import type { TravelPackage } from "@/lib/packageData";
 import { usePackagesState } from "@/lib/usePackages";
+import { getSimilarPackages } from "@/lib/similarPackages";
+import PackageCard from "@/app/home/_components/PackageCard";
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
-export default function PackageDetailClient({ initialPackage, preview = false, previewSidebar }: { initialPackage: TravelPackage; preview?: boolean; previewSidebar?: ReactNode }) {
+export default function PackageDetailClient({ initialPackage, initialSimilarPackages = [], preview = false, previewSidebar }: { initialPackage: TravelPackage; initialSimilarPackages?: TravelPackage[]; preview?: boolean; previewSidebar?: ReactNode }) {
   const editor = usePackageEditing();
   const PageRoot = preview ? "div" : "main";
   const { packageId } = useParams<{ packageId: string }>();
@@ -45,6 +47,8 @@ export default function PackageDetailClient({ initialPackage, preview = false, p
   }
 
   const details = getPackageDetails(pkg);
+  const similarPackages = preview ? [] : getSimilarPackages(pkg,
+    packageState.loading || packageState.error ? initialSimilarPackages : packageState.packages);
   const itinerary = getPackageItinerary(details);
   const discount = getDiscountPercent(pkg);
   const facts = getPackageFacts(pkg);
@@ -97,7 +101,7 @@ export default function PackageDetailClient({ initialPackage, preview = false, p
   return (
     <PageRoot className={`${styles.page} cmt-package-detail bg-white pb-24 font-body text-cmt-neutral-900 lg:pb-0`}>
       <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+        <div className="cmt-package-header flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div className="min-w-0">{!preview && <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-cmt-neutral-500"><Link href="/">Home</Link><span aria-hidden="true">/</span><Link href="/packages">Packages</Link><span aria-hidden="true">/</span>{pkg.destination ? <><Link href={`/packages?destination=${encodeURIComponent(pkg.destination)}`} className="hover:text-cmt-neutral-900">{pkg.destination}</Link><span aria-hidden="true">/</span></> : null}<span className="line-clamp-1">{pkg.title}</span></nav>}<h1 className="max-w-5xl font-display text-3xl font-semibold tracking-tight sm:text-5xl"><InlineText value={pkg.title} path={["title"]} label="Package title" /></h1></div>
           {/* The booking box carries the same control, but it sits below the
               fold behind the gallery — this is the one a visitor sees while
@@ -112,7 +116,7 @@ export default function PackageDetailClient({ initialPackage, preview = false, p
         <div className="cmt-package-columns mt-7 grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_370px]">
           <div className="min-w-0 space-y-6">
         <EditableGallery images={details.gallery} />
-        <div className="mt-6 space-y-4">
+        <div className="cmt-package-intro mt-6 space-y-4">
           {(editor || pageSections.tagline?.trim()) && <p className="max-w-3xl whitespace-pre-wrap break-words text-lg leading-7 text-cmt-neutral-600"><InlineText value={pageSections.tagline ?? ""} path={["details", "pageSections", "tagline"]} label="Tagline" multiline /></p>}<div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><span className="inline-flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" /><InlineText value={pkg.location} path={["location"]} label="Destination / route" /></span>{reviewCount > 0 && reviewRating > 0 ? <span className="inline-flex items-center gap-1.5"><Star className="size-4 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" /><b className="text-cmt-neutral-900">{reviewRating}</b> {reviewCount} traveller review{reviewCount === 1 ? "" : "s"}</span> : <span className="text-cmt-neutral-500">Newly listed &middot; no traveller reviews yet</span>}</div>
           {(editor || pageSections.introduction?.trim()) && <p className="max-w-4xl whitespace-pre-wrap break-words text-sm leading-7 text-cmt-neutral-600"><InlineText value={pageSections.introduction ?? ""} path={["details", "pageSections", "introduction"]} label="Introduction" multiline /></p>}
         </div>
@@ -185,6 +189,18 @@ export default function PackageDetailClient({ initialPackage, preview = false, p
 
           </aside>
         </div>
+        {similarPackages.length > 0 && <section aria-labelledby="similar-packages-title" className="mt-12 border-t border-cmt-neutral-200 pt-10 sm:mt-16 sm:pt-12">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="mb-2 text-xs font-semibold tracking-[0.14em] text-cmt-primary-800">You may also like</p>
+              <h2 id="similar-packages-title" className="font-display font-semibold">Similar packages</h2>
+            </div>
+            <Link href="/packages" className="text-sm font-semibold text-cmt-neutral-600 underline underline-offset-4 hover:text-cmt-neutral-900">View all packages</Link>
+          </div>
+          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {similarPackages.map(item => <PackageCard key={item.id} pkg={item} />)}
+          </div>
+        </section>}
       </div>
       {!preview && <div className="cmt-booking-dock fixed inset-x-0 bottom-0 z-40 border-t border-cmt-neutral-200 bg-white/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-lg flex-wrap items-center justify-between gap-2 sm:flex-nowrap sm:gap-3">

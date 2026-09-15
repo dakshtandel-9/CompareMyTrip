@@ -57,8 +57,8 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
   }`;
 
   return (
-    <div className="overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-md">
-      <div className="flex items-center gap-3 border-b border-cmt-neutral-100 p-4 sm:p-5">
+    <div className="cmt-package-booking-card overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-md">
+      <div className="cmt-package-booking-heading flex items-center gap-3 border-b border-cmt-neutral-100 p-4 sm:p-5">
         <span className="relative size-11 shrink-0 overflow-hidden rounded-cmt-sm bg-cmt-neutral-100">
           <Image
             src={pkg.image}
@@ -95,7 +95,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
 
 
 
-        <div className="border-t border-cmt-neutral-100 pt-5">
+        <div className="cmt-package-price border-t border-cmt-neutral-100 pt-5">
           {/* Same editorial pick as the "Best deal" badge on the listing card,
               repeated here because this is where the price is decided. */}
           {pkg.deal && (
@@ -126,7 +126,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
             decides whether the trip is on at all — and the travel desk
             cannot quote a season without it. Carried into the quote form
             and the checkout so nobody is asked for it twice. */}
-        <div className="rounded-cmt-control border border-cmt-neutral-200 p-3">
+        <div className="cmt-package-booking-field rounded-cmt-control border border-cmt-neutral-200 p-3">
           <div className="flex items-baseline justify-between gap-2">
             <label htmlFor="booking-travel-date" className="text-xs font-semibold">
               When do you want to go?
@@ -154,7 +154,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           </p>
         </div>
 
-        <div className="rounded-cmt-control border border-cmt-neutral-200 p-3">
+        <div className="cmt-package-booking-field rounded-cmt-control border border-cmt-neutral-200 p-3">
           <div className="flex items-center justify-between gap-3">
             <label htmlFor="booking-travellers" className="text-xs font-semibold">Travellers</label>
             <div className="flex items-center gap-1">
@@ -193,7 +193,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="cmt-package-booking-actions space-y-3">
           <button
             type="button"
             onClick={onRequestQuote}

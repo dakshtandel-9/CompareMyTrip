@@ -1,10 +1,10 @@
 .bar {
   container-type: inline-size;
-  border: 1px solid var(--cmt-color-neutral-200);
+  border: 1px solid #ebe5d5;
   border-radius: 20px;
-  background: #fff;
+  background: #fcfaf4;
   padding: 16px;
-  box-shadow: 0 4px 20px #0f172a05;
+  box-shadow: 0 3px 14px #17233803;
 }
 
 .layout {
@@ -16,14 +16,14 @@
 .facts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  overflow: hidden;
-  background: var(--cmt-color-neutral-100);
+  gap: 10px;
 }
 
 .fact {
   min-width: 0;
-  padding: 14px 12px;
+  padding: 14px;
+  border: 1px solid #eeece5;
+  border-radius: 12px;
   background: #fff;
   overflow-wrap: anywhere;
 }
@@ -31,28 +31,28 @@
 .heading {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
 }
 
 .icon {
   display: grid;
   place-items: center;
-  flex: 0 0 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: var(--cmt-color-primary-50);
-  color: #a87500;
+  flex: 0 0 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #fff4d1;
+  color: #a16f05;
 }
 
 .label {
-  color: var(--cmt-color-neutral-500);
-  font-size: 11px;
+  color: #5e6d82;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.4;
 }
 
 .value {
-  margin-top: 12px;
+  margin-top: 10px;
   color: var(--cmt-color-neutral-900);
   font-size: 13px;
   font-weight: 600;
@@ -66,16 +66,13 @@
   justify-content: space-between;
   gap: 16px;
   min-width: 0;
-  padding: 14px 16px;
-  border: 1px solid var(--cmt-color-neutral-200);
-  border-radius: 12px;
-  background: var(--cmt-color-neutral-50);
+  padding: 12px 4px 0;
+  border-top: 1px solid #e9e2cf;
   color: var(--cmt-color-neutral-500);
 }
 
 .required {
   border-color: #f3e4b8;
-  background: #fffbef;
   color: #a87500;
 }
 
@@ -131,37 +128,29 @@
 
 @container (min-width: 620px) {
   .facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .fact { padding: 16px 20px; }
-  .label { font-size: 12px; }
 }
 
 @container (min-width: 1080px) {
   .layout { grid-template-columns: minmax(0, 1fr) 174px; }
   .facts { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
   .fact { padding: 12px 16px; }
-  .permit { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 14px; }
+  .permit { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 14px; border: 0; border-left: 1px solid #e9e2cf; }
   .permit .heading { min-height: 24px; }
   .permitStatus { margin-top: 4px; }
 }
 
 @container (max-width: 340px) {
-  .fact { padding: 12px 8px; }
+  .facts { gap: 8px; }
+  .fact { padding: 10px; }
   .heading { gap: 6px; }
   .icon { flex-basis: 26px; height: 26px; }
-  .permit { padding: 12px; gap: 8px; }
+  .label { font-size: 11px; }
+  .value { font-size: 12px; }
+  .permit { gap: 8px; }
 }
 
-/* A compact row of facts, shared by the website and the editable preview. */
-.bar { border-radius: 10px; padding: 12px 16px; box-shadow: none; }
-.facts { gap: 16px; background: transparent; }
-.fact { padding: 4px 0; }
-.icon { background: transparent; flex-basis: 18px; height: 20px; border-radius: 0; }
-.value { margin-top: 5px; font-size: 12px; font-weight: 500; }
-.permit { padding: 8px 10px; background: transparent; border: 0; border-top: 1px solid var(--cmt-color-neutral-100); border-radius: 0; }
-@container (min-width: 620px) { .fact { padding: 4px 0; } }
-
 /* Inline icon controls must not inherit itinerary/FAQ summary padding. */
-.editing .facts { overflow: visible; gap: 20px 16px; }
+.editing .facts { overflow: visible; }
 .editing .fact { display: flex; flex-direction: column; gap: 8px; }
 .editing .heading { align-items: center; min-height: 24px; }
 .editing .value { margin-top: 0; min-height: 20px; }
