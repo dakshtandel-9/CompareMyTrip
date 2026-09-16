@@ -12,7 +12,7 @@ export const makeDays = (count = 5): PackageItineraryDay[] => Array.from({ lengt
 }));
 
 const initialForm: PackageForm = {
-  facts: defaultPackageFacts(), factsHidden: false, permitRequired: false,
+  facts: defaultPackageFacts(), factsHidden: false, permitRequired: false, permitHidden: false,
   pageSections: defaultPackagePageSections(),
   title: "", location: "", destination: "", operator: "CompareMyTrip Partner", region: "India",
   gallery: [],
@@ -33,7 +33,7 @@ export function formFromPackage(pkg?: TravelPackage): PackageForm {
   if (!pkg) return JSON.parse(JSON.stringify(initialForm)) as PackageForm;
   const details = getPackageDetails(pkg);
   return {
-    facts: details.facts ?? defaultPackageFacts(), factsHidden: details.factsHidden ?? false, permitRequired: details.permitRequired === true,
+    facts: details.facts ?? defaultPackageFacts(), factsHidden: details.factsHidden ?? false, permitRequired: details.permitRequired === true, permitHidden: details.permitHidden === true,
     pageSections: getPackagePageSections(details),
     title: pkg.title, location: pkg.location, destination: pkg.destination, operator: pkg.operator,
     region: pkg.region, gallery: details.gallery, nights: String(pkg.nights), days: String(pkg.days), pax: pkg.pax,
@@ -69,7 +69,7 @@ export function packageFromForm(form: PackageForm, initialPackage?: TravelPackag
         itinerary: form.itinerary.map((day) => ({ ...day, title: day.title.trim(), route: day.route.trim(), description: day.description.trim() })),
         stays: form.stays.map((stay) => ({ ...stay, name: stay.name.trim(), place: stay.place.trim() || form.destination.trim() || form.location.trim() })),
         inclusions: lines(form.inclusions), exclusions: lines(form.exclusions), meals: form.meals.trim(), transfers: form.transfers.trim(),
-        flights: form.flights.trim(), permitRequired: form.permitRequired, cancellationPolicy: form.cancellationPolicy.trim(), pageSections: { ...form.pageSections, snapshotPlacement: isTrek ? "intro" : "about" } },
+        flights: form.flights.trim(), permitRequired: form.permitRequired, permitHidden: form.permitHidden, cancellationPolicy: form.cancellationPolicy.trim(), pageSections: { ...form.pageSections, snapshotPlacement: isTrek ? "intro" : "about" } },
     };
 }
 

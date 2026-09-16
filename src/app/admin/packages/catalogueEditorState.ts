@@ -3,7 +3,7 @@ import type { PackageCategory, PackageFact, PackageItineraryDay, PackageStay } f
 import { packagePageSectionsIssue, type PackagePageSections } from "@/lib/packageDetailSections";
 
 export type PackageForm = {
-  facts: PackageFact[]; factsHidden: boolean; permitRequired: boolean;
+  facts: PackageFact[]; factsHidden: boolean; permitRequired: boolean; permitHidden: boolean;
   pageSections: PackagePageSections;
   title: string; location: string; destination: string; operator: string; region: "India" | "International";
   gallery: string[]; nights: string; days: string; pax: string; hotelStars: string;

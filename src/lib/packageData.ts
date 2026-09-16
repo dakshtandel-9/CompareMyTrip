@@ -41,6 +41,8 @@ export type PackageDetails = {
   factsHidden?: boolean;
   /** Set per package by the admin; required permits link to Aranya Vihaara. */
   permitRequired?: boolean;
+  /** Hide the permit status and booking link without changing the requirement. */
+  permitHidden?: boolean;
   gallery: string[];
   summary: string;
   places: string[];

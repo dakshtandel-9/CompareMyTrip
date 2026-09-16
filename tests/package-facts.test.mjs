@@ -96,6 +96,7 @@ const { default: PackageFactsBar } = load('src/app/packages/_components/PackageF
 const renderFacts = (pkg) => renderToStaticMarkup(React.createElement(PackageFactsBar, {
   facts: getPackageFacts(pkg),
   permitRequired: data.getPackageDetails(pkg).permitRequired,
+  permitHidden: data.getPackageDetails(pkg).permitHidden,
 }));
 
 test('required permits survive saving and render the official booking button', () => {
@@ -138,4 +139,17 @@ test('one-day treks without a hotel do not advertise automatic starred stays', (
   assert.equal(getPackageFacts(pkg).find((fact) => fact.source === 'stay').value, 'No accommodation');
   pkg.details.facts = [{ id: 'stay', source: 'stay', label: 'Stay', value: 'Camping available separately', visible: true }];
   assert.equal(getPackageFacts(pkg)[0].value, 'Camping available separately');
+});
+
+
+test('permit visibility hides status and booking link while retaining trip facts and requirement', () => {
+  for (const permitRequired of [true, false]) {
+    const pkg = roundTrip({ ...original, details: { ...data.getPackageDetails(original), permitRequired, permitHidden: true } });
+    const html = renderFacts(pkg);
+    assert.match(html, /Duration/);
+    assert.doesNotMatch(html, />Permit<|Book permit|aranyavihaara|>Required<|>Not required</);
+    pkg.details.permitHidden = false;
+    assert.match(renderFacts(pkg), />Permit</);
+    assert.equal(pkg.details.permitRequired, permitRequired);
+  }
 });

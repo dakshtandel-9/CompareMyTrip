@@ -121,19 +121,19 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
           {(editor || pageSections.introduction?.trim()) && <p className="max-w-4xl whitespace-pre-wrap break-words text-sm leading-7 text-cmt-neutral-600"><InlineText value={pageSections.introduction ?? ""} path={["details", "pageSections", "introduction"]} label="Introduction" multiline /></p>}
         </div>
 
-        {pageSections.snapshotPlacement !== "about" && <PackageFactsBar facts={facts} permitRequired={details.permitRequired} className="mt-6" />}
+        {pageSections.snapshotPlacement !== "about" && <PackageFactsBar facts={facts} permitRequired={details.permitRequired} permitHidden={details.permitHidden} className="mt-6" />}
 
         {navigation.length > 0 && <nav aria-label="Trip sections" className="sticky top-20 z-20 mt-7 flex max-w-full gap-1 overflow-x-auto rounded-cmt-control border border-cmt-neutral-200 bg-white/95 p-2 shadow-cmt-xs backdrop-blur">
           {navigation.map((item) => <a key={item.id} href={`#${item.id}`} className="inline-flex min-h-11 shrink-0 items-center rounded-cmt-control px-4 text-xs font-semibold text-cmt-neutral-600 transition-colors hover:bg-cmt-primary-50 hover:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-cmt-primary-700">{item.label}</a>)}
         </nav>}
 
 
+            {pageSections.snapshotPlacement === "about" && (editor || facts.length > 0) && <div><h2 className="mb-4 font-display text-2xl font-semibold">Trip snapshot</h2><PackageFactsBar facts={facts} permitRequired={details.permitRequired} permitHidden={details.permitHidden} /></div>}
             {showAbout && <Section id="package-about" title="About this trip" eyebrow="THE EXPERIENCE">
               <p className="whitespace-pre-wrap break-words text-sm leading-7 text-cmt-neutral-600"><InlineText value={details.summary} path={["details", "summary"]} label="About this trip" multiline /></p>
               {editor ? <p className="mt-4 text-sm text-cmt-neutral-500"><InlineText value={details.places.join(", ")} path={["details", "places"]} label="Places (separate with commas)" /></p> : details.places.length > 0 && <div className="mt-5 flex flex-wrap gap-2">{details.places.map((place, index) => <span key={`${place}-${index}`} className="rounded-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-3 py-1.5 text-xs font-semibold"><MapPin className="mr-1 inline size-3.5 text-cmt-primary-700" aria-hidden="true" />{place}</span>)}</div>}
             </Section>}
             <PackagePageSections value={pageSections} area="overview" />
-            {pageSections.snapshotPlacement === "about" && (editor || facts.length > 0) && <div><h2 className="mb-4 font-display text-2xl font-semibold">Trip snapshot</h2><PackageFactsBar facts={facts} permitRequired={details.permitRequired} /></div>}
             {showHighlights && <Section id="package-highlights" title="Trip highlights">
               <div className="grid gap-3 sm:grid-cols-2">{details.highlights.map((item, index) => <div key={`${item}-${index}`} className="flex min-w-0 gap-3 rounded-cmt-control bg-cmt-primary-50 p-4 text-sm font-medium"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-cmt-primary-500"><Check className="size-3.5" aria-hidden="true" /></span><span className="whitespace-pre-wrap break-words"><InlineText value={item} path={["details", "highlights", index]} label={`Highlight ${index + 1}`} /><EditAction kind="remove" label="Remove highlight" onClick={() => editor?.change(["details", "highlights"], details.highlights.filter((_, i) => i !== index))} /></span></div>)}</div><EditAction label="Add highlight" onClick={() => editor?.change(["details", "highlights"], [...details.highlights, "New highlight"])} />
             </Section>}

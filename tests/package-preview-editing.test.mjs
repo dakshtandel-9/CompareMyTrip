@@ -166,3 +166,17 @@ test('catalogue assignment and operator edits survive save and reopen', () => {
   assert.equal(reopened.operator, 'Local Travel Partner');
   assert.equal(packageFromForm(formFromPackage()).rating, 0);
 });
+
+
+test('permit visibility survives preview edits and save/reopen without changing the requirement', () => {
+  const pkg = fixture();
+  pkg.details.permitRequired = true;
+  let form = edit(formFromPackage(pkg), ['details', 'permitHidden'], true, pkg);
+  form = edit(form, ['title'], 'Updated trek', pkg);
+  const reopened = formFromPackage(JSON.parse(JSON.stringify(packageFromForm(form, pkg))));
+  assert.equal(reopened.permitHidden, true);
+  assert.equal(reopened.permitRequired, true);
+  const visible = edit(reopened, ['details', 'permitHidden'], false, pkg);
+  assert.equal(packageFromForm(visible, pkg).details.permitHidden, false);
+  assert.equal(formFromPackage().permitHidden, false);
+});

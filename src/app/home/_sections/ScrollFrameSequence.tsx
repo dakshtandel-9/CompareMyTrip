@@ -147,8 +147,8 @@ export default function ScrollFrameSequence() {
         src: phone.matches ? MOBILE_VIDEO_SRC : DESKTOP_VIDEO_SRC,
         tailHold: TAIL_HOLD,
         scrubDuration: phone.matches ? 0.18 : 0.1,
-        // Phone copy is below the video, so keep it readable as the video
-        // scrolls away. Desktop retains its synchronized rotating headlines.
+        // Keep the phone heading above the video steady during playback.
+        // Desktop retains its synchronized rotating headlines.
         onFrame: (progress) => drawCopy(phone.matches ? 0 : progress),
         onError: () => {
           wrapper.classList.add("cmt-hero-static");

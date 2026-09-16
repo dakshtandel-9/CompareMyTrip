@@ -8,9 +8,10 @@ import { getPackageFacts } from "@/lib/packageFacts";
 import { PERMIT_BOOKING_URL } from "@/lib/packageFacts";
 import styles from "./PackageFactsBar.module.css";
 
-export default function PackageFactsBar({ facts, permitRequired = false, className = "" }: {
+export default function PackageFactsBar({ facts, permitRequired = false, permitHidden = false, className = "" }: {
   facts: (PackageFact & { value: string })[];
   permitRequired?: boolean;
+  permitHidden?: boolean;
   className?: string;
 }) {
   const editor = usePackageEditing();
@@ -21,7 +22,8 @@ export default function PackageFactsBar({ facts, permitRequired = false, classNa
   return (
     <section aria-label="Package quick facts" className={`${styles.bar} ${editor ? styles.editing : ""} ${className}`}>
       {editor && <label className="mb-3 block text-xs"><input type="checkbox" checked={!editor.value.details?.factsHidden} onChange={event => editor.change(["details", "factsHidden"], !event.target.checked)} /> Show quick details</label>}
-      <div className={styles.layout}>
+      {editor && <label className="mb-3 block text-xs"><input type="checkbox" disabled={editor.disabled} checked={!permitHidden} onChange={event => editor.change(["details", "permitHidden"], !event.target.checked)} /> Show permit on page</label>}
+      <div className={`${styles.layout} ${permitHidden ? styles.withoutPermit : ""}`}>
         <div className={styles.facts}>
           {visible.map((fact, index) => (
             <div key={fact.id} className={styles.fact}>
@@ -33,7 +35,7 @@ export default function PackageFactsBar({ facts, permitRequired = false, classNa
             </div>
           ))}
         </div>
-        <div className={`${styles.permit} ${permitRequired ? styles.required : ""}`}>
+        {!permitHidden && <div className={`${styles.permit} ${permitRequired ? styles.required : ""}`}>
           <div className={styles.permitInfo}>
             <div className={styles.heading}>
               <Ticket className="size-[18px] shrink-0" aria-hidden="true" />
@@ -52,7 +54,7 @@ export default function PackageFactsBar({ facts, permitRequired = false, classNa
               Book permit <ArrowUpRight className="size-3.5" aria-hidden="true" />
             </a>
           )}
-        </div>
+        </div>}
       </div>
       <EditAction label="Add quick detail" onClick={() => editor?.change(["details", "facts"], [...source, { id: crypto.randomUUID(), label: "New detail", value: "", icon: "MapPin", visible: true }])} />
     </section>
