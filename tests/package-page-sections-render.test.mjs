@@ -40,6 +40,7 @@ const pageSectionComponents = load('src/app/packages/_components/PackagePageSect
   '@/lib/packageDetailSections': model,
   './PackageGallery': { default: galleryMock },
   './PackageInlineEditing': inlineEditing,
+  './PackageSectionTextEditor': { default: ({ value, label }) => React.createElement('textarea', { 'aria-label': label, defaultValue: value }) },
 });
 const { default: PackagePageSections } = pageSectionComponents;
 const renderSections = (pageSections) => renderToStaticMarkup(React.createElement(PackagePageSections, {
@@ -84,6 +85,44 @@ test('multiple boxes and dropdowns use cards and keyboard-accessible native disc
   assert.match(dropdowns, /Bring a raincoat/);
 });
 
+test('packing text becomes accessible lists without losing prose or rendering authored HTML', () => {
+  const html = renderSections({ sections: [section({
+    placement: 'carry',
+    body: 'Bring the essentials.\nKeep your bag light.\n\n[Must Carry]\n• Water\n• Shoes\n\n[During Monsoon]\n- Raincoat\n- <script>unsafe</script>\n\nReturn with all your belongings.',
+  })] });
+  assert.match(html, /Bring the essentials\.\nKeep your bag light\./);
+  assert.match(html, /<h3>Must Carry<\/h3><ul><li>Water<\/li><li>Shoes<\/li><\/ul>/);
+  assert.match(html, /<h3>During Monsoon<\/h3><ul><li>Raincoat<\/li>/);
+  assert.match(html, /&lt;script&gt;unsafe&lt;\/script&gt;/);
+  assert.match(html, /Return with all your belongings\./);
+  assert.doesNotMatch(html, /<script>/);
+});
+
+test('practical cards start closed and keep their complete content in native disclosures', () => {
+  for (const placement of ['transfers', 'carry', 'guidelines', 'practical']) {
+    const html = renderSections({ sections: [section({ placement })] });
+    assert.match(html, /class="cmt-practical-disclosure"/);
+    assert.match(html, /<summary>/);
+    assert.match(html, /View details/);
+    assert.match(html, /Bring walking shoes/);
+    assert.doesNotMatch(html, /<details[^>]*open/);
+  }
+  const html = renderSections({ locations: { enabled: true, items: [location()] } });
+  assert.match(html, /id="package-locations"/);
+  assert.match(html, /class="cmt-practical-disclosure"/);
+  assert.doesNotMatch(html, /<details[^>]*open/);
+});
+
+test('CRM keeps practical cards open with an easy content editor while traveller preview starts closed', () => {
+  const value = model.getPackagePageSections({ pageSections: { sections: [section({ placement: 'guidelines' })] } });
+  const html = renderToStaticMarkup(React.createElement(inlineEditing.PackageEditingContext.Provider, {
+    value: { value: { details: { pageSections: value } }, disabled: false, change: noOp, upload: noOp },
+  }, React.createElement(PackagePageSections, { value, area: 'guidelines' })));
+  assert.match(html, /<details[^>]*open=""[^>]*class="cmt-practical-disclosure"/);
+  assert.match(html, /<textarea aria-label="Section text">Bring walking shoes/);
+  assert.match(html, /Edit Section title/);
+});
+
 test('switching to an empty single box does not publish retained multiple-box drafts', () => {
   assert.equal(renderSections({ sections: [section({ body: '', items: [{ id: 'old', title: 'Old card', body: 'Draft' }] })] }), '');
 });
@@ -111,6 +150,7 @@ const { default: SectionsWithRealGallery } = load('src/app/packages/_components/
   'lucide-react': icons,
   '@/lib/packageDetailSections': model,
   './PackageInlineEditing': { ...inlineEditing, EditableGallery: RealPackageGallery },
+  './PackageSectionTextEditor': { default: noOp },
 });
 
 test('optional trip gallery exposes all 20 uploaded photos in the real viewer', () => {

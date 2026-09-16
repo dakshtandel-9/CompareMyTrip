@@ -220,13 +220,13 @@ export const TREK_GRADE_LABELS: Record<number, string> = {
 
 type GradedTrek = { id: string; name: string; grade: number };
 
-/** The difficulty grade (1–3) of a package that is a weekend trek, or
-    undefined for anything else — including a trek nothing matches, so the
-    card says nothing rather than guessing a grade. */
+/** Prefer the package's saved grade; 0 explicitly hides the badge.
+    Older weekend treks still use their matched catalogue grade. */
 export function trekGrade(
   pkg: TravelPackage,
   treks: readonly GradedTrek[],
 ): number | undefined {
+  if (pkg.trekGrade !== undefined) return [1, 2, 3].includes(pkg.trekGrade) ? pkg.trekGrade : undefined;
   if (!pkg.tags.includes(WEEKEND_TREKS_CATEGORY)) return undefined;
 
   const byId = treks.find((trek) => trek.id === pkg.id);

@@ -37,12 +37,11 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
 
   const discount = getDiscountPercent(pkg);
   const hasStay = details.stays.length > 0;
-  const tier = hasStay ? getPackageTier(pkg.hotelStars) : "Trip package";
+  const tier = details.bookingLabel?.trim() || (hasStay ? getPackageTier(pkg.hotelStars) : "Trip package");
   const flightLabel = details.flights.trim() ? (/not included|no flight/i.test(details.flights) ? "Land only" : details.flights) : "";
 
-  /* Demand is a signal, not data we hold, so it is hashed out of the
-     package id: a different number per package, but the same one on the
-     server and in the browser, which keeps hydration quiet. */
+  const availabilityNote = details.availabilityNote ?? "Availability confirmed with your quote";
+  const quoteNote = details.quoteNote ?? "Compare quotes from 3 verified agents · best price";
 
   const step = (delta: number) => onTravellersChange(Math.min(Math.max(travellers + delta, 1), 20));
 
@@ -80,7 +79,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
 
       <div className="space-y-5 p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center rounded-cmt-full border border-cmt-success-500/30 bg-cmt-success-100 px-2.5 py-1 text-xs font-semibold text-cmt-success-700">
+          <span className="inline-flex min-w-0 max-w-full items-center break-words rounded-cmt-full border border-cmt-success-500/30 bg-cmt-success-100 px-2.5 py-1 text-xs font-semibold text-cmt-success-700">
             {tier}
           </span>
           {hasStay && <span className={CHIP}>
@@ -116,10 +115,10 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           {pkg.originalPrice > pkg.price && (
             <p className="mt-1.5 text-xs text-cmt-neutral-400 line-through">{formatINR(pkg.originalPrice)}</p>
           )}
-          <p className="mt-2.5 flex items-center gap-1.5 text-sm font-medium text-cmt-coral-700">
+          {availabilityNote.trim() && <p className="mt-2.5 flex items-center gap-1.5 text-sm font-medium text-cmt-coral-700">
             <Flame className="size-4 shrink-0" strokeWidth={2.25} aria-hidden="true" />
-            Availability confirmed with your quote
-          </p>
+            <span className="min-w-0 whitespace-pre-wrap break-words">{availabilityNote}</span>
+          </p>}
         </div>
 
         {/* Asked before the head count, because it is the question that
@@ -201,7 +200,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           >
             Get customized quote
           </button>
-          <p className="text-center text-xs text-cmt-neutral-500">Compare quotes from 3 verified agents · best price</p>
+          {quoteNote.trim() && <p className="whitespace-pre-wrap break-words text-center text-xs text-cmt-neutral-500">{quoteNote}</p>}
           <Link
             href={checkoutHref}
             className="flex h-12 w-full items-center justify-center rounded-cmt-control bg-cmt-secondary-900 text-sm font-semibold text-white transition-colors hover:bg-cmt-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"

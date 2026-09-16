@@ -17,8 +17,9 @@ export default function SiteExperience({ children }: { children: React.ReactNode
   const router = useRouter();
   const { content, loading } = useSiteContentState();
   const preview = useAdminPreview(pathname);
+  const localPackageDemo = process.env.NODE_ENV === "development" && /^\/package-page-[1-4]\/?$/.test(pathname);
   const maintenance = !loading && content.comingSoon.enabled;
-  const paused = maintenance && !bypassComingSoon(pathname) && preview !== "authorized";
+  const paused = maintenance && !localPackageDemo && !bypassComingSoon(pathname) && preview !== "authorized";
   const customPayment = pathname === "/pay" || pathname === "/pay/status";
 
   // Middleware handles fresh requests; this covers already open pages and
@@ -33,6 +34,8 @@ export default function SiteExperience({ children }: { children: React.ReactNode
     }
   }, [paused, preview, maintenance, pathname, router]);
 
+  // Isolated local design previews have their own controls and no lead forms.
+  if (localPackageDemo) return children;
   if (maintenance && preview === "checking" && (paused || pathname === "/coming-soon")) {
     return <main className="grid min-h-dvh place-items-center bg-cmt-neutral-50" aria-busy="true"><p role="status" className="text-sm text-cmt-neutral-600">Checking website access…</p></main>;
   }

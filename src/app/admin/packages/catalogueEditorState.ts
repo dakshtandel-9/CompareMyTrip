@@ -3,6 +3,8 @@ import type { PackageCategory, PackageFact, PackageItineraryDay, PackageStay } f
 import { packagePageSectionsIssue, type PackagePageSections } from "@/lib/packageDetailSections";
 
 export type PackageForm = {
+  trekGrade?: 0 | 1 | 2 | 3;
+  bookingLabel?: string; availabilityNote?: string; quoteNote?: string;
   facts: PackageFact[]; factsHidden: boolean; permitRequired: boolean; permitHidden: boolean;
   pageSections: PackagePageSections;
   title: string; location: string; destination: string; operator: string; region: "India" | "International";
@@ -71,6 +73,7 @@ export function packageValidationIssue(form: PackageForm): EditorIssue | null {
     }
   }
   if (!form.departureDays.length) return issue("Choose at least one departure day.", "booking");
+  if (form.trekGrade !== undefined && ![0, 1, 2, 3].includes(form.trekGrade)) return issue("Choose a valid difficulty level.", "booking");
   if (!form.nights.trim() || !form.days.trim() || !Number.isInteger(Number(form.nights)) || Number(form.nights) < 0 || !Number.isInteger(Number(form.days)) || Number(form.days) < 1 || Number(form.days) > 30) return issue("Enter a valid duration: 0 or more nights and 1–30 whole days.", "intro");
   const priceMissing = !form.price.trim() || Number(form.price) === 0;
   if (!(form.status === "draft" && priceMissing) && (!Number.isFinite(Number(form.price)) || Number(form.price) <= 0 || !Number.isFinite(Number(form.originalPrice)) || Number(form.originalPrice) < Number(form.price))) return issue("Enter a sale price above ₹0 and an original price at least as high as the sale price.", "booking");

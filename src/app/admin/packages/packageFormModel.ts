@@ -12,6 +12,7 @@ export const makeDays = (count = 5): PackageItineraryDay[] => Array.from({ lengt
 }));
 
 const initialForm: PackageForm = {
+  trekGrade: 0, bookingLabel: "",
   facts: defaultPackageFacts(), factsHidden: false, permitRequired: false, permitHidden: false,
   pageSections: defaultPackagePageSections(),
   title: "", location: "", destination: "", operator: "CompareMyTrip Partner", region: "India",
@@ -33,6 +34,8 @@ export function formFromPackage(pkg?: TravelPackage): PackageForm {
   if (!pkg) return JSON.parse(JSON.stringify(initialForm)) as PackageForm;
   const details = getPackageDetails(pkg);
   return {
+    trekGrade: pkg.trekGrade, bookingLabel: details.bookingLabel,
+    availabilityNote: details.availabilityNote, quoteNote: details.quoteNote,
     facts: details.facts ?? defaultPackageFacts(), factsHidden: details.factsHidden ?? false, permitRequired: details.permitRequired === true, permitHidden: details.permitHidden === true,
     pageSections: getPackagePageSections(details),
     title: pkg.title, location: pkg.location, destination: pkg.destination, operator: pkg.operator,
@@ -55,6 +58,7 @@ export function packageFromForm(form: PackageForm, initialPackage?: TravelPackag
   const isTrek = form.tags.some(tag => tag === "Treks" || tag === "Weekend Treks");
   return {
       id: initialPackage?.id ?? "preview",
+      ...(form.trekGrade !== undefined ? { trekGrade: form.trekGrade } : {}),
       title: form.title.trim(), location: form.location.trim(), operator: form.operator.trim(), region: form.region,
       /* Headline destination for the catalogue's destination filter: the first
          place of the route unless one was typed explicitly. */
@@ -65,6 +69,9 @@ export function packageFromForm(form: PackageForm, initialPackage?: TravelPackag
          absence of a rule, not a list of seven. */
       departureDays: form.departureDays.length === 7 ? [] : [...form.departureDays].sort((a, b) => a - b),
       details: { facts: form.facts.map((fact) => ({ ...fact, label: fact.label.trim(), ...(fact.value !== undefined ? { value: fact.value.trim() } : {}) })), factsHidden: form.factsHidden, gallery: form.gallery, summary: form.summary.trim(), places: splitPlaces(form.places), highlights: lines(form.highlights),
+        ...(form.bookingLabel !== undefined ? { bookingLabel: form.bookingLabel.trim() } : {}),
+        ...(form.availabilityNote !== undefined ? { availabilityNote: form.availabilityNote.trim() } : {}),
+        ...(form.quoteNote !== undefined ? { quoteNote: form.quoteNote.trim() } : {}),
         dayZeroEnabled: form.dayZeroEnabled,
         itinerary: form.itinerary.map((day) => ({ ...day, title: day.title.trim(), route: day.route.trim(), description: day.description.trim() })),
         stays: form.stays.map((stay) => ({ ...stay, name: stay.name.trim(), place: stay.place.trim() || form.destination.trim() || form.location.trim() })),

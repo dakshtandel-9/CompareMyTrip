@@ -46,78 +46,189 @@
   box-shadow: 0 0 0 2px #ffedb1;
 }
 
-.page :global(.cmt-package-intro) { padding: 6px 2px; }
+/* Below-gallery content only. The gallery and booking column keep their layout. */
+.page :global(.cmt-package-content) { --trip-section-offset: 128px; }
+.page :global(.cmt-package-intro) { padding: 4px 2px; }
 .page :global(.cmt-package-intro) > p:first-child {
-  border-left: 3px solid #efb815;
-  padding-left: 14px;
   color: var(--package-ink);
   font-size: 20px;
   font-weight: 600;
   line-height: 1.55;
   letter-spacing: -.015em;
 }
-.page :global(.cmt-package-intro) > div { font-size: 12px; line-height: 1.7; }
+.page :global(.cmt-package-intro) > div { font-size: 13px; line-height: 1.7; }
 .page :global(.cmt-package-intro) > div svg { color: var(--package-gold); }
 
 .page :global(nav[aria-label="Trip sections"]) {
-  position: static;
-  gap: 4px;
-  margin-top: 24px;
-  padding: 7px;
+  position: relative;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px;
   border: 1px solid var(--package-border);
   border-radius: 14px;
-  background: white;
-  box-shadow: 0 3px 12px #17233804;
-  scrollbar-width: thin;
-  scrollbar-color: #d7dce3 transparent;
+  background: #fffffffa;
+  box-shadow: 0 4px 18px #17233808;
+  backdrop-filter: blur(12px);
 }
-.page :global(nav[aria-label="Trip sections"]) a { padding: 8px 14px; min-height: 38px; border-radius: 9px; }
-.page :global(nav[aria-label="Trip sections"]) a:hover,
-.page :global(nav[aria-label="Trip sections"]) a:focus-visible { background: #fff4cf; color: #785400; }
-
-/* Style existing sections in place; content order and visibility stay intact. */
-.page section[id] {
-  padding: clamp(20px, 2.3vw, 30px);
-  border: 1px solid var(--package-border);
-  border-radius: 20px;
-  background: white;
-  box-shadow: 0 3px 14px #17233803;
-}
-.page section[id] > h2 { padding-left: 14px; border-left: 3px solid #efb815; margin-bottom: 22px; }
-.page section[id] > p:first-child:not(:last-child) { color: #986a07; }
-.page section[id] p { line-height: 1.9; }
-.page section[id] article { border-radius: 14px; border-color: var(--package-border); background: #fbfcfd; }
-.page section[id] details {
-  border-radius: 14px;
-  border-color: var(--package-border);
-  background: white;
-  transition: border-color 160ms, box-shadow 160ms;
-}
-.page section[id] details[open] { border-color: #e6d5a2; box-shadow: 0 3px 12px #17233804; }
-.page section[id] details > summary { padding: 18px; border-radius: 13px; }
-.page section[id] details > summary:hover { background: #f8f9fb; }
-.page section[id] details[open] > summary { background: #fffaf0; border-radius: 13px 13px 0 0; }
-.page :global(#package-itinerary) summary > span:first-child {
-  border-radius: 13px;
-  background: var(--package-ink);
-  color: #ffd85d;
-  box-shadow: 0 3px 8px #17233812;
-}
-.page :global(#package-itinerary) ol { border-color: #f3df9f; }
-.page :global(#package-itinerary) ol h3 { margin-top: 3px; }
-.page :global(#package-highlights) > div > div {
-  border: 1px solid #f2e9d0;
-  border-radius: 14px;
-  background: #fffcf4;
+.page :global(.cmt-trip-primary-links) { display: flex; flex: 1; flex-wrap: wrap; min-width: 0; gap: 3px; }
+.page :global(nav[aria-label="Trip sections"]) :is(a, summary) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 9px;
+  color: #596579;
   font-size: 13px;
-  line-height: 1.8;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  transition: background 180ms ease, color 180ms ease;
 }
-.page :global(#package-inclusions) { border-top: 3px solid #5ca082; }
-.page :global(#package-exclusions) { border-top: 3px solid #d6a198; }
-.page :global(#package-inclusions) > h2 { border-left-color: #5ca082; }
-.page :global(#package-exclusions) > h2 { border-left-color: #d6a198; }
+.page :global(nav[aria-label="Trip sections"]) :global(.cmt-trip-primary-links) a { flex: 1 1 70px; min-width: 0; white-space: normal; text-align: center; }
+.page :global(.cmt-trip-primary-links) a::after,
+.page :global(.cmt-trip-more) > summary::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  left: 16px;
+  right: 16px;
+  height: 3px;
+  border-radius: 3px;
+  background: #d9a21b;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 180ms ease;
+}
+.page :global(.cmt-trip-primary-links) a:is(:hover, [aria-current])::after,
+.page :global(.cmt-trip-more[data-active]) > summary::after,
+.page :global(.cmt-trip-more[open]) > summary::after { transform: scaleX(1); }
+.page :global(nav[aria-label="Trip sections"]) :is(a, summary):hover { background: #f5f6f8; color: var(--package-ink); }
+.page :global(nav[aria-label="Trip sections"]) a[aria-current],
+.page :global(.cmt-trip-more[data-active]) > summary { background: #fff9e8; color: #624500; }
+.page :global(nav[aria-label="Trip sections"]) :is(a, summary):focus-visible { outline: 2px solid #a16f05; outline-offset: 2px; }
+.page :global(.cmt-trip-more) { flex: none; position: relative; border-left: 1px solid var(--package-border); padding-left: 6px; }
+.page :global(.cmt-trip-more) summary { cursor: pointer; list-style: none; }
+.page :global(.cmt-trip-more) summary::-webkit-details-marker { display: none; }
+.page :global(.cmt-trip-more) summary svg { flex-shrink: 0; transition: transform 180ms ease; }
+.page :global(.cmt-trip-more[open]) summary svg { transform: rotate(180deg); }
+.page :global(.cmt-trip-more[open]) :global(.cmt-trip-menu) { animation: trip-menu-reveal 180ms ease-out; }
+.page :global(.cmt-trip-more:only-child) { margin-left: auto; border-left: 0; }
+.page :global(.cmt-trip-menu) {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: -6px;
+  width: min(320px, calc(100vw - 48px));
+  max-height: min(460px, 55dvh);
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid var(--package-border);
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 12px 40px #1723381c;
+}
+.page :global(nav[aria-label="Trip sections"]) :global(.cmt-trip-menu) a { justify-content: flex-start; white-space: normal; overflow-wrap: anywhere; }
+
+@keyframes trip-menu-reveal {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page :global(.cmt-package-content) section[id] {
+  padding: clamp(22px, 2.3vw, 32px);
+  scroll-margin-top: var(--trip-section-offset);
+  border: 1px solid var(--package-border);
+  border-radius: 18px;
+  background: white;
+  box-shadow: none;
+}
+.page :global(.cmt-package-content) section[id] > h2 {
+  margin-bottom: 22px;
+  padding: 0;
+  border: 0;
+  font-size: clamp(20px, 1.8vw, 24px);
+  letter-spacing: -.025em;
+}
+.page :global(.cmt-package-content) section[id] > p:first-child:not(:last-child) {
+  margin-bottom: 8px;
+  color: #986a07;
+  font-size: 10px;
+  letter-spacing: .14em;
+}
+.page :global(.cmt-package-prose) { min-width: 0; color: #586579; font-size: 14px; line-height: 1.85; overflow-wrap: anywhere; }
+.page :global(.cmt-package-prose) > div + div { margin-top: 18px; }
+.page :global(.cmt-package-prose) p { font-size: inherit; line-height: inherit; color: inherit; }
+.page :global(.cmt-package-prose) h3 { margin: 8px 0 12px; color: var(--package-ink); font-size: 14px; font-weight: 600; }
+.page :global(.cmt-package-prose) ul { display: grid; gap: 10px; padding: 0; list-style: none; }
+.page :global(.cmt-package-prose) p + ul { margin-top: 14px; }
+.page :global(.cmt-package-prose) li { position: relative; padding-left: 20px; }
+.page :global(.cmt-package-prose) li::before { content: ""; position: absolute; top: .72em; left: 2px; width: 5px; height: 5px; border-radius: 50%; background: #d19b20; }
+.page :global(#package-about) { border-top: 3px solid #f4bf26; }
+.page :global(#package-about) > :global(.cmt-package-prose) > div:first-child:not(:only-child) p { color: var(--package-ink); font-size: 16px; font-weight: 500; }
+.page :global(.cmt-package-content) section[data-placement="overview"] { background: #fdfbf5; border-color: #ede8da; }
+.page :global(.cmt-package-content) section[data-placement="carry"] :global(.cmt-package-prose) ul,
+.page :global(.cmt-package-content) section[data-placement="guidelines"] :global(.cmt-package-prose) ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+
+.page :global(#package-highlights) > div > div {
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #eee9da;
+  border-radius: 12px;
+  background: #fdfbf5;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.page :global(#package-highlights) > div > div > span:first-child { width: 26px; height: 26px; background: #fff0b3; color: #8a6200; }
+.page :global(.cmt-package-content) section[id] article { border-radius: 12px; border-color: var(--package-border); background: #fafbfc; }
+.page :global(.cmt-package-content) section[id] details { border-radius: 12px; border-color: var(--package-border); background: white; }
+.page :global(.cmt-package-content) section[id] details > summary { padding: 18px 20px; border-radius: 11px; align-items: center; }
+.page :global(.cmt-package-content) section[id] details > summary:hover { background: #fafbfc; }
+.page :global(.cmt-package-content) section[id] details[open] { border-color: #e8d6a4; }
+.page :global(.cmt-package-content) section[id] details[open] > summary { background: #fffbf0; border-radius: 11px 11px 0 0; }
+.page :global(#package-itinerary) summary > span:first-child { border-radius: 12px; background: var(--package-ink); color: #ffda6a; box-shadow: none; }
+.page :global(#package-itinerary) details[open] > div { padding: 22px 24px 26px; }
+.page :global(#package-itinerary) ol { margin: 24px 0 0 7px; padding-left: 25px; border-left: 1px solid #e7d9b6; }
+.page :global(#package-itinerary) ol li + li { margin-top: 28px; }
+.page :global(#package-itinerary) ol li > span:first-child { left: -32px; width: 13px; height: 13px; border: 3px solid white; background: #eab221; box-shadow: 0 0 0 1px #eedca9; }
+.page :global(#package-itinerary) ol h3 { margin: 4px 0 8px; font-size: 15px; }
+.page :global(#package-itinerary) ol :global(.cmt-activity-time) { display: inline-block; padding: 2px 8px; border-radius: 5px; background: #fff6dc; color: #8b630a; font-size: 11px; }
+.page :global(#package-transfers) > div > svg { width: 36px; height: 36px; padding: 8px; margin-top: 0; border-radius: 10px; background: #fff4d1; }
+.page :global(#package-stays) article { padding: 20px; border: 1px solid var(--package-border); }
+.page :global(#package-stays) dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.page :global(#package-stays) dl > div { flex-direction: column; gap: 4px; }
+.page :global(#package-stays) dt { color: #6b788b; }
+.page :global(#package-stays) dd { font-weight: 600; }
+.page :global(#package-locations) article { background: #f8fafb; }
+.page :global(#package-locations) article a { padding: 10px 14px; border: 1px solid #dbe1e8; border-radius: 9px; background: white; text-decoration: none; }
+.page :global(#package-locations) article a:hover { background: #fff5d5; border-color: #e4c46e; }
+
+.page :global(.cmt-package-coverage) > div { align-items: start; gap: 16px; }
+.page :global(#package-inclusions) { border-top: 3px solid #6aa488; }
+.page :global(#package-exclusions) { border-top: 3px solid #d89e95; }
+.page :global(#package-inclusions) li,
+.page :global(#package-exclusions) li { padding: 12px 0; margin: 0; font-size: 13px; line-height: 1.8; }
 .page :global(#package-inclusions) li + li,
-.page :global(#package-exclusions) li + li { padding-top: 12px; border-top: 1px solid #eef0f3; }
+.page :global(#package-exclusions) li + li { border-top: 1px solid #edf0f3; }
+.page :global(#package-inclusions) li > svg,
+.page :global(#package-exclusions) li > svg { width: 20px; height: 20px; padding: 3px; margin-top: 2px; border-radius: 50%; background: #edf7f1; }
+.page :global(#package-exclusions) li > svg { background: #fff1ee; }
+.page :global(.cmt-review-summary) { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; padding: 20px 0 24px; margin: -10px 0 24px; border-bottom: 1px solid var(--package-border); }
+.page :global(.cmt-review-score) { font-size: 40px; font-weight: 700; line-height: 1; letter-spacing: -.05em; }
+.page :global(.cmt-review-score) small { margin-left: 8px; font-size: 16px; font-weight: 400; letter-spacing: 0; color: #8892a1; }
+.page :global(.cmt-review-summary) p { margin-top: 8px; color: #6b788b; font-size: 12px; }
+.page :global(#package-reviews) article { display: flex; flex-direction: column; padding: 22px; }
+.page :global(#package-reviews) blockquote { font-size: 13px; line-height: 1.9; margin-bottom: 22px; }
+.page :global(.cmt-review-author) { display: flex; align-items: center; gap: 10px; margin-top: auto; font-size: 12px; }
+.page :global(.cmt-review-author) > span:first-child { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; background: #edeff3; color: #596579; font-size: 11px; }
+.page :global(.cmt-policy-note) { align-items: flex-start; gap: 14px; background: #f6f8fa; border: 1px solid #e9edf1; border-radius: 12px; padding: 20px; }
+.page :global(.cmt-policy-note) > svg { color: #6c7c8b; margin-top: 4px; }
+.page :global(.cmt-policy-note) :global(.cmt-package-prose) { font-size: 13px; }
 
 .page :global(.cmt-booking-panel) { top: 110px; }
 .page :global(.cmt-booking-panel) > div:first-child {
@@ -144,13 +255,104 @@
 @media (max-width: 1023px) {
   .page :global(.cmt-package-columns) { grid-template-columns: minmax(0, 1fr); }
 }
+@media (max-width: 767px) {
+  .page :global(.cmt-package-content) { --trip-section-offset: 120px; }
+  .page :global(.cmt-package-content) section[id] { padding: 22px 18px; border-radius: 14px; }
+  .page :global(.cmt-package-content) section[id] > h2 { margin-bottom: 18px; }
+  .page :global(nav[aria-label="Trip sections"]) { gap: 3px; padding: 5px; }
+  .page :global(nav[aria-label="Trip sections"]) :is(a, summary) { padding: 10px 11px; font-size: 12px; }
+  .page :global(.cmt-trip-primary-links) { gap: 0; }
+  .page :global(.cmt-trip-more) { padding-left: 3px; }
+  .page :global(.cmt-package-prose) { font-size: 13px; }
+  .page :global(.cmt-package-coverage) > div { grid-template-columns: minmax(0, 1fr); }
+  .page :global(.cmt-package-content) section[data-placement="carry"] :global(.cmt-package-prose) ul,
+  .page :global(.cmt-package-content) section[data-placement="guidelines"] :global(.cmt-package-prose) ul { grid-template-columns: minmax(0, 1fr); }
+  .page :global(#package-itinerary) details[open] > div { padding: 18px; }
+  .page :global(.cmt-package-content) section[id] details > summary { padding: 16px; gap: 12px; }
+}
 @media (max-width: 639px) {
-  .page section[id] { padding: 20px 16px; border-radius: 16px; }
-  .page section[id] > h2 { padding-left: 10px; margin-bottom: 18px; }
+  .page :global(nav[aria-label="Trip sections"]) { flex-wrap: wrap; }
+  .page :global(.cmt-trip-primary-links) { flex-basis: 100%; }
+  .page :global(.cmt-trip-more) { width: 100%; padding: 3px 0 0; border-left: 0; border-top: 1px solid var(--package-border); }
+  .page :global(nav[aria-label="Trip sections"]) :global(.cmt-trip-more) > summary { justify-content: space-between; }
+  .page :global(.cmt-trip-menu) { right: 0; width: 100%; }
   .page :global(.cmt-package-gallery-frame) { border-radius: 16px; }
   .page :global(.cmt-package-intro) > p:first-child { font-size: 18px; }
-  .page section[id] details > summary { padding: 14px; gap: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .page section[id] details { transition: none; }
+  .page :global(nav[aria-label="Trip sections"]) :is(a, summary),
+  .page :global(nav[aria-label="Trip sections"]) :is(a, summary)::after,
+  .page :global(.cmt-trip-more) summary svg { transition: none; }
+  .page :global(.cmt-trip-more[open]) :global(.cmt-trip-menu) { animation: none; }
+}
+
+/* Practical information: compact disclosures, open while editing in the CRM. */
+.page :global(.cmt-package-content) section[id]:global(.cmt-practical-section) {
+  --practical-accent: #946819;
+  --practical-tint: #fff5dc;
+  padding: 0;
+  border-radius: 18px;
+  box-shadow: 0 3px 12px #17233804;
+  transition: border-color 180ms, box-shadow 180ms;
+}
+.page :global(.cmt-package-content) section[id]:global(.cmt-practical-section[data-placement="locations"]) { --practical-accent: #42698b; --practical-tint: #edf4fb; }
+.page :global(.cmt-package-content) section[id]:global(.cmt-practical-section[data-placement="carry"]) { --practical-accent: #946819; --practical-tint: #fff5dc; }
+.page :global(.cmt-package-content) section[id]:global(.cmt-practical-section[data-placement="guidelines"]) { --practical-accent: #39775e; --practical-tint: #edf6f0; }
+.page :global(.cmt-package-content) section[id]:global(.cmt-practical-section):hover { border-color: #d1d8df; box-shadow: 0 5px 18px #17233808; }
+.page :global(.cmt-package-content) section[id]:global(.cmt-practical-section) > details { margin: 0; border: 0; border-radius: inherit; background: transparent; }
+.page :global(.cmt-package-content) section[id]:global(.cmt-practical-section) > details > summary {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 104px;
+  padding: 24px;
+  border-radius: 18px;
+  list-style: none;
+  cursor: pointer;
+  background: transparent;
+  transition: background 180ms;
+}
+.page :global(.cmt-practical-disclosure) > summary::-webkit-details-marker { display: none; }
+.page :global(.cmt-practical-disclosure) > summary:focus-visible { outline: 2px solid var(--practical-accent); outline-offset: 4px; }
+.page :global(.cmt-package-content) section[id]:global(.cmt-practical-section) > details > summary:hover { background: #fafbfc; }
+.page :global(.cmt-practical-icon) { display: grid; place-items: center; width: 48px; height: 48px; flex: none; border: 1px solid #17233806; border-radius: 15px; color: var(--practical-accent); background: var(--practical-tint); }
+.page :global(.cmt-practical-heading) { min-width: 0; flex: 1; }
+.page :global(.cmt-practical-heading) h2 { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.4; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.page :global(.cmt-practical-heading) p { margin-top: 5px; font-size: 12px; line-height: 1.6; color: #7b8796; }
+.page :global(.cmt-practical-toggle) { display: flex; align-items: center; gap: 12px; flex: none; font-size: 11px; font-weight: 600; color: #6b7788; }
+.page :global(.cmt-practical-toggle) svg { width: 32px; height: 32px; padding: 7px; border-radius: 50%; background: #f2f4f6; transition: transform 180ms, background 180ms; }
+.page :global(.cmt-practical-hide) { display: none; }
+.page :global(.cmt-practical-disclosure[open]) > summary :global(.cmt-practical-show) { display: none; }
+.page :global(.cmt-practical-disclosure[open]) > summary :global(.cmt-practical-hide) { display: inline; }
+.page :global(.cmt-practical-disclosure[open]) > summary :global(.cmt-practical-toggle) svg { transform: rotate(180deg); background: var(--practical-tint); color: var(--practical-accent); }
+.page :global(.cmt-practical-body) { margin: 0 24px; padding: 24px 0 28px; border-top: 1px solid #edf0f3; }
+.page :global(.cmt-practical-disclosure[open]) > :global(.cmt-practical-body) { animation: practical-reveal 200ms ease-out; }
+.page :global(.cmt-practical-body) :global(.cmt-package-prose) h3 { margin-top: 22px; color: var(--practical-accent); font-size: 12px; letter-spacing: .02em; }
+.page :global(.cmt-practical-body) :global(.cmt-package-prose) ul { gap: 12px 24px; }
+.page :global(.cmt-practical-body) :global(.cmt-package-prose) li::before { background: var(--practical-accent); }
+.page :global(.cmt-section-text-editor) { min-width: 0; margin: 12px 0; padding: 16px; border: 1px solid #e4e8ee; border-radius: 12px; background: #f8fafc; }
+.page :global(.cmt-section-text-editor) > label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+.page :global(.cmt-section-text-editor) > p { margin: 6px 0 12px; font-size: 12px; line-height: 1.65; color: #68758b; }
+.page :global(.cmt-section-text-editor) textarea { width: 100%; min-height: 160px; padding: 12px; border: 1px solid #ced6e0; border-radius: 8px; background: white; font-size: 13px; line-height: 1.8; resize: vertical; }
+.page :global(.cmt-section-text-editor) textarea:focus-visible { outline: 2px solid #dfb140; outline-offset: 2px; }
+.page :global(.cmt-section-text-actions) { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.page :global(.cmt-section-text-actions) > :is(button, label) { position: relative; display: inline-flex; align-items: center; min-height: 38px; padding: 8px 12px; border: 1px solid #dbe1e8; border-radius: 8px; background: white; font-size: 12px; font-weight: 600; cursor: pointer; }
+.page :global(.cmt-section-text-actions) > button:last-child { background: #172338; color: white; border-color: #172338; }
+.page :global(.cmt-section-text-actions) button:disabled { opacity: .4; cursor: default; }
+.page :global(.cmt-section-upload) input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+.page :global(.cmt-section-upload):focus-within { outline: 2px solid #a16f05; outline-offset: 2px; }
+@keyframes practical-reveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 639px) {
+  .page :global(.cmt-package-content) section[id]:global(.cmt-practical-section) > details > summary { min-height: 94px; gap: 12px; padding: 18px 16px; }
+  .page :global(.cmt-practical-icon) { width: 40px; height: 40px; border-radius: 12px; }
+  .page :global(.cmt-practical-heading) h2 { font-size: 16px; }
+  .page :global(.cmt-practical-heading) p { font-size: 11px; }
+  .page :global(.cmt-practical-toggle) > span { display: none !important; }
+  .page :global(.cmt-practical-body) { margin: 0 18px; padding: 20px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page :global(.cmt-practical-disclosure[open]) > :global(.cmt-practical-body) { animation: none; }
+  .page :global(.cmt-package-content) section[id]:global(.cmt-practical-section),
+  .page :global(.cmt-package-content) section[id]:global(.cmt-practical-section) > details > summary,
+  .page :global(.cmt-practical-toggle) svg { transition: none; }
 }

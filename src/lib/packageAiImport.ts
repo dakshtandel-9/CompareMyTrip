@@ -45,6 +45,11 @@ const productSchema = object({
   }),
 });
 
+// Optional additions keep previously downloaded version-1 imports valid.
+Object.assign(productSchema.properties!, {
+  trekGrade: number(0, 3), bookingLabel: str(), availabilityNote: str(), quoteNote: str(),
+});
+
 export const PACKAGE_IMPORT_SCHEMA = object({ kind: choice(["comparemytrip.product"]), version: { type: "integer", enum: [1] }, product: productSchema });
 
 type Replaced = "gallery" | "operator" | "deal" | "status" | "permitHidden" | "nights" | "days" | "hotelStars" | "price" | "originalPrice" | "discount" | "places" | "highlights" | "inclusions" | "exclusions" | "pageSections";
@@ -65,6 +70,8 @@ function validate(value: unknown, schema: Schema, path: string): void {
     for (const key of Object.keys(record)) if (!Object.hasOwn(schema.properties!, key)) fail(`unexpected field “${key}”. Use the product prompt format.`);
     for (const key of schema.required!) {
       if (!Object.hasOwn(record, key)) fail(`missing field “${key}” (${path}.${key}). Keep every property from the prompt, including empty optional content.`);
+    }
+    for (const key of Object.keys(record)) {
       validate(record[key], schema.properties![key], `${path}.${key}`);
     }
   } else if (schema.type === "array") {

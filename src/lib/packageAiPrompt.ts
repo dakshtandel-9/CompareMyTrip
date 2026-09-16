@@ -7,6 +7,7 @@ export const PACKAGE_IMPORT_EXAMPLE = {
     title: "Example hill getaway", location: "Example City → Example Hills → Example City", destination: "Example Hills",
     region: "India", tags: ["Family"], nights: 1, days: 2, pax: "Per person, twin sharing", hotelStars: 0,
     price: 5000, originalPrice: 5000, departureDays: [6], factsHidden: false, permitRequired: false,
+    trekGrade: 0, bookingLabel: "", availabilityNote: "", quoteNote: "",
     facts: [{ id: "fact-duration", icon: "Clock3", label: "Duration", value: "1 night / 2 days", visible: true }],
     summary: "A two-day visit to Example Hills.", places: ["Example Hills"], highlights: ["Guided town walk"], dayZeroEnabled: false,
     itinerary: [
@@ -44,6 +45,7 @@ FIELD RULES
 - Include EVERY required property in the JSON Schema. Empty optional text: ""; absent lists: []; disabled optional locations/reviews: {"enabled":false,"items":[]}. No nulls, unknown properties, image URLs, HTML, scripts, IDs for the product, publication flags or settings for other pages.
 - Prices are numeric INR per person, without currency symbols or commas. Ask if currency, price basis, actual selling price or advertised discount is unclear. originalPrice >= price; maximum discount 90%. If I explicitly choose to leave pricing for later, use 0 for BOTH prices (an unpriced draft). Never turn a placeholder into a real price. If no discount is explicitly offered, originalPrice equals price.
 - departureDays uses integers 0=Sunday, 1=Monday, ..., 6=Saturday. All seven means every day. Ask if the departure schedule is unknown; do not assume every day.
+- trekGrade controls the difficulty badge on this package: 0=hidden, 1=Easy, 2=Moderate, 3=Difficult. Use 0 unless the source explicitly supplies a difficulty. bookingLabel overrides the booking card badge; empty uses the hotel tier or Trip package. availabilityNote and quoteNote are optional booking card text; empty hides them. Never invent availability or price guarantees.
 - nights is 0–30; days is 1–30. Day 0 is an optional overnight departure before Day 1, and does not count toward days. Set dayZeroEnabled=true only when that departure is present; include days 0,1,...,days. Otherwise set false and include days 1,...,days. Ask about gaps or inconsistent duration. Do not renumber an explicit overnight Day 0 as Day 1.
 - Break itinerary days into activities with time, title and description in source order. Use empty time if not supplied. Keep route, meals and explanatory notes in their own fields.
 - hotelStars is a numeric 0–5. Use 0 for no accommodation or explicitly unrated accommodation. Do not guess a star rating. stays can be [] when no stay is supplied; unknown hotel names must not be fabricated.

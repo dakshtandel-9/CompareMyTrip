@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowUpRight, ChevronDown, MapPin, Star } from "lucide-react";
+import { ArrowUpRight, Backpack, Bus, ChevronDown, MapPin, ShieldCheck, Star } from "lucide-react";
 import type { ReactNode } from "react";
 import {
   locationEmbedUrl,
@@ -13,8 +13,33 @@ import {
 } from "@/lib/packageDetailSections";
 import { InlineText, EditableGallery, EditAction, usePackageEditing } from "./PackageInlineEditing";
 import { movePackageSection } from "@/lib/packageDetailSections";
+import PackageSectionTextEditor from "./PackageSectionTextEditor";
 
 const bodyClass = "whitespace-pre-wrap break-words text-sm leading-7 text-cmt-neutral-600";
+
+/** Format authored paragraphs and bullet lists without changing the saved text. */
+export function PackageDescription({ value, path, label, easyEdit = false }: { value: string; path: (string | number)[]; label: string; easyEdit?: boolean }) {
+  const editor = usePackageEditing();
+  if (editor && easyEdit) return <PackageSectionTextEditor key={value} value={value} path={path} label={label} />;
+  if (editor) return <p className={bodyClass}><InlineText value={value} path={path} label={label} multiline /></p>;
+
+  const blocks = value.trim().split(/\n\s*\n/).filter(Boolean);
+  return <div className="cmt-package-prose">{blocks.map((block, index) => {
+    const lines = block.split("\n");
+    const groups: { list: boolean; lines: string[] }[] = [];
+    for (const line of lines) {
+      const list = /^\s*[•*\-–]\s+\S/.test(line);
+      const previous = groups[groups.length - 1];
+      if (previous?.list === list) previous.lines.push(line);
+      else groups.push({ list, lines: [line] });
+    }
+    return <div key={index}>{groups.map((group, groupIndex) => group.list
+      ? <ul key={groupIndex}>{group.lines.map((line, lineIndex) => <li key={lineIndex}>{line.replace(/^\s*[•*\-–]\s+/, "")}</li>)}</ul>
+      : /^\s*\[[^\]\n]+\]\s*$/.test(group.lines.join("\n"))
+        ? <h3 key={groupIndex}>{group.lines.join("\n").trim().slice(1, -1)}</h3>
+        : <p key={groupIndex} className={bodyClass}>{group.lines.join("\n")}</p>)}</div>;
+  })}</div>;
+}
 
 export function getVisiblePackageReviews(value: PackagePageSectionsValue) {
   return value.reviews.enabled
@@ -22,13 +47,37 @@ export function getVisiblePackageReviews(value: PackagePageSectionsValue) {
     : [];
 }
 
-function Section({ id, title, children }: { id?: string; title: ReactNode; children: ReactNode }) {
+function Section({ id, title, children, placement }: { id?: string; title: ReactNode; children: ReactNode; placement?: string }) {
   return (
-    <section id={id} className="min-w-0 scroll-mt-40 border-b border-cmt-neutral-200 py-7">
+    <section id={id} data-placement={placement} className="min-w-0 scroll-mt-40 border-b border-cmt-neutral-200 py-7">
       <h2 className="mb-5 break-words font-display text-2xl font-semibold">{title}</h2>
       {children}
     </section>
   );
+}
+
+const practicalKinds = {
+  transfers: { icon: Bus, subtitle: "Getting there, comfortably" },
+  locations: { icon: MapPin, subtitle: "Where your journey begins and ends" },
+  carry: { icon: Backpack, subtitle: "Pack light. Bring the essentials." },
+  guidelines: { icon: ShieldCheck, subtitle: "A safer trek, a lighter footprint" },
+  practical: { icon: Backpack, subtitle: "A few things to know before you go" },
+};
+type PracticalKind = keyof typeof practicalKinds;
+
+export function PracticalSection({ id, title, kind, children }: { id: string; title: string; kind: PracticalKind; children: ReactNode }) {
+  const editor = usePackageEditing();
+  const { icon: Icon, subtitle } = practicalKinds[kind];
+  return <section id={id} data-placement={kind} className="cmt-practical-section min-w-0 scroll-mt-40">
+    <details key={editor ? "editor" : "traveller"} open={editor ? true : undefined} className="cmt-practical-disclosure">
+      <summary>
+        <span className="cmt-practical-icon"><Icon size={22} strokeWidth={1.7} aria-hidden="true" /></span>
+        <div className="cmt-practical-heading"><h2>{title}</h2><p>{subtitle}</p></div>
+        <span className="cmt-practical-toggle" aria-hidden="true"><span className="cmt-practical-show">View details</span><span className="cmt-practical-hide">Close</span><ChevronDown size={18} /></span>
+      </summary>
+      <div className="cmt-practical-body">{children}</div>
+    </details>
+  </section>;
 }
 
 function CustomSection({ section }: { section: PackageCustomSection }) {
@@ -38,11 +87,15 @@ function CustomSection({ section }: { section: PackageCustomSection }) {
   const path = ["details", "pageSections", "sections", index];
   const items = editor ? section.items : section.items.filter((item) => item.visible !== false && (item.title.trim() || item.body.trim()));
   if (!editor && !isVisiblePackageSection(section)) return null;
+  const kind: PracticalKind | undefined = section.placement && section.placement in practicalKinds
+    ? (/pickup|drop location/i.test(section.title) ? "locations" : section.placement as PracticalKind) : undefined;
+  const Wrapper = kind ? PracticalSection : Section;
 
   return (
-    <Section id={`package-section-${section.id}`} title={<InlineText value={section.title} path={[...path, "title"]} label="Section title" />}>
+    <Wrapper id={`package-section-${section.id}`} placement={section.placement} kind={kind!} title={section.title}>
+      {editor && <p className="mb-4 text-sm font-semibold">Title: <InlineText value={section.title} path={[...path, "title"]} label="Section title" /></p>}
       {editor && <div className="mb-3 flex flex-wrap items-center gap-2 text-xs"><button type="button" disabled={editor.disabled} onClick={() => editor.change([...path, "visible"], !section.visible)}>{section.visible ? "Hide section" : "Hidden · Show section"}</button><select aria-label="Section layout" value={section.layout} disabled={editor.disabled} onChange={event => editor.change([...path, "layout"], event.target.value)}><option value="box">Text</option><option value="boxes">List</option><option value="dropdown">Accordion</option></select><EditAction kind="up" label="Move section up" onClick={() => editor.change(["details", "pageSections", "sections"], movePackageSection(sections, section.id, -1))} /><EditAction kind="down" label="Move section down" onClick={() => editor.change(["details", "pageSections", "sections"], movePackageSection(sections, section.id, 1))} /><EditAction kind="remove" label="Remove section" onClick={() => editor.change(["details", "pageSections", "sections"], sections.filter(item => item.id !== section.id))} /></div>}
-      {(editor || section.body.trim()) && <p className={bodyClass}><InlineText value={section.body} path={[...path, "body"]} label="Section text" multiline /></p>}
+      {(editor || section.body.trim()) && <PackageDescription value={section.body} path={[...path, "body"]} label="Section text" easyEdit={Boolean(kind)} />}
       {section.layout !== "box" && items.length > 0 && (
         <div className={`${section.body.trim() ? "mt-5 " : ""}${section.layout === "boxes" ? "grid gap-4 sm:grid-cols-2" : "space-y-3"}`}>
           {items.map((item) => section.layout === "dropdown" ? (
@@ -51,14 +104,14 @@ function CustomSection({ section }: { section: PackageCustomSection }) {
                 <span className="min-w-0 break-words"><InlineText value={item.title} path={[...path, "items", section.items.indexOf(item), "title"]} label="Item title" /></span>
                 <ChevronDown className="size-4 shrink-0 text-cmt-neutral-500 transition-transform group-open:rotate-180" aria-hidden="true" />
               </summary>
-              {(editor || item.body.trim()) && <div className="border-t border-cmt-neutral-100 px-4 py-4"><p className={bodyClass}><InlineText value={item.body} path={[...path, "items", section.items.indexOf(item), "body"]} label="Item text" multiline /></p></div>}
+              {(editor || item.body.trim()) && <div className="border-t border-cmt-neutral-100 px-4 py-4"><PackageDescription value={item.body} path={[...path, "items", section.items.indexOf(item), "body"]} label="Item text" easyEdit={Boolean(kind)} /></div>}
               {editor && <label className="text-xs"><input type="checkbox" checked={item.visible !== false} onChange={event => editor.change([...path, "items", section.items.indexOf(item), "visible"], event.target.checked)} /> Show item</label>}
               <EditAction kind="remove" label="Remove item" onClick={() => editor?.change([...path, "items"], section.items.filter(row => row !== item))} />
             </details>
           ) : (
             <article key={item.id} className="min-w-0 rounded-cmt-md border border-cmt-neutral-200 p-5">
               {(editor || item.title.trim()) && <h3 className="mb-2 break-words font-display text-lg font-semibold"><InlineText value={item.title} path={[...path, "items", section.items.indexOf(item), "title"]} label="Item title" /></h3>}
-              {(editor || item.body.trim()) && <p className={bodyClass}><InlineText value={item.body} path={[...path, "items", section.items.indexOf(item), "body"]} label="Item text" multiline /></p>}
+              {(editor || item.body.trim()) && <PackageDescription value={item.body} path={[...path, "items", section.items.indexOf(item), "body"]} label="Item text" easyEdit={Boolean(kind)} />}
               {editor && <label className="text-xs"><input type="checkbox" checked={item.visible !== false} onChange={event => editor.change([...path, "items", section.items.indexOf(item), "visible"], event.target.checked)} /> Show item</label>}
               <EditAction kind="remove" label="Remove item" onClick={() => editor?.change([...path, "items"], section.items.filter(row => row !== item))} />
             </article>
@@ -66,7 +119,7 @@ function CustomSection({ section }: { section: PackageCustomSection }) {
         </div>
       )}
       {section.layout !== "box" && <EditAction label="Add item" onClick={() => editor?.change([...path, "items"], [...section.items, { id: crypto.randomUUID(), title: "New item", body: "", visible: true }])} />}
-    </Section>
+    </Wrapper>
   );
 }
 
@@ -78,6 +131,7 @@ export default function PackagePageSections({ value, area = "all" }: { value: Pa
     ? value.locations.items.filter((location) => editor || location.visible && location.name.trim())
     : [];
   const reviews = editor ? value.reviews.items : getVisiblePackageReviews(value);
+  const averageRating = reviews.length ? reviews.reduce((total, review) => total + review.rating, 0) / reviews.length : 0;
 
   return (
     <>
@@ -88,7 +142,7 @@ export default function PackagePageSections({ value, area = "all" }: { value: Pa
       )}
 
       {(area === "all" || area === "locations") && (editor || locations.length > 0) && (
-        <Section id="package-locations" title="Pickup & drop locations">
+        <PracticalSection id="package-locations" title="Pickup & drop locations" kind="locations">
           <div className={`grid gap-4 ${locations.length > 1 ? "sm:grid-cols-2" : ""}`}>
             {locations.map((location) => {
               const path = ["details", "pageSections", "locations", "items", value.locations.items.indexOf(location)];
@@ -112,11 +166,12 @@ export default function PackagePageSections({ value, area = "all" }: { value: Pa
           </div>
           {editor && <label className="text-xs"><input type="checkbox" checked={value.locations.enabled} onChange={event => editor.change(["details", "pageSections", "locations", "enabled"], event.target.checked)} /> Show pickup & drop</label>}
           <EditAction label="Add location" onClick={() => editor?.change(["details", "pageSections", "locations"], { enabled: true, items: [...value.locations.items, { id: crypto.randomUUID(), name: "", type: "pickup", address: "", notes: "", mapUrl: "", image: "", visible: true }] })} />
-        </Section>
+        </PracticalSection>
       )}
 
       {(area === "all" || area === "reviews") && (editor || reviews.length > 0) && (
         <Section id="package-reviews" title="Traveller reviews">
+          {reviews.length > 0 && <div className="cmt-review-summary"><span className="cmt-review-score">{averageRating.toFixed(1)}<small>/ 5</small></span><div><div className="flex gap-1 text-cmt-primary-600" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <Star key={index} className={`size-4 ${index < Math.round(averageRating) ? "fill-current" : "text-cmt-neutral-200"}`} />)}</div><p>Based on {reviews.length} traveller review{reviews.length === 1 ? "" : "s"}</p></div></div>}
           <div className="grid gap-4 sm:grid-cols-2">
             {reviews.map((review) => (
               <article key={review.id} className="min-w-0 rounded-cmt-md border border-cmt-neutral-200 p-5">
@@ -124,7 +179,7 @@ export default function PackagePageSections({ value, area = "all" }: { value: Pa
                   {Array.from({ length: 5 }, (_, index) => <Star key={index} className={`size-4 ${index < review.rating ? "fill-current" : "text-cmt-neutral-200"}`} aria-hidden="true" />)}
                 </div>
                 <blockquote className={`mt-3 ${bodyClass}`}><InlineText value={review.text} path={["details", "pageSections", "reviews", "items", value.reviews.items.indexOf(review), "text"]} label="Review text" multiline /></blockquote>
-                <p className="mt-4 break-words text-sm font-semibold"><InlineText value={review.name} path={["details", "pageSections", "reviews", "items", value.reviews.items.indexOf(review), "name"]} label="Reviewer name" /></p>{editor && <div className="mt-2 text-xs">Rating: <InlineText value={review.rating} numeric path={["details", "pageSections", "reviews", "items", value.reviews.items.indexOf(review), "rating"]} label="Review rating" /><label><input type="checkbox" checked={review.visible} onChange={event => editor.change(["details", "pageSections", "reviews", "items", value.reviews.items.indexOf(review), "visible"], event.target.checked)} /> Show</label><EditAction kind="remove" label="Remove review" onClick={() => editor.change(["details", "pageSections", "reviews", "items"], value.reviews.items.filter(item => item !== review))} /></div>}
+                <p className="cmt-review-author mt-4 break-words text-sm font-semibold"><span aria-hidden="true">{review.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("")}</span><InlineText value={review.name} path={["details", "pageSections", "reviews", "items", value.reviews.items.indexOf(review), "name"]} label="Reviewer name" /></p>{editor && <div className="mt-2 text-xs">Rating: <InlineText value={review.rating} numeric path={["details", "pageSections", "reviews", "items", value.reviews.items.indexOf(review), "rating"]} label="Review rating" /><label><input type="checkbox" checked={review.visible} onChange={event => editor.change(["details", "pageSections", "reviews", "items", value.reviews.items.indexOf(review), "visible"], event.target.checked)} /> Show</label><EditAction kind="remove" label="Remove review" onClick={() => editor.change(["details", "pageSections", "reviews", "items"], value.reviews.items.filter(item => item !== review))} /></div>}
               </article>
             ))}
           </div>

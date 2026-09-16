@@ -7,10 +7,8 @@ import { TREK_GRADE_LABELS, trekGrade } from "@/lib/weekendTracks";
 /* ------------------------------------------------------------------ */
 /* Difficulty badge for a package card.                                 */
 /*                                                                      */
-/* Renders nothing unless the package is a weekend trek, so it can sit   */
-/* unconditionally in the badge slot of any card. Own client component   */
-/* rather than a prop on the card: the grade comes from the live site     */
-/* content, and the cards themselves stay server-rendered.               */
+/* Uses the package's saved difficulty. Older weekend-trek packages fall */
+/* back to the site catalogue; an explicit 0 hides the badge.             */
 /*                                                                      */
 /* Three bars plus the word, matching the weekend-treks section — never   */
 /* colour or shape alone (design.md §17.5).                              */

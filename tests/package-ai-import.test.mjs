@@ -23,6 +23,26 @@ const editor = load('src/app/admin/packages/catalogueEditorState.ts', { '@/lib/p
 const { packageAiPrompt: prompt, PACKAGE_IMPORT_EXAMPLE: example } = load('src/lib/packageAiPrompt.ts', { './packageAiImport': importer });
 const clone = value => JSON.parse(JSON.stringify(value));
 
+test('booking card import accepts explicit difficulty and text, rejects invalid grades, and supports older files', () => {
+  const file = clone(example);
+  Object.assign(file.product, { trekGrade: 3, bookingLabel: 'Mountain trek', availabilityNote: 'Permits required', quoteNote: '' });
+  const form = apply(current(), parse(JSON.stringify(file)));
+  assert.equal(form.trekGrade, 3);
+  assert.equal(form.bookingLabel, 'Mountain trek');
+  assert.equal(form.availabilityNote, 'Permits required');
+  assert.equal(form.quoteNote, '');
+  for (const grade of [-1, 4, 1.5, 'Easy', null]) {
+    file.product.trekGrade = grade;
+    assert.throws(() => parse(JSON.stringify(file)), /trekGrade/);
+  }
+  for (const key of ['trekGrade', 'bookingLabel', 'availabilityNote', 'quoteNote']) delete file.product[key];
+  const legacy = apply({ ...current(), trekGrade: 2, availabilityNote: 'Keep existing note' }, parse(JSON.stringify(file)));
+  assert.equal(legacy.trekGrade, 2);
+  assert.equal(legacy.availabilityNote, 'Keep existing note');
+  file.product.quoteNote = false;
+  assert.throws(() => parse(JSON.stringify(file)), /quoteNote/);
+});
+
 // Adapt the already verified PDF fixtures to the content-only wire format.
 function conform(value, definition) {
   if (definition.type === 'object') return Object.fromEntries(Object.entries(definition.properties).map(([key, child]) => [key, conform(value?.[key], child)]));

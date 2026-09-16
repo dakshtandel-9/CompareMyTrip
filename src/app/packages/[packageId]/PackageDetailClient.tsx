@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
-import { ArrowLeft, Car, Check, ChevronDown, MapPin, ShieldCheck, Star, X } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ArrowLeft, Check, ChevronDown, MapPin, ShieldCheck, Star, X } from "lucide-react";
 import { getDiscountPercent, getPackageDetails, getPackageItinerary } from "@/lib/packageData";
 import { getPackageFacts } from "@/lib/packageFacts";
 import { getPackagePageSections, isVisiblePackageSection } from "@/lib/packageDetailSections";
 import PackageFactsBar from "../_components/PackageFactsBar";
 import { InlineText, EditableGallery, EditorOnly, EditAction, usePackageEditing } from "../_components/PackageInlineEditing";
 import styles from "../_components/SimplePackagePage.module.css";
-import PackagePageSections, { getVisiblePackageReviews } from "../_components/PackagePageSections";
+import PackagePageSections, { getVisiblePackageReviews, PackageDescription, PracticalSection } from "../_components/PackagePageSections";
 import PackageShareButton from "../_components/PackageShareButton";
 import ItineraryDownloadButton from "../_components/ItineraryDownloadButton";
 import CompareButton from "@/components/CompareButton";
@@ -114,7 +114,7 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
           </div>}
         </div>
         <div className="cmt-package-columns mt-7 grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_370px]">
-          <div className="min-w-0 space-y-6">
+          <div className="cmt-package-content min-w-0 space-y-6">
         <EditableGallery images={details.gallery} />
         <div className="cmt-package-intro mt-6 space-y-4">
           {(editor || pageSections.tagline?.trim()) && <p className="max-w-3xl whitespace-pre-wrap break-words text-lg leading-7 text-cmt-neutral-600"><InlineText value={pageSections.tagline ?? ""} path={["details", "pageSections", "tagline"]} label="Tagline" multiline /></p>}<div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><span className="inline-flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" /><InlineText value={pkg.location} path={["location"]} label="Destination / route" /></span>{reviewCount > 0 && reviewRating > 0 ? <span className="inline-flex items-center gap-1.5"><Star className="size-4 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" /><b className="text-cmt-neutral-900">{reviewRating}</b> {reviewCount} traveller review{reviewCount === 1 ? "" : "s"}</span> : <span className="text-cmt-neutral-500">Newly listed &middot; no traveller reviews yet</span>}</div>
@@ -123,14 +123,12 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
 
         {pageSections.snapshotPlacement !== "about" && <PackageFactsBar facts={facts} permitRequired={details.permitRequired} permitHidden={details.permitHidden} className="mt-6" />}
 
-        {navigation.length > 0 && <nav aria-label="Trip sections" className="sticky top-20 z-20 mt-7 flex max-w-full gap-1 overflow-x-auto rounded-cmt-control border border-cmt-neutral-200 bg-white/95 p-2 shadow-cmt-xs backdrop-blur">
-          {navigation.map((item) => <a key={item.id} href={`#${item.id}`} className="inline-flex min-h-11 shrink-0 items-center rounded-cmt-control px-4 text-xs font-semibold text-cmt-neutral-600 transition-colors hover:bg-cmt-primary-50 hover:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-cmt-primary-700">{item.label}</a>)}
-        </nav>}
+        {navigation.length > 0 && <TripSectionNavigation items={navigation} />}
 
 
             {pageSections.snapshotPlacement === "about" && (editor || facts.length > 0) && <div><h2 className="mb-4 font-display text-2xl font-semibold">Trip snapshot</h2><PackageFactsBar facts={facts} permitRequired={details.permitRequired} permitHidden={details.permitHidden} /></div>}
             {showAbout && <Section id="package-about" title="About this trip" eyebrow="THE EXPERIENCE">
-              <p className="whitespace-pre-wrap break-words text-sm leading-7 text-cmt-neutral-600"><InlineText value={details.summary} path={["details", "summary"]} label="About this trip" multiline /></p>
+              <PackageDescription value={details.summary} path={["details", "summary"]} label="About this trip" />
               {editor ? <p className="mt-4 text-sm text-cmt-neutral-500"><InlineText value={details.places.join(", ")} path={["details", "places"]} label="Places (separate with commas)" /></p> : details.places.length > 0 && <div className="mt-5 flex flex-wrap gap-2">{details.places.map((place, index) => <span key={`${place}-${index}`} className="rounded-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-3 py-1.5 text-xs font-semibold"><MapPin className="mr-1 inline size-3.5 text-cmt-primary-700" aria-hidden="true" />{place}</span>)}</div>}
             </Section>}
             <PackagePageSections value={pageSections} area="overview" />
@@ -148,7 +146,7 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
                 </summary>
                 <div className="border-t border-cmt-neutral-100 px-4 py-5 text-sm leading-7 text-cmt-neutral-600 sm:px-6">
                   {(editor || day.description.trim()) && <p className="whitespace-pre-wrap break-words"><InlineText value={day.description} path={["details", "itinerary", details.itinerary.indexOf(day), "description"]} label={`Day ${day.day} description`} multiline /></p>}
-                  {(editor ? day.activities?.length : day.activities?.some((activity) => activity.title.trim())) && <ol className="mt-5 space-y-5 border-l-2 border-cmt-primary-100 pl-5">{(day.activities ?? []).filter((activity) => editor || activity.title.trim()).map((activity, activityIndex) => <li key={activityIndex} className="relative"><span className="absolute -left-[27px] top-2 size-3 rounded-full border-2 border-white bg-cmt-primary-500" aria-hidden="true" />{(editor || activity.time) && <p className="text-xs font-semibold text-cmt-primary-800"><InlineText value={activity.time} path={["details", "itinerary", details.itinerary.indexOf(day), "activities", activityIndex, "time"]} label="Activity time" /></p>}<h3 className="break-words font-semibold text-cmt-neutral-900"><InlineText value={activity.title} path={["details", "itinerary", details.itinerary.indexOf(day), "activities", activityIndex, "title"]} label="Activity title" /></h3>{(editor || activity.description) && <><p className="mt-1 whitespace-pre-wrap break-words"><InlineText value={activity.description} path={["details", "itinerary", details.itinerary.indexOf(day), "activities", activityIndex, "description"]} label="Activity description" multiline /></p><EditAction kind="remove" label="Remove activity" onClick={() => editor?.change(["details", "itinerary", details.itinerary.indexOf(day), "activities"], day.activities?.filter((_, i) => i !== activityIndex))} /></>}</li>)}</ol>}
+                  {(editor ? day.activities?.length : day.activities?.some((activity) => activity.title.trim())) && <ol className="mt-5 space-y-5 border-l-2 border-cmt-primary-100 pl-5">{(day.activities ?? []).filter((activity) => editor || activity.title.trim()).map((activity, activityIndex) => <li key={activityIndex} className="relative"><span className="absolute -left-[27px] top-2 size-3 rounded-full border-2 border-white bg-cmt-primary-500" aria-hidden="true" />{(editor || activity.time) && <p className="cmt-activity-time text-xs font-semibold text-cmt-primary-800"><InlineText value={activity.time} path={["details", "itinerary", details.itinerary.indexOf(day), "activities", activityIndex, "time"]} label="Activity time" /></p>}<h3 className="break-words font-semibold text-cmt-neutral-900"><InlineText value={activity.title} path={["details", "itinerary", details.itinerary.indexOf(day), "activities", activityIndex, "title"]} label="Activity title" /></h3>{(editor || activity.description) && <><p className="mt-1 whitespace-pre-wrap break-words"><InlineText value={activity.description} path={["details", "itinerary", details.itinerary.indexOf(day), "activities", activityIndex, "description"]} label="Activity description" multiline /></p><EditAction kind="remove" label="Remove activity" onClick={() => editor?.change(["details", "itinerary", details.itinerary.indexOf(day), "activities"], day.activities?.filter((_, i) => i !== activityIndex))} /></>}</li>)}</ol>}
                   <EditAction label="Add activity" onClick={() => editor?.change(["details", "itinerary", details.itinerary.indexOf(day), "activities"], [...(day.activities ?? []), { time: "", title: "New activity", description: "" }])} /><EditAction kind="remove" label={`Remove Day ${day.day}`} onClick={() => editor?.change(["details", "itinerary"], details.itinerary.filter(item => item !== day))} />
                   {(editor || day.meals.trim()) && <p className="mt-4 text-xs font-semibold text-cmt-neutral-900">Meals: <InlineText value={day.meals} path={["details", "itinerary", details.itinerary.indexOf(day), "meals"]} label={`Day ${day.day} meals`} /></p>}
                 </div>
@@ -167,19 +165,19 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
               <EditAction label="Add stay" onClick={() => editor?.change(["details", "stays"], [...details.stays, { name: "New stay", place: "", nights: 1, comfort: "" }])} />
               {(editor || pageSections.stayNote?.trim()) && <Note><InlineText value={pageSections.stayNote ?? ""} path={["details", "pageSections", "stayNote"]} label="stayNote" multiline /></Note>}
             </Section>}
-            {showTransfers && <Section id="package-transfers" title="Transfers"><div className="flex gap-3"><Car className="mt-1 size-6 shrink-0 text-cmt-primary-700" aria-hidden="true" /><p className="whitespace-pre-wrap break-words text-sm leading-7 text-cmt-neutral-600"><InlineText value={details.transfers} path={["details", "transfers"]} label="Transfers" multiline /></p></div></Section>}
+            {showTransfers && <PracticalSection id="package-transfers" title="Transfers" kind="transfers"><PackageDescription value={details.transfers} path={["details", "transfers"]} label="Transfers" easyEdit />{editor && <button type="button" disabled={editor.disabled} className="mt-4 text-xs underline" onClick={() => editor.change(["details", "pageSections", "hiddenSections"], hiddenSections.has("transfers") ? pageSections.hiddenSections.filter(id => id !== "transfers") : [...pageSections.hiddenSections, "transfers"])}>{hiddenSections.has("transfers") ? "Hidden on website · Show section" : "Hide section"}</button>}</PracticalSection>}
             <PackagePageSections value={pageSections} area="transfers" />
             <PackagePageSections value={pageSections} area="carry" />
             <PackagePageSections value={pageSections} area="guidelines" />
             <PackagePageSections value={pageSections} area="practical" />
             <PackagePageSections value={pageSections} area="locations" />
-            {(showInclusions || showExclusions) && <div>
+            {(showInclusions || showExclusions) && <div className="cmt-package-coverage">
               <div className={`grid gap-6 ${showInclusions && showExclusions ? "sm:grid-cols-2" : ""}`}>{showInclusions && <ListSection id="package-inclusions" title="Included" items={details.inclusions} path="inclusions" positive />}{showExclusions && <ListSection id="package-exclusions" title="Not included" items={details.exclusions} path="exclusions" />}</div>
               {(editor || pageSections.inclusionNote?.trim()) && <Note><InlineText value={pageSections.inclusionNote ?? ""} path={["details", "pageSections", "inclusionNote"]} label="inclusionNote" multiline /></Note>}
             </div>}
             <PackagePageSections value={pageSections} area="faq" />
             <PackagePageSections value={pageSections} area="reviews" />
-            {(editor || !hiddenSections.has("cancellation") && details.cancellationPolicy.trim()) && <Section id="package-policy" title="Cancellation policy"><div className="flex gap-3 rounded-cmt-control bg-cmt-success-100 p-4"><ShieldCheck className="size-5 shrink-0 text-cmt-success-700" aria-hidden="true" /><p className="whitespace-pre-wrap break-words text-sm leading-6 text-cmt-neutral-700"><InlineText value={details.cancellationPolicy} path={["details", "cancellationPolicy"]} label="Cancellation policy" multiline /></p></div></Section>}
+            {(editor || !hiddenSections.has("cancellation") && details.cancellationPolicy.trim()) && <Section id="package-policy" title="Cancellation policy"><div className="cmt-policy-note flex gap-3 rounded-cmt-control p-4"><ShieldCheck className="size-5 shrink-0 text-cmt-success-700" aria-hidden="true" /><PackageDescription value={details.cancellationPolicy} path={["details", "cancellationPolicy"]} label="Cancellation policy" /></div></Section>}
             <PackagePageSections value={pageSections} area="extras" />
 
           </div>
@@ -218,6 +216,70 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
       {quoteOpen ? <QuoteModal pkg={pkg} initialTravellers={travellers} initialTravelDate={travelDate} onClose={() => setQuoteOpen(false)} /> : null}
     </PageRoot>
   );
+}
+
+function TripSectionNavigation({ items }: { items: { id: string; label: string }[] }) {
+  const [active, setActive] = useState(items[0]?.id);
+  const menu = useRef<HTMLDetailsElement>(null);
+  const ids = items.map(item => item.id).join(",");
+  const primaryIds = new Set(["package-about", "package-highlights", "package-itinerary", "package-reviews"]);
+  const primary = items.filter(item => primaryIds.has(item.id));
+  const more = items.filter(item => !primaryIds.has(item.id));
+
+  useEffect(() => {
+    const sections = ids.split(",").map(id => document.getElementById(id)).filter((element): element is HTMLElement => Boolean(element));
+    let frame = 0;
+    const update = () => {
+      const threshold = (sections[0] ? parseFloat(window.getComputedStyle(sections[0]).scrollMarginTop) || 128 : 128) + 1;
+      let current = sections[0]?.id;
+      for (const section of sections) {
+        if (section.getBoundingClientRect().top <= threshold) current = section.id;
+      }
+      setActive(current);
+      frame = 0;
+    };
+    const onScroll = () => { if (!frame) frame = window.requestAnimationFrame(update); };
+    const onPointerDown = (event: PointerEvent) => {
+      if (menu.current && !menu.current.contains(event.target as Node)) menu.current.open = false;
+    };
+    const revealHash = () => {
+      let id: string;
+      try { id = decodeURIComponent(window.location.hash.slice(1)); } catch { return; }
+      const section = sections.find(section => section.id === id);
+      const disclosure = section?.querySelector<HTMLDetailsElement>(":scope > .cmt-practical-disclosure");
+      if (disclosure) disclosure.open = true;
+    };
+    revealHash();
+    update();
+    window.addEventListener("hashchange", revealHash);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("hashchange", revealHash);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [ids]);
+
+  const link = (item: { id: string; label: string }) => <a key={item.id} href={`#${item.id}`} aria-current={active === item.id ? "location" : undefined} onClick={() => {
+    const disclosure = document.getElementById(item.id)?.querySelector<HTMLDetailsElement>(":scope > .cmt-practical-disclosure");
+    if (disclosure) disclosure.open = true;
+    setActive(item.id);
+    if (menu.current) menu.current.open = false;
+  }}>{item.label}</a>;
+  return <nav aria-label="Trip sections" onKeyDown={event => {
+    if (event.key === "Escape" && menu.current?.open) {
+      menu.current.open = false;
+      menu.current.querySelector("summary")?.focus();
+    }
+  }}>
+    {primary.length > 0 && <div className="cmt-trip-primary-links">{primary.map(link)}</div>}
+    {more.length > 0 && <details ref={menu} className="cmt-trip-more" data-active={more.some(item => item.id === active) || undefined}>
+      <summary>More details <ChevronDown className="size-4" aria-hidden="true" /></summary>
+      <div className="cmt-trip-menu">{more.map(link)}</div>
+    </details>}
+  </nav>;
 }
 
 function Section({ id, title, eyebrow, children }: { id?: string; title: string; eyebrow?: string; children: React.ReactNode }) {

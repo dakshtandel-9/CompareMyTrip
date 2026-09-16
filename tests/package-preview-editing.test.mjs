@@ -20,7 +20,82 @@ const facts = load('src/lib/packageFacts.ts', { '@/lib/packageData': data });
 const changes = load('src/lib/packagePreviewEditing.ts');
 const model = load('src/app/admin/packages/packageFormModel.ts', { '@/lib/packageData': data, '@/lib/packageFacts': facts, '@/lib/packageDetailSections': sections, '@/lib/packagePreviewEditing': changes });
 const { formFromPackage, packageFromForm, applyPackagePreviewChange: edit } = model;
+
+test('section text upload stages content, applies explicitly, and rejects unsupported or oversized files', async () => {
+  let cursor = 0; const slots = []; const applied = [];
+  const hooks = { ...React, useId: () => 'section-content', useState(initial) {
+    const i = cursor++; if (!(i in slots)) slots[i] = initial;
+    return [slots[i], value => { slots[i] = value; }];
+  } };
+  const { default: TextEditor } = load('src/app/packages/_components/PackageSectionTextEditor.tsx', {
+    react: hooks, 'react/jsx-runtime': jsx,
+    './PackageInlineEditing': { usePackageEditing: () => ({ disabled: false, change: (...args) => applied.push(args) }) },
+  });
+  const path = ['details', 'transfers'];
+  const render = () => { cursor = 0; return TextEditor({ value: 'Original', path, label: 'Transfers' }); };
+  const nodes = node => !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(nodes) : [node, ...nodes(node.props?.children)];
+  const input = () => nodes(render()).find(node => node.type === 'input');
+  const textarea = () => nodes(render()).find(node => node.type === 'textarea');
+  const button = label => nodes(render()).find(node => node.type === 'button' && node.props.children === label);
+  textarea().props.onChange({ target: { value: 'Pasted copy' } });
+  assert.equal(applied.length, 0);
+  button('Reset text').props.onClick();
+  assert.equal(textarea().props.value, 'Original');
+  await input().props.onChange({ target: { files: [{ name: 'guidelines.md', size: 40, text: async () => '\uFEFF[Safety]\r\n- Carry water' }], value: 'guidelines.md' } });
+  assert.equal(textarea().props.value, '[Safety]\n- Carry water');
+  assert.equal(applied.length, 0);
+  button('Apply text').props.onClick();
+  assert.equal(applied[0][0], path);
+  assert.equal(applied[0][1], '[Safety]\n- Carry water');
+  let reads = 0;
+  for (const file of [{ name: 'guide.pdf', size: 20 }, { name: 'guide.txt', size: 100001 }]) {
+    await input().props.onChange({ target: { files: [{ ...file, text: async () => { reads++; return 'Invalid'; } }], value: file.name } });
+    assert.equal(textarea().props.value, '[Safety]\n- Carry water');
+  }
+  assert.equal(reads, 0);
+  await input().props.onChange({ target: { files: [{ name: 'guide.txt', size: 10, text: async () => { throw new Error('Read error'); } }], value: 'guide.txt' } });
+  assert.match(nodes(render()).find(node => node.props?.role === 'status').props.children, /could not be read/);
+  textarea().props.onChange({ target: { value: '' } });
+  button('Apply text').props.onClick();
+  assert.equal(applied[1][1], '');
+});
 const fixture = () => JSON.parse(fs.readFileSync('content/package-imports/skandagiri-sunrise-trek-from-bangalore.json', 'utf8'));
+
+test('booking card edits survive saving, reopening and unrelated preview changes', () => {
+  const pkg = fixture();
+  let form = formFromPackage(pkg);
+  form = edit(form, ['trekGrade'], 2, pkg);
+  for (const [field, value] of Object.entries({ bookingLabel: 'Guided trek', availabilityNote: 'Permit confirmation required', quoteNote: 'Our team will confirm your pickup.', flights: '' })) {
+    form = edit(form, ['details', field], value, pkg);
+  }
+  form = edit(form, ['departureDays'], [5, 6], pkg);
+  form = edit(form, ['title'], 'Updated trek', pkg);
+  const saved = JSON.parse(JSON.stringify(packageFromForm(form, pkg)));
+  const reopened = formFromPackage(saved);
+  assert.equal(reopened.trekGrade, 2);
+  assert.equal(saved.details.bookingLabel, 'Guided trek');
+  assert.equal(reopened.availabilityNote, 'Permit confirmation required');
+  assert.equal(reopened.quoteNote, 'Our team will confirm your pickup.');
+  assert.equal(reopened.flights, '');
+  assert.deepEqual(Array.from(reopened.departureDays), [5, 6]);
+  assert.equal(data.departureDaysLabel(saved), 'Fri & Sat only');
+  form = edit(reopened, ['trekGrade'], 0, pkg);
+  form = edit(form, ['details', 'availabilityNote'], '', pkg);
+  form = edit(form, ['details', 'quoteNote'], '', pkg);
+  const hidden = formFromPackage(JSON.parse(JSON.stringify(packageFromForm(form, pkg))));
+  assert.equal(hidden.trekGrade, 0);
+  assert.equal(hidden.availabilityNote, '');
+  assert.equal(hidden.quoteNote, '');
+  assert.equal(formFromPackage().trekGrade, 0);
+});
+
+test('legacy package booking fields stay unspecified until explicitly edited', () => {
+  const pkg = fixture();
+  const saved = packageFromForm(edit(formFromPackage(pkg), ['title'], 'Renamed trip', pkg), pkg);
+  assert.equal(saved.trekGrade, undefined);
+  assert.equal(saved.details.availabilityNote, undefined);
+  assert.equal(saved.details.quoteNote, undefined);
+});
 
 test('edits in the preview round-trip through the saved package shape while preserving other content', () => {
   const pkg = fixture(); const form = formFromPackage(pkg); const before = JSON.stringify(form);

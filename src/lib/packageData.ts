@@ -34,6 +34,10 @@ export type PackageStay = {
 };
 
 export type PackageDetails = {
+  /** Empty label uses the stay-based tier. Empty notes intentionally hide their text. */
+  bookingLabel?: string;
+  availabilityNote?: string;
+  quoteNote?: string;
   /** Optional content and visibility choices for this package's detail page. */
   pageSections?: PackagePageSections;
   /** Missing uses the six standard boxes; an empty list intentionally removes the bar. */
@@ -85,6 +89,8 @@ export type TravelPackage = {
   days: number;
   pax: string;
   hotelStars: number;
+  /** 0 hides difficulty; missing preserves the legacy weekend-trek grade. */
+  trekGrade?: 0 | 1 | 2 | 3;
   tags: PackageCategory[];
   region: "India" | "International";
   operator: string;
