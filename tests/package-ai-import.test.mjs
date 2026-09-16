@@ -11,7 +11,7 @@ function load(file, dependencies = {}) {
   const exports = {};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
-  }).outputText, { exports, URL, TextEncoder, require: name => { assert.ok(dependencies[name], name); return dependencies[name]; } });
+  }).outputText, { exports, URL, TextEncoder, Error, require: name => { assert.ok(dependencies[name], name); return dependencies[name]; } });
   return exports;
 }
 const data = load('src/lib/packageData.ts');
@@ -20,7 +20,7 @@ const names = JSON.parse(fs.readFileSync('src/lib/packageIconNames.json', 'utf8'
 const importer = load('src/lib/packageAiImport.ts', { './packageData': data, './packageDetailSections': sections, './packageIconNames.json': { default: names } });
 const { parsePackageImport: parse, applyPackageImport: apply, PACKAGE_IMPORT_SCHEMA: schema } = importer;
 const editor = load('src/app/admin/packages/catalogueEditorState.ts', { '@/lib/packageData': data, '@/lib/packageDetailSections': sections });
-const prompt = load('src/lib/packageAiPrompt.ts', { './packageAiImport': importer }).packageAiPrompt;
+const { packageAiPrompt: prompt, PACKAGE_IMPORT_EXAMPLE: example } = load('src/lib/packageAiPrompt.ts', { './packageAiImport': importer });
 const clone = value => JSON.parse(JSON.stringify(value));
 
 // Adapt the already verified PDF fixtures to the content-only wire format.
@@ -36,7 +36,7 @@ function fixture(trek = false) {
 }
 function current() {
   return {
-    gallery: ['/uploaded-cover.jpg'], operator: 'Existing partner', status: 'draft', deal: true,
+    gallery: ['/uploaded-cover.jpg'], operator: 'Existing partner', status: 'draft', deal: true, permitHidden: true,
     pageSections: { ...sections.defaultPackagePageSections(), gallery: { enabled: false, images: ['/hidden-photo.jpg'] } },
   };
 }
@@ -69,6 +69,7 @@ test('import leaves identity, publishing, operator and uploads under editor cont
   const before = JSON.stringify({ base, product });
   const form = apply(base, product);
   assert.equal(form.status, 'published'); assert.equal(form.operator, base.operator); assert.equal(form.deal, true);
+  assert.equal(form.permitHidden, true);
   assert.equal(form.gallery[0], '/uploaded-cover.jpg');
   assert.equal(form.pageSections.locations.items[0].image, '/airport.jpg');
   assert.ok(form.pageSections.gallery.images.includes('/hidden-photo.jpg'));
@@ -102,7 +103,6 @@ test('rejects non-product files, privileged fields, wrong types, invalid icons a
 });
 
 test('rejects truncated/oversized JSON and prototype keys, accepts UTF-8 BOM', () => {
-  assert.throws(() => parse('```json\n{}\n```'), /not valid JSON/);
   assert.throws(() => parse('{'), /not valid JSON/);
   assert.throws(() => parse(' '.repeat(1024 * 1024 + 1)), /1 MB/);
   assert.throws(() => parse(JSON.stringify([fixture()])), /object/);
@@ -110,6 +110,30 @@ test('rejects truncated/oversized JSON and prototype keys, accepts UTF-8 BOM', (
   assert.throws(() => parse(file), /unexpected field/);
   assert.equal({}.polluted, undefined);
   assert.equal(parse('\uFEFF' + JSON.stringify(fixture())).title, fixture().product.title);
+});
+
+test('accepts a single complete ChatGPT JSON code block without relaxing content validation', () => {
+  const file = fixture();
+  for (const language of ['json', 'JSON', '']) {
+    const block = `\uFEFF  \n\x60\x60\x60${language}\r\n${JSON.stringify(file, null, 2)}\r\n\x60\x60\x60\n `;
+    assert.equal(parse(block).title, file.product.title);
+  }
+  const block = `\x60\x60\x60json\n${JSON.stringify(file)}\n\x60\x60\x60`;
+  for (const invalid of [`Here is your package:\n${block}`, `${block}\n${block}`, block.slice(0, -3)]) {
+    assert.throws(() => parse(invalid), /not valid JSON/);
+  }
+  file.product.price = '5000';
+  assert.throws(() => parse(`\x60\x60\x60json\n${JSON.stringify(file)}\n\x60\x60\x60`), /product.price: must be a number/);
+});
+
+test('explains schema documents, missing envelopes and the exact missing field', () => {
+  for (const document of [schema, { $schema: 'https://json-schema.org/draft/2020-12/schema', ...schema }]) {
+    assert.throws(() => parse(JSON.stringify(document)), /contains a JSON Schema, not package data/);
+  }
+  assert.throws(() => parse(JSON.stringify(fixture().product)), /missing its file wrapper/);
+  const file = fixture();
+  delete file.product.pageSections.itineraryNote;
+  assert.throws(() => parse(JSON.stringify(file)), /file.product.pageSections.itineraryNote/);
 });
 
 test('day zero is explicit and itinerary days must be unique, continuous and match duration', () => {
@@ -161,6 +185,18 @@ test('copied prompt contains exactly the importer schema and asks questions befo
   const embedded = JSON.parse(text.split('EXACT JSON SCHEMA (all objects disallow extra fields):\n')[1].split('\n\nNow read')[0]);
   delete embedded.$schema;
   assert.equal(JSON.stringify(embedded), JSON.stringify(schema));
+  assert.match(text, /Return actual package data, NOT a JSON Schema/);
+  assert.match(text, /unique tags, departure weekdays and IDs/);
+});
+
+test('complete example in the copied prompt passes the actual importer and editor validation', () => {
+  const text = prompt();
+  const start = text.indexOf('\n{\n', text.indexOf('COMPLETE EXAMPLE DATA FILE'));
+  const embedded = JSON.parse(text.slice(start, text.indexOf('\n\nFINAL CHECK', start)));
+  assert.deepEqual(embedded, clone(example));
+  const product = parse(JSON.stringify(embedded));
+  assert.equal(editor.packageValidationIssue(apply(current(), product)), null);
+  assert.equal(product.itinerary.length, product.days);
 });
 
 // Exercise the upload/preview/apply event handlers without browser extension access.
@@ -228,4 +264,14 @@ test('file size and extension are checked before reading file content', async ()
   assert.match(ui.find(node => node.props?.role === 'alert').props.children, /PDFs belong in ChatGPT/);
   await ui.upload({ name: 'trip.json', size: 1024 * 1024 + 1, text });
   assert.match(ui.find(node => node.props?.role === 'alert').props.children, /1 MB/);
+});
+
+test('upload accepts ChatGPT code blocks and shows actionable errors for schema files', async () => {
+  const ui = importerHarness(() => assert.fail('must not apply automatically')); ui.render();
+  await ui.upload({ name: 'package-import.json', size: 10000, text: async () => `\x60\x60\x60json\n${JSON.stringify(example)}\n\x60\x60\x60` });
+  assert.ok(ui.find(node => node.type === 'button' && node.props.children === 'Apply to this product'));
+  await ui.upload({ name: 'schema.json', size: 10000, text: async () => JSON.stringify(schema) });
+  assert.match(ui.find(node => node.props?.role === 'alert').props.children, /contains a JSON Schema, not package data/);
+  assert.equal(ui.find(node => node.type === 'button' && node.props.children === 'Apply to this product'), undefined);
+  assert.ok(ui.find(node => node.type === 'p' && typeof node.props.children === 'string' && node.props.children.includes('Paste this error')));
 });

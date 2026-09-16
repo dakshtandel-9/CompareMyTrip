@@ -5,7 +5,7 @@ Open **Admin → Travel packages → Create package** (or edit a package). Expan
 1. Copy the AI prompt. A downloadable `.txt` and a selectable prompt are also available.
 2. Paste the prompt into ChatGPT with one package PDF or your trip information.
 3. The prompt asks ChatGPT to clarify missing or conflicting details before generating JSON. If supported, it also creates a clarification PDF. Complete input goes directly to JSON. Images are added later.
-4. Upload the resulting `.json` file (maximum 1 MB). Check the preview and select **Apply to this product**.
+4. Upload the resulting `package-import.json` data file (maximum 1 MB). If ChatGPT cannot create a download, save its complete JSON code block as a `.json` file; a single enclosing Markdown code fence is accepted. Check the preview and select **Apply to this product**.
 5. Upload photos and click text in the populated page preview to edit it. Click outside to apply an edit, press Escape to cancel, or use Undo. Review with **View as traveller**, then use the top-bar Draft/Published choice and **Save package**.
 
 Importing fills the local editor. It does not save, publish, call an AI service or write other CMS records. Existing photos, operator, deal flag, product identity and publication choice remain under the editor's control. Product text, prices, itinerary, facts, custom sections, locations and supplied reviews are replaced. A location photo is reused when its type, name and address match; other existing location photos are retained in the optional gallery.
@@ -14,7 +14,9 @@ Importing fills the local editor. It does not save, publish, call an AI service 
 
 The envelope is `{ "kind": "comparemytrip.product", "version": 1, "product": { ... } }`.
 
-The complete, versioned schema is exported as `PACKAGE_IMPORT_SCHEMA` in `src/lib/packageAiImport.ts` and embedded directly into the copied prompt. Every declared property is required; optional content uses empty strings, arrays and disabled sections. Unknown fields, bulk imports, image URLs, product IDs and publication flags are rejected. This is different from the internal full-package files under `content/package-imports`, which are used by the reference-package seed script.
+The complete, versioned schema is exported as `PACKAGE_IMPORT_SCHEMA` in `src/lib/packageAiImport.ts` and embedded directly into the copied prompt in compact JSON. The prompt also includes a complete fictional data example, tested against the importer and editor, and a checklist for constraints such as matching itinerary days. ChatGPT must return populated package data, not the reference schema. Every declared property is required; optional content uses empty strings, arrays and disabled sections. Unknown fields, bulk imports, image URLs, product IDs and publication flags are rejected. This is different from the internal full-package files under `content/package-imports`, which are used by the reference-package seed script.
+
+If an upload fails, the error identifies the invalid field or explains when a schema document or unwrapped product was supplied. Paste the error into the same ChatGPT conversation with the current prompt to request a corrected data file. Surrounding prose, multiple code blocks and malformed JSON are rejected; code fences do not bypass content validation.
 
 Day 0 is explicit and additional to the trip's numbered days. Prices are INR per person. Both prices may be zero only for an intentionally unpriced draft; existing publishing validation still requires a price. Reviews must come from the source.
 

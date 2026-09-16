@@ -47,7 +47,7 @@ const productSchema = object({
 
 export const PACKAGE_IMPORT_SCHEMA = object({ kind: choice(["comparemytrip.product"]), version: { type: "integer", enum: [1] }, product: productSchema });
 
-type Replaced = "gallery" | "operator" | "deal" | "status" | "nights" | "days" | "hotelStars" | "price" | "originalPrice" | "discount" | "places" | "highlights" | "inclusions" | "exclusions" | "pageSections";
+type Replaced = "gallery" | "operator" | "deal" | "status" | "permitHidden" | "nights" | "days" | "hotelStars" | "price" | "originalPrice" | "discount" | "places" | "highlights" | "inclusions" | "exclusions" | "pageSections";
 export type ImportedProduct = Omit<PackageForm, Replaced> & {
   nights: number; days: number; hotelStars: number; price: number; originalPrice: number;
   places: string[]; highlights: string[]; inclusions: string[]; exclusions: string[];
@@ -64,7 +64,7 @@ function validate(value: unknown, schema: Schema, path: string): void {
     const record = value as Record<string, unknown>;
     for (const key of Object.keys(record)) if (!Object.hasOwn(schema.properties!, key)) fail(`unexpected field “${key}”. Use the product prompt format.`);
     for (const key of schema.required!) {
-      if (!Object.hasOwn(record, key)) fail(`missing field “${key}”.`);
+      if (!Object.hasOwn(record, key)) fail(`missing field “${key}” (${path}.${key}). Keep every property from the prompt, including empty optional content.`);
       validate(record[key], schema.properties![key], `${path}.${key}`);
     }
   } else if (schema.type === "array") {
@@ -88,8 +88,21 @@ function unique(values: (string | number)[], path: string) {
 
 export function parsePackageImport(text: string): ImportedProduct {
   if (new TextEncoder().encode(text).length > PACKAGE_IMPORT_MAX_BYTES) throw new Error("Choose a JSON file smaller than 1 MB.");
+  // Accept a single complete code block saved from ChatGPT's fallback response.
+  // Keep surrounding prose, multiple blocks and malformed JSON as errors.
+  const trimmed = text.replace(/^\uFEFF/, "").trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*\r?\n([\s\S]*?)\r?\n```$/i);
   let data: unknown;
-  try { data = JSON.parse(text.replace(/^\uFEFF/, "")); } catch { throw new Error("This file is not valid JSON. Upload the .json file from ChatGPT, without Markdown fences."); }
+  try { data = JSON.parse(fenced ? fenced[1] : trimmed); } catch { throw new Error("This file is not valid JSON. Download package-import.json from ChatGPT or save only its complete JSON code block, without surrounding explanation."); }
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    const record = data as Record<string, unknown>;
+    if (!Object.hasOwn(record, "product") && (Object.hasOwn(record, "$schema") || (record.type === "object" && Object.hasOwn(record, "properties")))) {
+      throw new Error("This file contains a JSON Schema, not package data. Ask ChatGPT to fill the prompt's example with your trip details and return package-import.json with kind, version and product.");
+    }
+    if (!Object.hasOwn(record, "product") && Object.hasOwn(record, "title")) {
+      throw new Error('The package is missing its file wrapper. Ask ChatGPT to return {"kind":"comparemytrip.product","version":1,"product":{...your package fields...}} using the copied prompt.');
+    }
+  }
   validate(data, PACKAGE_IMPORT_SCHEMA, "file");
   const product = (data as { product: ImportedProduct }).product;
   if (product.originalPrice < product.price) throw new Error("product.originalPrice: must be at least the selling price.");

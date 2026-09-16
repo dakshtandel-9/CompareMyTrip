@@ -56,7 +56,7 @@ export default function PackageAiImporter({ disabled, onApply }: { disabled: boo
     </div>
     <ol className="my-5 grid list-inside list-decimal gap-3 text-sm text-cmt-neutral-700 sm:grid-cols-3">
       <li>Copy the prompt into ChatGPT and add your PDF or information.</li>
-      <li>Answer any questions, then download the JSON from ChatGPT.</li>
+      <li>Answer any questions, then download package-import.json with your package details.</li>
       <li>Upload it here, review the details and add your photos.</li>
     </ol>
     <div className="flex flex-wrap gap-2">
@@ -68,7 +68,7 @@ export default function PackageAiImporter({ disabled, onApply }: { disabled: boo
     </div>
     {showPrompt && <label className="mt-4 block text-sm font-semibold">Prompt to copy<textarea readOnly value={packageAiPrompt()} onFocus={event => event.target.select()} className="mt-2 h-64 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white p-3 font-mono text-xs font-normal" /></label>}
     {notice && <p role="status" className="mt-3 text-sm text-cmt-neutral-700">{notice}</p>}
-    {error && <p role="alert" className="mt-4 rounded-cmt-control bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+    {error && <div className="mt-4 rounded-cmt-control bg-red-50 p-3 text-sm text-red-800"><p role="alert">{error}</p><p className="mt-2">Paste this error into the same ChatGPT conversation and ask for a corrected package-import.json using the latest prompt above.</p></div>}
     {pending && <div className="mt-5 rounded-cmt-control border border-cmt-neutral-200 bg-white p-4">
       <p className="flex items-center gap-2 text-xs font-semibold text-cmt-neutral-500"><FileJson className="size-4" />Ready to import · {filename}</p>
       <h3 className="mt-2 text-lg font-semibold">{pending.title}</h3>
