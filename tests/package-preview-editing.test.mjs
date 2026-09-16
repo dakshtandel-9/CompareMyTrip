@@ -153,3 +153,16 @@ test('admin Save uses edited preview data, keeps identity and images, and Undo r
   assert.equal(saved[0].status, 'draft'); assert.equal(saved[0].image, pkg.image);
   assert.equal(messages.length, 1);
 });
+
+test('catalogue assignment and operator edits survive save and reopen', () => {
+  const pkg = fixture();
+  let form = formFromPackage(pkg);
+  form = edit(form, ['destination'], 'Thailand', pkg);
+  form = edit(form, ['region'], 'International', pkg);
+  form = edit(form, ['operator'], 'Local Travel Partner', pkg);
+  const reopened = formFromPackage(packageFromForm(form, pkg));
+  assert.equal(reopened.destination, 'Thailand');
+  assert.equal(reopened.region, 'International');
+  assert.equal(reopened.operator, 'Local Travel Partner');
+  assert.equal(packageFromForm(formFromPackage()).rating, 0);
+});

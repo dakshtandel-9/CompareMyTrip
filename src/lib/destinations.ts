@@ -118,3 +118,22 @@ export function packagesForDestination(
     return (pkg.region === "India" ? toIndiaState(filed) : filed) === name;
   });
 }
+
+/** Include reserved destinations only in admin; public pages require packages. */
+export function buildAdminDestinations(
+  packages: TravelPackage[],
+  covers: Record<string, string>,
+  records: { name: string; region: "India" | "International" }[],
+): DestinationSummary[] {
+  const destinations = buildDestinations(packages, covers);
+  for (const record of records) {
+    if (destinations.some(item => item.name.toLowerCase() === record.name.toLowerCase())) continue;
+    const cover = covers[record.name] ?? "";
+    destinations.push({ ...record, count: 0, fromPrice: 0, cover, image: cover, fallbackImage: "", styles: [], minDays: 0, maxDays: 0 });
+  }
+  return destinations.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function destinationPackageCreateHref(name: string, region: "India" | "International") {
+  return `/admin/packages?${new URLSearchParams({ create: "1", destination: name, region })}`;
+}

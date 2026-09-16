@@ -219,9 +219,8 @@ service cloud.firestore {
     }
 
     match /destinationCovers/{destinationId} {
-      // Cover artwork for the public destinations grid. The destinations
-      // themselves are derived from the package catalogue; this only holds
-      // the picture an admin picked for each card.
+      // Destination names reserved by admins and optional cover artwork.
+      // Public destination pages remain derived from published packages.
       allow read: if true;
       allow create, update, delete: if isAdmin();
     }

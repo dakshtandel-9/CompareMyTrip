@@ -156,7 +156,7 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
               <EditAction label="Add day" onClick={() => editor?.change(["details", "itinerary"], [...details.itinerary, { day: Math.max(0, ...details.itinerary.map(day => day.day)) + 1, title: "New day", route: "", description: "", meals: "", activities: [] }])} />
               {(editor || pageSections.itineraryNote?.trim()) && <Note><InlineText value={pageSections.itineraryNote ?? ""} path={["details", "pageSections", "itineraryNote"]} label="itineraryNote" multiline /></Note>}
             </Section>}
-            {showStays && <Section id="package-stays" title="Hotels & accommodation">
+            {showStays && <Section id="package-stays" title="Stay and meal plan">
               <div className="space-y-5">{details.stays.map((stay, index) => <article key={index} className="min-w-0 border-b border-cmt-neutral-100 pb-5">
                 <h3 className="font-semibold"><InlineText value={stay.name} path={["details", "stays", index, "name"]} label="Stay name" /></h3>
                 <p className="mt-2 text-sm text-cmt-neutral-500"><InlineText value={stay.place} path={["details", "stays", index, "place"]} label="Stay location" /> · <InlineText value={stay.nights} numeric path={["details", "stays", index, "nights"]} label="Stay nights" /> nights</p>

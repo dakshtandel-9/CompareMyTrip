@@ -3,41 +3,38 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
-import { ArrowRight, Compass, ImageIcon, ImagePlus, MapPin, Search, Trash2 } from "lucide-react";
+import { ArrowRight, Compass, ImageIcon, ImagePlus, MapPin, Plus, Search, Trash2 } from "lucide-react";
 
-import { buildDestinations, durationLabel } from "@/lib/destinations";
+import { buildAdminDestinations, destinationPackageCreateHref, durationLabel } from "@/lib/destinations";
 import {
   clearDestinationCover,
+  createDestination,
   saveDestinationCover,
   uploadDestinationImage,
 } from "@/lib/firebase/destinations";
+import { toIndiaState } from "@/lib/indiaStates";
 import { deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
 import { useDestinationCoversState } from "@/lib/useDestinationCovers";
 import { useAllPackagesState } from "@/lib/usePackages";
-
-/* ------------------------------------------------------------------ */
-/* Destination cover artwork. The rows are exactly the destinations that */
-/* have packages — they cannot be created or deleted here, only dressed. */
-/* Uploads go through the same route, limits and compression as package  */
-/* photography, and each row saves the moment a file lands, so there is   */
-/* no draft window and no orphaned-image bookkeeping to do.              */
-/* ------------------------------------------------------------------ */
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
 export default function AdminDestinationsManager() {
   const authUser = useAuthUser();
   const { packages, loading: packagesLoading, error: packagesError } = useAllPackagesState();
-  const { covers, loading: coversLoading, error: coversError } = useDestinationCoversState();
+  const { covers, destinations: records, loading: coversLoading, error: coversError } = useDestinationCoversState();
 
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newRegion, setNewRegion] = useState<"India" | "International">("India");
   const [search, setSearch] = useState("");
   const [coverFilter, setCoverFilter] = useState("all");
   const [busyName, setBusyName] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  const destinations = useMemo(() => buildDestinations(packages, covers), [covers, packages]);
+  const destinations = useMemo(() => buildAdminDestinations(packages, covers, records), [covers, packages, records]);
 
   const visible = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -49,6 +46,22 @@ export default function AdminDestinationsManager() {
   const isLoading = authUser === undefined || (authUser !== null && (packagesLoading || coversLoading));
   const displayError =
     authUser === null ? "Sign in to your admin account to manage destinations." : error || coversError || packagesError;
+
+  const handleCreate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (busyName || isLoading || !authUser) return;
+    const name = newRegion === "India" ? toIndiaState(newName) : newName.trim();
+    setError(""); setMessage("");
+    if (!name) return setError("Enter a destination name.");
+    if (destinations.some(item => item.name.toLowerCase() === name.toLowerCase())) return setError(`${name} already exists. Use Add package on its row.`);
+    setBusyName(name);
+    try {
+      await createDestination(name, newRegion);
+      setCreating(false); setNewName(""); setSearch(""); setCoverFilter("all");
+      setMessage(`${name} created. Add a package to make it available to travellers.`);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "The destination could not be created."); }
+    finally { setBusyName(""); }
+  };
 
   /* Same guards as the package builder before anything leaves the browser. */
   const handleUpload = async (name: string, previousCover: string, files: FileList | null) => {
@@ -77,7 +90,7 @@ export default function AdminDestinationsManager() {
   };
 
   const handleClear = async (name: string, cover: string) => {
-    if (!window.confirm(`Remove the custom cover for ${name}? The card falls back to a package photo.`)) {
+    if (!window.confirm(`Remove the custom cover for ${name}? A package photo will be used when available.`)) {
       return;
     }
     setError("");
@@ -85,7 +98,7 @@ export default function AdminDestinationsManager() {
     setBusyName(name);
     try {
       await clearDestinationCover(name);
-      setMessage(`${name} is using a package photo again.`);
+      setMessage(`${name} cover removed. A package photo will be used when available.`);
       if (cover.startsWith("http")) {
         void deleteImageFromCloudflare(cover).catch(() => {});
       }
@@ -107,7 +120,7 @@ export default function AdminDestinationsManager() {
             Destinations
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-cmt-neutral-600">
-            Choose the destination photos travellers see on your website.
+            Create destinations, add packages and choose the photos travellers see.
             Upload a photo to update its cover immediately.
           </p>
         </div>
@@ -124,9 +137,17 @@ export default function AdminDestinationsManager() {
         </div>
       </header>
 
-      <div className="mt-6 grid gap-4 rounded-2xl border border-cmt-neutral-200 bg-white p-5 sm:grid-cols-[1fr_auto] sm:items-center">
-        <div><h2 className="text-sm font-semibold">Need to add a destination?</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-cmt-neutral-500">Create a package and choose its destination category. The destination appears automatically. Its name, trip count and starting price come from your packages.</p></div>
-        <Link href="/admin/packages" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-cmt-primary-500 px-4 text-sm font-semibold text-cmt-neutral-900">Manage packages <ArrowRight className="size-4" /></Link>
+      <div className="mt-6 rounded-2xl border border-cmt-neutral-200 bg-white p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <p className="max-w-2xl text-sm leading-6 text-cmt-neutral-500">Create a destination before adding packages. India destinations group by state. Destinations appear on the website once they have a published package.</p>
+          <button type="button" disabled={isLoading || !authUser || Boolean(busyName)} onClick={() => setCreating(true)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-cmt-primary-500 px-4 text-sm font-semibold disabled:opacity-50"><Plus className="size-4" />Create destination</button>
+        </div>
+        {creating && <form onSubmit={handleCreate} className="mt-5 flex flex-wrap items-end gap-3">
+          <label className="text-sm font-medium">Region<select value={newRegion} disabled={Boolean(busyName)} onChange={event => setNewRegion(event.target.value as typeof newRegion)} className="mt-1 block h-11 rounded-lg border border-cmt-neutral-200 px-3"><option>India</option><option>International</option></select></label>
+          <label className="flex-1 text-sm font-medium">Destination name<input autoFocus required maxLength={100} value={newName} disabled={Boolean(busyName)} onChange={event => setNewName(event.target.value)} placeholder={newRegion === "India" ? "e.g. Karnataka" : "e.g. Thailand"} className="mt-1 block h-11 w-full min-w-48 rounded-lg border border-cmt-neutral-200 px-3" /></label>
+          <button type="submit" disabled={Boolean(busyName)} className="h-11 rounded-lg bg-cmt-primary-500 px-4 text-sm font-semibold disabled:opacity-50">{busyName ? "Saving…" : "Save destination"}</button>
+          <button type="button" disabled={Boolean(busyName)} onClick={() => setCreating(false)} className="h-11 px-3 text-sm">Cancel</button>
+        </form>}
       </div>
       {displayError ? (
         <p
@@ -138,7 +159,7 @@ export default function AdminDestinationsManager() {
       ) : null}
 
       {message && !displayError ? (
-        <p className="mt-6 rounded-cmt-control border border-cmt-success-500/20 bg-cmt-success-100 px-4 py-3 text-sm text-cmt-success-700">
+        <p role="status" className="mt-6 rounded-cmt-control border border-cmt-success-500/20 bg-cmt-success-100 px-4 py-3 text-sm text-cmt-success-700">
           {message}
         </p>
       ) : null}
@@ -182,7 +203,7 @@ export default function AdminDestinationsManager() {
               cover={destination.cover}
               image={destination.image}
               busy={busyName === destination.name}
-              disabled={authUser === null || Boolean(busyName)}
+              disabled={!authUser || isLoading || Boolean(busyName)}
               onUpload={(files) => void handleUpload(destination.name, destination.cover, files)}
               onClear={() => void handleClear(destination.name, destination.cover)}
             />
@@ -197,7 +218,7 @@ export default function AdminDestinationsManager() {
               <p className="mt-1 text-xs text-cmt-neutral-500">
                 {destinations.length
                   ? "Try another search or select All destinations."
-                  : "Destinations appear here as soon as a package is filed under one."}
+                  : "Select Create destination to add your first destination."}
               </p>
             </div>
           ) : null}
@@ -221,7 +242,7 @@ function DestinationRow({
   onClear,
 }: {
   name: string;
-  region: string;
+  region: "India" | "International";
   count: number;
   duration: string;
   fromPrice: number;
@@ -270,13 +291,13 @@ function DestinationRow({
                 : "border-cmt-neutral-200 bg-cmt-neutral-50 text-cmt-neutral-500"
             }`}
           >
-            {cover ? "Custom cover" : "Package photo"}
+            {cover ? "Custom cover" : image ? "Package photo" : "No photo yet"}
           </span>
         </div>
         <p className="mt-1 text-xs text-cmt-neutral-500">
           <span className="tabular-nums">{count}</span> {count === 1 ? "package" : "packages"}
-          {duration ? ` · ${duration}` : ""} · from{" "}
-          <span className="tabular-nums">{formatINR(fromPrice)}</span>
+          {duration ? ` · ${duration}` : ""}
+          {count ? <span className="tabular-nums"> · from {formatINR(fromPrice)}</span> : " · Add a published package to show on the website"}
         </p>
         <p className="mt-1 text-[11px] text-cmt-neutral-400">
           JPG, PNG or WebP · up to 5 MB · saves automatically
@@ -284,6 +305,8 @@ function DestinationRow({
       </div>
 
       <div className="flex shrink-0 flex-wrap items-center gap-2">
+        <Link href={destinationPackageCreateHref(name, region)} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control bg-cmt-primary-500 px-3 text-xs font-semibold"><Plus className="size-3.5" />Add package</Link>
+        <Link href={`/admin/packages?destination=${encodeURIComponent(name)}`} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold">Manage packages <ArrowRight className="size-3.5" /></Link>
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
@@ -302,7 +325,7 @@ function DestinationRow({
             className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 text-xs font-semibold text-cmt-neutral-600 transition-colors hover:border-cmt-error-500/40 hover:bg-cmt-error-100 hover:text-cmt-error-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Trash2 className="size-3.5" aria-hidden="true" />
-            Use package photo
+            {count ? "Use package photo" : "Remove cover"}
           </button>
         ) : null}
 

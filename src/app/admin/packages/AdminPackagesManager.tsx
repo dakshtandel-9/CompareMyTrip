@@ -10,6 +10,7 @@ import { DUMMY_PACKAGES, getPackageDetails, isPublishedPackage, type TravelPacka
 import { getPackagePageSections, packagePageSectionImages } from "@/lib/packageDetailSections";
 import { cleanupAbandonedPackageImages, deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
 import { INDIA_STATES, toIndiaState } from "@/lib/indiaStates";
+import { useDestinationCoversState } from "@/lib/useDestinationCovers";
 import { useAllPackagesState } from "@/lib/usePackages";
 import AdminPackageBuilder from "./AdminPackageBuilder";
 import DeletePackageDialog from "./DeletePackageDialog";
@@ -20,6 +21,8 @@ export default function AdminPackagesManager() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pageSize = 10;
+  const { destinations } = useDestinationCoversState();
+  const destinationFilter = searchParams.get("destination") ?? "";
   const { packages, loading, error, databaseInitialized } = useAllPackagesState();
   const [editing, setEditing] = useState<TravelPackage | null>(null);
   const [actionError, setActionError] = useState("");
@@ -43,8 +46,9 @@ export default function AdminPackagesManager() {
     return packages.filter((pkg) =>
       (status === "all" || (status === "published" ? isPublishedPackage(pkg) : !isPublishedPackage(pkg))) &&
       (region === "all" || pkg.region === region) &&
+      (!destinationFilter || (pkg.region === "India" ? toIndiaState(pkg.destination) : pkg.destination) === destinationFilter) &&
       (!query || [pkg.title, pkg.location, pkg.destination, pkg.region, ...pkg.tags].some((value) => value.toLowerCase().includes(query))));
-  }, [packages, search, status, region]);
+  }, [packages, search, status, region, destinationFilter]);
   const draftCount = packages.filter((pkg) => !isPublishedPackage(pkg)).length;
   const totalPages = Math.max(1, Math.ceil(filteredPackages.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -71,10 +75,10 @@ export default function AdminPackagesManager() {
         .filter(Boolean);
     const unique = (list: string[]) => [...new Set(list)].sort((a, b) => a.localeCompare(b));
     return {
-      India: unique([...INDIA_STATES, ...used("India").map(toIndiaState)]),
-      International: unique(used("International")),
+      India: unique([...INDIA_STATES, ...used("India").map(toIndiaState), ...destinations.filter(item => item.region === "India").map(item => item.name)]),
+      International: unique([...used("International"), ...destinations.filter(item => item.region === "International").map(item => item.name)]),
     };
-  }, [packages]);
+  }, [packages, destinations]);
 
   const currentEditing = catalogueEditorMode(editing, searchParams.get("create"), databaseInitialized);
   const closeEditor = () => {
@@ -83,7 +87,7 @@ export default function AdminPackagesManager() {
   };
 
   if (currentEditing) {
-    return <AdminPackageBuilder initialPackage={currentEditing === "new" ? undefined : currentEditing} filedUnderOptions={filedUnderOptions} onCancel={closeEditor} onSaved={(message) => { setSuccess(message); closeEditor(); }} />;
+    return <AdminPackageBuilder initialDestination={searchParams.get("destination") ?? ""} initialRegion={searchParams.get("region") === "International" ? "International" : "India"} initialPackage={currentEditing === "new" ? undefined : currentEditing} filedUnderOptions={filedUnderOptions} onCancel={closeEditor} onSaved={(message) => { setSuccess(message); closeEditor(); }} />;
   }
 
   const importExisting = async () => {
@@ -143,7 +147,8 @@ export default function AdminPackagesManager() {
       <div className="flex flex-wrap items-end gap-3 border-b border-cmt-neutral-100 bg-cmt-neutral-50/50 px-5 py-4">
         <label className="text-xs font-semibold text-cmt-neutral-600">Visibility<select aria-label="Filter packages by visibility" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }} className="mt-1.5 block h-10 min-w-40 rounded-xl border border-cmt-neutral-200 bg-white px-3 text-sm"><option value="all">All packages</option><option value="published">Live on website</option><option value="draft">Drafts</option></select></label>
         <label className="text-xs font-semibold text-cmt-neutral-600">Destination region<select aria-label="Filter packages by region" value={region} onChange={(event) => { setRegion(event.target.value); setPage(1); }} className="mt-1.5 block h-10 min-w-40 rounded-xl border border-cmt-neutral-200 bg-white px-3 text-sm"><option value="all">All destinations</option><option value="India">India</option><option value="International">International</option></select></label>
-        {(status !== "all" || region !== "all" || search) && <button type="button" onClick={() => { setStatus("all"); setRegion("all"); setSearch(""); setPage(1); }} className="h-10 px-2 text-xs font-semibold text-cmt-primary-900">Clear filters</button>}
+        {destinationFilter && <p className="text-sm font-semibold">Destination: {destinationFilter}</p>}
+        {(status !== "all" || region !== "all" || search || destinationFilter) && <button type="button" onClick={() => { setStatus("all"); setRegion("all"); setSearch(""); setPage(1); if (destinationFilter) router.replace("/admin/packages", { scroll: false }); }} className="h-10 px-2 text-xs font-semibold text-cmt-primary-900">Clear filters</button>}
         <p className="ml-auto pb-3 text-xs text-cmt-neutral-500">{loading ? "Loading…" : `${filteredPackages.length} package${filteredPackages.length === 1 ? "" : "s"} shown`}</p>
       </div>
       {!loading && filteredPackages.length > 0 && <div className="flex flex-wrap items-center gap-3 border-b border-cmt-neutral-200 bg-cmt-primary-50/40 px-5 py-3">
@@ -163,10 +168,10 @@ export default function AdminPackagesManager() {
         {visiblePackages.map((pkg) => <article key={pkg.id} className="grid gap-4 p-4 lg:grid-cols-[24px_88px_minmax(0,1fr)_auto] lg:items-center sm:px-5">
           <input type="checkbox" aria-label={`Select ${pkg.title}`} checked={selectedIds.has(pkg.id)} disabled={working || !databaseInitialized} onChange={(event) => toggleSelection([pkg.id], event.target.checked)} className="size-4 cursor-pointer accent-cmt-primary-700" />
           <div className="relative aspect-[4/3] w-28 lg:w-full overflow-hidden rounded-cmt-sm bg-cmt-neutral-100"><Image src={pkg.image} alt="" fill sizes="112px" className="object-cover" /></div>
-          <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="break-words font-display text-base font-semibold">{pkg.title}</h2><span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${isPublishedPackage(pkg) ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>{isPublishedPackage(pkg) ? "Live on website" : "Draft · private"}</span></div><p className="mt-1 truncate text-xs text-cmt-neutral-500">{pkg.location} · {pkg.nights} nights / {pkg.days} days · ₹{pkg.price.toLocaleString("en-IN")} per person</p></div>
+          <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="break-words font-display text-base font-semibold">{pkg.title}</h2><span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${isPublishedPackage(pkg) ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>{isPublishedPackage(pkg) ? "Live on website" : "Draft · private"}</span></div><p className="mt-1 text-xs font-medium text-cmt-neutral-600">Destination: {pkg.region === "India" ? toIndiaState(pkg.destination) : pkg.destination} · {pkg.region}</p><p className="mt-1 truncate text-xs text-cmt-neutral-500">{pkg.location} · {pkg.nights} nights / {pkg.days} days · ₹{pkg.price.toLocaleString("en-IN")} per person</p></div>
           <div className="flex flex-wrap gap-2">{isPublishedPackage(pkg) && <Link href={`/packages/${pkg.id}`} target="_blank" className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold"><ExternalLink className="size-3.5" /> View</Link>}<button disabled={!databaseInitialized} title={!databaseInitialized ? "Import the existing catalogue first" : undefined} onClick={() => setEditing(pkg)} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold disabled:opacity-40"><Edit3 className="size-3.5" /> Edit</button><button disabled={working || !databaseInitialized} onClick={() => setPendingDelete([pkg])} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-error-500/30 px-3 text-xs font-semibold text-cmt-error-700 disabled:opacity-40"><Trash2 className="size-3.5" /> Delete</button></div>
         </article>)}
-        {!loading && filteredPackages.length === 0 && <p className="p-8 text-center text-sm text-cmt-neutral-500">{search || status !== "all" || region !== "all" ? "No packages match these filters. Try another search or clear the filters." : "Your catalogue is ready for its first trip. Select Create package to get started."}</p>}
+        {!loading && filteredPackages.length === 0 && <p className="p-8 text-center text-sm text-cmt-neutral-500">{search || status !== "all" || region !== "all" || destinationFilter ? "No packages match these filters. Try another search or clear the filters." : "Your catalogue is ready for its first trip. Select Create package to get started."}</p>}
       </div>
       {!loading && filteredPackages.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3 border-t border-cmt-neutral-200 px-5 py-4"><p className="text-xs text-cmt-neutral-500">Page {currentPage} of {totalPages} · Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredPackages.length)} of {filteredPackages.length}</p><div className="flex gap-2"><button disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40"><ChevronLeft className="size-3.5" /> Previous</button><button disabled={currentPage === totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control bg-cmt-neutral-900 px-3 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">Next <ChevronRight className="size-3.5" /></button></div></div>}
     </div>

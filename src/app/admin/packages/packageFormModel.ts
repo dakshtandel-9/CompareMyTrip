@@ -55,12 +55,12 @@ export function packageFromForm(form: PackageForm, initialPackage?: TravelPackag
   const isTrek = form.tags.some(tag => tag === "Treks" || tag === "Weekend Treks");
   return {
       id: initialPackage?.id ?? "preview",
-      title: form.title.trim(), location: form.location.trim(), operator: initialPackage?.operator || "CompareMyTrip", region: form.region,
+      title: form.title.trim(), location: form.location.trim(), operator: form.operator.trim(), region: form.region,
       /* Headline destination for the catalogue's destination filter: the first
          place of the route unless one was typed explicitly. */
       destination: form.destination.trim() || splitPlaces(form.places)[0] || form.location.trim(),
       image: form.gallery[0], nights: Number(form.nights), days: Number(form.days), pax: form.pax.trim(), hotelStars: Number(form.hotelStars), tags: form.tags,
-      rating: initialPackage?.rating ?? 5, reviews: initialPackage?.reviews ?? 0, discount: Number(form.discount), originalPrice: Number(form.originalPrice), price: Number(form.price), deal: form.deal, status: form.status,
+      rating: initialPackage?.rating ?? 0, reviews: initialPackage?.reviews ?? 0, discount: Number(form.discount), originalPrice: Number(form.originalPrice), price: Number(form.price), deal: form.deal, status: form.status,
       /* Stored empty when every day is ticked: "departs any day" is the
          absence of a rule, not a list of seven. */
       departureDays: form.departureDays.length === 7 ? [] : [...form.departureDays].sort((a, b) => a - b),

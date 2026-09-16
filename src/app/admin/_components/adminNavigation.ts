@@ -13,7 +13,7 @@ export const ADMIN_NAV_GROUPS: { label: string; items: AdminNavItem[] }[] = [
   ] },
   { label: "Travel catalogue", items: [
     { href: "/admin/packages", label: "Travel packages", description: "Create and edit prices, itineraries, photos and availability.", icon: PackageSearch, keywords: "inventory products draft publish" },
-    { href: "/admin/destinations", label: "Destinations", description: "Choose the cover photos for each destination.", icon: Compass, keywords: "places countries states image" },
+    { href: "/admin/destinations", label: "Destinations", description: "Create destinations, add packages and manage cover photos.", icon: Compass, keywords: "places countries states image create add package" },
     { href: "/admin/coupons", label: "Discount codes", description: "Manage coupon amounts, dates and eligible packages.", icon: TicketPercent, keywords: "coupons offers promotions" },
   ] },
   { label: "Website", items: [

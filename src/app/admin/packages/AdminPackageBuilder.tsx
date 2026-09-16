@@ -20,7 +20,7 @@ import { packageValidationIssue, type PackageForm } from "./catalogueEditorState
 import { useUnsavedContentChanges } from "../content/useUnsavedContentChanges";
 
 const button = "inline-flex items-center gap-2 rounded-lg border border-cmt-neutral-200 bg-white px-3 py-2 text-xs font-semibold disabled:opacity-40";
-export default function AdminPackageBuilder({ initialPackage, filedUnderOptions, onCancel, onSaved }: { initialPackage?: TravelPackage; filedUnderOptions: Record<TravelPackage["region"], string[]>; onCancel: () => void; onSaved: (message: string) => void }) {
+export default function AdminPackageBuilder({ initialPackage, initialDestination = "", initialRegion = "India", filedUnderOptions, onCancel, onSaved }: { initialPackage?: TravelPackage; initialDestination?: string; initialRegion?: TravelPackage["region"]; filedUnderOptions: Record<TravelPackage["region"], string[]>; onCancel: () => void; onSaved: (message: string) => void }) {
   const draftStorageKey = `${PACKAGE_DRAFT_IMAGE_KEY_PREFIX}${initialPackage?.id ?? "new"}`;
   const draftImagesRef = useRef<string[]>([]);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -34,7 +34,7 @@ export default function AdminPackageBuilder({ initialPackage, filedUnderOptions,
     return () => observer.disconnect();
   }, []);
   const sectionUploadRef = useRef(false);
-  const [form, setForm] = useState<PackageForm>(() => formFromPackage(initialPackage));
+  const [form, setForm] = useState<PackageForm>(() => initialPackage ? formFromPackage(initialPackage) : { ...formFromPackage(), destination: initialDestination, region: initialRegion });
   const [originalForm] = useState(() => JSON.stringify(form));
   const [history, setHistory] = useState<PackageForm[]>([]);
   const [error, setError] = useState("");

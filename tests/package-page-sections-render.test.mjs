@@ -249,7 +249,7 @@ test('server-provided similar packages render before the live catalogue has load
 test('existing detail sections remain visible by default and each can be hidden independently', () => {
   const sections = [
     ['about', 'About this trip'], ['highlights', 'Trip highlights'], ['itinerary', 'Day-by-day itinerary'],
-    ['stays', 'Hotels &amp; accommodation'], ['transfers', 'Transfers'], ['inclusions', 'Included'], ['exclusions', 'Not included'], ['cancellation', 'Cancellation policy'],
+    ['stays', 'Stay and meal plan'], ['transfers', 'Transfers'], ['inclusions', 'Included'], ['exclusions', 'Not included'], ['cancellation', 'Cancellation policy'],
   ];
   for (const [hiddenId, hiddenTitle] of sections) {
     const html = renderDetail({ hiddenSections: [hiddenId] });
