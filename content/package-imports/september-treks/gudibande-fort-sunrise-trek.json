@@ -1,0 +1,325 @@
+{
+  "id": "gudibande-fort-sunrise-trek",
+  "title": "Gudibande Fort Sunrise Trek",
+  "location": "Gudibande Fort, Chikkaballapur, Karnataka",
+  "destination": "Karnataka",
+  "image": "/weekend-treks/nandi-hills.jpg",
+  "nights": 1,
+  "days": 1,
+  "pax": "11 - 40",
+  "hotelStars": 0,
+  "trekGrade": 1,
+  "tags": [
+    "Weekend Treks",
+    "Treks",
+    "Adventure",
+    "Mountains"
+  ],
+  "region": "India",
+  "operator": "CompareMyTrip",
+  "rating": 0,
+  "reviews": 0,
+  "discount": 0,
+  "originalPrice": 799,
+  "price": 799,
+  "status": "published",
+  "departureDays": [
+    5,
+    6
+  ],
+  "details": {
+    "gallery": [
+      "/weekend-treks/nandi-hills.jpg"
+    ],
+    "summary": "Gudibande Fort Sunrise Trek – A Historic Sunrise Escape from Bangalore\n\nBegin your morning with a short and refreshing adventure at Gudibande Fort, a historic hilltop destination in Chikkaballapur district. Located around 90 km from Bangalore, this easy trek brings together a peaceful natural setting, an old fort, and beautiful early-morning views.\n\nWith a total trekking distance of approximately 4 km, the route is well suited for beginners and weekend travellers looking for a quick escape from the city. As you make your way uphill in the early hours, the quiet surroundings and cool morning air create a refreshing start to the day.",
+    "places": [
+      "Gudibande Fort"
+    ],
+    "highlights": [
+      "Sunrise from Gudibande Fort",
+      "Historic 17th-century fort",
+      "Easy and beginner-friendly trail",
+      "Panoramic hilltop surroundings",
+      "Short 4 km round-trip trek",
+      "Peaceful weekend escape from Bangalore"
+    ],
+    "itinerary": [
+      {
+        "day": 0,
+        "title": "Bangalore to Gudibande",
+        "route": "11:00 PM Onwards | Departure from Bengaluru",
+        "description": "Your Gudibande sunrise adventure begins late at night. Board the vehicle from your designated pickup point and travel towards Gudibande.",
+        "meals": "",
+        "activities": [
+          {
+            "time": "11:00 PM",
+            "title": "Departure",
+            "description": "Late Night | Bengaluru\n\nMeet the trip coordinator at your confirmed pickup point and board the vehicle. Settle in for the overnight journey towards Gudibande."
+          }
+        ]
+      },
+      {
+        "day": 1,
+        "title": "Gudibande Fort Sunrise Trek",
+        "route": "Summit & Descent | Return to Bengaluru",
+        "description": "Arrive near Gudibande and get ready for the early-morning climb.",
+        "meals": "",
+        "activities": [
+          {
+            "time": "4:00 AM",
+            "title": "Begin the Trek",
+            "description": "Early Morning | Gudibande\n\nStart the ascent with the trek leader. The short trail leads towards the historic fort and summit."
+          },
+          {
+            "time": "6:00 AM",
+            "title": "Sunrise",
+            "description": "Morning | Gudibande Fort\n\nReach the top around sunrise and enjoy the changing morning light over the surrounding landscape. Take time to explore the fort surroundings and enjoy the hilltop views."
+          },
+          {
+            "time": "After Sunrise",
+            "title": "Explore & Descend",
+            "description": "Morning | Gudibande\n\nSpend some time at the fort before beginning the descent with the group."
+          },
+          {
+            "time": "",
+            "title": "Breakfast Stop",
+            "description": "Morning | En route\n\nStop for breakfast at a local eatery. Breakfast is self-sponsored."
+          },
+          {
+            "time": "12:00 PM",
+            "title": "Return to Bangalore",
+            "description": "Noon | Bengaluru\n\nBoard the vehicle and begin the journey back to Bangalore, concluding the Gudibande Fort Sunrise Trek."
+          }
+        ]
+      }
+    ],
+    "dayZeroEnabled": true,
+    "stays": [],
+    "inclusions": [
+      "Round-trip transportation from Bangalore",
+      "Guided Gudibande Fort Sunrise Trek",
+      "Trek leader / guide",
+      "Trip coordination and assistance",
+      "Basic first-aid support"
+    ],
+    "exclusions": [
+      "Breakfast and meals",
+      "Drinking water",
+      "Personal snacks",
+      "Personal expenses",
+      "Personal medication",
+      "Travel or accident insurance",
+      "Personal trekking equipment",
+      "Photography/videography services",
+      "Expenses arising from unforeseen circumstances",
+      "Any service not specifically mentioned under Inclusions"
+    ],
+    "meals": "Breakfast and meals are not included. Breakfast is self-sponsored.",
+    "transfers": "Transportation Allocation Transportation is included and will be arranged according to the confirmed group size for a comfortable journey.\n\n• 10-11 Guests: 12-Seater Tempo Traveller\n\n• Up to 20 Guests: 22-Seater Mini Bus\n\n• Up to 30 Guests: 30-Seater Bus\n\n• Up to 45 Guests: 50-Seater Bus\n\n• Vehicle Type: All vehicles provided are Non-A/C.\n\nVehicle allocation is based on the final confirmed group size and is subject to vehicle availability.",
+    "flights": "Not included",
+    "cancellationPolicy": "",
+    "facts": [
+      {
+        "id": "duration",
+        "label": "Duration",
+        "value": "1 Night / 1 Day",
+        "icon": "Clock3",
+        "visible": true
+      },
+      {
+        "id": "group-size",
+        "label": "Group size",
+        "value": "11 - 40",
+        "icon": "Users",
+        "visible": true
+      },
+      {
+        "id": "transfers",
+        "label": "Transfers",
+        "value": "Included",
+        "icon": "Bus",
+        "visible": true
+      },
+      {
+        "id": "tour-language",
+        "label": "Tour Language",
+        "value": "English, Hindi, Kannada",
+        "icon": "Languages",
+        "visible": true
+      },
+      {
+        "id": "tour-type",
+        "label": "Tour Type",
+        "value": "Fixed Departure",
+        "icon": "Compass",
+        "visible": true
+      },
+      {
+        "id": "best-for",
+        "label": "Best For",
+        "value": "Solo Travelers, Couples, Friends & Groups",
+        "icon": "Users",
+        "visible": true
+      }
+    ],
+    "factsHidden": false,
+    "permitRequired": false,
+    "permitHidden": true,
+    "bookingLabel": "Trip package",
+    "availabilityNote": "Availability confirmed with your quote",
+    "quoteNote": "Compare quotes from 3 verified agents · best price",
+    "pageSections": {
+      "snapshotPlacement": "intro",
+      "tagline": "",
+      "introduction": "",
+      "itineraryNote": "Actual timings may vary depending on traffic, weather conditions and group pace.\n\nBreakfast: Self Sponsored",
+      "stayNote": "",
+      "inclusionNote": "",
+      "bookingNote": "",
+      "hiddenSections": [
+        "cancellation"
+      ],
+      "sections": [
+        {
+          "id": "story",
+          "title": "A Fort with a Story",
+          "placement": "overview",
+          "visible": true,
+          "layout": "box",
+          "body": "Gudibande Fort dates back roughly 400 years to the 17th century. The fort is traditionally associated with Byre Gowda, a local chieftain and yogi who is believed to have built the fort. He was also believed to have belonged to the Tuluva dynasty of the Vijayanagara Empire.\n\nStanding at an altitude of around 826 metres, the fort offers an opportunity to experience both Karnataka's historical character and its open hilltop landscapes. Reaching the top around sunrise adds a memorable dimension to the experience as the morning light spreads across the surrounding countryside.",
+          "items": []
+        },
+        {
+          "id": "pickup-information",
+          "title": "Pickup and Drop Locations from Bengaluru",
+          "placement": "transfers",
+          "visible": true,
+          "layout": "box",
+          "body": "Convenient Pickup Across Bangalore Your Gudibande Trek includes round-trip transportation from designated pickup points.\n\n• 11:00 PM - Gopalan Arcade, RR Nagar\n\n• 11:15 PM - Kathriguppe Circle, Kathriguppe\n\n• 11:30 PM - BMTC Bus Stop, Banashankari\n\n• 11:50 PM - Udupi Garden Signal, BTM Layout\n\n• 12:00 AM - Bus Stop, Silkboard\n\n• 12:30 AM - Shell Petrol Pump, Bellandur\n\n• 01:00 AM - Opp. Kalamandir, Marathahalli\n\n• 01:20 AM - HP Petrol Pump, Tin Factory\n\n• 01:30 AM - Opp. Esteem Mall, Hebbal\n\nPickup Process Your confirmed pickup location and reporting instructions will be shared after booking. Please arrive at your pickup point 10–15 minutes before the scheduled reporting time.",
+          "items": []
+        },
+        {
+          "id": "packing",
+          "title": "Things to carry",
+          "placement": "carry",
+          "visible": true,
+          "layout": "box",
+          "body": "Essential items for an early-morning trek.\n\n• Small trekking backpack\n\n• At least 2 litres of drinking water\n\n• Headlamp or torch\n\n• Trekking shoes with good grip\n\n• Light jacket or windcheater\n\n• Extra pair of socks\n\n• Cap\n\n• Sunglasses\n\n• Sunscreen\n\n• Energy bars or dry fruits\n\n• Personal medication\n\n• Fully charged mobile phone\n\n• Power bank\n\n• Valid government-issued ID\n\nDuring Monsoon\n• Rain jacket or poncho\n\n• Waterproof backpack cover\n\n• Waterproof phone pouch\n\n• Extra clothes and socks\n\nPacking Tip Keep your backpack light and carry only the essentials required for the trek.",
+          "items": []
+        },
+        {
+          "id": "trail-guidelines",
+          "title": "Trail guidelines",
+          "placement": "guidelines",
+          "visible": true,
+          "layout": "box",
+          "body": "Help preserve Gudibande's natural surroundings and historic character for future travellers.\n\n• Follow your trek leader's instructions at all times.\n\n• Stay with the group throughout the trek.\n\n• Remain on the designated trekking trail.\n\n• Do not litter; carry your waste back with you.\n\n• Avoid single-use plastic.\n\n• Do not smoke or consume alcohol during the trek.\n\n• Do not light fires or campfires.\n\n• Do not disturb wildlife.\n\n• Do not damage plants or historical structures.\n\n• Be careful around steep or rocky sections.\n\n• Avoid standing too close to edges while taking photographs.\n\n• Wear appropriate trekking footwear.\n\n• Stay hydrated throughout the trek.\n\n• Take breaks whenever required.",
+          "items": []
+        }
+      ],
+      "gallery": {
+        "enabled": false,
+        "images": []
+      },
+      "locations": {
+        "enabled": true,
+        "items": [
+          {
+            "id": "pickup-1",
+            "type": "pickup",
+            "name": "Gopalan Arcade, RR Nagar",
+            "address": "Gopalan Arcade, RR Nagar, Bengaluru, Karnataka",
+            "notes": "Pickup: 11:00 PM. Your confirmed pickup location and reporting instructions will be shared after booking. Please arrive at your pickup point 10–15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-2",
+            "type": "pickup",
+            "name": "Kathriguppe Circle, Kathriguppe",
+            "address": "Kathriguppe Circle, Kathriguppe, Bengaluru, Karnataka",
+            "notes": "Pickup: 11:15 PM. Your confirmed pickup location and reporting instructions will be shared after booking. Please arrive at your pickup point 10–15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-3",
+            "type": "pickup",
+            "name": "BMTC Bus Stop, Banashankari",
+            "address": "BMTC Bus Stop, Banashankari, Bengaluru, Karnataka",
+            "notes": "Pickup: 11:30 PM. Your confirmed pickup location and reporting instructions will be shared after booking. Please arrive at your pickup point 10–15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-4",
+            "type": "pickup",
+            "name": "Udupi Garden Signal, BTM Layout",
+            "address": "Udupi Garden Signal, BTM Layout, Bengaluru, Karnataka",
+            "notes": "Pickup: 11:50 PM. Your confirmed pickup location and reporting instructions will be shared after booking. Please arrive at your pickup point 10–15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-5",
+            "type": "pickup",
+            "name": "Bus Stop, Silkboard",
+            "address": "Bus Stop, Silkboard, Bengaluru, Karnataka",
+            "notes": "Pickup: 12:00 AM. Your confirmed pickup location and reporting instructions will be shared after booking. Please arrive at your pickup point 10–15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-6",
+            "type": "pickup",
+            "name": "Shell Petrol Pump, Bellandur",
+            "address": "Shell Petrol Pump, Bellandur, Bengaluru, Karnataka",
+            "notes": "Pickup: 12:30 AM. Your confirmed pickup location and reporting instructions will be shared after booking. Please arrive at your pickup point 10–15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-7",
+            "type": "pickup",
+            "name": "Opp. Kalamandir, Marathahalli",
+            "address": "Opp. Kalamandir, Marathahalli, Bengaluru, Karnataka",
+            "notes": "Pickup: 01:00 AM. Your confirmed pickup location and reporting instructions will be shared after booking. Please arrive at your pickup point 10–15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-8",
+            "type": "pickup",
+            "name": "HP Petrol Pump, Tin Factory",
+            "address": "HP Petrol Pump, Tin Factory, Bengaluru, Karnataka",
+            "notes": "Pickup: 01:20 AM. Your confirmed pickup location and reporting instructions will be shared after booking. Please arrive at your pickup point 10–15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-9",
+            "type": "pickup",
+            "name": "Opp. Esteem Mall, Hebbal",
+            "address": "Opp. Esteem Mall, Hebbal, Bengaluru, Karnataka",
+            "notes": "Pickup: 01:30 AM. Your confirmed pickup location and reporting instructions will be shared after booking. Please arrive at your pickup point 10–15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          }
+        ]
+      },
+      "reviews": {
+        "enabled": false,
+        "items": []
+      }
+    }
+  }
+}

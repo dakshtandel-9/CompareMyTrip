@@ -3930,6 +3930,15 @@ export function discountToPrice(originalPrice: number, discount: number): number
   return Math.round(originalPrice * (1 - percent / 100));
 }
 
+/** Unrated dormitories and day treks must not be advertised as zero-star hotels. */
+export function getPackageAccommodationLabel(pkg: TravelPackage): string {
+  if (pkg.hotelStars > 0) return `${pkg.hotelStars}★ hotels`;
+  const stays = pkg.details?.stays ?? [];
+  if (!stays.length) return "No accommodation";
+  const roomTypes = [...new Set(stays.map(stay => stay.roomType?.trim()).filter(Boolean))];
+  return roomTypes.length ? roomTypes.join(" / ") : "Stay included";
+}
+
 /** The tier chip — "Premium" and friends — read off the hotel rating. */
 export function getPackageTier(hotelStars: number): string {
   if (hotelStars >= 5) return "Luxury";

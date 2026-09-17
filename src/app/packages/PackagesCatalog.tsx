@@ -6,8 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  PACKAGE_CATEGORIES,
+import { getPackageAccommodationLabel, PACKAGE_CATEGORIES,
   getDiscountPercent,
   type PackageCategory,
   type TravelPackage,
@@ -354,7 +353,7 @@ function PackageCard({
           </span>
           <span className="inline-flex items-center gap-1">
             <BedDouble className="size-3.5" />
-            {pkg.hotelStars}★ hotels
+            {getPackageAccommodationLabel(pkg)}
           </span>
         </div>
 

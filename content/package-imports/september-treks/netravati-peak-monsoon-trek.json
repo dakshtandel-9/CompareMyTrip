@@ -1,0 +1,472 @@
+{
+  "id": "netravati-peak-monsoon-trek",
+  "title": "Netravati Peak Monsoon Trek",
+  "location": "Netravati Peak, Chikkamagaluru, Karnataka",
+  "destination": "Karnataka",
+  "image": "/weekend-treks/kumara-parvatha.jpg",
+  "nights": 3,
+  "days": 2,
+  "pax": "11 - 40",
+  "hotelStars": 0,
+  "trekGrade": 2,
+  "tags": [
+    "Weekend Treks",
+    "Treks",
+    "Adventure",
+    "Mountains"
+  ],
+  "region": "India",
+  "operator": "CompareMyTrip",
+  "rating": 0,
+  "reviews": 0,
+  "discount": 0,
+  "originalPrice": 3399,
+  "price": 3399,
+  "status": "published",
+  "departureDays": [
+    5
+  ],
+  "details": {
+    "gallery": [
+      "/weekend-treks/kumara-parvatha.jpg"
+    ],
+    "summary": "Netravati Peak Monsoon Trek - A Scenic Escape into the Western Ghats\n\nThe Netravati Peak Monsoon Trek takes you into the green landscapes of the Western Ghats, where forest trails, open grasslands and rolling hills come together to create a rewarding trekking experience. The route offers scenic views throughout the journey, making it a memorable weekend escape from Bengaluru.\n\nLocated in the Chikkamagaluru region, Netravati Peak is a lesser-known mountain that has become increasingly popular with trekkers. During the monsoon, the surrounding landscape takes on a fresh green character, adding to the appeal of the trail and the journey towards the peak.\n\nWith its mix of natural surroundings and changing terrain, the trek offers a moderate challenge for those looking to spend a weekend away from the city. The 14 km trail combines adventure with the peaceful atmosphere of the Western Ghats.",
+    "places": [
+      "Netravati Peak"
+    ],
+    "highlights": [
+      "Stunning Peak Views",
+      "Beautiful Waterfalls",
+      "Lush Green Landscapes",
+      "Scenic Mountain Ridge Views",
+      "Rolling Hills & Open Grasslands",
+      "Refreshing Monsoon Experience"
+    ],
+    "itinerary": [
+      {
+        "day": 0,
+        "title": "Bengaluru to Netravati",
+        "route": "",
+        "description": "",
+        "meals": "",
+        "activities": [
+          {
+            "time": "10:00 PM",
+            "title": "Departure from Bengaluru",
+            "description": "Begin the journey from Bengaluru towards the Netravati region."
+          },
+          {
+            "time": "Overnight",
+            "title": "Journey to the Stay",
+            "description": "Travel overnight and reach the dormitory accommodation the following morning."
+          }
+        ]
+      },
+      {
+        "day": 1,
+        "title": "Sightseeing & Stay",
+        "route": "",
+        "description": "",
+        "meals": "Breakfast and dinner at the stay. Lunch at Horanadu is not listed among package inclusions.",
+        "activities": [
+          {
+            "time": "6:00 AM",
+            "title": "Arrive at Dormitory Stay",
+            "description": "Reach the dormitory accommodation and freshen up before beginning the day."
+          },
+          {
+            "time": "8:00 AM",
+            "title": "Breakfast",
+            "description": "Enjoy breakfast at the dormitory stay."
+          },
+          {
+            "time": "10:00 AM",
+            "title": "Samse Tea Estate",
+            "description": "Explore the scenic tea plantations and enjoy the lush surroundings of the Western Ghats."
+          },
+          {
+            "time": "Morning",
+            "title": "Horanadu Annapoorneshwari Temple",
+            "description": "Visit the temple and experience the peaceful surroundings."
+          },
+          {
+            "time": "1:00 PM",
+            "title": "Lunch at Horanadu",
+            "description": "Enjoy lunch at Horanadu."
+          },
+          {
+            "time": "Afternoon",
+            "title": "Soormane Falls",
+            "description": "Visit the waterfall and take in the natural surroundings."
+          },
+          {
+            "time": "Afternoon",
+            "title": "Kalasa Hanging Bridge",
+            "description": "Experience the scenic surroundings around the hanging bridge before heading back to the stay."
+          },
+          {
+            "time": "Evening",
+            "title": "Return to Dormitory Stay",
+            "description": "Return to the dormitory and relax after the day's sightseeing."
+          },
+          {
+            "time": "Dinner",
+            "title": "Dinner at the Stay",
+            "description": "Enjoy dinner at the dormitory stay."
+          }
+        ]
+      },
+      {
+        "day": 2,
+        "title": "Netravati Peak Trek & Return to Bengaluru",
+        "route": "",
+        "description": "",
+        "meals": "Breakfast, packed lunch and post-trek snack.",
+        "activities": [
+          {
+            "time": "Before 8:00 AM",
+            "title": "Breakfast at Dormitory",
+            "description": "Have breakfast at the stay before getting ready for the trek."
+          },
+          {
+            "time": "8:00 AM",
+            "title": "Reach Netravati Base Point",
+            "description": "Arrive at the base point and prepare for the trek."
+          },
+          {
+            "time": "8:30 AM",
+            "title": "Begin the Trek",
+            "description": "Start the 14 km Netravati Peak Trek through the scenic Western Ghats landscape."
+          },
+          {
+            "time": "1:00 PM",
+            "title": "Reach Netravati Peak",
+            "description": "Reach the summit and enjoy the surrounding mountain views."
+          },
+          {
+            "time": "Afternoon",
+            "title": "Packed Lunch at the Peak",
+            "description": "Have the packed lunch provided as part of the package."
+          },
+          {
+            "time": "5:00 PM",
+            "title": "Complete the Trek",
+            "description": "Finish the trek and return towards the base."
+          },
+          {
+            "time": "5:30 PM",
+            "title": "Back to Dormitory",
+            "description": "Return to the dormitory, freshen up and have the post-trek snack."
+          },
+          {
+            "time": "Evening",
+            "title": "Checkout & Return Journey",
+            "description": "Check out from the stay and begin the journey back to Bengaluru."
+          },
+          {
+            "time": "2:00 AM",
+            "title": "Arrive in Bengaluru",
+            "description": "Reach Bengaluru and conclude the Netravati Monsoon Trek experience."
+          }
+        ]
+      }
+    ],
+    "dayZeroEnabled": true,
+    "stays": [
+      {
+        "name": "Dormitory stay",
+        "nights": 1,
+        "place": "Netravati region",
+        "comfort": "Dormitory stay is provided during the trip.",
+        "roomType": "Dormitory",
+        "mealPlan": "2 Breakfasts\n1 Dinner\n1 Packed Lunch on the trek day\n1 Post-Trek Snack"
+      }
+    ],
+    "inclusions": [
+      "Round-trip transportation from Bengaluru",
+      "Netravati Trek with trek guide",
+      "Trip lead throughout the journey",
+      "2 Breakfasts",
+      "1 Packed Lunch on the trek day",
+      "1 Dinner",
+      "1 Post-Trek Snack"
+    ],
+    "exclusions": [
+      "Forest Department Permit - can be purchased by the trekker directly",
+      "Forest Department Permit arranged by CompareMyTrip - ₹510 per person",
+      "Drinking water",
+      "Personal expenses",
+      "Personal medication",
+      "Travel or accident insurance",
+      "Personal trekking equipment",
+      "Photography/videography services",
+      "Expenses arising from unforeseen circumstances",
+      "Any service not specifically mentioned under Inclusions"
+    ],
+    "meals": "2 Breakfasts\n1 Dinner\n1 Packed Lunch on the trek day\n1 Post-Trek Snack",
+    "transfers": "Transportation Allocation Transportation will be arranged according to the confirmed group size to ensure a comfortable and convenient journey:\n\n• 10-11 Guests: 12-Seater Tempo Traveller\n• Up to 20 Guests: 22-Seater Mini Bus\n• Up to 30 Guests: 30-Seater Bus\n• Up to 40 Guests: 50-Seater Bus Vehicle Type: All vehicles provided are Non-A/C.\n\nVehicle allocation is based on the final confirmed group size and is subject to vehicle availability.",
+    "flights": "Not included",
+    "cancellationPolicy": "• Cancellations made 7 days or more before the trek date are eligible for a 50% refund of the booking amount.\n• Cancellations made within 7 days of the trek date are non-refundable.\n• No refund will be provided for no-shows or cancellations made on the day of the trek.",
+    "facts": [
+      {
+        "id": "duration",
+        "label": "Duration",
+        "value": "3 Nights / 2 Days",
+        "icon": "Clock3",
+        "visible": true
+      },
+      {
+        "id": "group-size",
+        "label": "Group size",
+        "value": "11 - 40",
+        "icon": "Users",
+        "visible": true
+      },
+      {
+        "id": "transfers",
+        "label": "Transfers",
+        "value": "Included",
+        "icon": "Bus",
+        "visible": true
+      },
+      {
+        "id": "tour-language",
+        "label": "Tour Language",
+        "value": "English, Hindi, Kannada",
+        "icon": "Languages",
+        "visible": true
+      },
+      {
+        "id": "tour-type",
+        "label": "Tour Type",
+        "value": "Fixed Departure",
+        "icon": "Compass",
+        "visible": true
+      },
+      {
+        "id": "best-for",
+        "label": "Best For",
+        "value": "Solo Travelers, Couples, Friends & Groups",
+        "icon": "Users",
+        "visible": true
+      },
+      {
+        "id": "trek-distance",
+        "label": "Trek Distance",
+        "value": "14 km",
+        "icon": "Route",
+        "visible": true
+      },
+      {
+        "id": "difficulty",
+        "label": "Difficulty",
+        "value": "Moderate",
+        "icon": "Mountain",
+        "visible": true
+      },
+      {
+        "id": "elevation",
+        "label": "Elevation",
+        "value": "Approximately 1,520 metres (4,990 feet)",
+        "icon": "Mountain",
+        "visible": true
+      }
+    ],
+    "factsHidden": false,
+    "permitRequired": true,
+    "permitHidden": false,
+    "bookingLabel": "Trip package",
+    "availabilityNote": "Availability confirmed with your quote",
+    "quoteNote": "Compare quotes from 3 verified agents · best price",
+    "pageSections": {
+      "snapshotPlacement": "intro",
+      "tagline": "",
+      "introduction": "",
+      "itineraryNote": "Actual timings may vary depending on traffic, weather conditions, Forest Department regulations and group pace.",
+      "stayNote": "",
+      "inclusionNote": "",
+      "bookingNote": "",
+      "hiddenSections": [],
+      "sections": [
+        {
+          "id": "story",
+          "title": "A Trek Through Green Hills & Open Landscapes",
+          "placement": "overview",
+          "visible": true,
+          "layout": "box",
+          "body": "The trail moves through a varied landscape, taking you across forest sections and open mountain terrain before reaching the higher slopes of Netravati Peak. The changing scenery keeps the journey engaging from the base to the summit.\n\nFrom the peak, the surrounding hills and countryside open up into wide views, giving you a rewarding perspective of the Western Ghats after the climb.",
+          "items": []
+        },
+        {
+          "id": "pickup-information",
+          "title": "Pickup and Drop Locations from Bengaluru",
+          "placement": "transfers",
+          "visible": true,
+          "layout": "box",
+          "body": "Convenient Pickup Across Bangalore Your Netravati Trek includes round-trip transportation from designated pickup points.\n\n• 10:00 PM - Banashankari\n• 10:15 PM - BTM Layout\n• 10:30 PM - Silk Board\n• 10:45 PM - Bellandur\n• 11:00 PM - Marathahalli\n• 11:30 PM - Tin Factory\n• 11:50 PM - Indira Nagar\n• 12:00 AM - Halasuru\n• 12:10 AM - MG Road\n• 12:30 AM - Mekhri Circle\n• 12:40 AM - Yeshwanthpur\n• 12:50 AM - Goraguntepalya\n\nPickup Process Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+          "items": []
+        },
+        {
+          "id": "packing",
+          "title": "Things to carry",
+          "placement": "carry",
+          "visible": true,
+          "layout": "box",
+          "body": "Things to Carry for Netravati Trek Since Netravati is a monsoon-season trek, carrying the right essentials is important for a comfortable and safe journey.\n\n[Must Carry]\n\n• Small, strong backpack - preferably waterproof\n• At least 2 litres of drinking water\n• Comfortable trekking shoes with good grip\n• Extra pair of socks\n• Torch/headlamp with fresh batteries\n• Extra pair of clothes for two days\n• Polybags for carrying wet clothes\n• Toiletries\n• Portable charger or power bank\n• Energy food such as chocolates, dry fruits, energy boosters and electrolyte drinks\n• Personal snacks\n• Personal medication, if required\n• Original government-issued ID proof\n• Xerox copy of Aadhar/Voter ID\n• Sunglasses\n• Sunscreen\n• Camera (optional)\n• Face mask and hand sanitiser\n• Flip-flops for use around the campsite\n• Raincoat\n• Waterproof backpack cover Packing Tip Keep your backpack light and protect your belongings from rain. Avoid carrying unnecessary items during the trek.",
+          "items": []
+        },
+        {
+          "id": "trail-guidelines",
+          "title": "Trail guidelines",
+          "placement": "guidelines",
+          "visible": true,
+          "layout": "box",
+          "body": "Netravati is a natural destination in the Western Ghats. Help preserve it for future travelers.\n\n\"Trek Responsibly. Respect the Hills.\"\n\n• Follow your trek leader's instructions at all times.\n• Follow Forest Department rules and restrictions.\n• Stay with the group throughout the trek.\n• Remain on the designated trekking trail.\n• Do not litter.\n• Carry all waste back with you.\n• Avoid single-use plastic.\n• Do not smoke or consume alcohol during the trek.\n• Do not light fires or campfires.\n• Do not disturb wildlife.\n• Do not damage plants or natural surroundings.\n• Be careful around steep, slippery and rocky sections.\n• Avoid standing too close to edges while taking photographs.\n• Wear appropriate trekking footwear.\n• Stay hydrated throughout the trek.\n• Take breaks whenever required.\n\n• Avoid loud music that may disturb wildlife and fellow trekkers. \"Leave Only Footprints. Take Only Memories.\"",
+          "items": []
+        },
+        {
+          "id": "permit-information",
+          "title": "Forest Department permit",
+          "placement": "practical",
+          "visible": true,
+          "layout": "box",
+          "body": "Permit Note: Trekkers may purchase the Forest Department permit themselves. If you want CompareMyTrip to arrange the permit, an additional ₹510 per person will be charged.",
+          "items": []
+        }
+      ],
+      "gallery": {
+        "enabled": false,
+        "images": []
+      },
+      "locations": {
+        "enabled": true,
+        "items": [
+          {
+            "id": "pickup-1",
+            "type": "pickup",
+            "name": "Banashankari",
+            "address": "Banashankari, Bengaluru, Karnataka",
+            "notes": "Pickup: 10:00 PM. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-2",
+            "type": "pickup",
+            "name": "BTM Layout",
+            "address": "BTM Layout, Bengaluru, Karnataka",
+            "notes": "Pickup: 10:15 PM. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-3",
+            "type": "pickup",
+            "name": "Silk Board",
+            "address": "Silk Board, Bengaluru, Karnataka",
+            "notes": "Pickup: 10:30 PM. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-4",
+            "type": "pickup",
+            "name": "Bellandur",
+            "address": "Bellandur, Bengaluru, Karnataka",
+            "notes": "Pickup: 10:45 PM. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-5",
+            "type": "pickup",
+            "name": "Marathahalli",
+            "address": "Marathahalli, Bengaluru, Karnataka",
+            "notes": "Pickup: 11:00 PM. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-6",
+            "type": "pickup",
+            "name": "Tin Factory",
+            "address": "Tin Factory, Bengaluru, Karnataka",
+            "notes": "Pickup: 11:30 PM. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-7",
+            "type": "pickup",
+            "name": "Indira Nagar",
+            "address": "Indira Nagar, Bengaluru, Karnataka",
+            "notes": "Pickup: 11:50 PM. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-8",
+            "type": "pickup",
+            "name": "Halasuru",
+            "address": "Halasuru, Bengaluru, Karnataka",
+            "notes": "Pickup: 12:00 AM. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-9",
+            "type": "pickup",
+            "name": "MG Road",
+            "address": "MG Road, Bengaluru, Karnataka",
+            "notes": "Pickup: 12:10 AM. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-10",
+            "type": "pickup",
+            "name": "Mekhri Circle",
+            "address": "Mekhri Circle, Bengaluru, Karnataka",
+            "notes": "Pickup: 12:30 AM. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-11",
+            "type": "pickup",
+            "name": "Yeshwanthpur",
+            "address": "Yeshwanthpur, Bengaluru, Karnataka",
+            "notes": "Pickup: 12:40 AM. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-12",
+            "type": "pickup",
+            "name": "Goraguntepalya",
+            "address": "Goraguntepalya, Bengaluru, Karnataka",
+            "notes": "Pickup: 12:50 AM. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          }
+        ]
+      },
+      "reviews": {
+        "enabled": false,
+        "items": []
+      }
+    }
+  }
+}

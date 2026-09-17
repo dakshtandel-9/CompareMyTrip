@@ -105,3 +105,13 @@ test('admin exposes package-owned booking fields and disables controls while sav
   assert.doesNotMatch(preview, /<select|<fieldset/);
   assert.match(preview, />Moderate</);
 });
+
+test('unrated trek stays use their authored accommodation type without inventing hotel stars', () => {
+  const netravati = JSON.parse(fs.readFileSync('content/package-imports/september-treks/netravati-peak-monsoon-trek.json', 'utf8'));
+  assert.equal(data.getPackageAccommodationLabel(netravati), 'Dormitory');
+  assert.match(render(netravati), /Dormitory/);
+  assert.doesNotMatch(render(netravati), /0★ hotels/);
+  assert.equal(data.getPackageAccommodationLabel(fixture()), 'No accommodation');
+  assert.equal(data.getPackageAccommodationLabel({ ...netravati, hotelStars: 3 }), '3★ hotels');
+  assert.equal(data.getPackageAccommodationLabel({ ...netravati, details: { ...netravati.details, stays: [{ name: 'Unrated stay' }] } }), 'Stay included');
+});

@@ -307,8 +307,7 @@
   .page :global(.cmt-package-booking-actions) > :first-child,
   .page :global(.cmt-package-booking-actions) > p { grid-column: 1 / -1; }
   .page :global(.cmt-package-booking-actions) > :is(button, a) { min-height: 44px; padding: 8px 6px; }
-  .page :global(.cmt-package-booking-actions) > a,
-  .page :global(.cmt-package-booking-actions) > button:last-child { gap: 5px; font-size: 12px; }
+  .page :global(.cmt-package-booking-actions) > button { gap: 5px; font-size: 12px; }
   .page :global(.cmt-package-booking-actions) > p { line-height: 17px; }
   .page :global(.cmt-package-booking-policy) { min-height: 32px; padding-top: 6px; }
   .page :global(.cmt-package-booking-policy) > a { display: inline-flex; align-items: center; min-height: 28px; }

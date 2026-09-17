@@ -1,0 +1,417 @@
+{
+  "id": "uttari-betta-sunrise-trek",
+  "title": "Uttari Betta Sunrise Trek",
+  "location": "Uttari Betta (Hutridurga), Tumakuru, Karnataka",
+  "destination": "Karnataka",
+  "image": "/weekend-treks/nandi-hills.jpg",
+  "nights": 1,
+  "days": 1,
+  "pax": "11 - 40",
+  "hotelStars": 0,
+  "trekGrade": 1,
+  "tags": [
+    "Weekend Treks",
+    "Treks",
+    "Adventure",
+    "Mountains"
+  ],
+  "region": "India",
+  "operator": "CompareMyTrip",
+  "rating": 0,
+  "reviews": 0,
+  "discount": 0,
+  "originalPrice": 765,
+  "price": 765,
+  "status": "published",
+  "departureDays": [
+    5,
+    6
+  ],
+  "details": {
+    "gallery": [
+      "/weekend-treks/nandi-hills.jpg"
+    ],
+    "summary": "Uttari Betta Sunrise Trek – A Quick Escape into the Hills\n\nJust a short journey from Bengaluru, Uttari Betta, also known as Hutridurga, offers an easy and refreshing introduction to the hills of Tumakuru district. The trail brings together rocky terrain, open landscapes and historic surroundings, making it a convenient choice for travellers looking for a quick break from the city.\n\nThe trek begins during the early hours, when the surroundings are calm and the trail is less crowded. As you make your way across the rocky sections, the gradual climb keeps the experience engaging without making it overly demanding. With an approximate trekking distance of 5 km, the route can be completed in around 1 hour 30 minutes, depending on group pace and trail conditions.\n\nAs you approach the summit, the landscape opens up and the early morning light begins to transform the surrounding countryside. Reaching the top around sunrise gives you an opportunity to enjoy expansive views across the nearby hills and open terrain.\n\nWith its easy difficulty level and relatively short trekking duration, Uttari Betta is suitable for beginners with a reasonable level of fitness as well as experienced trekkers looking for a relaxed weekend outing. The combination of a simple climb, sunrise views and historical surroundings makes it a memorable escape from Bengaluru.\n\nWhether you're stepping into trekking for the first time or simply looking for a peaceful morning in the hills, Uttari Betta offers an enjoyable outdoor experience without requiring an entire day on the trail.",
+    "places": [
+      "Uttari Betta (Hutridurga)"
+    ],
+    "highlights": [
+      "Stunning Sunrise Views",
+      "Scenic Rocky Trail",
+      "Historic Fort & Shankareswar Temple",
+      "Panoramic Hilltop Views",
+      "Easy 5 km Trek",
+      "1,130-Metre Summit",
+      "Perfect Weekend Escape"
+    ],
+    "itinerary": [
+      {
+        "day": 0,
+        "title": "Bengaluru to Uttari Betta",
+        "route": "11:00 PM Onwards | Pickup from Bengaluru",
+        "description": "Your Uttari Betta sunrise adventure begins late at night as you leave Bengaluru and travel towards Hutridurga.",
+        "meals": "",
+        "activities": [
+          {
+            "time": "11:00 PM",
+            "title": "Board Vehicle | Benniganahalli Metro Station, Tin Factory",
+            "description": "Meet the trip coordinator at the designated pickup point and board the vehicle. Settle in and get comfortable for the overnight journey."
+          },
+          {
+            "time": "11:20 PM",
+            "title": "Kalamandir, Marathahalli",
+            "description": "Pickup from Kalamandir and continue towards the next designated locations."
+          },
+          {
+            "time": "11:35 PM",
+            "title": "AKME Harmony, Bellandur",
+            "description": "Board the vehicle and continue the journey towards Uttari Betta."
+          },
+          {
+            "time": "11:50 PM",
+            "title": "Silk Board Bus Stop",
+            "description": "Pickup from Silk Board and proceed towards the southern parts of Bengaluru."
+          },
+          {
+            "time": "12:00 AM",
+            "title": "Udupi Garden Signal, BTM",
+            "description": "Join the group at the designated pickup point before continuing towards Banashankari."
+          },
+          {
+            "time": "12:15 AM",
+            "title": "Banashankari Bus Stop",
+            "description": "Pickup and continue the overnight drive."
+          },
+          {
+            "time": "12:30 AM",
+            "title": "Kathriguppe Circle",
+            "description": "Board the vehicle and get ready for the final stretch of the Bengaluru pickup route."
+          },
+          {
+            "time": "12:45 AM",
+            "title": "Gopalan Arcade Mall, RR Nagar",
+            "description": "Last pickup from the RR Nagar side before heading towards the remaining pickup point."
+          },
+          {
+            "time": "1:15 AM",
+            "title": "Guraguntepalya Signal, Yeshwanthpur",
+            "description": "Complete the Bengaluru pickup route and begin the journey towards Uttari Betta."
+          }
+        ]
+      },
+      {
+        "day": 1,
+        "title": "Uttari Betta Sunrise Trek",
+        "route": "Base → Summit → Descent → Bengaluru",
+        "description": "",
+        "meals": "",
+        "activities": [
+          {
+            "time": "3:30 AM",
+            "title": "Early Morning | Arrive at Uttari Betta Base",
+            "description": "Reach the designated starting point and prepare for the trek. After a short briefing from the trek leader, get your essentials ready for the climb."
+          },
+          {
+            "time": "4:00 AM",
+            "title": "Early Morning | Begin the Trek",
+            "description": "Start walking towards the summit under the early morning sky. The trail features rocky sections and a gradual ascent through the hill landscape."
+          },
+          {
+            "time": "5:15 AM",
+            "title": "Before Sunrise | Approach the Summit",
+            "description": "As you gain elevation, the surroundings begin to brighten. Continue towards the top while enjoying the changing views around the hill."
+          },
+          {
+            "time": "6:00 AM",
+            "title": "Sunrise | Reach the Summit",
+            "description": "Reach the summit and take in the first light of the morning. Enjoy the panoramic views of the surrounding hills and countryside and capture some memorable photographs."
+          },
+          {
+            "time": "7:00 AM",
+            "title": "Morning | Explore the Summit",
+            "description": "Spend some time exploring the historic fort area and visiting the Shankareswar Temple. Enjoy the surroundings before beginning the return journey."
+          },
+          {
+            "time": "7:30 AM",
+            "title": "Morning | Begin the Descent",
+            "description": "Start making your way back down with the trek leader. The trail looks different in daylight, allowing you to appreciate the rocky landscape and surrounding countryside."
+          },
+          {
+            "time": "9:00 AM",
+            "title": "Trek Ends",
+            "description": "Reach the base after completing the trek and take some time to rest and freshen up."
+          },
+          {
+            "time": "10:00 AM",
+            "title": "Breakfast Stop",
+            "description": "Stop at a local restaurant or en-route eatery for breakfast. Breakfast is self-sponsored."
+          },
+          {
+            "time": "11:00 AM",
+            "title": "Return to Bengaluru",
+            "description": "Board the vehicle and begin the journey back to Bengaluru."
+          },
+          {
+            "time": "1:00 PM",
+            "title": "Bengaluru Drop",
+            "description": "Arrive back in Bengaluru and conclude your Uttari Betta Sunrise Trek experience."
+          }
+        ]
+      }
+    ],
+    "dayZeroEnabled": true,
+    "stays": [],
+    "inclusions": [
+      "Round-trip transportation from Bengaluru",
+      "Guided Uttari Betta Sunrise Trek",
+      "Experienced trek leader",
+      "Trip coordination and assistance",
+      "Basic First-aid support"
+    ],
+    "exclusions": [
+      "Breakfast and meals",
+      "Drinking water",
+      "Personal snacks",
+      "Personal expenses",
+      "Personal medication",
+      "Travel or accident insurance",
+      "Personal trekking equipment",
+      "Photography/videography services",
+      "Expenses arising from unforeseen circumstances",
+      "Any service not specifically mentioned under Inclusions"
+    ],
+    "meals": "Breakfast and meals are not included. Breakfast is self-sponsored.",
+    "transfers": "Transportation Allocation\n\nTransportation will be arranged according to the confirmed group size to ensure a comfortable and convenient journey:\n\n• 10-11 Guests: 12-Seater Tempo Traveller\n• Up to 20 Guests: 22-Seater Mini Bus\n• Up to 30 Guests: 30-Seater Bus\n• Up to 45 Guests: 50-Seater Bus\n• Vehicle Type: All vehicles provided are Non-A/C.\n• Vehicle allocation is based on the final confirmed group size and is subject to vehicle availability.",
+    "flights": "Not included",
+    "cancellationPolicy": "• Cancellations made 7 days or more before the trek date are eligible for a 50% refund of the booking amount.\n• Cancellations made within 7 days of the trek date are non-refundable.\n• No refund will be provided for no-shows or cancellations made on the day of the trek.",
+    "facts": [
+      {
+        "id": "duration",
+        "label": "Duration",
+        "value": "1 Night / 1 Day",
+        "icon": "Clock3",
+        "visible": true
+      },
+      {
+        "id": "group-size",
+        "label": "Group size",
+        "value": "11 - 40",
+        "icon": "Users",
+        "visible": true
+      },
+      {
+        "id": "transfers",
+        "label": "Transfers",
+        "value": "Included",
+        "icon": "Bus",
+        "visible": true
+      },
+      {
+        "id": "tour-language",
+        "label": "Tour Language",
+        "value": "English, Hindi, Kannada",
+        "icon": "Languages",
+        "visible": true
+      },
+      {
+        "id": "tour-type",
+        "label": "Tour Type",
+        "value": "Fixed Departure",
+        "icon": "Compass",
+        "visible": true
+      },
+      {
+        "id": "best-for",
+        "label": "Best For",
+        "value": "Solo Travelers, Couples, Friends & Groups",
+        "icon": "Users",
+        "visible": true
+      },
+      {
+        "id": "trek-distance",
+        "label": "Trek Distance",
+        "value": "Approximately 5 km",
+        "icon": "Route",
+        "visible": true
+      },
+      {
+        "id": "trek-duration",
+        "label": "Trek Duration",
+        "value": "Approximately 1 hour 30 minutes",
+        "icon": "Clock3",
+        "visible": true
+      },
+      {
+        "id": "difficulty",
+        "label": "Difficulty",
+        "value": "Easy",
+        "icon": "Mountain",
+        "visible": true
+      },
+      {
+        "id": "highest-point",
+        "label": "Highest Point",
+        "value": "Approximately 1,130 metres (3,708 feet)",
+        "icon": "Mountain",
+        "visible": true
+      }
+    ],
+    "factsHidden": false,
+    "permitRequired": false,
+    "permitHidden": true,
+    "bookingLabel": "Trip package",
+    "availabilityNote": "Availability confirmed with your quote",
+    "quoteNote": "Compare quotes from 3 verified agents · best price",
+    "pageSections": {
+      "snapshotPlacement": "intro",
+      "tagline": "",
+      "introduction": "",
+      "itineraryNote": "Actual timings may vary depending on traffic, weather conditions, trail conditions, local regulations and group pace.",
+      "stayNote": "",
+      "inclusionNote": "",
+      "bookingNote": "",
+      "hiddenSections": [],
+      "sections": [
+        {
+          "id": "story",
+          "title": "A Trek with History & Scenic Views",
+          "placement": "overview",
+          "visible": true,
+          "layout": "box",
+          "body": "Uttari Betta, also known as Hutridurga, combines natural scenery with historical elements. The hill is home to the remains of an old fort along with the Shankareswar Temple, giving the route more character than a typical sunrise viewpoint.\n\nAs you explore the summit, the rocky landscape and panoramic countryside views provide a scenic backdrop, while the historic structures add another dimension to the trekking experience. Together, these elements make Uttari Betta a compact trek where adventure, nature and heritage come together.",
+          "items": []
+        },
+        {
+          "id": "pickup-information",
+          "title": "Pickup and Drop Locations from Bengaluru",
+          "placement": "transfers",
+          "visible": true,
+          "layout": "box",
+          "body": "Convenient Pickup Across Bengaluru\n\nYour Uttari Betta Trek from Bengaluru includes round-trip transportation from designated pickup points.\n\nConfirmed pickup locations for this departure are:\n\n• Benniganahalli Metro Station, Tin Factory – 11:00 PM\n• Kalamandir, Marathahalli – 11:20 PM\n• AKME Harmony, Bellandur – 11:35 PM\n• Silk Board Bus Stop – 11:50 PM\n• Udupi Garden Signal, BTM – 12:00 AM\n• Banashankari Bus Stop – 12:15 AM\n• Kathriguppe Circle – 12:30 AM\n• Gopalan Arcade Mall, RR Nagar – 12:45 AM\n• Guraguntepalya Signal, Yeshwanthpur – 1:15 AM\n\nPickup Process\n\nYour confirmed pickup location and reporting time will be shared after booking.\n\nPlease arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+          "items": []
+        },
+        {
+          "id": "packing",
+          "title": "Things to carry",
+          "placement": "carry",
+          "visible": true,
+          "layout": "box",
+          "body": "Things to Carry for Uttari Betta Trek\n\n(Since the trek begins during the early hours, packing the right essentials is important.)\n\n[Must Carry]\n• Small trekking backpack\n• At least 2 litres of drinking water\n• Headlamp or torch\n• Trekking shoes with good grip\n• Light jacket or windcheater\n• Extra pair of socks\n• Cap\n• Sunglasses\n• Sunscreen\n• Energy bars or dry fruits\n• Personal medication\n• Fully charged mobile phone\n\n• Power bank\n• Valid government-issued ID\n\n[During Monsoon]\n• Rain jacket or poncho\n• Waterproof backpack cover\n• Waterproof phone pouch\n• Extra clothes and socks\n\nPacking Tip\n\nKeep your backpack light. Avoid carrying unnecessary items as you'll be walking for several hours over uneven terrain.",
+          "items": []
+        },
+        {
+          "id": "trail-guidelines",
+          "title": "Trail guidelines",
+          "placement": "guidelines",
+          "visible": true,
+          "layout": "box",
+          "body": "Uttari Betta is a natural and historical destination. Help preserve it for future travellers.\n\n\"Trek Responsibly. Respect the Hills.\"\n\n• Follow your trek leader's instructions at all times.\n• Follow Forest Department/local rules and restrictions where applicable.\n• Stay with the group throughout the trek.\n• Remain on the designated trekking trail.\n• Do not litter.\n• Carry all waste back with you.\n• Avoid single-use plastic.\n• Do not smoke or consume alcohol during the trek.\n• Do not light fires or campfires.\n• Do not disturb wildlife.\n• Do not damage plants or historical structures.\n• Be careful around steep and rocky sections.\n• Avoid standing too close to edges while taking photographs.\n• Wear appropriate trekking footwear.\n• Stay hydrated throughout the trek.\n• Take breaks whenever required.\n• Avoid loud music that may disturb wildlife and fellow trekkers.\n\n\"Leave Only Footprints. Take Only Memories.\"",
+          "items": []
+        }
+      ],
+      "gallery": {
+        "enabled": false,
+        "images": []
+      },
+      "locations": {
+        "enabled": true,
+        "items": [
+          {
+            "id": "pickup-1",
+            "type": "pickup",
+            "name": "Benniganahalli Metro Station, Tin Factory",
+            "address": "Benniganahalli Metro Station, Tin Factory, Bengaluru, Karnataka",
+            "notes": "Pickup: 11:00 PM. Your confirmed pickup location and reporting time will be shared after booking.\n\nPlease arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-2",
+            "type": "pickup",
+            "name": "Kalamandir, Marathahalli",
+            "address": "Kalamandir, Marathahalli, Bengaluru, Karnataka",
+            "notes": "Pickup: 11:20 PM. Your confirmed pickup location and reporting time will be shared after booking.\n\nPlease arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-3",
+            "type": "pickup",
+            "name": "AKME Harmony, Bellandur",
+            "address": "AKME Harmony, Bellandur, Bengaluru, Karnataka",
+            "notes": "Pickup: 11:35 PM. Your confirmed pickup location and reporting time will be shared after booking.\n\nPlease arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-4",
+            "type": "pickup",
+            "name": "Silk Board Bus Stop",
+            "address": "Silk Board Bus Stop, Bengaluru, Karnataka",
+            "notes": "Pickup: 11:50 PM. Your confirmed pickup location and reporting time will be shared after booking.\n\nPlease arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-5",
+            "type": "pickup",
+            "name": "Udupi Garden Signal, BTM",
+            "address": "Udupi Garden Signal, BTM, Bengaluru, Karnataka",
+            "notes": "Pickup: 12:00 AM. Your confirmed pickup location and reporting time will be shared after booking.\n\nPlease arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-6",
+            "type": "pickup",
+            "name": "Banashankari Bus Stop",
+            "address": "Banashankari Bus Stop, Bengaluru, Karnataka",
+            "notes": "Pickup: 12:15 AM. Your confirmed pickup location and reporting time will be shared after booking.\n\nPlease arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-7",
+            "type": "pickup",
+            "name": "Kathriguppe Circle",
+            "address": "Kathriguppe Circle, Bengaluru, Karnataka",
+            "notes": "Pickup: 12:30 AM. Your confirmed pickup location and reporting time will be shared after booking.\n\nPlease arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-8",
+            "type": "pickup",
+            "name": "Gopalan Arcade Mall, RR Nagar",
+            "address": "Gopalan Arcade Mall, RR Nagar, Bengaluru, Karnataka",
+            "notes": "Pickup: 12:45 AM. Your confirmed pickup location and reporting time will be shared after booking.\n\nPlease arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-9",
+            "type": "pickup",
+            "name": "Guraguntepalya Signal, Yeshwanthpur",
+            "address": "Guraguntepalya Signal, Yeshwanthpur, Bengaluru, Karnataka",
+            "notes": "Pickup: 1:15 AM. Your confirmed pickup location and reporting time will be shared after booking.\n\nPlease arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          }
+        ]
+      },
+      "reviews": {
+        "enabled": false,
+        "items": []
+      }
+    }
+  }
+}

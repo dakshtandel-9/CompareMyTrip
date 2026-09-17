@@ -1,0 +1,39 @@
+[
+  {
+    "file": "uttari-betta-sunrise-trek.json",
+    "source": "uttari_betta_sunrise_trek_itinerary.pdf",
+    "notes": []
+  },
+  {
+    "file": "kunti-betta-sunrise-trek.json",
+    "source": "kunti_betta_sunrise_trek_itinerary.pdf",
+    "notes": []
+  },
+  {
+    "file": "shivagange-sunrise-trek.json",
+    "source": "shivagange_sunrise_trek_itinerary.pdf",
+    "notes": []
+  },
+  {
+    "file": "madhugiri-trek.json",
+    "source": "Madhugiri_Trek_CompareMyTrip_Skandagiri_Template.pdf",
+    "notes": []
+  },
+  {
+    "file": "anthargange-trek.json",
+    "source": "Anthargange_Trek_CompareMyTrip_Skandagiri_Template.pdf",
+    "notes": []
+  },
+  {
+    "file": "netravati-peak-monsoon-trek.json",
+    "source": "Netravati_Monsoon_Trek_CompareMyTrip.pdf",
+    "notes": []
+  },
+  {
+    "file": "gudibande-fort-sunrise-trek.json",
+    "source": "Gudibande_Fort_Sunrise_Trek_CompareMyTrip.pdf",
+    "notes": [
+      "Cancellation policy not supplied; hidden until completed in CRM."
+    ]
+  }
+]

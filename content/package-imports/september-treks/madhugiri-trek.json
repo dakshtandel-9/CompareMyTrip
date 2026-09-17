@@ -1,0 +1,312 @@
+{
+  "id": "madhugiri-trek",
+  "title": "Madhugiri Trek",
+  "location": "Madhugiri, Tumakuru, KAR",
+  "destination": "Karnataka",
+  "image": "/weekend-treks/savandurga.jpg",
+  "nights": 1,
+  "days": 1,
+  "pax": "11 - 40",
+  "hotelStars": 0,
+  "trekGrade": 3,
+  "tags": [
+    "Weekend Treks",
+    "Treks",
+    "Adventure",
+    "Mountains"
+  ],
+  "region": "India",
+  "operator": "CompareMyTrip",
+  "rating": 0,
+  "reviews": 0,
+  "discount": 0,
+  "originalPrice": 799,
+  "price": 799,
+  "status": "published",
+  "departureDays": [
+    5,
+    6
+  ],
+  "details": {
+    "gallery": [
+      "/weekend-treks/savandurga.jpg"
+    ],
+    "summary": "A Challenging Climb to Madhugiri\n\nThe Madhugiri Trek is a demanding early-morning trekking experience in Tumakuru district, rising dramatically above Madhugiri. The massive monolithic hill, rugged terrain and impressive rock face create a striking setting for an adventurous escape from Bangalore. As you climb higher, the trail becomes more challenging, with steep rocky sections, stone steps and exposed stretches that demand attention and steady effort. The ascent is physical and engaging, making it a suitable challenge for trekkers looking for something more demanding. Your journey begins late at night in Bangalore. Travel comfortably to Madhugiri, meet your trek leader and prepare for the early-morning climb. The trail passes through Madhugiri Fort, where old fort walls and historic structures blend into the rocky hill. Higher sections reward you with panoramic views of Madhugiri town and the surrounding landscape.",
+    "places": [
+      "Madhugiri"
+    ],
+    "highlights": [
+      "Asia’s Second-Largest Monolithic Hill",
+      "Historic Madhugiri Fort",
+      "Steep & Adventurous Rocky Trail",
+      "Panoramic Views from the Summit"
+    ],
+    "itinerary": [
+      {
+        "day": 0,
+        "title": "Bangalore to Madhugiri",
+        "route": "11:00 PM Onwards | Pickup from Bengaluru",
+        "description": "Your Madhugiri adventure begins late at night.",
+        "meals": "",
+        "activities": [
+          {
+            "time": "11:00 PM",
+            "title": "Board Vehicle",
+            "description": "Meet your trip coordinator at the designated pickup point and board the vehicle for your journey towards Madhugiri."
+          },
+          {
+            "time": "5:00 AM",
+            "title": "Early Morning | Arrive at Madhugiri Base",
+            "description": "Reach the designated base/parking area and prepare for the trek."
+          }
+        ]
+      },
+      {
+        "day": 1,
+        "title": "Conquer Madhugiri Hill",
+        "route": "Summit & Descent | Return to Bengaluru",
+        "description": "Start your ascent towards the Madhugiri summit through the rugged trail and historic fort sections.",
+        "meals": "",
+        "activities": [
+          {
+            "time": "5:45 AM",
+            "title": "Early Morning | Begin the Trek",
+            "description": "The trail takes you through rocky terrain and stone steps, gradually becoming steeper and more demanding as you gain elevation. Maintain a comfortable pace and stay together with the group."
+          },
+          {
+            "time": "8:00 AM",
+            "title": "Morning | Reach the Summit",
+            "description": "Reach the summit and take in the panoramic views of Madhugiri town and the surrounding landscape."
+          },
+          {
+            "time": "8:40 AM",
+            "title": "Begin the Descent",
+            "description": "Start your descent with your trek leader. Take care while navigating steep, rocky and exposed sections."
+          },
+          {
+            "time": "10:00 AM",
+            "title": "Trek Ends",
+            "description": "Reach the base and take some time to rest and freshen up."
+          }
+        ]
+      }
+    ],
+    "dayZeroEnabled": true,
+    "stays": [],
+    "inclusions": [
+      "Round-trip transportation from Bangalore",
+      "Guided Madhugiri Trek",
+      "Experienced trek leader",
+      "Trip coordination and assistance",
+      "Basic First-aid support"
+    ],
+    "exclusions": [
+      "Applicable trekking/Forest Department permissions",
+      "Breakfast and meals",
+      "Drinking water",
+      "Personal snacks",
+      "Personal expenses",
+      "Personal medication",
+      "Travel or accident insurance",
+      "Personal trekking equipment",
+      "Photography/videography services",
+      "Expenses arising from unforeseen circumstances",
+      "Any service not specifically mentioned under Inclusions"
+    ],
+    "meals": "Breakfast and meals are not included. Breakfast is self-sponsored.",
+    "transfers": "Transportation Allocation Transportation will be arranged according to the confirmed group size to ensure a comfortable and convenient journey:\n• 10-11 Guests: 12-Seater Tempo Traveller\n• Up to 20 Guests: 22-Seater Mini Bus\n• Up to 30 Guests: 30-Seater Bus\n• Up to 45 Guests: 50-Seater Bus\n\nVehicle Type: All vehicles provided are Non-A/C. Vehicle allocation is based on the final confirmed group size and is subject to vehicle availability.",
+    "flights": "Not included",
+    "cancellationPolicy": "• Cancellations made 7 days or more before the trek date are eligible for a 50% refund of the booking amount.\n• Cancellations made within 7 days of the trek date are non-refundable.\n• No refund will be provided for no-shows or cancellations made on the day of the trek.",
+    "facts": [
+      {
+        "id": "duration",
+        "label": "Duration",
+        "value": "1 Night / 1 Day",
+        "icon": "Clock3",
+        "visible": true
+      },
+      {
+        "id": "group-size",
+        "label": "Group size",
+        "value": "11 - 40",
+        "icon": "Users",
+        "visible": true
+      },
+      {
+        "id": "transfers",
+        "label": "Transfers",
+        "value": "Included",
+        "icon": "Bus",
+        "visible": true
+      },
+      {
+        "id": "tour-language",
+        "label": "Tour Language",
+        "value": "English, Hindi, Kannada",
+        "icon": "Languages",
+        "visible": true
+      },
+      {
+        "id": "tour-type",
+        "label": "Tour Type",
+        "value": "Fixed Departure",
+        "icon": "Compass",
+        "visible": true
+      },
+      {
+        "id": "best-for",
+        "label": "Best For",
+        "value": "Solo Travelers , Couples , Friends & Groups",
+        "icon": "Users",
+        "visible": true
+      }
+    ],
+    "factsHidden": false,
+    "permitRequired": false,
+    "permitHidden": true,
+    "bookingLabel": "Trip package",
+    "availabilityNote": "Availability confirmed with your quote",
+    "quoteNote": "Compare quotes from 3 verified agents · best price",
+    "pageSections": {
+      "snapshotPlacement": "intro",
+      "tagline": "",
+      "introduction": "",
+      "itineraryNote": "Actual timings may vary depending on traffic, weather conditions, local regulations and group pace. Breakfast Self Sponsored",
+      "stayNote": "",
+      "inclusionNote": "",
+      "bookingNote": "",
+      "hiddenSections": [],
+      "sections": [
+        {
+          "id": "story",
+          "title": "A Hill with a Story",
+          "placement": "overview",
+          "visible": true,
+          "layout": "box",
+          "body": "Madhugiri is more than a steep climb. The route through the historic fort adds another layer to the trek, with old structures appearing along the rocky ascent. The combination of a huge monolithic hill, challenging trail, historic fort and open summit views gives the Madhugiri Trek a character of its own.",
+          "items": []
+        },
+        {
+          "id": "pickup-information",
+          "title": "Pickup and Drop Locations from Bengaluru",
+          "placement": "transfers",
+          "visible": true,
+          "layout": "box",
+          "body": "Convenient Pickup Across Bangalore Your Madhugiri Trek from Bangalore includes round-trip transportation from designated pickup points. Depending on the final vehicle route, pickup locations may include:\n• Rajarajeshwari Nagar\n• Banashankari\n• BTM Layout\n• Silk Board\n• Bellandur\n• Marathahalli\n• Tin Factory\n• Hebbal Pickup Process Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+          "items": []
+        },
+        {
+          "id": "packing",
+          "title": "Things to carry",
+          "placement": "carry",
+          "visible": true,
+          "layout": "box",
+          "body": "Things to Carry for Madhugiri Trek (Since the trek begins during the early hours, packing the right essentials is important.)\n[Must Carry]\n• Small trekking backpack\n• At least 2 litres of drinking water\n• Headlamp or torch\n• Trekking shoes with good grip\n• Light jacket or windcheater\n• Extra pair of socks\n• Cap\n• Sunglasses\n• Sunscreen\n• Energy bars or dry fruits\n• Personal medication\n\n• Fully charged mobile phone\n• Power bank\n• Valid government-issued ID\n[During Monsoon]\n• Rain jacket or poncho\n• Waterproof backpack cover\n• Waterproof phone pouch\n• Extra clothes and socks Packing Tip Keep your backpack light. Avoid carrying unnecessary items as you'll be walking for several hours over uneven terrain.",
+          "items": []
+        },
+        {
+          "id": "trail-guidelines",
+          "title": "Trail guidelines",
+          "placement": "guidelines",
+          "visible": true,
+          "layout": "box",
+          "body": "Madhugiri is both a natural and historical destination. Help preserve it for future travelers. \"Trek Responsibly. Respect the Hills.\"\n• Follow your trek leader's instructions at all times.\n• Follow Forest Department rules and restrictions.\n• Stay with the group throughout the trek.\n• Remain on the designated trekking trail.\n• Do not litter.\n• Carry all waste back with you.\n• Avoid single-use plastic.\n• Do not smoke or consume alcohol during the trek.\n• Do not light fires or campfires.\n• Do not disturb wildlife.\n• Do not damage plants or historical structures.\n• Be careful around steep and rocky sections.\n• Avoid standing too close to edges while taking photographs.\n• Wear appropriate trekking footwear.\n• Stay hydrated throughout the trek.\n• Take breaks whenever required.\n• Avoid loud music that may disturb wildlife and fellow trekkers. \"Leave Only Footprints. Take Only Memories.\"",
+          "items": []
+        }
+      ],
+      "gallery": {
+        "enabled": false,
+        "images": []
+      },
+      "locations": {
+        "enabled": true,
+        "items": [
+          {
+            "id": "pickup-1",
+            "type": "pickup",
+            "name": "Rajarajeshwari Nagar",
+            "address": "Rajarajeshwari Nagar, Bengaluru, Karnataka",
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-2",
+            "type": "pickup",
+            "name": "Banashankari",
+            "address": "Banashankari, Bengaluru, Karnataka",
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-3",
+            "type": "pickup",
+            "name": "BTM Layout",
+            "address": "BTM Layout, Bengaluru, Karnataka",
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-4",
+            "type": "pickup",
+            "name": "Silk Board",
+            "address": "Silk Board, Bengaluru, Karnataka",
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-5",
+            "type": "pickup",
+            "name": "Bellandur",
+            "address": "Bellandur, Bengaluru, Karnataka",
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-6",
+            "type": "pickup",
+            "name": "Marathahalli",
+            "address": "Marathahalli, Bengaluru, Karnataka",
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-7",
+            "type": "pickup",
+            "name": "Tin Factory",
+            "address": "Tin Factory, Bengaluru, Karnataka",
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          },
+          {
+            "id": "pickup-8",
+            "type": "pickup",
+            "name": "Hebbal",
+            "address": "Hebbal, Bengaluru, Karnataka",
+            "notes": "Possible pickup area, depending on the final vehicle route. Your confirmed pickup location and reporting time will be shared after booking. Please arrive at your pickup point 10-15 minutes before the scheduled reporting time.",
+            "mapUrl": "",
+            "image": "",
+            "visible": true
+          }
+        ]
+      },
+      "reviews": {
+        "enabled": false,
+        "items": []
+      }
+    }
+  }
+}

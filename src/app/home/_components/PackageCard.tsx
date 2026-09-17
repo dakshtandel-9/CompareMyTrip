@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BedDouble, Clock, MapPin, RotateCcw, Users } from "lucide-react";
 
-import { getDiscountPercent, type TravelPackage } from "@/lib/packageData";
+import { getPackageAccommodationLabel, getDiscountPercent, type TravelPackage } from "@/lib/packageData";
 import TrekGradeBadge from "@/components/TrekGradeBadge";
 import Price from "./Price";
 import Rating from "./Rating";
@@ -92,7 +92,7 @@ export default function PackageCard({
           </span>
           <span className="inline-flex items-center gap-1">
             <BedDouble className="h-3.5 w-3.5" strokeWidth={2} />
-            {pkg.hotelStars}★ hotels
+            {getPackageAccommodationLabel(pkg)}
           </span>
         </div>
 

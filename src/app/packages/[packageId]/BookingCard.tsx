@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BadgePercent, BedDouble, Check, Flame, GitCompareArrows, Minus, Plane, Plus, ShieldCheck } from "lucide-react";
-import { departureDays, departureDaysLabel, getDiscountPercent, getPackageTier, type PackageDetails, type TravelPackage } from "@/lib/packageData";
+import { getPackageAccommodationLabel, departureDays, departureDaysLabel, getDiscountPercent, getPackageTier, type PackageDetails, type TravelPackage } from "@/lib/packageData";
 import DepartureDatePicker from "@/components/DepartureDatePicker";
 import { useCompare } from "@/lib/useCompare";
 import TrekGradeBadge from "@/components/TrekGradeBadge";
@@ -84,7 +84,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           </span>
           {hasStay && <span className={CHIP}>
             <BedDouble className="size-3.5 text-cmt-neutral-500" aria-hidden="true" />
-            STAY {pkg.hotelStars}★ hotels
+            {pkg.hotelStars > 0 ? "STAY " : ""}{getPackageAccommodationLabel(pkg)}
           </span>}
           {flightLabel && <span className={CHIP}>
             <Plane className="size-3.5 text-cmt-neutral-500" aria-hidden="true" />
@@ -194,20 +194,20 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
         </div>
 
         <div className="cmt-package-booking-actions space-y-2.5">
+          <Link
+            href={checkoutHref}
+            className="flex min-h-[52px] w-full items-center justify-center rounded-[10px] bg-cmt-primary-500 px-3 py-3 text-[15px] font-bold text-cmt-neutral-900 shadow-[0_3px_10px_rgba(205,158,17,0.12)] transition-[background-color,box-shadow,transform] duration-200 hover:bg-cmt-primary-600 hover:shadow-[0_5px_14px_rgba(205,158,17,0.18)] motion-safe:hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+          >
+            Pay and Book Now
+          </Link>
+          {quoteNote.trim() && <p className="whitespace-pre-wrap break-words px-1 text-center text-xs leading-[1.6] text-cmt-neutral-500">{quoteNote}</p>}
           <button
             type="button"
             onClick={onRequestQuote}
-            className="flex min-h-[52px] w-full items-center justify-center rounded-[10px] bg-cmt-primary-500 px-3 py-3 text-[15px] font-bold text-cmt-neutral-900 shadow-[0_3px_10px_rgba(205,158,17,0.12)] transition-[background-color,box-shadow,transform] duration-200 hover:bg-cmt-primary-600 hover:shadow-[0_5px_14px_rgba(205,158,17,0.18)] motion-safe:hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+            className="flex min-h-11 w-full items-center justify-center rounded-[10px] border border-cmt-neutral-300 bg-white px-3 py-2.5 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:border-cmt-neutral-500 hover:bg-cmt-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
           >
             Get customized quote
           </button>
-          {quoteNote.trim() && <p className="whitespace-pre-wrap break-words px-1 text-center text-xs leading-[1.6] text-cmt-neutral-500">{quoteNote}</p>}
-          <Link
-            href={checkoutHref}
-            className="flex min-h-11 w-full items-center justify-center rounded-[10px] border border-cmt-neutral-300 bg-white px-3 py-2.5 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:border-cmt-neutral-500 hover:bg-cmt-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
-          >
-            Pay &amp; book now
-          </Link>
           <button
             type="button"
             onClick={() => toggle(pkg.id)}

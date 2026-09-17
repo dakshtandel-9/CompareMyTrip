@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 
-import { getPackageDetails, type TravelPackage } from "@/lib/packageData";
+import { getPackageAccommodationLabel, getPackageDetails, type TravelPackage } from "@/lib/packageData";
 import { usePackages } from "@/lib/usePackages";
 import { useCompare } from "@/lib/useCompare";
 import { useSiteContent } from "@/lib/useSiteContent";
@@ -102,7 +102,7 @@ function attributesFor(pkg: TravelPackage): ComparedAttributes {
   const details = getPackageDetails(pkg);
 
   return {
-    accommodation: `${pkg.hotelStars}★ hotels`,
+    accommodation: `${getPackageAccommodationLabel(pkg)}`,
     meals: details.meals,
     transfers: details.transfers,
     bestFor: pkg.tags.length > 0 ? pkg.tags.join(" · ") : "All travellers",
