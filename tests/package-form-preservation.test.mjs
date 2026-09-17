@@ -1,3 +1,4 @@
+import { richTextDependencies } from "./helpers/package-rich-text.mjs";
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -5,6 +6,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 
 function load(file, dependencies = {}) {
+  dependencies = { ...richTextDependencies, ...dependencies };
   const exports = {};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
@@ -161,4 +163,23 @@ test('badge icons, custom text and hidden state survive preview, JSON storage an
   assert.equal(reopened.bookingBadges[1].visible, false);
   const cleared = edit(reopened, ['details', 'bookingBadges'], [], saved);
   assert.deepEqual(plain(data.getPackageBookingBadges(packageFromForm(cleared, saved))), plain(data.getPackageBookingBadges(pkg)));
+});
+
+test('formatted descriptions and separate highlight cards survive save, reload and unrelated edits', () => {
+  const { serializeRichText, richTextDocument, plainPackageText } = richTextDependencies['@/lib/packageRichText'];
+  const pkg = fixture();
+  const document = { type: 'doc', content: [
+    { type: 'paragraph', content: [{ type: 'text', text: 'Coffee plantations', marks: [{ type: 'bold' }, { type: 'textStyle', attrs: { fontFamily: 'Georgia, serif', fontSize: '24px' } }] }] },
+    { type: 'paragraph', content: [{ type: 'text', text: 'Waterfalls', marks: [{ type: 'italic' }] }] },
+  ] };
+  let form = formFromPackage(pkg);
+  form.highlights = serializeRichText(document, true);
+  form.summary = serializeRichText(document);
+  form = edit(form, ['title'], 'Updated title', pkg);
+  const stored = plain(packageFromForm(form, pkg));
+  assert.equal(stored.details.highlights.length, 2);
+  assert.deepEqual(stored.details.highlights.map(plainPackageText), ['Coffee plantations', 'Waterfalls']);
+  const reopened = formFromPackage(stored);
+  assert.deepEqual(plain(richTextDocument(reopened.highlights)), plain(richTextDocument(form.highlights)));
+  assert.equal(reopened.summary, form.summary);
 });

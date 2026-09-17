@@ -1,3 +1,5 @@
+
+import { plainPackageText } from "@/lib/packageRichText";
 import { getPackageDetails, type PackageFact, type TravelPackage } from "@/lib/packageData";
 
 export const PERMIT_BOOKING_URL = "https://aranyavihaara.karnataka.gov.in/";
@@ -26,7 +28,7 @@ export function packageFactValue(fact: PackageFact, values: PackageFactValues): 
     case "duration": return `${values.nights} night${values.nights === 1 ? "" : "s"} / ${values.days} day${values.days === 1 ? "" : "s"}`;
     case "groupSize": return values.pax;
     case "stay": return values.hasStay === false ? "No accommodation" : `${values.hotelStars}★ verified stays`;
-    case "transfers": return values.transfers;
+    case "transfers": return plainPackageText(values.transfers);
     case "meals": return values.meals;
     case "flights": return values.flights;
     default: return "";

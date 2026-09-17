@@ -10,6 +10,7 @@ import { applyPackageImport } from "@/lib/packageAiImport";
 import PackageDetailClient from "@/app/packages/[packageId]/PackageDetailClient";
 import { type ContentPath } from "@/app/packages/_components/PackageInlineEditing";
 import styles from "./AdminPackageBuilder.module.css";
+import PackageVisualEditor from "./PackageVisualEditor";
 import PackageAiImporter from "./PackageAiImporter";
 import PackageDetailEditor, { type PackageEditorArea } from "./PackageDetailEditor";
 import { PackageContentIOContext } from "./PackageContentField";
@@ -46,6 +47,7 @@ export default function AdminPackageBuilder({ initialPackage, initialDestination
   const [uploading, setUploading] = useState(false);
   const [uploadWarning, setUploadWarning] = useState("");
   const [editing, setEditing] = useState(true);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
   const formRef = useRef(form);
   const dirty = JSON.stringify(form) !== originalForm;
   const pkg = packageFromForm(form, initialPackage, { normalize: false });
@@ -118,7 +120,7 @@ export default function AdminPackageBuilder({ initialPackage, initialDestination
       const step = packageEditorSteps(form.tags)[validation.step]?.id;
       const areas: Record<string, PackageEditorArea> = { intro: "basics", about: "overview", highlights: "highlights", itinerary: "itinerary", stays: "stays", carry: "practical", guidelines: "practical", transfers: "practical", locations: "locations", inclusions: "coverage", exclusions: "coverage", faq: "faq", reviews: "reviews", booking: "booking", extras: "extras" };
       setSection(/image|photo|cover/i.test(validation.message) ? "images" : /details box/i.test(validation.message) ? "facts" : areas[step] ?? "basics");
-      setEditing(true); setError(validation.message);
+      setEditing(true); setInspectorOpen(true); setError(validation.message);
       window.requestAnimationFrame(() => document.getElementById("package-save-error")?.scrollIntoView({ behavior: "smooth", block: "center" })); return;
     }
     const newPackage = packageFromForm(form, initialPackage);
@@ -163,13 +165,16 @@ export default function AdminPackageBuilder({ initialPackage, initialDestination
     {error && <p id="package-save-error" role="alert" className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">{error}</p>}
     {uploadWarning && <p role="status" className="mb-4 text-sm text-amber-800">{uploadWarning}</p>}
     <PackageContentIOContext.Provider value={delta => { readingRef.current += delta; setReading(readingRef.current); }}>
-      {editing ? <>
-        {section === "basics" && <details className="mb-5 rounded-lg border border-cmt-neutral-200 bg-white p-4"><summary className="cursor-pointer text-sm font-semibold">Import package content (optional)</summary><div className="mt-4"><PackageAiImporter disabled={busy} onApply={product => replaceForm(applyPackageImport(formRef.current, product))} /></div></details>}
-        <PackageDetailEditor form={form} pkg={pkg} section={section} onSectionChange={next => { setSection(next); window.requestAnimationFrame(() => { const heading = document.getElementById("package-editor-heading"); heading?.focus({ preventScroll: true }); heading?.scrollIntoView({ block: "start", behavior: "instant" }); }); }} onChange={replaceForm} change={change} disabled={busy} onUploadImages={handleSectionImageUpload} filedUnderOptions={filedUnderOptions} />
-      </> : <div className={styles.preview}>
-        <p className={styles.hint}>Preview of your unsaved changes. Use Back to editor to make changes; Save package applies them. Booking actions are disabled in this preview.</p>
-        <PackageDetailClient initialPackage={pkg} preview publicPreview previewSidebar={pkg.image ? <div inert><BookingCard pkg={pkg} details={getPackageDetails(pkg)} travelDate="" onTravelDateChange={() => {}} travellers={2} onTravellersChange={() => {}} onRequestQuote={() => {}} /></div> : <p className="rounded-lg border border-dashed p-5 text-sm">Add a cover photo in Images to preview the booking card.</p>} />
-      </div>}
+      <div className={styles.preview}>
+        {!editing && <p className={styles.hint}>Preview of your unsaved changes. Use Back to editor to edit the page. Save package applies your changes. Booking actions are disabled.</p>}
+        <PackageVisualEditor pkg={pkg} editing={editing} disabled={busy} section={section} open={inspectorOpen}
+          onSelect={next => { setSection(next); setInspectorOpen(true); }} onClose={() => setInspectorOpen(false)} error={error}
+          page={<PackageDetailClient initialPackage={pkg} preview publicPreview previewSidebar={pkg.image ? <div inert={!editing || busy}><BookingCard pkg={pkg} details={getPackageDetails(pkg)} travelDate="" onTravelDateChange={() => {}} travellers={2} onTravellersChange={() => {}} onRequestQuote={() => {}} /></div> : <div className="rounded-lg border border-dashed bg-white p-5 text-sm"><p className="font-semibold">Price & booking card</p><p className="mt-2 text-cmt-neutral-500">Add a cover photo to preview the card. Click here to set prices, badges and departure dates.</p></div>} />}
+        >
+          {section === "basics" && <details className="m-4 rounded-lg border border-cmt-neutral-200 bg-white p-4"><summary className="cursor-pointer text-sm font-semibold">Import package content (optional)</summary><div className="mt-4"><PackageAiImporter disabled={busy} onApply={product => replaceForm(applyPackageImport(formRef.current, product))} /></div></details>}
+          <PackageDetailEditor key={section} compact form={form} pkg={pkg} section={section} onSectionChange={next => { setSection(next); setInspectorOpen(true); }} onChange={replaceForm} change={change} disabled={busy} onUploadImages={handleSectionImageUpload} filedUnderOptions={filedUnderOptions} />
+        </PackageVisualEditor>
+      </div>
     </PackageContentIOContext.Provider>
   </div>;
 }

@@ -1,3 +1,5 @@
+
+import { plainPackageText } from "@/lib/packageRichText";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import Header from "@/components/Header";
@@ -26,7 +28,7 @@ export async function generateStaticParams() {
 
 function packageDescription(pkg: Awaited<ReturnType<typeof getPublishedPackage>>) {
   if (!pkg) return "";
-  const authoredSummary = pkg.details?.summary?.trim();
+  const authoredSummary = plainPackageText(pkg.details?.summary ?? "").trim();
   if (authoredSummary) return authoredSummary;
   return `${pkg.title} is a ${pkg.days}-day, ${pkg.nights}-night travel package covering ${pkg.location}, priced at ₹${pkg.price.toLocaleString("en-IN")} per person.`;
 }

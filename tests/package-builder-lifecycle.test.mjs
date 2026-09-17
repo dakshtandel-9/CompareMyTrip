@@ -1,3 +1,4 @@
+import { richTextDependencies } from "./helpers/package-rich-text.mjs";
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -6,6 +7,7 @@ import ts from 'typescript';
 import * as jsx from 'react/jsx-runtime';
 
 function load(file, dependencies = {}, globals = {}) {
+  dependencies = { ...richTextDependencies, ...dependencies };
   const exports = {};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
@@ -84,6 +86,7 @@ function harness({ saveError, refreshWarning = '', uploadFails = [], uploadBarri
     '@/app/packages/[packageId]/PackageDetailClient': { default: noop },
     '@/app/packages/[packageId]/BookingCard': { default: noop },
     './AdminPackageBuilder.module.css': { default: new Proxy({}, { get: (_, key) => key }) },
+    './PackageVisualEditor': { default: noop },
     './PackageAiImporter': { default: noop },
     './PackageDetailEditor': { default: DetailEditor },
     './PackageContentField': { PackageContentIOContext: { Provider: 'content-io-context' } },
@@ -105,6 +108,7 @@ function harness({ saveError, refreshWarning = '', uploadFails = [], uploadBarri
   return {
     calls, storage, key, render, pkg,
     get editor() { return find(node => node.type === DetailEditor && node.props.form).props; },
+    get visual() { return find(node => node.props?.page && node.props?.onSelect && node.props?.pkg).props; },
     button: label => find(node => node.type === 'button' && text(node) === label),
     reportReading: delta => find(node => node.type === 'content-io-context').props.value(delta),
     messages: () => nodes(render()).filter(node => node.props?.role === 'alert' || node.props?.role === 'status').map(text),
@@ -196,4 +200,35 @@ test('builder prevents Save and competing edits until pending image and text imp
   await editor.click('Save package');
   assert.equal(editor.calls.saved.length, 1);
   assert.deepEqual(editor.calls.saved[0].details.gallery, clone(uploaded));
+});
+
+
+test('builder opens on the live page, selects editor sections and preserves drafts in clean preview', async () => {
+  const editor = harness();
+  assert.equal(editor.visual.editing, true);
+  assert.equal(editor.visual.open, false);
+  assert.equal(editor.visual.page.props.publicPreview, true);
+  editor.visual.onSelect('images');
+  assert.equal(editor.visual.open, true);
+  assert.equal(editor.editor.section, 'images');
+  assert.equal(editor.editor.compact, true);
+  editor.editor.change(['title'], 'Visual edit');
+  assert.equal(editor.visual.page.props.initialPackage.title, 'Visual edit');
+  await editor.click('Preview page');
+  assert.equal(editor.visual.editing, false);
+  await editor.click('Back to editor');
+  assert.equal(editor.editor.form.title, 'Visual edit');
+  editor.visual.onClose();
+  assert.equal(editor.visual.open, false);
+});
+
+test('validation opens the relevant side panel without losing the draft', async () => {
+  const editor = harness();
+  editor.editor.onChange({ ...editor.editor.form, status: 'published', image: '' });
+  await editor.click('Save package');
+  assert.equal(editor.calls.saved.length, 0);
+  assert.equal(editor.visual.editing, true);
+  assert.equal(editor.visual.open, true);
+  assert.equal(editor.editor.section, 'images');
+  assert.match(editor.visual.error, /cover image/i);
 });

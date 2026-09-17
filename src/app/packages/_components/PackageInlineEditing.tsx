@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useRef, useState, type ReactNode } from "react";
 import { Plus, Trash2, ArrowUp, ArrowDown, Upload } from "lucide-react";
+import PackageRichText from "@/components/PackageRichText";
 import PackageGallery from "./PackageGallery";
 import styles from "./PackageInlineEditing.module.css";
 
@@ -24,7 +25,7 @@ export function InlineText({ value, path, label, multiline = false, numeric = fa
   const [active, setActive] = useState(false);
   const [draft, setDraft] = useState("");
   const cancelled = useRef(false);
-  if (!editor) return <>{children ?? value}</>;
+  if (!editor) return <>{children ?? (typeof value === "string" ? <PackageRichText value={value} /> : value)}</>;
   const begin = () => { if (!editor.disabled) { cancelled.current = false; setDraft(String(value)); setActive(true); } };
   const commit = () => {
     if (!cancelled.current && !editor.disabled) {
@@ -48,7 +49,7 @@ export function InlineText({ value, path, label, multiline = false, numeric = fa
     };
     return multiline ? <textarea {...common} rows={Math.min(16, Math.max(3, draft.split("\n").length + Math.ceil(draft.length / 90)))} /> : <input {...common} type={numeric ? "number" : "text"} />;
   }
-  return <span className={`${styles.editable} ${!String(value).trim() ? styles.placeholder : ""}`} role="button" tabIndex={editor.disabled ? -1 : 0} aria-disabled={editor.disabled} aria-label={`Edit ${label}`} title={`Click to edit ${label}`} onClick={event => { event.stopPropagation(); begin(); }} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); begin(); } }}>{String(value).trim() ? children ?? value : placeholder ?? `Add ${label.toLowerCase()}`}</span>;
+  return <span className={`${styles.editable} ${!String(value).trim() ? styles.placeholder : ""}`} role="button" tabIndex={editor.disabled ? -1 : 0} aria-disabled={editor.disabled} aria-label={`Edit ${label}`} title={`Click to edit ${label}`} onClick={event => { event.stopPropagation(); begin(); }} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); begin(); } }}>{String(value).trim() ? children ?? (typeof value === "string" ? <PackageRichText value={value} /> : value) : placeholder ?? `Add ${label.toLowerCase()}`}</span>;
 }
 
 export function EditorOnly({ children }: { children: ReactNode }) {

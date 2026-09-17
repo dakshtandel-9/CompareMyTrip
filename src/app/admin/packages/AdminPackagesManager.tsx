@@ -82,7 +82,7 @@ export default function AdminPackagesManager() {
         .filter(Boolean);
     const unique = (list: string[]) => [...new Set(list)].sort((a, b) => a.localeCompare(b));
     return {
-      India: unique([...INDIA_STATES, ...used("India").map(toIndiaState), ...destinations.filter(item => item.region === "India").map(item => item.name)]),
+      India: unique([...INDIA_STATES, ...used("India"), ...used("India").map(toIndiaState), ...destinations.filter(item => item.region === "India").map(item => item.name)]),
       International: unique([...used("International"), ...destinations.filter(item => item.region === "International").map(item => item.name)]),
     };
   }, [packages, destinations]);

@@ -1,3 +1,4 @@
+import { richTextDependencies } from "./helpers/package-rich-text.mjs";
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -9,6 +10,7 @@ import * as jsxRuntime from 'react/jsx-runtime';
 import * as icons from 'lucide-react';
 
 function load(file, dependencies = {}) {
+  dependencies = { ...richTextDependencies, ...dependencies };
   const exports = {};
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
@@ -417,4 +419,13 @@ test('saved Day 0 switch controls the first visible and expanded day on the webs
   const disabled = renderDetail(undefined, { itinerary, dayZeroEnabled: false });
   assert.doesNotMatch(disabled, /Day 0|Overnight pickup|Meet at 10:30 PM/);
   assert.match(disabled, /<details open=""[^>]*><summary[^>]*>.*?Day 1/s);
+});
+
+test('public detail sections render saved formatting without exposing storage syntax', () => {
+  const formatted = richTextDependencies['@/lib/packageRichText'].serializeRichText({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Explore coffee estates', marks: [{ type: 'bold' }, { type: 'italic' }, { type: 'textStyle', attrs: { fontFamily: 'Georgia, serif', fontSize: '20px' } }] }] }] });
+  const html = renderDetail({}, { summary: formatted, highlights: [formatted, 'A second highlight'], transfers: formatted, cancellationPolicy: formatted, inclusions: [formatted] });
+  assert.ok((html.match(/<strong>/g) ?? []).length >= 5);
+  assert.match(html, /font-family:Georgia, serif;font-size:20px/);
+  assert.match(html, /A second highlight/);
+  assert.doesNotMatch(html, /cmt-rich:v1:|&quot;marks&quot;/);
 });

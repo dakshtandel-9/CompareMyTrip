@@ -1,3 +1,4 @@
+import { richTextDependencies } from "./helpers/package-rich-text.mjs";
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -9,6 +10,7 @@ import * as jsxRuntime from 'react/jsx-runtime';
 import * as icons from 'lucide-react';
 
 function load(file, dependencies = {}) {
+  dependencies = { ...richTextDependencies, ...dependencies };
   const exports = {};
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },

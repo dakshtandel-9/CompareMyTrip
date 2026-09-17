@@ -120,7 +120,7 @@ export default function PackagePageSectionsEditor({ value, onChange, onUploadIma
   return (
     <section className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
       <h2 className="font-display text-xl font-semibold">{focusedTitle ?? "Additional content & visibility"}</h2>
-      <p className={`mt-1 ${mutedClass}`}>Edit this section, then use the sidebar to choose another. Changes stay in your draft until you save the package.</p>
+      <p className={`mt-1 ${mutedClass}`}>Edit this section, then use the section menu to choose another. Changes stay in your draft until you save the package.</p>
       {placementNotice && <p role="status" className="mt-3 rounded-lg bg-cmt-primary-50 p-3 text-sm text-cmt-neutral-700">{placementNotice}</p>}
       <fieldset disabled={disabled} className="mt-6 min-w-0 space-y-6 disabled:opacity-70" aria-busy={disabled}>
         <legend className="sr-only">Package detail page sections</legend>
@@ -136,7 +136,7 @@ export default function PackagePageSectionsEditor({ value, onChange, onUploadIma
           <div className="mb-5 flex flex-wrap gap-2">{PACKAGE_SECTION_TEMPLATES.filter((template) => template.placement === (customFocus ?? "extras")).map((template) => <button key={template.title} type="button" className={addButtonClass} onClick={() => onChange({ ...value, sections: [...value.sections, { id: crypto.randomUUID(), title: template.title, placement: template.placement, layout: template.layout, visible: true, body: "", items: template.items.map((title) => ({ id: crypto.randomUUID(), title, body: "" })) }] })}><Plus className="size-3.5" />{template.title}</button>)}</div>
           <div className="space-y-4">
             {scopedSections.map((section, index) => (
-              <div key={section.id} className={panelClass}>
+              <div key={section.id} data-package-section-editor={section.id} className={panelClass}>
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <h4 className="min-w-0 break-words text-sm font-semibold">{index + 1}. {section.title || "Untitled section"}{!section.visible && <span className="ml-2 rounded-full bg-cmt-neutral-100 px-2 py-1 text-[10px] font-medium text-cmt-neutral-500">Hidden</span>}</h4>
                   <div className="flex flex-wrap gap-1.5"><OrderButtons label={`section ${index + 1}`} index={index} length={scopedSections.length} onMove={(direction) => onChange({ ...value, sections: movePackageSection(value.sections, section.id, direction) })} /><button type="button" className={`${buttonClass} text-cmt-error-700`} aria-label={`Remove section ${index + 1}`} onClick={() => onChange({ ...value, sections: value.sections.filter((item) => item.id !== section.id) })}><Trash2 className="size-3.5" />Remove</button></div>

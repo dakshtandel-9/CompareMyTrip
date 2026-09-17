@@ -1,3 +1,4 @@
+import { richTextDependencies } from "./helpers/package-rich-text.mjs";
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -7,6 +8,7 @@ import React from 'react';
 import * as jsx from 'react/jsx-runtime';
 
 function load(file, dependencies = {}) {
+  dependencies = { ...richTextDependencies, ...dependencies };
   const exports = {};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
@@ -35,6 +37,7 @@ const ContentField = ({ label, value, onChange, disabled }) => React.createEleme
 const BookingFields = () => React.createElement('input', { 'aria-label': 'Delegated booking field', readOnly: true, value: '' });
 const ImagesEditor = () => React.createElement('input', { type: 'file', 'aria-label': 'Delegated image field' });
 const FactsEditor = () => React.createElement('button', { type: 'button' }, 'Delegated fact action');
+const DestinationSelect = props => TextField({ label: 'Filed under destination', ...props });
 const SectionsEditor = () => React.createElement('textarea', { 'aria-label': 'Delegated section field', readOnly: true, value: '' });
 const { default: Editor, PACKAGE_EDITOR_AREAS } = load('src/app/admin/packages/PackageDetailEditor.tsx', {
   'react/jsx-runtime': jsx,
@@ -48,6 +51,7 @@ const { default: Editor, PACKAGE_EDITOR_AREAS } = load('src/app/admin/packages/P
   './PackageFactsEditor': { default: FactsEditor },
   './PackagePageSectionsEditor': { default: SectionsEditor },
   './PackageContentField': { default: ContentField },
+  './PackageDestinationSelect': { default: DestinationSelect },
   './AdminPackageBuilder.module.css': { default: new Proxy({}, { get: (_, key) => key }) },
 });
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -125,7 +129,8 @@ test('basic package fields update the draft without trimming or losing unrelated
     ['Operator (internal)', 'operator', 'Operator name '],
   ]) { editor.field(label).props.onChange(value); assert.equal(editor.form[key], value); }
   editor.input('Region').props.onChange({ target: { value: 'International' } });
-  editor.input('Filed under destination').props.onChange({ target: { value: 'Bali ' } });
+  assert.deepEqual(editor.component(DestinationSelect).props.options, ['Bali']);
+  editor.component(DestinationSelect).props.onChange('Bali ');
   editor.input('Nights').props.onChange({ target: { value: '3' } });
   assert.equal(editor.form.region, 'International');
   assert.equal(editor.form.destination, 'Bali ');

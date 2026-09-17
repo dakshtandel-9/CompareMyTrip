@@ -1,9 +1,11 @@
+import { richTextDependencies } from "./helpers/package-rich-text.mjs";
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 function load(file, dependencies = {}) {
+  dependencies = { ...richTextDependencies, ...dependencies };
   const exports = {};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
@@ -65,4 +67,16 @@ test('PDF respects Day 0 visibility without deleting the saved itinerary', () =>
   const enabled = createPackageItineraryPdf(pkg, 'https://example.com/trek').lines.join('\n');
   assert.match(enabled, /Day 0 - Bangalore to Skandagiri/);
   assert.equal(pkg.details.itinerary.length, 2);
+});
+
+test('PDF downloads print formatted package copy as readable text', () => {
+  const pkg = JSON.parse(fs.readFileSync('content/package-imports/skandagiri-sunrise-trek-from-bangalore.json', 'utf8'));
+  const formatted = richTextDependencies['@/lib/packageRichText'].serializeRichText({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Formatted trek instructions', marks: [{ type: 'bold' }] }] }] });
+  pkg.details.summary = formatted;
+  pkg.details.highlights = [formatted];
+  pkg.details.pageSections.hiddenSections = pkg.details.pageSections.hiddenSections.filter(section => section !== 'highlights');
+  const pdf = createPackageItineraryPdf(pkg, 'https://example.com/trip');
+  assert.ok(pdf.lines.join('\n').includes('Formatted trek instructions'));
+  assert.ok(pdf.lines.join('\n').includes('- Formatted trek instructions'));
+  assert.doesNotMatch(pdf.lines.join('\n'), /cmt-rich:|"marks"/);
 });

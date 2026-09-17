@@ -1,5 +1,7 @@
 "use client";
 
+import PackageRichText from "@/components/PackageRichText";
+import { hasRichText } from "@/lib/packageRichText";
 import Image from "next/image";
 import { ArrowUpRight, Backpack, Bus, ChevronDown, MapPin, ShieldCheck, Star } from "lucide-react";
 import type { ReactNode } from "react";
@@ -23,6 +25,7 @@ export function PackageDescription({ value, path, label, easyEdit = false }: { v
   if (editor && easyEdit) return <PackageSectionTextEditor key={value} value={value} path={path} label={label} />;
   if (editor) return <p className={bodyClass}><InlineText value={value} path={path} label={label} multiline /></p>;
 
+  if (hasRichText(value)) return <div className="cmt-package-prose"><PackageRichText value={value} /></div>;
   const blocks = value.trim().split(/\n\s*\n/).filter(Boolean);
   return <div className="cmt-package-prose">{blocks.map((block, index) => {
     const lines = block.split("\n");

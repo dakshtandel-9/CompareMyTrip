@@ -198,7 +198,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           <button
             type="button"
             onClick={onRequestQuote}
-            className="flex min-h-11 w-full items-center justify-center rounded-[10px] border border-cmt-neutral-300 bg-white px-3 py-2.5 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:border-cmt-neutral-500 hover:bg-cmt-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+            className="flex min-h-11 w-full items-center justify-center rounded-[10px] border border-cmt-neutral-900 bg-cmt-neutral-900 px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:border-cmt-secondary-900 hover:bg-cmt-secondary-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
           >
             Get customized quote
           </button>

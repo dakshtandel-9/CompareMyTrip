@@ -1,5 +1,7 @@
 "use client";
 
+import { plainPackageText } from "@/lib/packageRichText";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -104,10 +106,10 @@ function attributesFor(pkg: TravelPackage): ComparedAttributes {
   return {
     accommodation: `${getPackageAccommodationLabel(pkg)}`,
     meals: details.meals,
-    transfers: details.transfers,
+    transfers: plainPackageText(details.transfers),
     bestFor: pkg.tags.length > 0 ? pkg.tags.join(" · ") : "All travellers",
     flightsIncluded: !/not included/i.test(details.flights),
-    freeCancellation: /free cancellation/i.test(details.cancellationPolicy),
+    freeCancellation: /free cancellation/i.test(plainPackageText(details.cancellationPolicy)),
   };
 }
 

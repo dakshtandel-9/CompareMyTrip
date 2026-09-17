@@ -54,3 +54,12 @@
   .hint { padding: 12px 16px; }
   .actions > button, .actions > select { flex: 1 1 auto; justify-content: center; }
 }
+
+/* The visual editor reuses the same fields in its compact side panel. */
+.compact.workspace { display: block; }
+.compact .formPanel { border: 0; border-radius: 0; }
+.compact .formPanel > header { display: none; }
+.compact .formPanel h2 { font-size: 18px; scroll-margin-top: 16px; }
+.compact .fields { padding: 20px; }
+.compact .fieldGrid { grid-template-columns: minmax(0, 1fr); }
+.compact .itemFields { padding: 16px; }

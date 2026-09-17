@@ -1,3 +1,5 @@
+
+import { plainPackageText } from "@/lib/packageRichText";
 import { jsPDF } from "jspdf";
 import { getPackagePageSections, isVisiblePackageSection, type PackageSectionPlacement } from "./packageDetailSections";
 import { getPackageFacts } from "./packageFacts";
@@ -5,7 +7,7 @@ import { departureDaysLabel, getPackageDetails, getPackageItinerary, type Travel
 
 // Use readable equivalents for symbols outside the PDF's built-in Latin font.
 function pdfText(value: string) {
-  return value.replace(/₹/g, "INR ").replace(/[★☆]/g, "-star")
+  return plainPackageText(value).replace(/₹/g, "INR ").replace(/[★☆]/g, "-star")
     .replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, "").replace(/•/g, "-")
     .replace(/→/g, " to ").replace(/[\u2010-\u2015\u2212]/g, "-")
     .replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d]/g, '"')

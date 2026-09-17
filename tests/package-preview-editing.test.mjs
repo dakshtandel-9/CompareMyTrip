@@ -1,3 +1,4 @@
+import { richTextDependencies } from "./helpers/package-rich-text.mjs";
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -8,6 +9,7 @@ import * as jsx from 'react/jsx-runtime';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 function load(file, dependencies = {}) {
+  dependencies = { ...richTextDependencies, ...dependencies };
   const exports = {};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText, {
     exports, URL, require: name => { assert.ok(dependencies[name], name); return dependencies[name]; },
@@ -207,6 +209,7 @@ test('admin Save uses the shared editor draft, waits for text imports, preserves
     '@/app/packages/[packageId]/BookingCard': { default: noop },
     '@/app/packages/_components/PackageInlineEditing': inline,
     './AdminPackageBuilder.module.css': { default: {} },
+    './PackageVisualEditor': { default: noop },
     './PackageAiImporter': { default: noop }, './PackagePreviewSettings': { default: noop },
     './PackageDetailEditor': { default: DetailEditor },
     './PackageContentField': { PackageContentIOContext: ContentIOContext },
