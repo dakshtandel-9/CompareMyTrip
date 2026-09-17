@@ -53,8 +53,8 @@ export default function FooterBadgesEditor({ value, onChange }: {
         </p>
         <TrustStripPreview value={{ ...value, enabled: true }} />
       </Card>
-      <Card title="Tourism partner logos" description="The tourism-board logo strip stays hidden until the business has confirmed all displayed partnerships and permission to use the logos.">
-        <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={value.tourismPartnersVerified === true} onChange={(event) => { const tourismPartnersVerified = event.target.checked; onChange((current) => ({ ...current, tourismPartnersVerified })); }} /> Tourism partnerships and logo permissions verified</label>
+      <Card title="Scrolling footer logos" description="Show the original tourism logos in a continuous scrolling strip above the footer. Publish changes to apply this setting.">
+        <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={value.tourismLogosEnabled !== false} onChange={(event) => { const tourismLogosEnabled = event.target.checked; onChange((current) => ({ ...current, tourismLogosEnabled })); }} /> Show scrolling logos</label>
       </Card>
       {groups.map((group) => (
         <Card key={group.key} title={group.title}>

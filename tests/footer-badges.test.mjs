@@ -69,6 +69,22 @@ test('partial or invalid image data retains defaults and rejects unsafe image UR
 });
 
 let renderedContent = DEFAULT_SITE_CONTENT;
+const { default: PartnerMarquee } = load('src/components/PartnerMarquee.tsx', {
+  'react/jsx-runtime': jsxRuntime,
+  'next/image': { default: ({ fill, ...props }) => { void fill; return React.createElement('img', props); } },
+  '@/lib/useSiteContent': { useSiteContent: () => renderedContent },
+});
+
+test('original scrolling logos return for legacy content and the new visibility setting survives reload', () => {
+  renderedContent = normalizeSiteContent({ footerBadges: { tourismPartnersVerified: false } });
+  const html = renderToStaticMarkup(React.createElement(PartnerMarquee));
+  assert.match(html, /animate-cmt-marquee/);
+  assert.equal((html.match(/<img /g) ?? []).length, 36);
+  assert.match(html, /\/partners\/karnataka-tourism.png/);
+  renderedContent = normalizeSiteContent(plain(normalizeSiteContent({ footerBadges: { tourismLogosEnabled: false } })));
+  assert.equal(renderToStaticMarkup(React.createElement(PartnerMarquee)), '');
+});
+
 const { default: TrustStrip } = load('src/components/TrustStrip.tsx', {
   'react/jsx-runtime': jsxRuntime,
   'lucide-react': icons,

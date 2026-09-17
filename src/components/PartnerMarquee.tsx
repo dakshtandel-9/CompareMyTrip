@@ -6,9 +6,7 @@ import Image from "next/image";
 /* ------------------------------------------------------------------ */
 /* The tourism boards, scrolling along the top of the footer.           */
 /*                                                                       */
-/* Logos only, no heading and no captions: the marks are the message,    */
-/* and a row of them says "these are the boards we work with" without a  */
-/* line of copy above it.                                                */
+/* Logos only, preserving the original footer artwork and layout.       */
 /*                                                                       */
 /* The loop is one track holding the list twice and sliding left by half */
 /* its own width (see .animate-cmt-marquee in globals.css). At the       */
@@ -26,8 +24,7 @@ import Image from "next/image";
    on purpose — the strip is decorative, and eighteen board names read out
    in a row is noise to a screen reader, not information. */
 const LOGOS = [
-  /* The Indian bodies lead: this is an India-facing site, and they are the
-     accreditations a traveller here recognises first. */
+  /* The Indian tourism logos lead on this India-facing site. */
   "/partners/ministry-of-tourism-india.png",
   "/partners/incredible-india.png",
   "/partners/karnataka-tourism.png",
@@ -50,7 +47,7 @@ const LOGOS = [
 
 export default function PartnerMarquee() {
   const { footerBadges } = useSiteContent();
-  if (footerBadges.tourismPartnersVerified !== true) return null;
+  if (footerBadges.tourismLogosEnabled === false) return null;
   return (
     <div
       className="relative overflow-hidden border-b border-cmt-neutral-200 bg-white py-6"

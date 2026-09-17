@@ -738,6 +738,7 @@ export type FooterBadgesContent = {
   accreditationImages: Record<string, string>;
   verifiedAccreditations?: string[];
   tourismPartnersVerified?: boolean;
+  tourismLogosEnabled?: boolean;
 };
 
 export type SiteContent = {
@@ -809,6 +810,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     accreditationImages: { google: "", iata: "", iso: "", pci: "", secure: "" },
     verifiedAccreditations: [],
     tourismPartnersVerified: false,
+    tourismLogosEnabled: true,
   },
   comingSoon: DEFAULT_COMING_SOON,
   addOn: {
@@ -2231,6 +2233,7 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     footerBadges: {
       enabled: bool(footerBadgesRaw.enabled, base.footerBadges.enabled),
       tourismPartnersVerified: footerBadgesRaw.tourismPartnersVerified === true,
+      tourismLogosEnabled: bool(footerBadgesRaw.tourismLogosEnabled, true),
       verifiedAccreditations: strings(footerBadgesRaw.verifiedAccreditations, []).filter((id) => ["google", "iata", "iso", "pci", "secure"].includes(id)),
       paymentImages: badgeImages(footerBadgesRaw.paymentImages, base.footerBadges.paymentImages),
       accreditationImages: badgeImages(footerBadgesRaw.accreditationImages, base.footerBadges.accreditationImages),
