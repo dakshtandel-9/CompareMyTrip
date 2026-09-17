@@ -104,7 +104,7 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
 
   const packageHeader = (
     <div className="cmt-package-header flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div className="min-w-0"><h1 className="max-w-5xl font-display text-3xl font-semibold tracking-tight sm:text-5xl"><InlineText value={pkg.title} path={["title"]} label="Package title" /></h1>{!legacyPreview && packageMetadata}</div>
+          <div className="min-w-0"><h1 className="max-w-5xl font-display text-3xl font-semibold tracking-tight sm:text-5xl"><InlineText value={pkg.title} path={["title"]} label="Package title" /></h1></div>
           {/* The booking box carries the same control, but it sits below the
               fold behind the gallery — this is the one a visitor sees while
               they are still deciding whether this trip is worth comparing. */}
@@ -121,12 +121,12 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
     <PageRoot className={`${legacyPreview ? styles.page : presentation.page + " cmt-package-public"} cmt-package-detail bg-white pb-24 font-body text-cmt-neutral-900 lg:pb-0`}>
       <div className="cmt-package-shell mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
         {legacyPreview && packageHeader}
-        {!legacyPreview && navigation.length > 0 && <TripSectionNavigation items={navigation} />}
         {!preview && <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-cmt-neutral-500"><Link href="/">Home</Link><span aria-hidden="true">/</span><Link href="/packages">Packages</Link><span aria-hidden="true">/</span>{pkg.destination ? <><Link href={`/packages?destination=${encodeURIComponent(pkg.destination)}`} className="hover:text-cmt-neutral-900">{pkg.destination}</Link><span aria-hidden="true">/</span></> : null}<span className="line-clamp-1">{pkg.title}</span></nav>}
+        {!legacyPreview && packageHeader}
         <div className="cmt-package-columns mt-7 grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_370px]">
           <div className="cmt-package-content min-w-0 space-y-6">
         <EditableGallery images={details.gallery} />
-        {!legacyPreview && packageHeader}
+        {!legacyPreview && packageMetadata}
         <div className="cmt-package-intro mt-6 space-y-4">
           {(editor || pageSections.tagline?.trim()) && <p className="max-w-3xl whitespace-pre-wrap break-words text-lg leading-7 text-cmt-neutral-600"><InlineText value={pageSections.tagline ?? ""} path={["details", "pageSections", "tagline"]} label="Tagline" multiline /></p>}{legacyPreview && packageMetadata}
           {(editor || pageSections.introduction?.trim()) && <p className="max-w-4xl whitespace-pre-wrap break-words text-sm leading-7 text-cmt-neutral-600"><InlineText value={pageSections.introduction ?? ""} path={["details", "pageSections", "introduction"]} label="Introduction" multiline /></p>}
@@ -134,10 +134,8 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
 
         {pageSections.snapshotPlacement !== "about" && <PackageFactsBar facts={facts} permitRequired={details.permitRequired} permitHidden={details.permitHidden} className="mt-6" />}
 
-        {legacyPreview && navigation.length > 0 && <TripSectionNavigation items={navigation} />}
-
-
             {pageSections.snapshotPlacement === "about" && (editor || facts.length > 0) && <div><h2 className="mb-4 font-display text-2xl font-semibold">Trip snapshot</h2><PackageFactsBar facts={facts} permitRequired={details.permitRequired} permitHidden={details.permitHidden} /></div>}
+            {navigation.length > 0 && <TripSectionNavigation items={navigation} />}
             {showAbout && <Section id="package-about" title="About this trip" eyebrow="THE EXPERIENCE">
               <PackageDescription value={details.summary} path={["details", "summary"]} label="About this trip" />
               {editor ? <p className="mt-4 text-sm text-cmt-neutral-500"><InlineText value={details.places.join(", ")} path={["details", "places"]} label="Places (separate with commas)" /></p> : details.places.length > 0 && <div className="mt-5 flex flex-wrap gap-2">{details.places.map((place, index) => <span key={`${place}-${index}`} className="rounded-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-3 py-1.5 text-xs font-semibold"><MapPin className="mr-1 inline size-3.5 text-cmt-primary-700" aria-hidden="true" />{place}</span>)}</div>}
