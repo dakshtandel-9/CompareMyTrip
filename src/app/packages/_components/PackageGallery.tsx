@@ -5,6 +5,7 @@ import Modal from "@/components/Modal";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import styles from "./PackageGallery.module.css";
 
 const defaultGalleryImages = [
   { src: "/destinations/kerala.jpg", alt: "Houseboat cruising through the Kerala backwaters", position: "object-center" },
@@ -65,24 +66,24 @@ export default function PackageGallery({ images, maxImages = 10 }: { images?: st
     );
   };
 
-  /* Keep the frame bounded and preserve the full image, including portrait
-     uploads. Thumbnails stay compact regardless of the image count. */
+  /* The traveller hero fills its frame; the gallery dialog retains the full
+     uncropped photograph, including portrait uploads. */
   if (galleryImages.length === 0) return null;
 
   const active = Math.min(activeIndex, galleryImages.length - 1);
   return (
     <>
-      <div className="cmt-package-gallery-frame relative overflow-hidden rounded-xl border border-cmt-neutral-200 bg-cmt-neutral-50">
-        <button type="button" onClick={() => setSelectedIndex(active)} aria-label={`Open package gallery at image ${active + 1}`} className="relative block h-[clamp(220px,42vw,420px)] w-full">
-          <Image src={galleryImages[active].src} alt={galleryImages[active].alt} fill loading="eager" sizes="(max-width: 1023px) 100vw, 65vw" className="object-contain" />
+      <div className={`${styles.frame} cmt-package-gallery-frame relative overflow-hidden rounded-xl border border-cmt-neutral-200 bg-cmt-neutral-50`}>
+        <button type="button" onClick={() => setSelectedIndex(active)} aria-label={`Open package gallery at image ${active + 1}`} className={`${styles.heroButton} relative block h-[clamp(220px,42vw,420px)] w-full`}>
+          <Image src={galleryImages[active].src} alt={galleryImages[active].alt} fill loading="eager" sizes="(max-width: 1023px) 100vw, 65vw" className={`${styles.heroImage} object-contain`} />
         </button>
         {galleryImages.length > 1 && <>
-          <button type="button" aria-label="Previous photo" onClick={() => setActiveIndex((active - 1 + galleryImages.length) % galleryImages.length)} className="absolute left-3 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white/95"><ChevronLeft size={18} /></button>
-          <button type="button" aria-label="Next photo" onClick={() => setActiveIndex((active + 1) % galleryImages.length)} className="absolute right-3 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white/95"><ChevronRight size={18} /></button>
-          <span className="absolute bottom-3 right-3 rounded-full bg-black/50 px-3 py-1 text-xs text-white">{active + 1} / {galleryImages.length}</span>
+          <button type="button" aria-label="Previous photo" onClick={() => setActiveIndex((active - 1 + galleryImages.length) % galleryImages.length)} className={`${styles.arrow} absolute left-3 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white/95`}><ChevronLeft size={18} /></button>
+          <button type="button" aria-label="Next photo" onClick={() => setActiveIndex((active + 1) % galleryImages.length)} className={`${styles.arrow} absolute right-3 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white/95`}><ChevronRight size={18} /></button>
+          <span className={`${styles.counter} absolute bottom-3 right-3 rounded-full bg-black/50 px-3 py-1 text-xs text-white`}>{active + 1} / {galleryImages.length}</span>
         </>}
       </div>
-      {galleryImages.length > 1 && <div className="cmt-package-thumbnails mt-3 flex max-w-full gap-2 overflow-x-auto pb-1">{galleryImages.map((image, index) => <button type="button" key={`${image.src}-${index}`} aria-label={`Show photo ${index + 1}`} aria-pressed={active === index} onClick={() => setActiveIndex(index)} className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 bg-cmt-neutral-50 ${active === index ? "border-cmt-primary-500" : "border-transparent"}`}><Image src={image.src} alt="" fill sizes="96px" className="object-contain p-1" /></button>)}</div>}
+      {galleryImages.length > 1 && <div className={`${styles.thumbnails} cmt-package-thumbnails mt-3 flex max-w-full gap-2 overflow-x-auto pb-1`}>{galleryImages.map((image, index) => <button type="button" key={`${image.src}-${index}`} aria-label={`Show photo ${index + 1}`} aria-pressed={active === index} onClick={() => setActiveIndex(index)} className={`${styles.thumbnail} relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 bg-cmt-neutral-50 ${active === index ? "border-cmt-primary-500" : "border-transparent"}`}><Image src={image.src} alt="" fill sizes="96px" className="object-contain p-1" /></button>)}</div>}
 
       {isOpen && selectedIndex !== null && (
         <Modal

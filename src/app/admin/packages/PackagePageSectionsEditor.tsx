@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useId, useState, type ReactNode } from "react";
+import { useId, useRef, useState, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, ChevronDown, Eye, ImagePlus, LayoutGrid, MapPin, MessageSquare, Plus, Square, Trash2 } from "lucide-react";
 import {
   BUILTIN_PACKAGE_SECTIONS,
@@ -15,12 +15,23 @@ import {
   type PackageWrittenReview,
 } from "@/lib/packageDetailSections";
 import PackagePageSectionsPreview from "@/app/packages/_components/PackagePageSections";
-import { FieldLabel, inputClass, textareaClass, Toggle } from "../_components/ui";
+import { FieldLabel, inputClass, Toggle } from "../_components/ui";
+import PackageContentField from "./PackageContentField";
 
 const buttonClass = "inline-flex min-h-10 items-center justify-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 text-xs font-semibold transition-colors hover:bg-cmt-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 disabled:cursor-not-allowed disabled:opacity-40";
 const addButtonClass = `${buttonClass} border-dashed`;
 const panelClass = "rounded-cmt-control border border-cmt-neutral-200 bg-white p-4 sm:p-5";
 const mutedClass = "text-xs leading-5 text-cmt-neutral-500";
+const editorPlacementLabels: Record<PackageSectionPlacement, string> = {
+  overview: "Overview & story",
+  highlights: "Highlights",
+  transfers: "Transfers & trek details",
+  carry: "Transfers & trek details",
+  guidelines: "Transfers & trek details",
+  practical: "Transfers & trek details",
+  faq: "FAQs",
+  extras: "Additional sections",
+};
 const layouts = [
   { value: "box", label: "Box", description: "One box for your text", icon: Square },
   { value: "boxes", label: "Multiple boxes", description: "Cards displayed together", icon: LayoutGrid },
@@ -53,11 +64,11 @@ function LayoutSelector({ value, onChange }: { value: PackageCustomSection["layo
 }
 
 function UploadInput({ label, multiple = false, disabled = false, onSelect }: { label: string; multiple?: boolean; disabled?: boolean; onSelect: (files: File[]) => void }) {
-  return <label className="block"><FieldLabel>{label}</FieldLabel><input type="file" accept="image/jpeg,image/png,image/webp" multiple={multiple} disabled={disabled} onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; if (files.length) onSelect(files); }} className="block w-full rounded-cmt-control border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 p-3 text-xs text-cmt-neutral-600 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:text-xs file:font-semibold file:text-cmt-neutral-900 disabled:opacity-40" /><span className={`mt-1 block ${mutedClass}`}>JPG, PNG or WebP, up to 5 MB each.</span></label>;
+  return <label className="block"><FieldLabel>{label}</FieldLabel><input type="file" accept="image/jpeg,image/png,image/webp" aria-label={label} multiple={multiple} disabled={disabled} onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; if (files.length) onSelect(files); }} className="block w-full rounded-cmt-control border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 p-3 text-xs text-cmt-neutral-600 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:text-xs file:font-semibold file:text-cmt-neutral-900 disabled:opacity-40" /><span className={`mt-1 block ${mutedClass}`}>JPG, PNG or WebP, up to 5 MB each.</span></label>;
 }
 
 export default function PackagePageSectionsEditor({ value, onChange, onUploadImages, busy, allowReviews, focus }: {
-  focus?: PackageSectionPlacement | "locations" | "reviews";
+  focus?: PackageSectionPlacement | "locations" | "reviews" | "gallery";
   value: PackagePageSections;
   onChange: (value: PackagePageSections) => void;
   onUploadImages: (files: File[]) => Promise<string[]>;
@@ -66,12 +77,14 @@ export default function PackagePageSectionsEditor({ value, onChange, onUploadIma
 }) {
   const [newLayout, setNewLayout] = useState<PackageCustomSection["layout"]>(focus === "faq" ? "dropdown" : "box");
   const [uploading, setUploading] = useState(false);
+  const uploadLock = useRef(false);
   const [uploadError, setUploadError] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [placementNotice, setPlacementNotice] = useState("");
   const disabled = busy || uploading;
   const scoped = Boolean(focus);
-  const customFocus = focus && focus !== "locations" && focus !== "reviews" ? focus : undefined;
-  const focusedTitle = focus === "locations" ? "Pickup & drop locations" : focus === "reviews" ? "Traveller reviews" : PACKAGE_SECTION_PLACEMENTS.find((item) => item.id === focus)?.label;
+  const customFocus = focus && focus !== "locations" && focus !== "reviews" && focus !== "gallery" ? focus : undefined;
+  const focusedTitle = focus === "locations" ? "Pickup & drop locations" : focus === "reviews" ? "Traveller reviews" : focus === "gallery" ? "Photo gallery" : PACKAGE_SECTION_PLACEMENTS.find((item) => item.id === focus)?.label;
   const sectionInScope = (section: PackageCustomSection) => (section.placement ?? "extras") === (customFocus ?? "extras");
   const scopedSections = value.sections.filter(sectionInScope);
   const patchSection = (id: string, patch: Partial<PackageCustomSection>) => onChange({ ...value, sections: value.sections.map((section) => section.id === id ? { ...section, ...patch } : section) });
@@ -84,28 +97,31 @@ export default function PackagePageSectionsEditor({ value, onChange, onUploadIma
   };
   const addLocation = (type: PackageLocation["type"]) => onChange({ ...value, locations: { ...value.locations, items: [...value.locations.items, { id: crypto.randomUUID(), type, name: "", address: "", notes: "", mapUrl: "", image: "", visible: true }] } });
 
-  const uploadImages = async (files: File[], locationId?: string) => {
-    if (disabled) return;
+  const uploadImages = async (files: File[], target?: { locationId: string } | { galleryIndex: number }) => {
+    if (!files.length || disabled || uploadLock.current) return;
     setUploadError("");
-    const remaining = locationId ? 1 : 20 - value.gallery.images.length;
-    if (files.length > remaining) { setUploadError(locationId ? "Choose one image for this location." : `You can add ${remaining} more gallery ${remaining === 1 ? "photo" : "photos"}. Choose fewer images.`); return; }
+    const remaining = target ? 1 : Math.max(0, 20 - value.gallery.images.length);
+    if (files.length > remaining) { setUploadError(target ? "Choose one replacement image." : `You can add ${remaining} more gallery ${remaining === 1 ? "photo" : "photos"}. Choose fewer images.`); return; }
     if (files.some((file) => !["image/jpeg", "image/png", "image/webp"].includes(file.type))) { setUploadError("Please choose JPG, PNG or WebP images."); return; }
     if (files.some((file) => file.size > 5_000_000)) { setUploadError("Each image must be 5 MB or smaller."); return; }
     try {
+      uploadLock.current = true;
       setUploading(true);
       const images = await onUploadImages(files);
-      if (!images.length) return;
-      if (locationId) patchLocation(locationId, { image: images[0] });
-      else onChange({ ...value, gallery: { ...value.gallery, images: [...value.gallery.images, ...images].slice(0, 20) } });
+      if (!images.length) throw new Error("No images were uploaded. Please try again.");
+      if (target && "locationId" in target) patchLocation(target.locationId, { image: images[0] });
+      else if (target && "galleryIndex" in target) onChange({ ...value, gallery: { ...value.gallery, images: value.gallery.images.map((image, index) => index === target.galleryIndex ? images[0] : image) } });
+      else onChange({ ...value, gallery: { ...value.gallery, images: [...value.gallery.images, ...images] } });
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "The images could not be uploaded. Please try again.");
-    } finally { setUploading(false); }
+    } finally { uploadLock.current = false; setUploading(false); }
   };
 
   return (
     <section className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
       <h2 className="font-display text-xl font-semibold">{focusedTitle ?? "Additional content & visibility"}</h2>
-      <p className={`mt-1 ${mutedClass}`}>Fill in this section, then continue to the next step. It appears in the same order on the package page.</p>
+      <p className={`mt-1 ${mutedClass}`}>Edit this section, then use the sidebar to choose another. Changes stay in your draft until you save the package.</p>
+      {placementNotice && <p role="status" className="mt-3 rounded-lg bg-cmt-primary-50 p-3 text-sm text-cmt-neutral-700">{placementNotice}</p>}
       <fieldset disabled={disabled} className="mt-6 min-w-0 space-y-6 disabled:opacity-70" aria-busy={disabled}>
         <legend className="sr-only">Package detail page sections</legend>
         <div hidden={scoped}>
@@ -115,7 +131,7 @@ export default function PackagePageSectionsEditor({ value, onChange, onUploadIma
           </div>
         </div>
 
-        <div hidden={focus === "locations" || focus === "reviews"} className="border-t border-cmt-neutral-200 pt-6">
+        <div hidden={focus === "locations" || focus === "reviews" || focus === "gallery"} className="border-t border-cmt-neutral-200 pt-6">
           <BlockHeading icon={<LayoutGrid className="size-5" />} title="Trip content sections" copy="Start with a section template, fill in your content and choose where it appears. Arrows set the order within each position." />
           <div className="mb-5 flex flex-wrap gap-2">{PACKAGE_SECTION_TEMPLATES.filter((template) => template.placement === (customFocus ?? "extras")).map((template) => <button key={template.title} type="button" className={addButtonClass} onClick={() => onChange({ ...value, sections: [...value.sections, { id: crypto.randomUUID(), title: template.title, placement: template.placement, layout: template.layout, visible: true, body: "", items: template.items.map((title) => ({ id: crypto.randomUUID(), title, body: "" })) }] })}><Plus className="size-3.5" />{template.title}</button>)}</div>
           <div className="space-y-4">
@@ -127,16 +143,21 @@ export default function PackagePageSectionsEditor({ value, onChange, onUploadIma
                 </div>
                 <div className="space-y-4">
                   <Visibility label={`Show section ${index + 1} on the website`} checked={section.visible} onChange={(visible) => patchSection(section.id, { visible })} />
-                  <label hidden={scoped} className="block"><FieldLabel>Position on the detail page</FieldLabel><select value={section.placement ?? "extras"} onChange={(event) => patchSection(section.id, { placement: event.target.value as PackageSectionPlacement })} className={inputClass}>{PACKAGE_SECTION_PLACEMENTS.map((position) => <option key={position.id} value={position.id}>{position.label}</option>)}</select></label>
+                  <label className="block"><FieldLabel>Position on the detail page</FieldLabel><select aria-label={`Position for section ${index + 1}`} value={section.placement ?? "extras"} onChange={(event) => {
+                    const placement = event.target.value as PackageSectionPlacement;
+                    if (placement === (section.placement ?? "extras")) return;
+                    patchSection(section.id, { placement });
+                    setPlacementNotice(`Section moved to ${editorPlacementLabels[placement]}. Open that section in the editor to continue.`);
+                  }} className={inputClass}>{PACKAGE_SECTION_PLACEMENTS.map((position) => <option key={position.id} value={position.id}>{position.label}</option>)}</select></label>
                   <label className="block"><FieldLabel>Section title</FieldLabel><input value={section.title} onChange={(event) => patchSection(section.id, { title: event.target.value })} placeholder="e.g. Things to carry" className={inputClass} /></label>
                   <LayoutSelector value={section.layout} onChange={(layout) => patchSection(section.id, { layout, items: layout !== "box" && !section.items.length ? [{ id: crypto.randomUUID(), title: "", body: "" }] : section.items })} />
-                  <label className="block"><FieldLabel>{section.layout === "box" ? "Box content" : "Introduction (optional)"}</FieldLabel><textarea value={section.body} onChange={(event) => patchSection(section.id, { body: event.target.value })} placeholder="Write the details you want travellers to see." className={textareaClass} /></label>
+                  <PackageContentField label={section.layout === "box" ? "Box content" : "Introduction (optional)"} value={section.body} onChange={body => patchSection(section.id, { body })} disabled={disabled} />
                   {section.layout !== "box" && <div className="space-y-3">
                     {section.items.map((item, itemIndex) => <div key={item.id} className="rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-50 p-3 sm:p-4">
                       <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-semibold">{section.layout === "dropdown" ? "Dropdown item" : "Box"} {itemIndex + 1}</p><div className="flex gap-1.5"><OrderButtons label={`item ${itemIndex + 1} in section ${index + 1}`} index={itemIndex} length={section.items.length} onMove={(direction) => patchSection(section.id, { items: moveItem(section.items, itemIndex, direction) })} /><button type="button" className={`${buttonClass} text-cmt-error-700`} aria-label={`Remove item ${itemIndex + 1} from section ${index + 1}`} onClick={() => patchSection(section.id, { items: section.items.filter((entry) => entry.id !== item.id) })}><Trash2 className="size-3.5" /></button></div></div>
                       <Visibility label={`Show item ${itemIndex + 1} in section ${index + 1} on the website`} checked={item.visible !== false} onChange={(visible) => patchSection(section.id, { items: section.items.map((entry) => entry.id === item.id ? { ...entry, visible } : entry) })} />
                       <label className="mt-3 block"><FieldLabel>{section.layout === "dropdown" ? "Item title or question" : "Box title"}</FieldLabel><input value={item.title} onChange={(event) => patchSection(section.id, { items: section.items.map((entry) => entry.id === item.id ? { ...entry, title: event.target.value } : entry) })} placeholder={section.layout === "dropdown" ? "e.g. What should I bring?" : "e.g. Clothing"} className={inputClass} /></label>
-                      <label className="mt-3 block"><FieldLabel>{section.layout === "dropdown" ? "Details or answer" : "Box text"}</FieldLabel><textarea value={item.body} onChange={(event) => patchSection(section.id, { items: section.items.map((entry) => entry.id === item.id ? { ...entry, body: event.target.value } : entry) })} className={textareaClass} /></label>
+                      <div className="mt-3"><PackageContentField label={section.layout === "dropdown" ? "Details or answer" : "Box text"} value={item.body} onChange={body => patchSection(section.id, { items: section.items.map((entry) => entry.id === item.id ? { ...entry, body } : entry) })} disabled={disabled} /></div>
                     </div>)}
                     <button type="button" className={addButtonClass} onClick={() => patchSection(section.id, { items: [...section.items, { id: crypto.randomUUID(), title: "", body: "" }] })}><Plus className="size-4" />{section.layout === "dropdown" ? "Add dropdown item" : "Add box to this section"}</button>
                   </div>}
@@ -151,20 +172,20 @@ export default function PackagePageSectionsEditor({ value, onChange, onUploadIma
           {value.sections.length > 0 && <div className="mt-4"><button type="button" className={buttonClass} aria-expanded={showPreview} onClick={() => setShowPreview(!showPreview)}><Eye className="size-4" />{showPreview ? "Hide section preview" : "Preview your sections"}</button>{showPreview && <div className="mt-3 rounded-cmt-control border border-cmt-neutral-200 bg-cmt-neutral-50 p-3 sm:p-4"><p className={`mb-3 ${mutedClass}`}>Only visible sections with content appear in this preview.</p><PackagePageSectionsPreview area={customFocus ?? "extras"} value={{ ...value, gallery: { ...value.gallery, enabled: false }, locations: { ...value.locations, enabled: false }, reviews: { ...value.reviews, enabled: false } }} /></div>}</div>}
         </div>
 
-        <div hidden={scoped} className="border-t border-cmt-neutral-200 pt-6">
-          <BlockHeading icon={<ImagePlus className="size-5" />} title="Optional photo gallery" copy="Add a separate gallery near the bottom of the page. The main package photos are managed in the Title & quick details step." />
+        <div hidden={scoped && focus !== "gallery"} className="border-t border-cmt-neutral-200 pt-6">
+          <BlockHeading icon={<ImagePlus className="size-5" />} title="Optional photo gallery" copy="Add a separate gallery near the bottom of the page. Manage the cover and main package photos in Images." />
           <Toggle label="Show extra photo gallery" description="Turn this off to hide the gallery and keep its photos for later." checked={value.gallery.enabled} onChange={(enabled) => onChange({ ...value, gallery: { ...value.gallery, enabled } })} />
-          {value.gallery.enabled && <div className="mt-4 space-y-4">
+          <div className="mt-4 space-y-4">
             <UploadInput label={`Upload gallery photos (${value.gallery.images.length}/20)`} multiple disabled={value.gallery.images.length >= 20} onSelect={(files) => { void uploadImages(files); }} />
             <p className={mutedClass}>Up to 20 images. Photos are optional; an empty gallery stays off the website.</p>
-            {value.gallery.images.length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{value.gallery.images.map((src, index) => <div key={`${src}-${index}`} className="overflow-hidden rounded-cmt-control border border-cmt-neutral-200"><div className="relative aspect-[4/3] bg-cmt-neutral-100"><Image src={src} alt={`Extra gallery photo ${index + 1}`} fill sizes="(max-width: 640px) 40vw, 220px" className="object-cover" /></div><div className="flex flex-wrap items-center justify-center gap-1 p-2"><OrderButtons label={`gallery photo ${index + 1}`} index={index} length={value.gallery.images.length} onMove={(direction) => onChange({ ...value, gallery: { ...value.gallery, images: moveItem(value.gallery.images, index, direction) } })} /><button type="button" className={`${buttonClass} text-cmt-error-700`} aria-label={`Remove gallery photo ${index + 1}`} onClick={() => onChange({ ...value, gallery: { ...value.gallery, images: value.gallery.images.filter((_, imageIndex) => imageIndex !== index) } })}><Trash2 className="size-3.5" /></button></div></div>)}</div>}
-          </div>}
+            {value.gallery.images.length > 0 && <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{value.gallery.images.map((src, index) => <div key={`${src}-${index}`} className="overflow-hidden rounded-cmt-control border border-cmt-neutral-200"><div className="relative aspect-[4/3] bg-cmt-neutral-100"><Image src={src} alt={`Extra gallery photo ${index + 1}`} fill sizes="(max-width: 640px) 90vw, 220px" className="object-contain" /></div><div className="flex flex-wrap items-center justify-center gap-1 p-2"><OrderButtons label={`gallery photo ${index + 1}`} index={index} length={value.gallery.images.length} onMove={(direction) => onChange({ ...value, gallery: { ...value.gallery, images: moveItem(value.gallery.images, index, direction) } })} /><button type="button" className={`${buttonClass} text-cmt-error-700`} aria-label={`Remove gallery photo ${index + 1}`} onClick={() => onChange({ ...value, gallery: { ...value.gallery, images: value.gallery.images.filter((_, imageIndex) => imageIndex !== index) } })}><Trash2 className="size-3.5" /></button></div><div className="p-3 pt-0"><UploadInput label={`Replace gallery photo ${index + 1}`} disabled={disabled} onSelect={files => { void uploadImages(files, { galleryIndex: index }); }} /></div></div>)}</div>}
+          </div>
         </div>
 
         <div hidden={focus !== "locations"} className="border-t border-cmt-neutral-200 pt-6">
           <BlockHeading icon={<MapPin className="size-5" />} title="Pickup & drop locations" copy="Add several meeting points, with a name, directions, map link and an optional photo for each." />
           <Toggle label="Show pickup & drop locations" description="Turning this off keeps all locations saved for later." checked={value.locations.enabled} onChange={(enabled) => onChange({ ...value, locations: { ...value.locations, enabled } })} />
-          {value.locations.enabled && <div className="mt-4 space-y-4">
+          <div className="mt-4 space-y-4">
             {value.locations.items.map((location, index) => <div key={location.id} className={panelClass}>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><h4 className="break-words text-sm font-semibold">{index + 1}. {location.name || (location.type === "pickup" ? "Pickup location" : "Drop location")}{!location.visible && <span className="ml-2 text-xs font-normal text-cmt-neutral-500">Hidden</span>}</h4><div className="flex gap-1.5"><OrderButtons label={`location ${index + 1}`} index={index} length={value.locations.items.length} onMove={(direction) => onChange({ ...value, locations: { ...value.locations, items: moveItem(value.locations.items, index, direction) } })} /><button type="button" className={`${buttonClass} text-cmt-error-700`} aria-label={`Remove location ${index + 1}`} onClick={() => onChange({ ...value, locations: { ...value.locations, items: value.locations.items.filter((item) => item.id !== location.id) } })}><Trash2 className="size-3.5" />Remove</button></div></div>
               <Visibility label={`Show location ${index + 1} on the website`} checked={location.visible} onChange={(visible) => patchLocation(location.id, { visible })} />
@@ -173,26 +194,26 @@ export default function PackagePageSectionsEditor({ value, onChange, onUploadIma
                 <label><FieldLabel>Location name</FieldLabel><input value={location.name} onChange={(event) => patchLocation(location.id, { name: event.target.value })} placeholder="e.g. Airport arrivals, Gate 3" className={inputClass} /></label>
                 <label className="sm:col-span-2"><FieldLabel>Address or map search location</FieldLabel><input value={location.address} onChange={(event) => patchLocation(location.id, { address: event.target.value })} placeholder="Street address, landmark and city" className={inputClass} /><span className={`mt-1 block ${mutedClass}`}>Travellers can open this address in maps.</span></label>
                 <label className="sm:col-span-2"><FieldLabel>Map link (optional)</FieldLabel><input inputMode="url" value={location.mapUrl} onChange={(event) => patchLocation(location.id, { mapUrl: event.target.value })} placeholder="https://maps.google.com/..." className={inputClass} /><span className={`mt-1 block ${mutedClass}`}>Paste a shared map link to point to the exact meeting spot.</span></label>
-                <label className="sm:col-span-2"><FieldLabel>Meeting time & instructions (optional)</FieldLabel><textarea value={location.notes} onChange={(event) => patchLocation(location.id, { notes: event.target.value })} placeholder="e.g. Meet at 8:30 AM. Your driver will wait beside the information desk." className={textareaClass} /></label>
-                <div className="sm:col-span-2">{location.image ? <div className="flex flex-wrap items-center gap-3"><div className="relative h-24 w-36 overflow-hidden rounded-cmt-control border border-cmt-neutral-200"><Image src={location.image} alt={location.name || `Location ${index + 1}`} fill sizes="144px" className="object-cover" /></div><button type="button" className={`${buttonClass} text-cmt-error-700`} aria-label={`Remove photo for location ${index + 1}`} onClick={() => patchLocation(location.id, { image: "" })}><Trash2 className="size-3.5" />Remove photo</button></div> : <UploadInput label="Location photo or map image (optional)" onSelect={(files) => { void uploadImages(files, location.id); }} />}</div>
+                <div className="sm:col-span-2"><PackageContentField label="Meeting time & instructions (optional)" value={location.notes} onChange={notes => patchLocation(location.id, { notes })} hint="Include the meeting time, landmark and any instructions travellers need at this location." disabled={disabled} /></div>
+                <div className="space-y-3 sm:col-span-2">{location.image && <div className="flex flex-wrap items-center gap-3"><div className="relative h-24 w-36 overflow-hidden rounded-cmt-control border border-cmt-neutral-200"><Image src={location.image} alt={location.name || `Location ${index + 1}`} fill sizes="144px" className="object-contain" /></div><button type="button" className={`${buttonClass} text-cmt-error-700`} aria-label={`Remove photo for location ${index + 1}`} onClick={() => patchLocation(location.id, { image: "" })}><Trash2 className="size-3.5" />Remove photo</button></div>}<UploadInput label={location.image ? `Replace photo for location ${index + 1}` : "Location photo or map image (optional)"} disabled={disabled} onSelect={(files) => { void uploadImages(files, { locationId: location.id }); }} /></div>
               </div>
             </div>)}
             <div className="flex flex-wrap gap-2"><button type="button" className={addButtonClass} onClick={() => addLocation("pickup")}><Plus className="size-4" />Add pickup location</button><button type="button" className={addButtonClass} onClick={() => addLocation("drop")}><Plus className="size-4" />Add drop location</button></div>
-          </div>}
+          </div>
         </div>
 
         {allowReviews && <div hidden={focus !== "reviews"} className="border-t border-cmt-neutral-200 pt-6">
           <BlockHeading icon={<MessageSquare className="size-5" />} title="Optional reviews" copy="Add reviews supplied by your travellers. These reviews are entered by the package editor; saved, visible reviews appear on the website." />
-          <Toggle label="Write reviews" description="Turn on to add reviews for this package. Turn off to hide saved reviews and keep them for later." checked={value.reviews.enabled} onChange={(enabled) => onChange({ ...value, reviews: { ...value.reviews, enabled } })} />
-          {value.reviews.enabled && <div className="mt-4 space-y-4">
+          <Toggle label="Show traveller reviews" description="Turn off to hide reviews on the website. You can still edit them here." checked={value.reviews.enabled} onChange={(enabled) => onChange({ ...value, reviews: { ...value.reviews, enabled } })} />
+          <div className="mt-4 space-y-4">
             {value.reviews.items.map((review, index) => <div key={review.id} className={panelClass}>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h4 className="text-sm font-semibold">Review {index + 1}</h4><div className="flex gap-1.5"><OrderButtons label={`review ${index + 1}`} index={index} length={value.reviews.items.length} onMove={(direction) => onChange({ ...value, reviews: { ...value.reviews, items: moveItem(value.reviews.items, index, direction) } })} /><button type="button" className={`${buttonClass} text-cmt-error-700`} aria-label={`Remove review ${index + 1}`} onClick={() => onChange({ ...value, reviews: { ...value.reviews, items: value.reviews.items.filter((item) => item.id !== review.id) } })}><Trash2 className="size-3.5" />Remove</button></div></div>
               <Visibility label={`Show review ${index + 1} on the website`} checked={review.visible} onChange={(visible) => patchReview(review.id, { visible })} />
-              <div className="mt-3 grid gap-4 sm:grid-cols-2"><label><FieldLabel>Reviewer name</FieldLabel><input value={review.name} onChange={(event) => patchReview(review.id, { name: event.target.value })} placeholder="Traveller's name" className={inputClass} /></label><label><FieldLabel>Rating</FieldLabel><select value={review.rating} onChange={(event) => patchReview(review.id, { rating: Number(event.target.value) })} className={inputClass}>{[5, 4, 3, 2, 1].map((rating) => <option key={rating} value={rating}>{rating} {rating === 1 ? "star" : "stars"}</option>)}</select></label><label className="sm:col-span-2"><FieldLabel>Review text</FieldLabel><textarea value={review.text} onChange={(event) => patchReview(review.id, { text: event.target.value })} placeholder="Enter the traveller's review." className={textareaClass} /></label></div>
+              <div className="mt-3 grid gap-4 sm:grid-cols-2"><label><FieldLabel>Reviewer name</FieldLabel><input value={review.name} onChange={(event) => patchReview(review.id, { name: event.target.value })} placeholder="Traveller's name" className={inputClass} /></label><label><FieldLabel>Rating</FieldLabel><select value={review.rating} onChange={(event) => patchReview(review.id, { rating: Number(event.target.value) })} className={inputClass}>{[5, 4, 3, 2, 1].map((rating) => <option key={rating} value={rating}>{rating} {rating === 1 ? "star" : "stars"}</option>)}</select></label><div className="sm:col-span-2"><PackageContentField label="Review text" value={review.text} onChange={text => patchReview(review.id, { text })} hint="Enter the traveller's review exactly as supplied." disabled={disabled} /></div></div>
             </div>)}
             <button type="button" className={addButtonClass} onClick={() => onChange({ ...value, reviews: { ...value.reviews, items: [...value.reviews.items, { id: crypto.randomUUID(), name: "", rating: 5, text: "", visible: true }] } })}><Plus className="size-4" />Add review</button>
             {!value.reviews.items.length && <p className={mutedClass}>No reviews added yet. This section stays off the website until you add a review.</p>}
-          </div>}
+          </div>
         </div>}
       </fieldset>
       {uploading && <p role="status" className="mt-4 text-sm font-medium text-cmt-neutral-600">Uploading photos…</p>}

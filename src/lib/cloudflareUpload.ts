@@ -54,23 +54,35 @@ export async function deleteImageFromCloudflare(url: string) {
 /** Deletes every image left behind by an editor that was closed without
     saving. Anything that fails to delete is written back so the next visit
     to the section retries it rather than losing the reference. */
-export async function cleanupAbandonedDraftImages(prefix: string): Promise<{ failedCount: number }> {
+export async function cleanupAbandonedDraftImages(prefix: string, retainedImages: Iterable<string> = []): Promise<{ failedCount: number }> {
   const keys = Object.keys(sessionStorage).filter((key) => key.startsWith(prefix));
+  const retained = new Set(retainedImages);
   let failedCount = 0;
   for (const key of keys) {
     const stored = sessionStorage.getItem(key);
     sessionStorage.removeItem(key);
     if (!stored) continue;
     let images: string[];
-    try { images = [...new Set(JSON.parse(stored) as string[])]; }
+    try { images = [...new Set((JSON.parse(stored) as unknown[]).filter((image): image is string => typeof image === "string" && !retained.has(image)))]; }
     catch { continue; }
     const results = await Promise.allSettled(images.map(deleteImageFromCloudflare));
     const failed = images.filter((_, index) => results[index].status === "rejected");
-    if (failed.length) { sessionStorage.setItem(key, JSON.stringify(failed)); failedCount += failed.length; }
+    if (failed.length) {
+      // Uploads may have queued new URLs while these requests were pending.
+      // A cleanup retry must never replace that newer queue.
+      let queued: string[] = [];
+      try {
+        const pending: unknown = JSON.parse(sessionStorage.getItem(key) ?? "[]");
+        if (Array.isArray(pending)) queued = pending.filter((image): image is string => typeof image === "string");
+      } catch { /* A malformed old queue contributes no additional URLs. */ }
+      sessionStorage.setItem(key, JSON.stringify([...new Set([...queued, ...failed])].filter((image) => !retained.has(image))));
+      failedCount += failed.length;
+    }
   }
   return { failedCount };
 }
 
 export const cleanupAbandonedBannerImages = () => cleanupAbandonedDraftImages(BANNER_DRAFT_IMAGE_KEY_PREFIX);
-export const cleanupAbandonedPackageImages = () => cleanupAbandonedDraftImages(PACKAGE_DRAFT_IMAGE_KEY_PREFIX);
+/** Wait for the catalogue before calling, and include hidden package images. */
+export const cleanupAbandonedPackageImages = (retainedImages: Iterable<string>) => cleanupAbandonedDraftImages(PACKAGE_DRAFT_IMAGE_KEY_PREFIX, retainedImages);
 export const cleanupAbandonedBlogImages = () => cleanupAbandonedDraftImages(BLOG_DRAFT_IMAGE_KEY_PREFIX);

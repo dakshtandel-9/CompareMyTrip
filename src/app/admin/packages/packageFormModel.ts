@@ -16,8 +16,9 @@ const initialForm: PackageForm = {
   facts: defaultPackageFacts(), factsHidden: false, permitRequired: false, permitHidden: false,
   pageSections: defaultPackagePageSections(),
   title: "", location: "", destination: "", operator: "CompareMyTrip Partner", region: "India",
-  gallery: [],
+  image: "", gallery: [],
   nights: "2", days: "3", pax: "", hotelStars: "3", originalPrice: "", price: "", discount: "0", deal: false, tags: ["Family"],
+  rating: "0", reviews: "0",
   summary: "", places: "", highlights: "",
   inclusions: "", exclusions: "",
   meals: "", transfers: "", flights: "",
@@ -39,8 +40,9 @@ export function formFromPackage(pkg?: TravelPackage): PackageForm {
     facts: details.facts ?? defaultPackageFacts(), factsHidden: details.factsHidden ?? false, permitRequired: details.permitRequired === true, permitHidden: details.permitHidden === true,
     pageSections: getPackagePageSections(details),
     title: pkg.title, location: pkg.location, destination: pkg.destination, operator: pkg.operator,
-    region: pkg.region, gallery: details.gallery, nights: String(pkg.nights), days: String(pkg.days), pax: pkg.pax,
+    region: pkg.region, image: pkg.image, gallery: details.gallery, nights: String(pkg.nights), days: String(pkg.days), pax: pkg.pax,
     hotelStars: String(pkg.hotelStars), originalPrice: String(pkg.originalPrice), price: String(pkg.price),
+    rating: String(pkg.rating), reviews: String(pkg.reviews),
     discount: String(pkg.discount), deal: Boolean(pkg.deal), tags: pkg.tags, summary: details.summary,
     places: details.places.join(", "), highlights: details.highlights.join("\n"), inclusions: details.inclusions.join("\n"),
     exclusions: details.exclusions.join("\n"), meals: details.meals, transfers: details.transfers, flights: details.flights,
@@ -54,35 +56,40 @@ export function formFromPackage(pkg?: TravelPackage): PackageForm {
 }
 
 
-export function packageFromForm(form: PackageForm, initialPackage?: TravelPackage): TravelPackage {
-  const isTrek = form.tags.some(tag => tag === "Treks" || tag === "Weekend Treks");
+export function packageFromForm(form: PackageForm, initialPackage?: TravelPackage, { normalize = true }: { normalize?: boolean } = {}): TravelPackage {
+  const text = (value: string) => normalize ? value.trim() : value;
+  const list = (value: string) => normalize ? lines(value) : value.split("\n");
+  const places = normalize ? splitPlaces(form.places) : form.places.split(/[,·]/);
   return {
       id: initialPackage?.id ?? "preview",
+      ...(initialPackage?.href !== undefined ? { href: initialPackage.href } : {}),
       ...(form.trekGrade !== undefined ? { trekGrade: form.trekGrade } : {}),
-      title: form.title.trim(), location: form.location.trim(), operator: form.operator.trim(), region: form.region,
+      title: text(form.title), location: text(form.location), operator: text(form.operator), region: form.region,
       /* Headline destination for the catalogue's destination filter: the first
          place of the route unless one was typed explicitly. */
-      destination: form.destination.trim() || splitPlaces(form.places)[0] || form.location.trim(),
-      image: form.gallery[0], nights: Number(form.nights), days: Number(form.days), pax: form.pax.trim(), hotelStars: Number(form.hotelStars), tags: form.tags,
-      rating: initialPackage?.rating ?? 0, reviews: initialPackage?.reviews ?? 0, discount: Number(form.discount), originalPrice: Number(form.originalPrice), price: Number(form.price), deal: form.deal, status: form.status,
+      destination: normalize ? form.destination.trim() || splitPlaces(form.places)[0] || form.location.trim() : form.destination,
+      image: form.image ?? form.gallery[0] ?? "", nights: Number(form.nights), days: Number(form.days), pax: text(form.pax), hotelStars: Number(form.hotelStars), tags: form.tags,
+      rating: Number(form.rating ?? initialPackage?.rating ?? 0), reviews: Number(form.reviews ?? initialPackage?.reviews ?? 0), discount: Number(form.discount), originalPrice: Number(form.originalPrice), price: Number(form.price), deal: form.deal, status: form.status,
       /* Stored empty when every day is ticked: "departs any day" is the
          absence of a rule, not a list of seven. */
       departureDays: form.departureDays.length === 7 ? [] : [...form.departureDays].sort((a, b) => a - b),
-      details: { facts: form.facts.map((fact) => ({ ...fact, label: fact.label.trim(), ...(fact.value !== undefined ? { value: fact.value.trim() } : {}) })), factsHidden: form.factsHidden, gallery: form.gallery, summary: form.summary.trim(), places: splitPlaces(form.places), highlights: lines(form.highlights),
-        ...(form.bookingLabel !== undefined ? { bookingLabel: form.bookingLabel.trim() } : {}),
-        ...(form.availabilityNote !== undefined ? { availabilityNote: form.availabilityNote.trim() } : {}),
-        ...(form.quoteNote !== undefined ? { quoteNote: form.quoteNote.trim() } : {}),
+      details: { facts: form.facts.map((fact) => ({ ...fact, label: text(fact.label), ...(fact.value !== undefined ? { value: text(fact.value) } : {}) })), factsHidden: form.factsHidden, gallery: form.gallery, summary: text(form.summary), places, highlights: list(form.highlights),
+        ...(form.bookingLabel !== undefined ? { bookingLabel: text(form.bookingLabel) } : {}),
+        ...(form.availabilityNote !== undefined ? { availabilityNote: text(form.availabilityNote) } : {}),
+        ...(form.quoteNote !== undefined ? { quoteNote: text(form.quoteNote) } : {}),
         dayZeroEnabled: form.dayZeroEnabled,
-        itinerary: form.itinerary.map((day) => ({ ...day, title: day.title.trim(), route: day.route.trim(), description: day.description.trim() })),
-        stays: form.stays.map((stay) => ({ ...stay, name: stay.name.trim(), place: stay.place.trim() || form.destination.trim() || form.location.trim() })),
-        inclusions: lines(form.inclusions), exclusions: lines(form.exclusions), meals: form.meals.trim(), transfers: form.transfers.trim(),
-        flights: form.flights.trim(), permitRequired: form.permitRequired, permitHidden: form.permitHidden, cancellationPolicy: form.cancellationPolicy.trim(), pageSections: { ...form.pageSections, snapshotPlacement: isTrek ? "intro" : "about" } },
+        itinerary: form.itinerary.map((day) => ({ ...day, title: text(day.title), route: text(day.route), description: text(day.description) })),
+        stays: form.stays.map((stay) => ({ ...stay, name: text(stay.name), place: normalize ? stay.place.trim() || form.destination.trim() || form.location.trim() : stay.place })),
+        inclusions: list(form.inclusions), exclusions: list(form.exclusions), meals: text(form.meals), transfers: text(form.transfers),
+        flights: text(form.flights), permitRequired: form.permitRequired, permitHidden: form.permitHidden, cancellationPolicy: text(form.cancellationPolicy), pageSections: { ...form.pageSections } },
     };
 }
 
 export function applyPackagePreviewChange(current: PackageForm, path: (string | number)[], value: unknown, initialPackage?: TravelPackage): PackageForm {
-    const snapshot = packageFromForm(current, initialPackage);
-    if (path.join(".") === "details.places" && typeof value === "string") value = value.split(/[,·]/).map(item => item.trim()).filter(Boolean);
+    const snapshot = packageFromForm(current, initialPackage, { normalize: false });
+    const field = path.join(".");
+    const originalValue = value;
+    if (field === "details.places" && typeof value === "string") value = value.split(/[,·]/);
     if (path[path.length - 1] === "image" && Array.isArray(value)) value = value[0] ?? "";
     let next = changePackageContent(snapshot, path, value);
     if (path.join(".") === "details.dayZeroEnabled") next = { ...next, details: { ...next.details!, ...setPackageDayZero(next.details!, Boolean(value)) } };
@@ -94,15 +101,31 @@ export function applyPackagePreviewChange(current: PackageForm, path: (string | 
       next.days = Math.max(1, days.length);
     }
     if (path.join(".") === "days") {
-      const count = Math.max(1, Math.min(30, Math.trunc(Number(value)) || 1));
-      const zero = next.details!.itinerary.find(day => day.day === 0);
-      const previous = next.details!.itinerary.filter(day => day.day !== 0);
-      next.days = count;
-      next.details!.itinerary = [...(zero ? [zero] : []), ...makeDays(count).map((day, index) => previous[index] ?? day)];
+      const count = Number(value);
+      if (String(value).trim() && Number.isInteger(count) && count >= 1 && count <= 30) {
+        const zero = next.details!.itinerary.find(day => day.day === 0);
+        const previous = next.details!.itinerary.filter(day => day.day !== 0);
+        // Changing a duration must not delete an authored day. Authors can
+        // remove unwanted days explicitly in the itinerary editor.
+        next.details!.itinerary = [...(zero ? [zero] : []), ...makeDays(Math.max(count, previous.length)).map((day, index) => previous[index] ?? day)];
+      }
     }
-    if (path[0] === "price" || path[0] === "originalPrice") {
+    const updateDiscount = (field === "price" || field === "originalPrice")
+      && String(originalValue).trim() !== "" && Number.isFinite(Number(originalValue)) && Number(next.price) > 0;
+    if (updateDiscount) {
       if (path[0] === "price" && next.originalPrice < next.price) next.originalPrice = next.price;
       next.discount = next.originalPrice > 0 ? Math.round((1 - next.price / next.originalPrice) * 100) : 0;
     }
-    return formFromPackage(next);
+    const result = formFromPackage(next);
+    // Preserve raw input while typing, including commas, trailing newlines,
+    // an empty price, and a decimal point. Normalization belongs to Save.
+    result.places = field === "details.places" ? typeof originalValue === "string" ? originalValue : result.places : current.places;
+    for (const key of ["nights", "days", "hotelStars", "price", "originalPrice", "discount", "rating", "reviews"] as const) {
+      const derived = key === "days" && field === "details.itinerary"
+        || key === "discount" && updateDiscount
+        || key === "originalPrice" && field === "price" && Number(current.originalPrice) < Number(originalValue);
+      if (field === key && typeof originalValue === "string") result[key] = originalValue;
+      else if (field !== key && !derived) result[key] = current[key];
+    }
+    return result;
 }

@@ -10,7 +10,7 @@ function load(file, dependencies = {}, globals = {}) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   vm.runInNewContext(code, {
-    exports, URL, URLSearchParams, queueMicrotask, ...globals,
+    exports, URL, URLSearchParams, queueMicrotask, process: { env: { NODE_ENV: 'production' } }, ...globals,
     require(name) {
       assert.ok(Object.hasOwn(dependencies, name), `Unexpected dependency: ${name}`);
       return dependencies[name];

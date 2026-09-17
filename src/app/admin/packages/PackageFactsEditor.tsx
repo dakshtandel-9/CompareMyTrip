@@ -31,7 +31,7 @@ export default function PackageFactsEditor({ facts, hidden, permitRequired, valu
   return (
     <section className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-5 shadow-cmt-sm sm:p-7">
       <h2 className="font-display text-xl font-semibold">Trip snapshot / quick details</h2>
-      <p className="mt-1 text-xs leading-5 text-cmt-neutral-500">These quick facts introduce the trip, including duration, meals, transport or trek difficulty. The starting values follow your trip details automatically. Customize only what you need, then save the package in the final step.</p>
+      <p className="mt-1 text-xs leading-5 text-cmt-neutral-500">These quick facts introduce the trip, including duration, meals and transport. Values follow your trip details automatically. Customize a value if needed, then use Save package above.</p>
       <label className="mt-5 flex items-center gap-2 text-sm font-semibold">
         <input type="checkbox" checked={!hidden} onChange={(event) => onHiddenChange(!event.target.checked)} className="size-4 accent-cmt-primary-500" />
         Show details bar

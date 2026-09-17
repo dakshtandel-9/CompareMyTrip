@@ -36,11 +36,18 @@ export default function AdminPackagesManager() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const deleting = useRef(false);
 
+  const imageCleanupStarted = useRef(false);
   useEffect(() => {
-    void cleanupAbandonedPackageImages().then(({ failedCount }) => {
+    if (loading || error || !databaseInitialized || editing || searchParams.has("create") || imageCleanupStarted.current) return;
+    imageCleanupStarted.current = true;
+    const retained = packages.flatMap(pkg => {
+      const details = getPackageDetails(pkg);
+      return [pkg.image, ...details.gallery, ...packagePageSectionImages(getPackagePageSections(details))];
+    });
+    void cleanupAbandonedPackageImages(retained).then(({ failedCount }) => {
       if (failedCount) setActionError(`${failedCount} abandoned package image${failedCount === 1 ? "" : "s"} could not be deleted. Cleanup will retry next time.`);
     });
-  }, []);
+  }, [loading, error, databaseInitialized, editing, searchParams, packages]);
   const filteredPackages = useMemo(() => {
     const query = search.trim().toLowerCase();
     return packages.filter((pkg) =>
@@ -87,7 +94,11 @@ export default function AdminPackagesManager() {
   };
 
   if (currentEditing) {
-    return <AdminPackageBuilder initialDestination={searchParams.get("destination") ?? ""} initialRegion={searchParams.get("region") === "International" ? "International" : "India"} initialPackage={currentEditing === "new" ? undefined : currentEditing} filedUnderOptions={filedUnderOptions} onCancel={closeEditor} onSaved={(message) => { setSuccess(message); closeEditor(); }} />;
+    const protectedImages = packages.filter(pkg => currentEditing === "new" || pkg.id !== currentEditing.id).flatMap(pkg => {
+      const details = getPackageDetails(pkg);
+      return [pkg.image, ...details.gallery, ...packagePageSectionImages(getPackagePageSections(details))];
+    });
+    return <AdminPackageBuilder initialDestination={searchParams.get("destination") ?? ""} initialRegion={searchParams.get("region") === "International" ? "International" : "India"} initialPackage={currentEditing === "new" ? undefined : currentEditing} filedUnderOptions={filedUnderOptions} protectedImages={protectedImages} onCancel={closeEditor} onSaved={(message) => { setSuccess(message); closeEditor(); }} />;
   }
 
   const importExisting = async () => {
@@ -167,7 +178,7 @@ export default function AdminPackagesManager() {
       <div className="divide-y divide-cmt-neutral-200">
         {visiblePackages.map((pkg) => <article key={pkg.id} className="grid gap-4 p-4 lg:grid-cols-[24px_88px_minmax(0,1fr)_auto] lg:items-center sm:px-5">
           <input type="checkbox" aria-label={`Select ${pkg.title}`} checked={selectedIds.has(pkg.id)} disabled={working || !databaseInitialized} onChange={(event) => toggleSelection([pkg.id], event.target.checked)} className="size-4 cursor-pointer accent-cmt-primary-700" />
-          <div className="relative aspect-[4/3] w-28 lg:w-full overflow-hidden rounded-cmt-sm bg-cmt-neutral-100"><Image src={pkg.image} alt="" fill sizes="112px" className="object-cover" /></div>
+          <div className="relative aspect-[4/3] w-28 lg:w-full overflow-hidden rounded-cmt-sm bg-cmt-neutral-100">{pkg.image ? <Image src={pkg.image} alt="" fill sizes="112px" className="object-cover" /> : <span className="grid h-full place-items-center text-xs text-cmt-neutral-500">No cover photo</span>}</div>
           <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="break-words font-display text-base font-semibold">{pkg.title}</h2><span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${isPublishedPackage(pkg) ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>{isPublishedPackage(pkg) ? "Live on website" : "Draft · private"}</span></div><p className="mt-1 text-xs font-medium text-cmt-neutral-600">Destination: {pkg.region === "India" ? toIndiaState(pkg.destination) : pkg.destination} · {pkg.region}</p><p className="mt-1 truncate text-xs text-cmt-neutral-500">{pkg.location} · {pkg.nights} nights / {pkg.days} days · ₹{pkg.price.toLocaleString("en-IN")} per person</p></div>
           <div className="flex flex-wrap gap-2">{isPublishedPackage(pkg) && <Link href={`/packages/${pkg.id}`} target="_blank" className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold"><ExternalLink className="size-3.5" /> View</Link>}<button disabled={!databaseInitialized} title={!databaseInitialized ? "Import the existing catalogue first" : undefined} onClick={() => setEditing(pkg)} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold disabled:opacity-40"><Edit3 className="size-3.5" /> Edit</button><button disabled={working || !databaseInitialized} onClick={() => setPendingDelete([pkg])} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-error-500/30 px-3 text-xs font-semibold text-cmt-error-700 disabled:opacity-40"><Trash2 className="size-3.5" /> Delete</button></div>
         </article>)}

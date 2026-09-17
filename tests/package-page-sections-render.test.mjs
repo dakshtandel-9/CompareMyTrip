@@ -142,6 +142,7 @@ const { default: RealPackageGallery } = load('src/app/packages/_components/Packa
   react: { ...React, useState: () => [0, noOp], useEffect: noOp },
   'next/image': { default: imageMock },
   'lucide-react': icons,
+  './PackageGallery.module.css': { default: {} },
   '@/components/Modal': { default: ({ children }) => children },
 });
 const { default: SectionsWithRealGallery } = load('src/app/packages/_components/PackagePageSections.tsx', {
@@ -232,6 +233,7 @@ const { default: PackageDetailClient } = load('src/app/packages/[packageId]/Pack
   '../_components/PackageFactsBar': { default: noOp },
   '../_components/PackageInlineEditing': inlineEditing,
   '../_components/SimplePackagePage.module.css': { default: {} },
+  '../_components/ProductDetailPresentation.module.css': { default: {} },
   '../_components/PackagePageSections': pageSectionComponents,
   '../_components/PackageShareButton': { default: noOp },
   '../_components/ItineraryDownloadButton': { default: noOp },

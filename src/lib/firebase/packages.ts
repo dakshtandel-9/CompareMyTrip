@@ -1,5 +1,5 @@
 import { revalidatePublicContent } from "./revalidateContent";
-import { collection, deleteDoc, doc, onSnapshot, serverTimestamp, setDoc, writeBatch } from "firebase/firestore";
+import { collection, deleteDoc, doc, onSnapshot, serverTimestamp, writeBatch } from "firebase/firestore";
 import type { TravelPackage } from "@/lib/packageData";
 import { uploadImageToCloudflare } from "@/lib/cloudflareUpload";
 import { getFirebaseAuth, getFirebaseDb } from "./client";
@@ -42,16 +42,23 @@ export function subscribeToPackages(
 export async function savePackage(pkg: TravelPackage) {
   const user = requireUser();
   const db = getFirebaseDb();
-  await Promise.all([
-    setDoc(doc(db, "packages", pkg.id), {
+  const batch = writeBatch(db);
+  batch.set(doc(db, "packages", pkg.id), {
       package: clean({ ...pkg, status: pkg.status ?? "published" }),
       position: Date.now(),
       updatedAt: serverTimestamp(),
       updatedByUid: user.uid,
-    }, { merge: true }),
-    setDoc(doc(db, "packages", CATALOG_MARKER), { initialized: true, updatedAt: serverTimestamp() }, { merge: true }),
-  ]);
-  await revalidatePublicContent();
+    }, { merge: true });
+  batch.set(doc(db, "packages", CATALOG_MARKER), { initialized: true, updatedAt: serverTimestamp() }, { merge: true });
+  await batch.commit();
+  try {
+    await revalidatePublicContent();
+    return { refreshWarning: "" };
+  } catch {
+    // The document and its image references are already durable. Callers
+    // must not treat a refresh failure as an unsaved, disposable draft.
+    return { refreshWarning: "The package was saved, but public pages could not be refreshed immediately." };
+  }
 }
 
 export async function deletePackage(packageId: string) {

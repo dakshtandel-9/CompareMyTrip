@@ -71,6 +71,16 @@ test('older packages retain their default booking text', () => {
   assert.match(html, /Compare quotes from 3 verified agents/);
 });
 
+test('hiding the cancellation section also hides its booking-card link without deleting policy text', () => {
+  const pkg = fixture();
+  pkg.details.cancellationPolicy = 'Refund terms retained in the draft';
+  pkg.details.pageSections = { ...pkg.details.pageSections, hiddenSections: [] };
+  assert.match(render(pkg), /View cancellation policy/);
+  pkg.details.pageSections = { ...pkg.details.pageSections, hiddenSections: ['cancellation'] };
+  assert.doesNotMatch(render(pkg), /View cancellation policy/);
+  assert.equal(pkg.details.cancellationPolicy, 'Refund terms retained in the draft');
+});
+
 test('admin exposes package-owned booking fields and disables controls while saving', () => {
   const { default: Settings } = load('src/app/admin/packages/PackagePreviewSettings.tsx', {
     'react/jsx-runtime': jsx, '@/lib/packageData': data,

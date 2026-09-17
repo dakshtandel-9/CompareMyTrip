@@ -187,13 +187,15 @@ test('inline text stages changes, commits on blur and cancels with Escape', () =
   assert.equal(render().props.role, 'button');
 });
 
-test('admin Save uses edited preview data, keeps identity and images, and Undo restores the prior version', async () => {
+test('admin Save uses the shared editor draft, waits for text imports, preserves identity and supports Undo', async () => {
   let cursor = 0; const slots = []; const saved = []; const messages = [];
   const hooks = { ...React, useEffect: () => {},
     useState(initial) { const i = cursor++; if (!(i in slots)) slots[i] = typeof initial === 'function' ? initial() : initial; return [slots[i], next => { slots[i] = typeof next === 'function' ? next(slots[i]) : next; }]; },
     useRef(initial) { const i = cursor++; if (!(i in slots)) slots[i] = { current: initial }; return slots[i]; },
   };
   const exports = {};
+  const DetailEditor = () => null;
+  const ContentIOContext = React.createContext(() => {});
   const dependencies = {
     react: hooks, 'react/jsx-runtime': jsx,
     'lucide-react': Object.fromEntries(['ArrowLeft','Save','Undo2','Eye','Pencil'].map(name => [name, noop])),
@@ -202,9 +204,12 @@ test('admin Save uses edited preview data, keeps identity and images, and Undo r
     '@/lib/cloudflareUpload': { PACKAGE_DRAFT_IMAGE_KEY_PREFIX: 'test-', deleteImageFromCloudflare: async () => {} },
     '@/lib/packageAiImport': { applyPackageImport: () => {} },
     '@/app/packages/[packageId]/PackageDetailClient': { default: noop },
+    '@/app/packages/[packageId]/BookingCard': { default: noop },
     '@/app/packages/_components/PackageInlineEditing': inline,
     './AdminPackageBuilder.module.css': { default: {} },
     './PackageAiImporter': { default: noop }, './PackagePreviewSettings': { default: noop },
+    './PackageDetailEditor': { default: DetailEditor },
+    './PackageContentField': { PackageContentIOContext: ContentIOContext },
     '../_components/IconPicker': { default: noop }, '@/lib/packageIconNames.json': { default: [] }, '@/lib/PackageGlyph': { PackageGlyph: noop },
     './packageFormModel': model,
     './catalogueEditorState': load('src/app/admin/packages/catalogueEditorState.ts', { '@/lib/packageData': data, '@/lib/packageDetailSections': sections }),
@@ -217,15 +222,32 @@ test('admin Save uses edited preview data, keeps identity and images, and Undo r
   const pkg = fixture(); let tree;
   function render() { cursor = 0; tree = exports.default({ initialPackage: pkg, filedUnderOptions: { India: [], International: [] }, onCancel() {}, onSaved: text => messages.push(text) }); }
   function nodes(node) { if (!node || typeof node !== 'object') return []; if (Array.isArray(node)) return node.flatMap(nodes); return [node, ...nodes(node.props?.children)]; }
-  const provider = () => nodes(tree).find(node => node.type === inline.PackageEditingContext.Provider);
+  const editor = () => nodes(tree).find(node => node.type === DetailEditor);
+  const io = () => nodes(tree).find(node => node.type === ContentIOContext.Provider);
   const button = label => nodes(tree).find(node => node.type === 'button' && JSON.stringify(node.props.children).includes(label));
-  render(); provider().props.value.change(['title'], 'Preview change'); render();
-  assert.equal(saved.length, 0); assert.equal(provider().props.value.value.title, 'Preview change');
-  button('Undo').props.onClick(); render(); assert.equal(provider().props.value.value.title, pkg.title);
-  provider().props.value.change(['title'], 'Final title'); render();
+  render(); editor().props.change(['title'], 'Draft change '); render();
+  assert.equal(saved.length, 0); assert.equal(editor().props.pkg.title, 'Draft change ');
+  button('Undo').props.onClick(); render(); assert.equal(editor().props.pkg.title, pkg.title);
+  editor().props.onChange({ ...editor().props.form, title: 'Final title' }); render();
+  const pendingSave = button('Save package');
+  const pendingEditor = editor();
+  io().props.value(1);
+  pendingSave.props.onClick();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(saved.length, 0, 'The synchronous file-reading ref blocks even a Save callback captured before a re-render');
+  render();
+  assert.equal(button('Save package').props.disabled, true);
+  assert.equal(button('Undo').props.disabled, true);
+  assert.equal(button('Preview page').props.disabled, true);
+  assert.equal(editor().props.disabled, true);
+  pendingEditor.props.onChange({ ...pendingEditor.props.form, summary: 'Text imported into the shared draft.' });
+  io().props.value(-1); render();
+  assert.equal(button('Save package').props.disabled, false);
+  assert.equal(editor().props.form.summary, 'Text imported into the shared draft.');
   button('Save package').props.onClick(); await new Promise(resolve => setImmediate(resolve));
   assert.equal(saved.length, 1); assert.equal(saved[0].id, pkg.id); assert.equal(saved[0].title, 'Final title');
   assert.equal(saved[0].status, 'draft'); assert.equal(saved[0].image, pkg.image);
+  assert.equal(saved[0].details.summary, 'Text imported into the shared draft.');
   assert.equal(messages.length, 1);
 });
 

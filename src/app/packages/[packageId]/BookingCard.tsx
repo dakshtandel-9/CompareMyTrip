@@ -17,7 +17,7 @@ import TrekGradeBadge from "@/components/TrekGradeBadge";
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
-const CHIP = "inline-flex items-center gap-1.5 rounded-cmt-full border border-cmt-neutral-200 bg-white px-2.5 py-1 text-xs font-medium text-cmt-neutral-700";
+const CHIP = "inline-flex items-center gap-1.5 text-xs font-medium leading-5 text-cmt-neutral-600";
 
 
 
@@ -56,9 +56,9 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
   }`;
 
   return (
-    <div className="cmt-package-booking-card overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-md">
-      <div className="cmt-package-booking-heading flex items-center gap-3 border-b border-cmt-neutral-100 p-4 sm:p-5">
-        <span className="relative size-11 shrink-0 overflow-hidden rounded-cmt-sm bg-cmt-neutral-100">
+    <div className="cmt-package-booking-card overflow-hidden rounded-[20px] border border-[#e5e5e0] bg-white text-cmt-neutral-900 shadow-[0_8px_32px_rgba(25,35,31,0.055)]">
+      <div className="cmt-package-booking-heading flex items-center gap-3 border-b border-[#eeeee9] px-5 py-4 sm:px-6">
+        <span className="relative size-11 shrink-0 overflow-hidden rounded-[10px] bg-cmt-neutral-100">
           <Image
             src={pkg.image}
             alt={pkg.location}
@@ -70,16 +70,16 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
         </span>
         {/* The operating partner is never named to the visitor — the header
             carries the trip itself. */}
-        <span className="min-w-0">
-          <span className="block text-xs text-cmt-neutral-500">Package</span>
-          <span className="block truncate text-sm font-semibold">{pkg.location}</span>
+        <span className="min-w-0 flex-1">
+          <span className="mb-0.5 block text-[11px] font-medium tracking-[0.04em] text-cmt-neutral-500">Package</span>
+          <span className="block break-words text-[13px] font-semibold leading-5">{pkg.location}</span>
         </span>
-        <TrekGradeBadge pkg={pkg} className="ml-auto shrink-0 border border-cmt-neutral-200" />
+        <TrekGradeBadge pkg={pkg} className="ml-auto shrink-0 border border-cmt-neutral-200 shadow-none" />
       </div>
 
-      <div className="space-y-5 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex min-w-0 max-w-full items-center break-words rounded-cmt-full border border-cmt-success-500/30 bg-cmt-success-100 px-2.5 py-1 text-xs font-semibold text-cmt-success-700">
+      <div className="cmt-package-booking-body space-y-5 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <span className="inline-flex min-w-0 max-w-full items-center break-words border-l-2 border-cmt-primary-500 pl-2 text-xs font-semibold leading-5 text-cmt-neutral-700">
             {tier}
           </span>
           {hasStay && <span className={CHIP}>
@@ -94,29 +94,29 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
 
 
 
-        <div className="cmt-package-price border-t border-cmt-neutral-100 pt-5">
+        <div className="cmt-package-price">
           {/* Same editorial pick as the "Best deal" badge on the listing card,
               repeated here because this is where the price is decided. */}
           {pkg.deal && (
-            <p className="mb-2.5 inline-flex items-center gap-1.5 rounded-cmt-full bg-cmt-neutral-900 px-3 py-1 text-xs font-semibold text-cmt-primary-400">
+            <p className="cmt-package-booking-deal mb-3 inline-flex items-center gap-1.5 text-xs font-semibold leading-5 text-cmt-neutral-700">
               <BadgePercent className="size-3.5" strokeWidth={2.5} aria-hidden="true" />
               Best deal · hand-picked for value
             </p>
           )}
-          <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-            <span className="font-display text-[32px] font-bold leading-none tracking-tight">{formatINR(pkg.price)}</span>
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-2">
+            <span className="font-display text-[38px] font-bold leading-none tracking-[-0.05em]">{formatINR(pkg.price)}</span>
             {discount > 0 && (
-              <span className="rounded-cmt-full bg-cmt-success-100 px-2.5 py-1 text-xs font-semibold text-cmt-success-700">
+              <span className="rounded-[6px] bg-cmt-success-100 px-2 py-1 text-xs font-semibold text-cmt-success-700">
                 {discount}% off
               </span>
             )}
             <span className="text-sm text-cmt-neutral-500">/ person</span>
           </div>
           {pkg.originalPrice > pkg.price && (
-            <p className="mt-1.5 text-xs text-cmt-neutral-400 line-through">{formatINR(pkg.originalPrice)}</p>
+            <p className="cmt-package-original-price mt-2 text-[13px] text-cmt-neutral-500 line-through">{formatINR(pkg.originalPrice)}</p>
           )}
-          {availabilityNote.trim() && <p className="mt-2.5 flex items-center gap-1.5 text-sm font-medium text-cmt-coral-700">
-            <Flame className="size-4 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+          {availabilityNote.trim() && <p className="cmt-package-availability mt-3 flex items-start gap-1.5 text-xs font-medium leading-5 text-cmt-neutral-600">
+            <Flame className="mt-0.5 size-4 shrink-0 text-[#ad7400]" strokeWidth={2.25} aria-hidden="true" />
             <span className="min-w-0 whitespace-pre-wrap break-words">{availabilityNote}</span>
           </p>}
         </div>
@@ -125,15 +125,15 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
             decides whether the trip is on at all — and the travel desk
             cannot quote a season without it. Carried into the quote form
             and the checkout so nobody is asked for it twice. */}
-        <div className="cmt-package-booking-field rounded-cmt-control border border-cmt-neutral-200 p-3">
-          <div className="flex items-baseline justify-between gap-2">
-            <label htmlFor="booking-travel-date" className="text-xs font-semibold">
+        <div className="cmt-package-booking-field cmt-package-booking-date border-t border-[#eeeee9] pt-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1.5">
+            <label htmlFor="booking-travel-date" className="text-[13px] font-semibold leading-5">
               When do you want to go?
             </label>
             {/* Said before the calendar is opened, so the greyed-out days are
                 explained rather than looking broken. */}
             {runsOnLabel ? (
-              <span className="shrink-0 rounded-cmt-full bg-cmt-primary-100 px-2 py-0.5 text-xs font-semibold text-cmt-neutral-800">
+              <span className="shrink-0 text-[11px] font-semibold leading-5 text-[#8b620b]">
                 {runsOnLabel}
               </span>
             ) : null}
@@ -144,25 +144,26 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
               value={travelDate}
               onChange={onTravelDateChange}
               allowedDays={runsOn}
+              triggerClassName={`h-12 rounded-[10px] ${travelDate ? "border-cmt-primary-500 bg-cmt-primary-100/30" : ""}`}
             />
           </div>
-          <p className="mt-2 text-xs text-cmt-neutral-500">
+          <p className="mt-2 text-xs leading-[1.6] text-cmt-neutral-500">
             {travelDate
               ? "We'll check availability for this date."
               : "Not fixed yet? Leave it blank and we'll suggest dates."}
           </p>
         </div>
 
-        <div className="cmt-package-booking-field rounded-cmt-control border border-cmt-neutral-200 p-3">
+        <div className="cmt-package-booking-field cmt-package-booking-travellers">
           <div className="flex items-center justify-between gap-3">
-            <label htmlFor="booking-travellers" className="text-xs font-semibold">Travellers</label>
-            <div className="flex items-center gap-1">
+            <label htmlFor="booking-travellers" className="text-[13px] font-semibold">Travellers</label>
+            <div className="flex items-center gap-1 rounded-[10px] border border-[#e7e8e3] p-0.5">
               <button
                 type="button"
                 onClick={() => step(-1)}
                 disabled={travellers <= 1}
                 aria-label="Remove a traveller"
-                className="grid size-9 place-items-center rounded-cmt-sm border border-cmt-neutral-200 text-cmt-neutral-700 transition-colors hover:border-cmt-neutral-300 disabled:opacity-40"
+                className="grid size-11 place-items-center rounded-[8px] text-cmt-neutral-700 transition-colors hover:bg-cmt-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 disabled:opacity-40"
               >
                 <Minus className="size-4" />
               </button>
@@ -173,37 +174,37 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
                 max="20"
                 value={travellers}
                 onChange={(event) => onTravellersChange(Math.min(Math.max(Number(event.target.value) || 1, 1), 20))}
-                className="h-9 w-14 rounded-cmt-sm border border-cmt-neutral-200 text-center text-sm font-semibold outline-none focus:border-cmt-primary-500"
+                className="h-11 w-9 rounded-[6px] bg-transparent text-center text-sm font-semibold tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-cmt-primary-500"
               />
               <button
                 type="button"
                 onClick={() => step(1)}
                 disabled={travellers >= 20}
                 aria-label="Add a traveller"
-                className="grid size-9 place-items-center rounded-cmt-sm border border-cmt-neutral-200 text-cmt-neutral-700 transition-colors hover:border-cmt-neutral-300 disabled:opacity-40"
+                className="grid size-11 place-items-center rounded-[8px] text-cmt-neutral-700 transition-colors hover:bg-cmt-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 disabled:opacity-40"
               >
                 <Plus className="size-4" />
               </button>
             </div>
           </div>
-          <p className="mt-3 flex items-center justify-between border-t border-cmt-neutral-100 pt-3 text-xs text-cmt-neutral-600">
+          <p className="mt-4 flex items-center justify-between gap-3 border-t border-[#eeeee9] pt-4 text-[13px] text-cmt-neutral-600">
             Total for {travellers} traveller{travellers === 1 ? "" : "s"}
-            <b className="font-display text-sm text-cmt-neutral-900">{formatINR(pkg.price * travellers)}</b>
+            <b className="shrink-0 font-display text-base text-cmt-neutral-900">{formatINR(pkg.price * travellers)}</b>
           </p>
         </div>
 
-        <div className="cmt-package-booking-actions space-y-3">
+        <div className="cmt-package-booking-actions space-y-2.5">
           <button
             type="button"
             onClick={onRequestQuote}
-            className="flex h-12 w-full items-center justify-center rounded-cmt-control bg-cmt-primary-500 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-primary transition-colors hover:bg-cmt-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+            className="flex min-h-[52px] w-full items-center justify-center rounded-[10px] bg-cmt-primary-500 px-3 py-3 text-[15px] font-bold text-cmt-neutral-900 shadow-[0_3px_10px_rgba(205,158,17,0.12)] transition-[background-color,box-shadow,transform] duration-200 hover:bg-cmt-primary-600 hover:shadow-[0_5px_14px_rgba(205,158,17,0.18)] motion-safe:hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
           >
             Get customized quote
           </button>
-          {quoteNote.trim() && <p className="whitespace-pre-wrap break-words text-center text-xs text-cmt-neutral-500">{quoteNote}</p>}
+          {quoteNote.trim() && <p className="whitespace-pre-wrap break-words px-1 text-center text-xs leading-[1.6] text-cmt-neutral-500">{quoteNote}</p>}
           <Link
             href={checkoutHref}
-            className="flex h-12 w-full items-center justify-center rounded-cmt-control bg-cmt-secondary-900 text-sm font-semibold text-white transition-colors hover:bg-cmt-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+            className="flex min-h-11 w-full items-center justify-center rounded-[10px] border border-cmt-neutral-300 bg-white px-3 py-2.5 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:border-cmt-neutral-500 hover:bg-cmt-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
           >
             Pay &amp; book now
           </Link>
@@ -211,10 +212,10 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
             type="button"
             onClick={() => toggle(pkg.id)}
             aria-pressed={compared}
-            className={`flex h-12 w-full items-center justify-center gap-2 rounded-cmt-control border text-sm font-semibold transition-colors ${
+            className={`flex min-h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-transparent px-3 py-2.5 text-[13px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 ${
               compared
-                ? "border-cmt-neutral-900 bg-cmt-neutral-900 text-white"
-                : "border-cmt-neutral-300 bg-white text-cmt-neutral-900 hover:border-cmt-neutral-400"
+                ? "bg-cmt-neutral-100 text-cmt-neutral-900"
+                : "bg-white text-cmt-neutral-600 hover:bg-cmt-neutral-50 hover:text-cmt-neutral-900"
             }`}
           >
             {compared ? <Check className="size-4" /> : <GitCompareArrows className="size-4" />}
@@ -222,9 +223,9 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           </button>
         </div>
 
-        {details.cancellationPolicy.trim() && <p className="flex items-center justify-center gap-1.5 border-t border-cmt-neutral-100 pt-4 text-xs text-cmt-neutral-600">
+        {details.cancellationPolicy.trim() && !details.pageSections?.hiddenSections?.includes("cancellation") && <p className="cmt-package-booking-policy flex min-h-11 items-center justify-center gap-1.5 border-t border-[#eeeee9] pt-4 text-xs text-cmt-neutral-600">
           <ShieldCheck className="size-3.5 shrink-0 text-cmt-success-700" strokeWidth={2.25} aria-hidden="true" />
-          <a href="#package-policy" className="underline underline-offset-2">View cancellation policy</a>
+          <a href="#package-policy" className="rounded-sm underline decoration-cmt-neutral-300 underline-offset-4 transition-colors hover:text-cmt-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cmt-primary-500">View cancellation policy</a>
         </p>}
       </div>
     </div>

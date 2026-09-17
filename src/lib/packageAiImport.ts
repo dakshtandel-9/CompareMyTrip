@@ -52,7 +52,7 @@ Object.assign(productSchema.properties!, {
 
 export const PACKAGE_IMPORT_SCHEMA = object({ kind: choice(["comparemytrip.product"]), version: { type: "integer", enum: [1] }, product: productSchema });
 
-type Replaced = "gallery" | "operator" | "deal" | "status" | "permitHidden" | "nights" | "days" | "hotelStars" | "price" | "originalPrice" | "discount" | "places" | "highlights" | "inclusions" | "exclusions" | "pageSections";
+type Replaced = "image" | "gallery" | "operator" | "deal" | "status" | "permitHidden" | "rating" | "reviews" | "nights" | "days" | "hotelStars" | "price" | "originalPrice" | "discount" | "places" | "highlights" | "inclusions" | "exclusions" | "pageSections";
 export type ImportedProduct = Omit<PackageForm, Replaced> & {
   nights: number; days: number; hotelStars: number; price: number; originalPrice: number;
   places: string[]; highlights: string[]; inclusions: string[]; exclusions: string[];
@@ -145,7 +145,7 @@ export function applyPackageImport(current: PackageForm, product: ImportedProduc
     places: product.places.join(", "), highlights: product.highlights.join("\n"), inclusions: product.inclusions.join("\n"), exclusions: product.exclusions.join("\n"),
     pageSections: {
       ...product.pageSections,
-      snapshotPlacement: product.tags.some(tag => tag === "Treks" || tag === "Weekend Treks") ? "intro" : "about",
+      snapshotPlacement: current.pageSections.snapshotPlacement ?? (product.tags.some(tag => tag === "Treks" || tag === "Weekend Treks") ? "intro" : "about"),
       gallery: { ...current.pageSections.gallery, images: [...new Set([...current.pageSections.gallery.images, ...unmatchedPhotos])] },
       locations: { ...product.pageSections.locations, items: locations },
     },

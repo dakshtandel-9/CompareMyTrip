@@ -8,8 +8,9 @@ export type PackageForm = {
   facts: PackageFact[]; factsHidden: boolean; permitRequired: boolean; permitHidden: boolean;
   pageSections: PackagePageSections;
   title: string; location: string; destination: string; operator: string; region: "India" | "International";
-  gallery: string[]; nights: string; days: string; pax: string; hotelStars: string;
+  image: string; gallery: string[]; nights: string; days: string; pax: string; hotelStars: string;
   originalPrice: string; price: string; discount: string; deal: boolean; tags: PackageCategory[];
+  rating: string; reviews: string;
   summary: string; places: string; highlights: string; inclusions: string; exclusions: string;
   meals: string; transfers: string; flights: string; cancellationPolicy: string;
   dayZeroEnabled: boolean;
@@ -50,6 +51,7 @@ export function packageValidationIssue(form: PackageForm): EditorIssue | null {
   const itinerary = getPackageItinerary(form);
   if (!form.title.trim() || !form.location.trim()) return issue("Add a package title and destination / route before saving.", "intro");
   if (form.gallery.length < 1 || form.gallery.length > 10) return issue("Add at least 1 and at most 10 package images.", "intro");
+  if (form.status === "published" && form.image !== undefined && !form.image.trim()) return issue("Add a cover image before publishing the package.", "intro");
   if (!hidden.includes("about") && (!form.summary.trim() || !form.places.split(/[,·]/).some((place) => place.trim()))) return issue("Add a package overview and at least one place.", "about");
   if (!hidden.includes("itinerary") && (!itinerary.length || itinerary.some((day) => !day.title.trim()))) return issue("Add a title for every itinerary day.", "itinerary");
   if (!hidden.includes("itinerary") && itinerary.some((day) => day.activities?.some((activity) => !activity.title.trim()))) return issue("Add a title for each timed activity, or remove the empty activity.", "itinerary");
@@ -74,6 +76,8 @@ export function packageValidationIssue(form: PackageForm): EditorIssue | null {
   }
   if (!form.departureDays.length) return issue("Choose at least one departure day.", "booking");
   if (form.trekGrade !== undefined && ![0, 1, 2, 3].includes(form.trekGrade)) return issue("Choose a valid difficulty level.", "booking");
+  if (form.rating !== undefined && (!Number.isFinite(Number(form.rating)) || Number(form.rating) < 0 || Number(form.rating) > 5)) return issue("Enter an overall rating between 0 and 5.", "reviews");
+  if (form.reviews !== undefined && (!Number.isInteger(Number(form.reviews)) || Number(form.reviews) < 0)) return issue("Enter a whole-number review count of 0 or more.", "reviews");
   if (!form.nights.trim() || !form.days.trim() || !Number.isInteger(Number(form.nights)) || Number(form.nights) < 0 || !Number.isInteger(Number(form.days)) || Number(form.days) < 1 || Number(form.days) > 30) return issue("Enter a valid duration: 0 or more nights and 1–30 whole days.", "intro");
   const priceMissing = !form.price.trim() || Number(form.price) === 0;
   if (!(form.status === "draft" && priceMissing) && (!Number.isFinite(Number(form.price)) || Number(form.price) <= 0 || !Number.isFinite(Number(form.originalPrice)) || Number(form.originalPrice) < Number(form.price))) return issue("Enter a sale price above ₹0 and an original price at least as high as the sale price.", "booking");

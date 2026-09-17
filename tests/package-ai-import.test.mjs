@@ -81,6 +81,10 @@ test('holiday and overnight trek PDFs fill the existing editor, preserving activ
 test('import leaves identity, publishing, operator and uploads under editor control without mutating inputs', () => {
   const base = current();
   base.status = 'published';
+  base.image = '/independent-cover.jpg';
+  base.rating = '4.5';
+  base.reviews = '37';
+  base.pageSections.snapshotPlacement = 'intro';
   const photoLocation = { id: 'old', name: 'Airport', type: 'pickup', address: 'Terminal 1', image: '/airport.jpg', notes: '', mapUrl: '', visible: true };
   base.pageSections.locations.items = [photoLocation, { ...photoLocation, id: 'unmatched', name: 'Old hotel', image: '/hotel.jpg' }];
   const file = fixture();
@@ -90,6 +94,10 @@ test('import leaves identity, publishing, operator and uploads under editor cont
   const form = apply(base, product);
   assert.equal(form.status, 'published'); assert.equal(form.operator, base.operator); assert.equal(form.deal, true);
   assert.equal(form.permitHidden, true);
+  assert.equal(form.image, '/independent-cover.jpg');
+  assert.equal(form.rating, '4.5');
+  assert.equal(form.reviews, '37');
+  assert.equal(form.pageSections.snapshotPlacement, 'intro');
   assert.equal(form.gallery[0], '/uploaded-cover.jpg');
   assert.equal(form.pageSections.locations.items[0].image, '/airport.jpg');
   assert.ok(form.pageSections.gallery.images.includes('/hidden-photo.jpg'));

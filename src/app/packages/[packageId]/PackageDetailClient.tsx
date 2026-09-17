@@ -10,6 +10,7 @@ import { getPackagePageSections, isVisiblePackageSection } from "@/lib/packageDe
 import PackageFactsBar from "../_components/PackageFactsBar";
 import { InlineText, EditableGallery, EditorOnly, EditAction, usePackageEditing } from "../_components/PackageInlineEditing";
 import styles from "../_components/SimplePackagePage.module.css";
+import presentation from "../_components/ProductDetailPresentation.module.css";
 import PackagePageSections, { getVisiblePackageReviews, PackageDescription, PracticalSection } from "../_components/PackagePageSections";
 import PackageShareButton from "../_components/PackageShareButton";
 import ItineraryDownloadButton from "../_components/ItineraryDownloadButton";
@@ -24,9 +25,10 @@ import PackageCard from "@/app/home/_components/PackageCard";
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
-export default function PackageDetailClient({ initialPackage, initialSimilarPackages = [], preview = false, previewSidebar }: { initialPackage: TravelPackage; initialSimilarPackages?: TravelPackage[]; preview?: boolean; previewSidebar?: ReactNode }) {
+export default function PackageDetailClient({ initialPackage, initialSimilarPackages = [], preview = false, publicPreview = false, previewSidebar }: { initialPackage: TravelPackage; initialSimilarPackages?: TravelPackage[]; preview?: boolean; publicPreview?: boolean; previewSidebar?: ReactNode }) {
   const editor = usePackageEditing();
   const PageRoot = preview ? "div" : "main";
+  const legacyPreview = preview && !publicPreview;
   const { packageId } = useParams<{ packageId: string }>();
   const authUser = useAuthUser();
   const packageState = usePackagesState();
@@ -98,32 +100,41 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
     setQuoteOpen(true);
   };
 
-  return (
-    <PageRoot className={`${styles.page} cmt-package-detail bg-white pb-24 font-body text-cmt-neutral-900 lg:pb-0`}>
-      <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
-        <div className="cmt-package-header flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div className="min-w-0">{!preview && <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-cmt-neutral-500"><Link href="/">Home</Link><span aria-hidden="true">/</span><Link href="/packages">Packages</Link><span aria-hidden="true">/</span>{pkg.destination ? <><Link href={`/packages?destination=${encodeURIComponent(pkg.destination)}`} className="hover:text-cmt-neutral-900">{pkg.destination}</Link><span aria-hidden="true">/</span></> : null}<span className="line-clamp-1">{pkg.title}</span></nav>}<h1 className="max-w-5xl font-display text-3xl font-semibold tracking-tight sm:text-5xl"><InlineText value={pkg.title} path={["title"]} label="Package title" /></h1></div>
+  const packageMetadata = (<div className="cmt-package-metadata flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><span className="inline-flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" /><InlineText value={pkg.location} path={["location"]} label="Destination / route" /></span>{reviewCount > 0 && reviewRating > 0 ? <span className="inline-flex items-center gap-1.5"><Star className="size-4 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" /><b className="text-cmt-neutral-900">{reviewRating}</b> {reviewCount} traveller review{reviewCount === 1 ? "" : "s"}</span> : <span className="text-cmt-neutral-500">Newly listed &middot; no traveller reviews yet</span>}</div>);
+
+  const packageHeader = (
+    <div className="cmt-package-header flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <div className="min-w-0"><h1 className="max-w-5xl font-display text-3xl font-semibold tracking-tight sm:text-5xl"><InlineText value={pkg.title} path={["title"]} label="Package title" /></h1>{!legacyPreview && packageMetadata}</div>
           {/* The booking box carries the same control, but it sits below the
               fold behind the gallery — this is the one a visitor sees while
               they are still deciding whether this trip is worth comparing. */}
-          {!preview && <div className="flex shrink-0 flex-wrap items-center gap-2 self-start">
+          {!preview && <div className="cmt-package-actions flex shrink-0 flex-wrap items-center gap-2 self-start">
             <CompareButton packageId={pkg.id} className="h-11 px-4 shadow-cmt-xs" labels={{ added: "Added to compare", idle: "Compare" }} />
             <PackageShareButton title={pkg.title} />
             <ItineraryDownloadButton pkg={pkg} />
             <Link href="/packages" className="inline-flex h-11 shrink-0 items-center gap-2 rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 text-sm font-semibold shadow-cmt-xs"><ArrowLeft className="size-4" /> All packages</Link>
           </div>}
         </div>
+  );
+
+  return (
+    <PageRoot className={`${legacyPreview ? styles.page : presentation.page + " cmt-package-public"} cmt-package-detail bg-white pb-24 font-body text-cmt-neutral-900 lg:pb-0`}>
+      <div className="cmt-package-shell mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
+        {legacyPreview && packageHeader}
+        {!legacyPreview && navigation.length > 0 && <TripSectionNavigation items={navigation} />}
+        {!preview && <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-cmt-neutral-500"><Link href="/">Home</Link><span aria-hidden="true">/</span><Link href="/packages">Packages</Link><span aria-hidden="true">/</span>{pkg.destination ? <><Link href={`/packages?destination=${encodeURIComponent(pkg.destination)}`} className="hover:text-cmt-neutral-900">{pkg.destination}</Link><span aria-hidden="true">/</span></> : null}<span className="line-clamp-1">{pkg.title}</span></nav>}
         <div className="cmt-package-columns mt-7 grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_370px]">
           <div className="cmt-package-content min-w-0 space-y-6">
         <EditableGallery images={details.gallery} />
+        {!legacyPreview && packageHeader}
         <div className="cmt-package-intro mt-6 space-y-4">
-          {(editor || pageSections.tagline?.trim()) && <p className="max-w-3xl whitespace-pre-wrap break-words text-lg leading-7 text-cmt-neutral-600"><InlineText value={pageSections.tagline ?? ""} path={["details", "pageSections", "tagline"]} label="Tagline" multiline /></p>}<div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><span className="inline-flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" /><InlineText value={pkg.location} path={["location"]} label="Destination / route" /></span>{reviewCount > 0 && reviewRating > 0 ? <span className="inline-flex items-center gap-1.5"><Star className="size-4 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" /><b className="text-cmt-neutral-900">{reviewRating}</b> {reviewCount} traveller review{reviewCount === 1 ? "" : "s"}</span> : <span className="text-cmt-neutral-500">Newly listed &middot; no traveller reviews yet</span>}</div>
+          {(editor || pageSections.tagline?.trim()) && <p className="max-w-3xl whitespace-pre-wrap break-words text-lg leading-7 text-cmt-neutral-600"><InlineText value={pageSections.tagline ?? ""} path={["details", "pageSections", "tagline"]} label="Tagline" multiline /></p>}{legacyPreview && packageMetadata}
           {(editor || pageSections.introduction?.trim()) && <p className="max-w-4xl whitespace-pre-wrap break-words text-sm leading-7 text-cmt-neutral-600"><InlineText value={pageSections.introduction ?? ""} path={["details", "pageSections", "introduction"]} label="Introduction" multiline /></p>}
         </div>
 
         {pageSections.snapshotPlacement !== "about" && <PackageFactsBar facts={facts} permitRequired={details.permitRequired} permitHidden={details.permitHidden} className="mt-6" />}
 
-        {navigation.length > 0 && <TripSectionNavigation items={navigation} />}
+        {legacyPreview && navigation.length > 0 && <TripSectionNavigation items={navigation} />}
 
 
             {pageSections.snapshotPlacement === "about" && (editor || facts.length > 0) && <div><h2 className="mb-4 font-display text-2xl font-semibold">Trip snapshot</h2><PackageFactsBar facts={facts} permitRequired={details.permitRequired} permitHidden={details.permitHidden} /></div>}
@@ -133,12 +144,12 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
             </Section>}
             <PackagePageSections value={pageSections} area="overview" />
             {showHighlights && <Section id="package-highlights" title="Trip highlights">
-              <div className="grid gap-3 sm:grid-cols-2">{details.highlights.map((item, index) => <div key={`${item}-${index}`} className="flex min-w-0 gap-3 rounded-cmt-control bg-cmt-primary-50 p-4 text-sm font-medium"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-cmt-primary-500"><Check className="size-3.5" aria-hidden="true" /></span><span className="whitespace-pre-wrap break-words"><InlineText value={item} path={["details", "highlights", index]} label={`Highlight ${index + 1}`} /><EditAction kind="remove" label="Remove highlight" onClick={() => editor?.change(["details", "highlights"], details.highlights.filter((_, i) => i !== index))} /></span></div>)}</div><EditAction label="Add highlight" onClick={() => editor?.change(["details", "highlights"], [...details.highlights, "New highlight"])} />
+              <div className="cmt-highlights-grid grid gap-3 sm:grid-cols-2">{details.highlights.map((item, index) => <div key={`${item}-${index}`} className="flex min-w-0 gap-3 rounded-cmt-control bg-cmt-primary-50 p-4 text-sm font-medium"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-cmt-primary-500"><Check className="size-3.5" aria-hidden="true" /></span><span className="whitespace-pre-wrap break-words"><InlineText value={item} path={["details", "highlights", index]} label={`Highlight ${index + 1}`} /><EditAction kind="remove" label="Remove highlight" onClick={() => editor?.change(["details", "highlights"], details.highlights.filter((_, i) => i !== index))} /></span></div>)}</div><EditAction label="Add highlight" onClick={() => editor?.change(["details", "highlights"], [...details.highlights, "New highlight"])} />
             </Section>}
             <PackagePageSections value={pageSections} area="highlights" />
             {showItinerary && <Section id="package-itinerary" title="Day-by-day itinerary" eyebrow={`${pkg.nights} NIGHT${pkg.nights === 1 ? "" : "S"} / ${pkg.days} DAY${pkg.days === 1 ? "" : "S"}`}>
               <EditorOnly><label className="mb-4 flex items-center gap-2 text-xs"><input type="checkbox" checked={details.dayZeroEnabled ?? details.itinerary.some(day => day.day === 0)} onChange={event => editor?.change(["details", "dayZeroEnabled"], event.target.checked)} />Start with Day 0</label></EditorOnly>
-              <div className="space-y-3">{itinerary.map((day, index) => <details key={`${day.day}-${index}`} open={index === 0} className="group rounded-cmt-md border border-cmt-neutral-200 bg-white">
+              <div className="cmt-itinerary-days space-y-3">{itinerary.map((day, index) => <details key={`${day.day}-${index}`} open={index === 0} className="group rounded-cmt-md border border-cmt-neutral-200 bg-white">
                 <summary className="flex cursor-pointer list-none items-start gap-4 rounded-cmt-md p-4 outline-offset-4 focus-visible:outline-2 focus-visible:outline-cmt-primary-700 sm:p-5 [&::-webkit-details-marker]:hidden">
                   <span className="grid size-12 shrink-0 place-items-center rounded-cmt-control bg-cmt-primary-500 text-xs font-bold">Day {day.day}</span>
                   <span className="min-w-0"><b className="block break-words font-display text-base"><InlineText value={day.title} path={["details", "itinerary", details.itinerary.indexOf(day), "title"]} label={`Day ${day.day} title`} /></b>{(editor || day.route) && <span className="mt-1 block break-words text-xs text-cmt-neutral-500"><InlineText value={day.route} path={["details", "itinerary", details.itinerary.indexOf(day), "route"]} label={`Day ${day.day} route`} /></span>}</span>
@@ -187,7 +198,7 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
 
           </aside>
         </div>
-        {similarPackages.length > 0 && <section aria-labelledby="similar-packages-title" className="mt-12 border-t border-cmt-neutral-200 pt-10 sm:mt-16 sm:pt-12">
+        {similarPackages.length > 0 && <section aria-labelledby="similar-packages-title" className="cmt-similar-packages mt-12 border-t border-cmt-neutral-200 pt-10 sm:mt-16 sm:pt-12">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="mb-2 text-xs font-semibold tracking-[0.14em] text-cmt-primary-800">You may also like</p>
@@ -195,7 +206,7 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
             </div>
             <Link href="/packages" className="text-sm font-semibold text-cmt-neutral-600 underline underline-offset-4 hover:text-cmt-neutral-900">View all packages</Link>
           </div>
-          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="cmt-similar-grid mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {similarPackages.map(item => <PackageCard key={item.id} pkg={item} />)}
           </div>
         </section>}

@@ -1,0 +1,99 @@
+/* Presentation belongs to the public detail page. The CRM gallery continues
+   to use its existing classes and shows the complete upload in its frame. */
+:global(.cmt-package-public) .frame {
+  isolation: isolate;
+  border: 0;
+  border-radius: 12px;
+  background: #e8e9e7;
+  box-shadow: none;
+}
+
+:global(.cmt-package-public) .heroButton {
+  height: auto;
+  max-height: 400px;
+  aspect-ratio: 2 / 1;
+  cursor: zoom-in;
+}
+
+:global(.cmt-package-public) .heroImage {
+  object-fit: cover;
+}
+
+:global(.cmt-package-public) .arrow {
+  width: 44px;
+  height: 44px;
+  color: #172338;
+  border: 1px solid #ffffffa6;
+  background: #fffffff2;
+  box-shadow: 0 2px 10px #17233812;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+
+:global(.cmt-package-public) .counter {
+  right: 12px;
+  bottom: 12px;
+  padding: 5px 10px;
+  border: 1px solid #ffffff3b;
+  border-radius: 8px;
+  background: #172338d9;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .035em;
+  pointer-events: none;
+}
+
+:global(.cmt-package-public) .thumbnails {
+  gap: 8px;
+  margin-top: 9px;
+  padding: 2px 2px 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5cf transparent;
+  overscroll-behavior-x: contain;
+}
+
+:global(.cmt-package-public) .thumbnail {
+  width: 88px;
+  height: 58px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: #e8e9e7;
+  opacity: .8;
+  transition: opacity 180ms ease, border-color 180ms ease;
+}
+
+:global(.cmt-package-public) .thumbnail img {
+  padding: 0;
+  object-fit: cover;
+}
+
+:global(.cmt-package-public) .thumbnail[aria-pressed="true"] {
+  border-color: #d99b13;
+  opacity: 1;
+}
+
+:global(.cmt-package-public) .heroButton:focus-visible {
+  outline: 3px solid #ffc31d;
+  outline-offset: -6px;
+}
+
+:global(.cmt-package-public) :is(.arrow, .thumbnail):focus-visible {
+  outline: 2px solid #8b640f;
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  :global(.cmt-package-public) .arrow:hover { background: #fff; box-shadow: 0 3px 14px #17233826; }
+  :global(.cmt-package-public) .thumbnail:hover { opacity: 1; }
+}
+
+@media (max-width: 639px) {
+  :global(.cmt-package-public) .heroButton { max-height: none; aspect-ratio: 16 / 10; }
+  :global(.cmt-package-public) .thumbnails { gap: 8px; margin-top: 9px; }
+  :global(.cmt-package-public) .thumbnail { width: 76px; height: 52px; }
+  :global(.cmt-package-public) .counter { right: 12px; bottom: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.cmt-package-public) :is(.arrow, .thumbnail) { transition: none; }
+}
