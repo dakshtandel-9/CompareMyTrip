@@ -1,8 +1,9 @@
 import { getPackageItinerary } from "@/lib/packageData";
-import type { PackageCategory, PackageFact, PackageItineraryDay, PackageStay } from "@/lib/packageData";
+import type { PackageBookingBadge, PackageCategory, PackageFact, PackageItineraryDay, PackageStay } from "@/lib/packageData";
 import { packagePageSectionsIssue, type PackagePageSections } from "@/lib/packageDetailSections";
 
 export type PackageForm = {
+  bookingBadges?: PackageBookingBadge[];
   trekGrade?: 0 | 1 | 2 | 3;
   bookingLabel?: string; availabilityNote?: string; quoteNote?: string;
   facts: PackageFact[]; factsHidden: boolean; permitRequired: boolean; permitHidden: boolean;

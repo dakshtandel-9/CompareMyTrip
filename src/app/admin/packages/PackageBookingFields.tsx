@@ -5,10 +5,14 @@ import {
   departureDaysLabel,
   getDiscountPercent,
   getPackageDetails,
-  getPackageTier,
+  getPackageBookingBadges,
+  type PackageBookingBadge,
   WEEKDAYS,
   type TravelPackage,
 } from "@/lib/packageData";
+import IconPicker from "../_components/IconPicker";
+import { PackageGlyph } from "@/lib/PackageGlyph";
+import packageIconNames from "@/lib/packageIconNames.json";
 import type { ContentPath } from "@/app/packages/_components/PackageInlineEditing";
 
 type Props = {
@@ -30,10 +34,17 @@ export default function PackageBookingFields({ pkg, change, disabled, pricing }:
   const details = getPackageDetails(pkg);
   const allowedDays = departureDays(pkg);
   const selectedDays = allowedDays.length ? allowedDays : allDays;
-  const defaultBadge = details.stays.length ? getPackageTier(pkg.hotelStars) : "Trip package";
+  const badges = getPackageBookingBadges(pkg, details);
   const originalPriceInvalid = pkg.price > 0 && pkg.originalPrice < pkg.price;
   const update = (path: ContentPath, value: unknown) => {
     if (!disabled) change(path, value);
+  };
+
+  const updateBadge = (badge: PackageBookingBadge, patch: Partial<PackageBookingBadge>) => {
+    update(["details", "bookingBadges"], [
+      ...(details.bookingBadges ?? []).filter(item => item.id !== badge.id),
+      { ...badge, ...patch },
+    ]);
   };
 
   return (
@@ -89,18 +100,39 @@ export default function PackageBookingFields({ pkg, change, disabled, pricing }:
             <select id="package-booking-hotel-stars" className={field} value={pkg.hotelStars} onChange={event => update(["hotelStars"], Number(event.target.value))} aria-describedby="package-booking-hotel-stars-help">
               {[0, 1, 2, 3, 4, 5].map(stars => <option key={stars} value={stars}>{stars ? `${stars} star` : "No hotel / unrated"}</option>)}
             </select>
-            <p id="package-booking-hotel-stars-help" className={hint}>The hotel badge appears only when the package has a stay. Hotel rating also sets the default package badge.</p>
+            <p id="package-booking-hotel-stars-help" className={hint}>Hotel rating sets the default stay and package labels. Custom badge text below takes priority.</p>
           </div>
         </div>
-        <div>
-          <label htmlFor="package-booking-label" className={label}>Package badge</label>
-          <input id="package-booking-label" className={field} value={details.bookingLabel ?? ""} placeholder={defaultBadge} onChange={event => update(["details", "bookingLabel"], event.target.value)} aria-describedby="package-booking-label-help" />
-          <p id="package-booking-label-help" className={hint}>Leave blank to show “{defaultBadge}”, based on the package’s stays and hotel rating.</p>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-base font-semibold">Three booking card badges</h3>
+            <p className={hint}>Choose an icon and write your own text for each badge. These appear from left to right above the price. Save the package to apply your changes.</p>
+          </div>
+          <div aria-label="Booking badges preview" className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-lg border border-cmt-neutral-200 bg-white p-4 text-sm">
+            {badges.filter(badge => badge.visible && badge.text.trim()).map(badge => <span key={badge.id} className={`inline-flex min-w-0 max-w-full items-center gap-2 break-words ${badge.id === "package" ? "border-l-2 border-cmt-primary-500 pl-2 font-semibold" : ""}`}>
+              {badge.icon && <PackageGlyph name={badge.icon} className="size-4 shrink-0" />}
+              <span className="min-w-0 break-words">{badge.text}</span>
+            </span>)}
+            {!badges.some(badge => badge.visible && badge.text.trim()) && <span className="text-cmt-neutral-500">No badges are shown.</span>}
+          </div>
+          {badges.map((badge, index) => <fieldset key={badge.id} className="space-y-3 rounded-lg border border-cmt-neutral-200 p-4">
+            <legend className="px-1 text-sm font-semibold">Badge {index + 1}</legend>
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+              <label className="inline-flex items-center gap-2"><input id={`booking-badge-${badge.id}-visible`} type="checkbox" checked={badge.visible} onChange={event => updateBadge(badge, { visible: event.target.checked })} />Show badge {index + 1}</label>
+              <button type="button" className="min-h-9 rounded px-2 font-semibold underline underline-offset-2 disabled:opacity-50" disabled={disabled || !details.bookingBadges?.some(item => item.id === badge.id)} onClick={() => update(["details", "bookingBadges"], (details.bookingBadges ?? []).filter(item => item.id !== badge.id))}>Use default for badge {index + 1}</button>
+            </div>
+            <div>
+              <label className={label} htmlFor={`booking-badge-${badge.id}-text`}>Badge {index + 1} text</label>
+              <input id={`booking-badge-${badge.id}-text`} className={field} value={badge.text} placeholder={["Trip package", "Dormitory", "Land only"][index]} onChange={event => updateBadge(badge, { text: event.target.value })} />
+            </div>
+            <label className="flex items-center gap-2 text-xs"><input id={`booking-badge-${badge.id}-icon-visible`} type="checkbox" checked={Boolean(badge.icon)} onChange={event => updateBadge(badge, { icon: event.target.checked ? ["Tag", "BedDouble", "Plane"][index] : "" })} />Show icon for badge {index + 1}</label>
+            {badge.icon && <IconPicker label={`Badge ${index + 1} icon`} value={badge.icon} iconNames={packageIconNames} renderIcon={PackageGlyph} onChange={icon => updateBadge(badge, { icon })} />}
+          </fieldset>)}
         </div>
         <div>
           <label htmlFor="package-booking-flights" className={label}>Flights</label>
           <input id="package-booking-flights" className={field} value={details.flights} onChange={event => update(["details", "flights"], event.target.value)} aria-describedby="package-booking-flights-help" />
-          <p id="package-booking-flights-help" className={hint}>Leave blank to hide the flight badge. Text containing “not included” or “no flight” displays as “Land only” on the booking card. This field also supplies the package’s flight details.</p>
+          <p id="package-booking-flights-help" className={hint}>Flight details for this package. The default third badge uses this field; customize its text and icon above to show something else.</p>
         </div>
       </fieldset>
 
@@ -136,7 +168,7 @@ export default function PackageBookingFields({ pkg, change, disabled, pricing }:
         <div>
           <label htmlFor="package-booking-quote-note" className={label}>Quote note</label>
           <textarea id="package-booking-quote-note" className={field} rows={2} value={details.quoteNote ?? "Compare quotes from 3 verified agents · best price"} onChange={event => update(["details", "quoteNote"], event.target.value)} aria-describedby="package-booking-quote-note-help" />
-          <p id="package-booking-quote-note-help" className={hint}>Appears below “Get customized quote”. Clear this field to hide the note.</p>
+          <p id="package-booking-quote-note-help" className={hint}>Appears in the booking card’s action area. Clear this field to hide the note.</p>
         </div>
         <p className="text-xs leading-5 text-cmt-neutral-500">The cancellation-policy link appears when cancellation policy content is provided. Edit that content in the package’s policy section.</p>
       </fieldset>

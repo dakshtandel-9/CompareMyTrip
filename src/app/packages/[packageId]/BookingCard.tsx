@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { BadgePercent, BedDouble, Check, Flame, GitCompareArrows, Minus, Plane, Plus, ShieldCheck } from "lucide-react";
-import { getPackageAccommodationLabel, departureDays, departureDaysLabel, getDiscountPercent, getPackageTier, type PackageDetails, type TravelPackage } from "@/lib/packageData";
+import { BadgePercent, Check, Flame, GitCompareArrows, Minus, Plus, ShieldCheck } from "lucide-react";
+import { departureDays, departureDaysLabel, getDiscountPercent, getPackageBookingBadges, type PackageDetails, type TravelPackage } from "@/lib/packageData";
+import { PackageGlyph } from "@/lib/PackageGlyph";
 import DepartureDatePicker from "@/components/DepartureDatePicker";
 import { useCompare } from "@/lib/useCompare";
 import TrekGradeBadge from "@/components/TrekGradeBadge";
@@ -15,7 +16,7 @@ import TrekGradeBadge from "@/components/TrekGradeBadge";
 /* or park the package in the comparison tray.                          */
 /* ------------------------------------------------------------------ */
 
-const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
+const formatINR = (value: number) => `₹\u00A0${value.toLocaleString("en-IN")}`;
 
 const CHIP = "inline-flex items-center gap-1.5 text-xs font-medium leading-5 text-cmt-neutral-600";
 
@@ -36,9 +37,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
   const compared = isCompared(pkg.id);
 
   const discount = getDiscountPercent(pkg);
-  const hasStay = details.stays.length > 0;
-  const tier = details.bookingLabel?.trim() || (hasStay ? getPackageTier(pkg.hotelStars) : "Trip package");
-  const flightLabel = details.flights.trim() ? (/not included|no flight/i.test(details.flights) ? "Land only" : details.flights) : "";
+  const badges = getPackageBookingBadges(pkg, details).filter(badge => badge.visible && badge.text.trim());
 
   const availabilityNote = details.availabilityNote ?? "Availability confirmed with your quote";
   const quoteNote = details.quoteNote ?? "Compare quotes from 3 verified agents · best price";
@@ -78,19 +77,14 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
       </div>
 
       <div className="cmt-package-booking-body space-y-5 p-5 sm:p-6">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <span className="inline-flex min-w-0 max-w-full items-center break-words border-l-2 border-cmt-primary-500 pl-2 text-xs font-semibold leading-5 text-cmt-neutral-700">
-            {tier}
-          </span>
-          {hasStay && <span className={CHIP}>
-            <BedDouble className="size-3.5 text-cmt-neutral-500" aria-hidden="true" />
-            {pkg.hotelStars > 0 ? "STAY " : ""}{getPackageAccommodationLabel(pkg)}
-          </span>}
-          {flightLabel && <span className={CHIP}>
-            <Plane className="size-3.5 text-cmt-neutral-500" aria-hidden="true" />
-            {flightLabel}
-          </span>}
-        </div>
+        {badges.length > 0 && <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5" aria-label="Package badges">
+          {badges.map(badge => <span key={badge.id} className={badge.id === "package"
+            ? "inline-flex min-w-0 max-w-full items-center gap-1.5 break-words border-l-2 border-cmt-primary-500 pl-2 text-xs font-semibold leading-5 text-cmt-neutral-700"
+            : `${CHIP} min-w-0 max-w-full break-words`}>
+            {badge.icon && <PackageGlyph name={badge.icon} className="size-3.5 shrink-0 text-cmt-neutral-500" />}
+            <span className="min-w-0 break-words">{badge.text}</span>
+          </span>)}
+        </div>}
 
 
 
@@ -198,7 +192,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
             href={checkoutHref}
             className="flex min-h-[52px] w-full items-center justify-center rounded-[10px] bg-cmt-primary-500 px-3 py-3 text-[15px] font-bold text-cmt-neutral-900 shadow-[0_3px_10px_rgba(205,158,17,0.12)] transition-[background-color,box-shadow,transform] duration-200 hover:bg-cmt-primary-600 hover:shadow-[0_5px_14px_rgba(205,158,17,0.18)] motion-safe:hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
           >
-            Pay and Book Now
+            Book now
           </Link>
           {quoteNote.trim() && <p className="whitespace-pre-wrap break-words px-1 text-center text-xs leading-[1.6] text-cmt-neutral-500">{quoteNote}</p>}
           <button

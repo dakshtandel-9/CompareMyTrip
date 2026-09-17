@@ -19,6 +19,9 @@ const data = load('src/lib/packageData.ts');
 const { default: BookingFields } = load('src/app/admin/packages/PackageBookingFields.tsx', {
   'react/jsx-runtime': jsx,
   '@/lib/packageData': data,
+  '../_components/IconPicker': { default: props => React.createElement('button', { 'data-picker': props.label }, props.value) },
+  '@/lib/PackageGlyph': { PackageGlyph: ({name}) => React.createElement('svg', { 'data-icon': name }) },
+  '@/lib/packageIconNames.json': { default: ['Tag', 'BedDouble', 'Plane', 'Bus'] },
 });
 const fixture = () => JSON.parse(fs.readFileSync('content/package-imports/skandagiri-sunrise-trek-from-bangalore.json', 'utf8'));
 const nodes = node => !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(nodes) : [node, ...nodes(node.props?.children)];
@@ -45,7 +48,6 @@ test('booking text and numeric fields write to the shared draft immediately and 
   const fields = [
     ['price', 'price', '799.50'],
     ['original-price', 'originalPrice', '999.00'],
-    ['label', 'details.bookingLabel', 'Guided mountain trek '],
     ['flights', 'details.flights', 'Flights not included '],
     ['availability-note', 'details.availabilityNote', 'Permit confirmation\nrequired '],
     ['quote-note', 'details.quoteNote', 'Ask our team '],
@@ -78,8 +80,7 @@ test('empty notes stay intentionally hidden while missing notes retain the publi
   const cleared = setup(pkg);
   assert.equal(cleared.get('package-booking-availability-note').props.value, '');
   assert.equal(cleared.get('package-booking-quote-note').props.value, '');
-  assert.equal(cleared.get('package-booking-label').props.value, '');
-  assert.equal(cleared.get('package-booking-label').props.placeholder, 'Trip package');
+  assert.equal(cleared.get('booking-badge-package-text').props.value, 'Trip package');
   cleared.get('package-booking-availability-note').props.onChange({ target: { value: '' } });
   assert.deepEqual(cleared.changes.at(-1), { path: 'details.availabilityNote', value: '' });
 });
@@ -126,4 +127,36 @@ test('disabled booking fields cannot change the draft while the editor saves or 
   editor.weekday('Monday').props.onChange({ target: { checked: false } });
   assert.equal(editor.changes.length, 0);
   assert.match(editor.html(), /<fieldset disabled=""/);
+});
+
+
+test('each badge has independent text, icon and visibility controls in the booking editor', () => {
+  for (const [index, id] of ['package', 'stay', 'flights'].entries()) {
+    const editor = setup();
+    editor.get(`booking-badge-${id}-text`).props.onChange({ target: { value: 'Custom label ' } });
+    const change = editor.changes.at(-1);
+    assert.equal(change.path, 'details.bookingBadges');
+    assert.equal(change.value.length, 1, 'untouched badges should retain automatic defaults');
+    assert.equal(change.value[0].id, id);
+    assert.equal(change.value[0].text, 'Custom label ');
+    editor.get(`booking-badge-${id}-visible`).props.onChange({ target: { checked: false } });
+    assert.equal(editor.changes.at(-1).value[0].visible, false);
+    editor.get(`booking-badge-${id}-icon-visible`).props.onChange({ target: { checked: true } });
+    const pkg = fixture();
+    pkg.details.bookingBadges = editor.changes.at(-1).value;
+    const withIcon = setup(pkg);
+    const picker = nodes(withIcon.tree).find(node => node.props?.label === `Badge ${index + 1} icon`);
+    assert.ok(picker);
+    picker.props.onChange('Bus');
+    assert.equal(withIcon.changes.at(-1).value[0].icon, 'Bus');
+    const reset = nodes(withIcon.tree).find(node => node.type === 'button' && String(node.props.children).includes(`Use default for badge ${index + 1}`));
+    // JSX stores the final number separately.
+    const resetButton = reset ?? nodes(withIcon.tree).find(node => node.type === 'button' && node.props.disabled === false && Array.isArray(node.props.children) && node.props.children.at(-1) === index + 1);
+    assert.ok(resetButton);
+    resetButton.props.onClick();
+    assert.equal(withIcon.changes.at(-1).value.length, 0);
+  }
+  const locked = setup(fixture(), { disabled: true });
+  locked.get('booking-badge-package-text').props.onChange({ target: { value: 'Should not save' } });
+  assert.equal(locked.changes.length, 0);
 });

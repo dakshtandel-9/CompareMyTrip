@@ -28,6 +28,7 @@ const { default: BookingCard } = load('src/app/packages/[packageId]/BookingCard.
   'next/image': { default: noop },
   'next/link': { default: ({ children, ...props }) => React.createElement('a', props, children) },
   'lucide-react': Object.fromEntries(['BadgePercent', 'BedDouble', 'Check', 'Flame', 'GitCompareArrows', 'Minus', 'Plane', 'Plus', 'ShieldCheck'].map(name => [name, noop])),
+  '@/lib/PackageGlyph': { PackageGlyph: ({ name }) => React.createElement('svg', { 'data-icon': name }) },
   '@/lib/packageData': data,
   '@/components/DepartureDatePicker': { default: ({ allowedDays }) => React.createElement('span', { 'data-allowed-days': allowedDays.join(',') }) },
   '@/lib/useCompare': { useCompare: () => ({ toggle: noop, isCompared: () => false }) },
@@ -114,4 +115,28 @@ test('unrated trek stays use their authored accommodation type without inventing
   assert.equal(data.getPackageAccommodationLabel(fixture()), 'No accommodation');
   assert.equal(data.getPackageAccommodationLabel({ ...netravati, hotelStars: 3 }), '3★ hotels');
   assert.equal(data.getPackageAccommodationLabel({ ...netravati, details: { ...netravati.details, stays: [{ name: 'Unrated stay' }] } }), 'Stay included');
+});
+
+
+test('all three authored booking badges render their own icons and exact labels', () => {
+  const pkg = fixture();
+  pkg.details.stays = [];
+  pkg.details.flights = '';
+  pkg.details.bookingBadges = [
+    { id: 'package', text: 'Guided adventure', icon: 'Mountain', visible: true },
+    { id: 'stay', text: 'Breakfast included', icon: 'Utensils', visible: true },
+    { id: 'flights', text: 'AC transfers', icon: 'Bus', visible: true },
+  ];
+  const html = render(pkg);
+  for (const badge of pkg.details.bookingBadges) {
+    assert.ok(html.includes(badge.text));
+    assert.ok(html.includes(`data-icon="${badge.icon}"`));
+  }
+  assert.doesNotMatch(html, /Trip package|Land only/);
+  pkg.details.bookingBadges[0].icon = '';
+  pkg.details.bookingBadges[1].visible = false;
+  pkg.details.bookingBadges[2].text = '';
+  const hidden = render(pkg);
+  assert.match(hidden, /Guided adventure/);
+  assert.doesNotMatch(hidden, /data-icon="Mountain"|Breakfast included|AC transfers|Land only/);
 });

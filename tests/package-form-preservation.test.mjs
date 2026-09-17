@@ -145,3 +145,20 @@ test('hidden content and its images remain owned by the package after unrelated 
   assert.deepEqual(plain(saved.details.pageSections.hiddenSections), ['about', 'transfers']);
   assert.ok(saved.details.summary);
 });
+
+
+test('badge icons, custom text and hidden state survive preview, JSON storage and reopening', () => {
+  const pkg = fixture();
+  let form = formFromPackage(pkg);
+  assert.equal(packageFromForm(form, pkg).details.bookingBadges, undefined);
+  const badges = data.getPackageBookingBadges(pkg).map((badge, index) => ({ ...badge, icon: ['Tag', 'Bus', 'Utensils'][index], text: `Badge ${index + 1} `, visible: index !== 1 }));
+  form = edit(form, ['details', 'bookingBadges'], badges, pkg);
+  assert.equal(form.bookingBadges[0].text, 'Badge 1 ');
+  form = edit(form, ['title'], 'Updated title', pkg);
+  const saved = plain(packageFromForm(form, pkg));
+  const reopened = formFromPackage(saved);
+  assert.deepEqual(plain(reopened.bookingBadges), plain(badges.map(b => ({ ...b, text: b.text.trim() }))));
+  assert.equal(reopened.bookingBadges[1].visible, false);
+  const cleared = edit(reopened, ['details', 'bookingBadges'], [], saved);
+  assert.deepEqual(plain(data.getPackageBookingBadges(packageFromForm(cleared, saved))), plain(data.getPackageBookingBadges(pkg)));
+});

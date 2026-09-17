@@ -35,6 +35,7 @@ export function formFromPackage(pkg?: TravelPackage): PackageForm {
   if (!pkg) return JSON.parse(JSON.stringify(initialForm)) as PackageForm;
   const details = getPackageDetails(pkg);
   return {
+    bookingBadges: details.bookingBadges?.map(badge => ({ ...badge })),
     trekGrade: pkg.trekGrade, bookingLabel: details.bookingLabel,
     availabilityNote: details.availabilityNote, quoteNote: details.quoteNote,
     facts: details.facts ?? defaultPackageFacts(), factsHidden: details.factsHidden ?? false, permitRequired: details.permitRequired === true, permitHidden: details.permitHidden === true,
@@ -74,6 +75,7 @@ export function packageFromForm(form: PackageForm, initialPackage?: TravelPackag
          absence of a rule, not a list of seven. */
       departureDays: form.departureDays.length === 7 ? [] : [...form.departureDays].sort((a, b) => a - b),
       details: { facts: form.facts.map((fact) => ({ ...fact, label: text(fact.label), ...(fact.value !== undefined ? { value: text(fact.value) } : {}) })), factsHidden: form.factsHidden, gallery: form.gallery, summary: text(form.summary), places, highlights: list(form.highlights),
+        ...(form.bookingBadges !== undefined ? { bookingBadges: form.bookingBadges.map(badge => ({ ...badge, text: text(badge.text) })) } : {}),
         ...(form.bookingLabel !== undefined ? { bookingLabel: text(form.bookingLabel) } : {}),
         ...(form.availabilityNote !== undefined ? { availabilityNote: text(form.availabilityNote) } : {}),
         ...(form.quoteNote !== undefined ? { quoteNote: text(form.quoteNote) } : {}),

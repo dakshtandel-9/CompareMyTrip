@@ -33,7 +33,17 @@ export type PackageStay = {
   checkOut?: string;
 };
 
+export type PackageBookingBadge = {
+  id: "package" | "stay" | "flights";
+  text: string;
+  /** Empty hides the icon without hiding the text. */
+  icon: string;
+  visible: boolean;
+};
+
 export type PackageDetails = {
+  /** Missing badges retain the existing package/stay/flight labels. */
+  bookingBadges?: PackageBookingBadge[];
   /** Empty label uses the stay-based tier. Empty notes intentionally hide their text. */
   bookingLabel?: string;
   availabilityNote?: string;
@@ -3937,6 +3947,21 @@ export function getPackageAccommodationLabel(pkg: TravelPackage): string {
   if (!stays.length) return "No accommodation";
   const roomTypes = [...new Set(stays.map(stay => stay.roomType?.trim()).filter(Boolean))];
   return roomTypes.length ? roomTypes.join(" / ") : "Stay included";
+}
+
+/** Resolve the three booking badges without changing older packages. */
+export function getPackageBookingBadges(pkg: TravelPackage, details = getPackageDetails(pkg)): PackageBookingBadge[] {
+  const hasStay = details.stays.length > 0;
+  const flights = details.flights.trim();
+  const defaults: PackageBookingBadge[] = [
+    { id: "package", text: details.bookingLabel?.trim() || (hasStay ? getPackageTier(pkg.hotelStars) : "Trip package"), icon: "", visible: true },
+    { id: "stay", text: hasStay ? `${pkg.hotelStars > 0 ? "STAY " : ""}${getPackageAccommodationLabel(pkg)}` : "", icon: "BedDouble", visible: hasStay },
+    { id: "flights", text: /not included|no flight/i.test(flights) ? "Land only" : flights, icon: "Plane", visible: Boolean(flights) },
+  ];
+  return defaults.map(badge => {
+    const saved = details.bookingBadges?.find(item => item.id === badge.id);
+    return saved ? { ...badge, ...saved } : badge;
+  });
 }
 
 /** The tier chip — "Premium" and friends — read off the hotel rating. */
