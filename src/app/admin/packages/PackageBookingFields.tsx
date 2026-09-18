@@ -54,8 +54,22 @@ export default function PackageBookingFields({ pkg, change, disabled, pricing }:
       <div className="rounded-lg bg-cmt-neutral-50 px-4 py-3 text-sm">
         <p className="font-semibold text-cmt-neutral-900">{pkg.title || "Untitled package"}</p>
         {pkg.location && <p className="mt-1 text-cmt-neutral-600">{pkg.location}</p>}
-        <p className={hint}>The booking card uses the package location and cover image. Update those in the package details and photos.</p>
+        <p className={hint}>Customize the card heading below. Change its photo in Images.</p>
       </div>
+
+      <fieldset className="space-y-4">
+        <legend className="mb-3 text-base font-semibold">Card header</legend>
+        <div>
+          <label htmlFor="package-booking-heading" className={label}>Card heading label</label>
+          <input id="package-booking-heading" className={field} value={details.bookingHeading ?? ''} placeholder="Package" onChange={event => update(['details', 'bookingHeading'], event.target.value)} />
+          <p className={hint}>Small label above the card title. Leave blank to use “Package”.</p>
+        </div>
+        <div>
+          <label htmlFor="package-booking-title" className={label}>Pricing card title</label>
+          <textarea id="package-booking-title" rows={3} className={field} value={details.bookingTitle ?? ''} placeholder={pkg.location} onChange={event => update(['details', 'bookingTitle'], event.target.value)} />
+          <p className={hint}>Shown beside the photo. Leave blank to use the package destination / route. This does not change the main page title or destination.</p>
+        </div>
+      </fieldset>
 
       <fieldset className="space-y-4">
         <legend className="mb-3 text-base font-semibold">Pricing</legend>

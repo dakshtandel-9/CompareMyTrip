@@ -27,6 +27,20 @@ const { formFromPackage, packageFromForm, applyPackagePreviewChange: edit } = lo
 const fixture = () => JSON.parse(fs.readFileSync('content/package-imports/skandagiri-sunrise-trek-from-bangalore.json', 'utf8'));
 const plain = value => JSON.parse(JSON.stringify(value));
 
+test('pricing card header survives draft edits, saving and reopening without changing destination', () => {
+  const pkg = fixture();
+  let form = formFromPackage(pkg);
+  form = edit(form, ['details', 'bookingHeading'], 'Your adventure ', pkg);
+  form = edit(form, ['details', 'bookingTitle'], 'Kunti Betta\nSunrise trek ', pkg);
+  assert.equal(form.bookingTitle, 'Kunti Betta\nSunrise trek ');
+  const saved = packageFromForm(form, pkg);
+  const reopened = formFromPackage(plain(saved));
+  assert.equal(reopened.bookingHeading, 'Your adventure');
+  assert.equal(reopened.bookingTitle, 'Kunti Betta\nSunrise trek');
+  assert.equal(saved.location, pkg.location);
+  assert.equal(saved.title, pkg.title);
+});
+
 test('controlled draft fields retain spaces, blank lines and place separators until Save', () => {
   const pkg = fixture();
   let form = formFromPackage(pkg);

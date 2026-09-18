@@ -66,6 +66,16 @@ test('public booking card uses edited badges, notes, flights and departure restr
   assert.match(hidden, /Trip package/);
 });
 
+test('custom header text renders independently and clearing it restores the original header', () => {
+  const pkg = fixture();
+  Object.assign(pkg.details, { bookingHeading: 'Your adventure', bookingTitle: 'Kunti Betta sunrise trek' });
+  assert.match(render(pkg), /Your adventure/);
+  assert.match(render(pkg), /Kunti Betta sunrise trek/);
+  Object.assign(pkg.details, { bookingHeading: '', bookingTitle: '' });
+  assert.match(render(pkg), />Package<\/span>/);
+  assert.ok(render(pkg).includes(pkg.location));
+});
+
 test('older packages retain their default booking text', () => {
   const html = render(fixture());
   assert.match(html, /Availability confirmed with your quote/);

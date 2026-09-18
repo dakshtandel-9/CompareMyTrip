@@ -70,8 +70,8 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
         {/* The operating partner is never named to the visitor — the header
             carries the trip itself. */}
         <span className="min-w-0 flex-1">
-          <span className="mb-0.5 block text-[11px] font-medium tracking-[0.04em] text-cmt-neutral-500">Package</span>
-          <span className="block break-words text-[13px] font-semibold leading-5">{pkg.location}</span>
+          <span data-booking-heading className="mb-0.5 block break-words text-[11px] font-medium tracking-[0.04em] text-cmt-neutral-500">{details.bookingHeading?.trim() || 'Package'}</span>
+          <span data-booking-title className="block whitespace-pre-wrap break-words text-[13px] font-semibold leading-5">{details.bookingTitle?.trim() || pkg.location}</span>
         </span>
         <TrekGradeBadge pkg={pkg} className="ml-auto shrink-0 border border-cmt-neutral-200 shadow-none" />
       </div>
@@ -198,7 +198,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           <button
             type="button"
             onClick={onRequestQuote}
-            className="flex min-h-11 w-full items-center justify-center rounded-[10px] border border-cmt-neutral-900 bg-cmt-neutral-900 px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:border-cmt-secondary-900 hover:bg-cmt-secondary-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+            className="flex min-h-[52px] w-full items-center justify-center rounded-[10px] border border-cmt-neutral-900 bg-cmt-neutral-900 px-3 py-3 text-[15px] font-bold text-white transition-colors hover:border-cmt-secondary-900 hover:bg-cmt-secondary-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
           >
             Get customized quote
           </button>
@@ -206,7 +206,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
             type="button"
             onClick={() => toggle(pkg.id)}
             aria-pressed={compared}
-            className={`flex min-h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-transparent px-3 py-2.5 text-[13px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 ${
+            className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-[10px] border border-transparent px-3 py-3 text-[15px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 ${
               compared
                 ? "bg-cmt-neutral-100 text-cmt-neutral-900"
                 : "bg-white text-cmt-neutral-600 hover:bg-cmt-neutral-50 hover:text-cmt-neutral-900"

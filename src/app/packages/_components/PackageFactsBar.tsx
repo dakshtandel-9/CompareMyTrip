@@ -21,7 +21,10 @@ export default function PackageFactsBar({ facts, permitRequired = false, permitH
 
   return (
     <section aria-label="Package quick facts" className={`${styles.bar} ${editor ? styles.editing : ""} ${className}`}>
-      <div className={styles.title}><span>YOUR TRIP AT A GLANCE</span><span className={styles.titleLine} aria-hidden="true" /></div>
+      <header className={styles.sectionHeader}>
+        <p className={styles.title}>YOUR TRIP AT A GLANCE</p>
+        <h2 className="font-display text-2xl font-semibold">Trip snapshot</h2>
+      </header>
       {editor && <label className="mb-3 block text-xs"><input type="checkbox" checked={!editor.value.details?.factsHidden} onChange={event => editor.change(["details", "factsHidden"], !event.target.checked)} /> Show quick details</label>}
       {editor && <label className="mb-3 block text-xs"><input type="checkbox" disabled={editor.disabled} checked={!permitHidden} onChange={event => editor.change(["details", "permitHidden"], !event.target.checked)} /> Show permit on page</label>}
       <div className={`${styles.layout} ${permitHidden ? styles.withoutPermit : ""}`}>

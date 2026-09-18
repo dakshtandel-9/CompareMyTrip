@@ -7,8 +7,9 @@
   box-shadow: none;
 }
 
-.title { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; color: #8c691a; font-size: 10px; font-weight: 600; letter-spacing: .13em; }
-.titleLine { height: 1px; flex: 1; background: #eee8d8; }
+.sectionHeader { margin-bottom: 22px; }
+.title { margin-bottom: 8px; color: #986a07; font-size: 10px; font-weight: 600; letter-spacing: .14em; line-height: 1.5; }
+.sectionHeader h2 { font-size: clamp(20px, 1.8vw, 24px); letter-spacing: -.025em; }
 
 .layout {
   display: grid;
@@ -148,7 +149,7 @@
 }
 @media (max-width: 639px) {
   .bar { padding: 18px 12px 12px; border-radius: 14px; }
-  .title { margin: 0 8px 10px; gap: 10px; font-size: 9px; }
+  .sectionHeader { margin: 0 8px 18px; }
 }
 
 /* Inline icon controls must not inherit itinerary/FAQ summary padding. */

@@ -134,7 +134,7 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
 
         {pageSections.snapshotPlacement !== "about" && <PackageFactsBar facts={facts} permitRequired={details.permitRequired} permitHidden={details.permitHidden} className="mt-6" />}
 
-            {pageSections.snapshotPlacement === "about" && (editor || facts.length > 0) && <div><h2 className="mb-4 font-display text-2xl font-semibold">Trip snapshot</h2><PackageFactsBar facts={facts} permitRequired={details.permitRequired} permitHidden={details.permitHidden} /></div>}
+            {pageSections.snapshotPlacement === "about" && (editor || facts.length > 0) && <PackageFactsBar facts={facts} permitRequired={details.permitRequired} permitHidden={details.permitHidden} />}
             {navigation.length > 0 && <TripSectionNavigation items={navigation} />}
             {showAbout && <Section id="package-about" title="About this trip" eyebrow="THE EXPERIENCE">
               <PackageDescription value={details.summary} path={["details", "summary"]} label="About this trip" />

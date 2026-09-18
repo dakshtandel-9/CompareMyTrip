@@ -46,6 +46,8 @@ function setup(pkg = fixture(), extra = {}) {
 test('booking text and numeric fields write to the shared draft immediately and preserve typed text', () => {
   const editor = setup();
   const fields = [
+    ['heading', 'details.bookingHeading', 'Your adventure '],
+    ['title', 'details.bookingTitle', 'Kunti Betta\nSunrise trek '],
     ['price', 'price', '799.50'],
     ['original-price', 'originalPrice', '999.00'],
     ['flights', 'details.flights', 'Flights not included '],

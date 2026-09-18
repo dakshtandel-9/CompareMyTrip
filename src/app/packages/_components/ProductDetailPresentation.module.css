@@ -302,12 +302,10 @@
   .page :global(.cmt-package-booking-travellers) > div > div { grid-area: 1 / 2 / 3; }
   .page :global(.cmt-package-booking-travellers) > p { grid-area: 2 / 1; display: flex; flex-wrap: wrap; justify-content: start; gap: 0 6px; margin: 0; padding: 0; border: 0; font-size: 11px; line-height: 18px; }
   .page :global(.cmt-package-booking-travellers) > p > b { font-size: 14px; line-height: 20px; }
-  .page :global(.cmt-package-booking-actions) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 8px; }
+  .page :global(.cmt-package-booking-actions) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .page :global(.cmt-package-booking-actions) > * { margin-block: 0; }
-  .page :global(.cmt-package-booking-actions) > :first-child,
-  .page :global(.cmt-package-booking-actions) > p { grid-column: 1 / -1; }
   .page :global(.cmt-package-booking-actions) > :is(button, a) { min-height: 44px; padding: 8px 6px; }
-  .page :global(.cmt-package-booking-actions) > button { gap: 5px; font-size: 12px; }
+  .page :global(.cmt-package-booking-actions) > button { gap: 5px; }
   .page :global(.cmt-package-booking-actions) > p { line-height: 17px; }
   .page :global(.cmt-package-booking-policy) { min-height: 32px; padding-top: 6px; }
   .page :global(.cmt-package-booking-policy) > a { display: inline-flex; align-items: center; min-height: 28px; }

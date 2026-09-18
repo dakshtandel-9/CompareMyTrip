@@ -62,7 +62,9 @@ export default function PackageVisualEditor({ pkg, editing, disabled, section, o
     else if (area === 'basics') field = target.closest('.cmt-package-header') ? 'Package title' : 'Destination / route shown on the page';
     else if (area === 'booking') {
       const badge = target.closest('[aria-label="Package badges"] > span');
-      if (badge?.parentElement) {
+      if (target.closest('[data-booking-heading]')) field = 'Card heading label';
+      else if (target.closest('[data-booking-title]')) field = 'Pricing card title';
+      else if (badge?.parentElement) {
         const visible = getPackageBookingBadges(pkg).filter(item => item.visible && item.text.trim());
         const selected = visible[Array.from(badge.parentElement.children).indexOf(badge)];
         if (selected) field = `Badge ${['package', 'stay', 'flights'].indexOf(selected.id) + 1} text`;

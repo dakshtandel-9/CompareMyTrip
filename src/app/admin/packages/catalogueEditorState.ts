@@ -5,7 +5,7 @@ import { packagePageSectionsIssue, type PackagePageSections } from "@/lib/packag
 export type PackageForm = {
   bookingBadges?: PackageBookingBadge[];
   trekGrade?: 0 | 1 | 2 | 3;
-  bookingLabel?: string; availabilityNote?: string; quoteNote?: string;
+  bookingLabel?: string; bookingHeading?: string; bookingTitle?: string; availabilityNote?: string; quoteNote?: string;
   facts: PackageFact[]; factsHidden: boolean; permitRequired: boolean; permitHidden: boolean;
   pageSections: PackagePageSections;
   title: string; location: string; destination: string; operator: string; region: "India" | "International";

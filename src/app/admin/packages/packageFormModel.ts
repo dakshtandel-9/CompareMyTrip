@@ -37,6 +37,7 @@ export function formFromPackage(pkg?: TravelPackage): PackageForm {
   return {
     bookingBadges: details.bookingBadges?.map(badge => ({ ...badge })),
     trekGrade: pkg.trekGrade, bookingLabel: details.bookingLabel,
+    bookingHeading: details.bookingHeading, bookingTitle: details.bookingTitle,
     availabilityNote: details.availabilityNote, quoteNote: details.quoteNote,
     facts: details.facts ?? defaultPackageFacts(), factsHidden: details.factsHidden ?? false, permitRequired: details.permitRequired === true, permitHidden: details.permitHidden === true,
     pageSections: getPackagePageSections(details),
@@ -77,6 +78,8 @@ export function packageFromForm(form: PackageForm, initialPackage?: TravelPackag
       details: { facts: form.facts.map((fact) => ({ ...fact, label: text(fact.label), ...(fact.value !== undefined ? { value: text(fact.value) } : {}) })), factsHidden: form.factsHidden, gallery: form.gallery, summary: text(form.summary), places, highlights: list(form.highlights),
         ...(form.bookingBadges !== undefined ? { bookingBadges: form.bookingBadges.map(badge => ({ ...badge, text: text(badge.text) })) } : {}),
         ...(form.bookingLabel !== undefined ? { bookingLabel: text(form.bookingLabel) } : {}),
+        ...(form.bookingHeading !== undefined ? { bookingHeading: text(form.bookingHeading) } : {}),
+        ...(form.bookingTitle !== undefined ? { bookingTitle: text(form.bookingTitle) } : {}),
         ...(form.availabilityNote !== undefined ? { availabilityNote: text(form.availabilityNote) } : {}),
         ...(form.quoteNote !== undefined ? { quoteNote: text(form.quoteNote) } : {}),
         dayZeroEnabled: form.dayZeroEnabled,

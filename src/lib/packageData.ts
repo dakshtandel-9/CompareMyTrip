@@ -46,6 +46,9 @@ export type PackageDetails = {
   bookingBadges?: PackageBookingBadge[];
   /** Empty label uses the stay-based tier. Empty notes intentionally hide their text. */
   bookingLabel?: string;
+  /** Empty card headings retain the original package/location text. */
+  bookingHeading?: string;
+  bookingTitle?: string;
   availabilityNote?: string;
   quoteNote?: string;
   /** Optional content and visibility choices for this package's detail page. */
