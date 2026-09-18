@@ -2,18 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { BadgePercent, Check, Flame, GitCompareArrows, Minus, Plus, ShieldCheck } from "lucide-react";
+import { BadgePercent, Flame, Minus, Plus, ShieldCheck } from "lucide-react";
 import { departureDays, departureDaysLabel, getDiscountPercent, getPackageBookingBadges, type PackageDetails, type TravelPackage } from "@/lib/packageData";
 import { PackageGlyph } from "@/lib/PackageGlyph";
 import DepartureDatePicker from "@/components/DepartureDatePicker";
-import { useCompare } from "@/lib/useCompare";
 import TrekGradeBadge from "@/components/TrekGradeBadge";
 
 /* ------------------------------------------------------------------ */
 /* The booking box on a package page: who is selling, what tier the     */
 /* trip is, the per-person price with its discount pill, live demand,   */
-/* and the three things a traveller can do — ask for quotes, pay now,   */
-/* or park the package in the comparison tray.                          */
+/* and the actions to book or request a custom plan.                   */
 /* ------------------------------------------------------------------ */
 
 const formatINR = (value: number) => `₹\u00A0${value.toLocaleString("en-IN")}`;
@@ -33,14 +31,12 @@ type Props = {
 };
 
 export default function BookingCard({ pkg, details, travelDate, onTravelDateChange, travellers, onTravellersChange, onRequestQuote }: Props) {
-  const { toggle, isCompared } = useCompare();
-  const compared = isCompared(pkg.id);
 
   const discount = getDiscountPercent(pkg);
   const badges = getPackageBookingBadges(pkg, details).filter(badge => badge.visible && badge.text.trim());
 
   const availabilityNote = details.availabilityNote ?? "Availability confirmed with your quote";
-  const quoteNote = details.quoteNote ?? "Compare quotes from 3 verified agents · best price";
+  const quoteNote = details.quoteNote ?? "🔒 Secure payment · Instant booking confirmation";
 
   const step = (delta: number) => onTravellersChange(Math.min(Math.max(travellers + delta, 1), 20));
 
@@ -70,8 +66,8 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
         {/* The operating partner is never named to the visitor — the header
             carries the trip itself. */}
         <span className="min-w-0 flex-1">
-          <span data-booking-heading className="mb-0.5 block break-words text-[11px] font-medium tracking-[0.04em] text-cmt-neutral-500">{details.bookingHeading?.trim() || 'Package'}</span>
-          <span data-booking-title className="block whitespace-pre-wrap break-words text-[13px] font-semibold leading-5">{details.bookingTitle?.trim() || pkg.location}</span>
+          <span data-booking-heading className="mb-0.5 block break-words text-[10px] font-medium tracking-[0.04em] text-cmt-neutral-500">{details.bookingHeading?.trim() || 'Package'}</span>
+          <span data-booking-title className="block whitespace-pre-wrap break-words text-[14px] font-semibold leading-[1.5]">{details.bookingTitle?.trim() || pkg.location}</span>
         </span>
         <TrekGradeBadge pkg={pkg} className="ml-auto shrink-0 border border-cmt-neutral-200 shadow-none" />
       </div>
@@ -144,7 +140,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
           <p className="mt-2 text-xs leading-[1.6] text-cmt-neutral-500">
             {travelDate
               ? "We'll check availability for this date."
-              : "Not fixed yet? Leave it blank and we'll suggest dates."}
+              : "Not sure? Leave it blank and we'll suggest the next available dates."}
           </p>
         </div>
 
@@ -192,7 +188,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
             href={checkoutHref}
             className="flex min-h-[52px] w-full items-center justify-center rounded-[10px] bg-cmt-primary-500 px-3 py-3 text-[15px] font-bold text-cmt-neutral-900 shadow-[0_3px_10px_rgba(205,158,17,0.12)] transition-[background-color,box-shadow,transform] duration-200 hover:bg-cmt-primary-600 hover:shadow-[0_5px_14px_rgba(205,158,17,0.18)] motion-safe:hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
           >
-            Book now
+            Book Now
           </Link>
           {quoteNote.trim() && <p className="whitespace-pre-wrap break-words px-1 text-center text-xs leading-[1.6] text-cmt-neutral-500">{quoteNote}</p>}
           <button
@@ -200,20 +196,7 @@ export default function BookingCard({ pkg, details, travelDate, onTravelDateChan
             onClick={onRequestQuote}
             className="flex min-h-[52px] w-full items-center justify-center rounded-[10px] border border-cmt-neutral-900 bg-cmt-neutral-900 px-3 py-3 text-[15px] font-bold text-white transition-colors hover:border-cmt-secondary-900 hover:bg-cmt-secondary-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
           >
-            Get customized quote
-          </button>
-          <button
-            type="button"
-            onClick={() => toggle(pkg.id)}
-            aria-pressed={compared}
-            className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-[10px] border border-transparent px-3 py-3 text-[15px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 ${
-              compared
-                ? "bg-cmt-neutral-100 text-cmt-neutral-900"
-                : "bg-white text-cmt-neutral-600 hover:bg-cmt-neutral-50 hover:text-cmt-neutral-900"
-            }`}
-          >
-            {compared ? <Check className="size-4" /> : <GitCompareArrows className="size-4" />}
-            {compared ? "Added to compare" : "Add to compare"}
+            Need a custom plan
           </button>
         </div>
 

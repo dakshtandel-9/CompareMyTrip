@@ -3899,6 +3899,10 @@ export function setPackageDayZero(details: Pick<PackageDetails, "itinerary" | "d
 }
 
 export function getPackageDetails(pkg: TravelPackage): PackageDetails {
+  // Upgrade the former default on saved packages while preserving custom notes.
+  if (pkg.details && ["Compare quotes from 3 verified agents · best price", "Need a custom plan?"].includes(pkg.details.quoteNote?.trim() ?? "")) {
+    return { ...pkg.details, quoteNote: "🔒 Secure payment · Instant booking confirmation" };
+  }
   if (pkg.details) return pkg.details;
 
   const places = pkg.location.split("·").map((place) => place.trim()).filter(Boolean);

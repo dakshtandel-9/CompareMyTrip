@@ -76,10 +76,21 @@ test('custom header text renders independently and clearing it restores the orig
   assert.ok(render(pkg).includes(pkg.location));
 });
 
+test('saved former quote note displays the updated copy', () => {
+  const pkg = fixture();
+  pkg.details.quoteNote = 'Compare quotes from 3 verified agents · best price';
+  assert.match(render(pkg), /Secure payment · Instant booking confirmation/);
+  assert.doesNotMatch(render(pkg), /Compare quotes from 3 verified agents/);
+  pkg.details.quoteNote = 'Need a custom plan?';
+  assert.match(render(pkg), /Secure payment · Instant booking confirmation/);
+  assert.match(render(pkg), />Need a custom plan<\/button>/);
+  assert.doesNotMatch(render(pkg), /Add to compare|Added to compare|Get customized quote/);
+});
+
 test('older packages retain their default booking text', () => {
   const html = render(fixture());
   assert.match(html, /Availability confirmed with your quote/);
-  assert.match(html, /Compare quotes from 3 verified agents/);
+  assert.match(html, /Secure payment · Instant booking confirmation/);
 });
 
 test('hiding the cancellation section also hides its booking-card link without deleting policy text', () => {

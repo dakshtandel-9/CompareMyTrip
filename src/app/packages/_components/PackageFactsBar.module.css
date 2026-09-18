@@ -2,7 +2,7 @@
   container-type: inline-size;
   border: 1px solid #e5e8ee;
   border-radius: 18px;
-  background: #fff;
+  background: #fdfbf5;
   padding: 24px;
   box-shadow: none;
 }
@@ -28,7 +28,7 @@
   padding: 16px 12px;
   border-bottom: 1px solid #eef0f3;
   border-radius: 0;
-  background: #fff;
+  background: transparent;
   overflow-wrap: anywhere;
 }
 

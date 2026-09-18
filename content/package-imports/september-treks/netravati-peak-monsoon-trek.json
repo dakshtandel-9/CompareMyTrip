@@ -277,7 +277,7 @@
     "permitHidden": false,
     "bookingLabel": "Trip package",
     "availabilityNote": "Availability confirmed with your quote",
-    "quoteNote": "Compare quotes from 3 verified agents · best price",
+    "quoteNote": "🔒 Secure payment · Instant booking confirmation",
     "pageSections": {
       "snapshotPlacement": "intro",
       "tagline": "",

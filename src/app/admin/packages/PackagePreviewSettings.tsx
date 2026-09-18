@@ -29,10 +29,10 @@ export default function PackagePreviewSettings({ pkg, editing, change, disabled,
       </select></label>
       <p className="text-xs">Package badge: <InlineText value={bookingLabel} path={["details", "bookingLabel"]} label="Package badge" /></p>
       <p className="text-xs">Availability note: <InlineText value={details.availabilityNote ?? "Availability confirmed with your quote"} path={["details", "availabilityNote"]} label="Availability note" multiline /></p>
-      <p className="text-xs">Quote note: <InlineText value={details.quoteNote ?? "Compare quotes from 3 verified agents · best price"} path={["details", "quoteNote"]} label="Quote note" multiline /></p>
+      <p className="text-xs">Quote note: <InlineText value={details.quoteNote ?? "🔒 Secure payment · Instant booking confirmation"} path={["details", "quoteNote"]} label="Quote note" multiline /></p>
       <p className="text-xs leading-5 text-cmt-neutral-500">Click text to edit. A blank package badge uses Trip package or the hotel tier. Clear a note to hide it. Flights can be edited above; clear the value to hide that badge. Departure weekdays below also control the date picker.</p>
     </fieldset>}
-    {!editing && <div className="mt-4 space-y-2 text-xs text-cmt-neutral-600"><p>{bookingLabel}</p><p>{details.availabilityNote ?? "Availability confirmed with your quote"}</p><p>{details.quoteNote ?? "Compare quotes from 3 verified agents · best price"}</p></div>}
+    {!editing && <div className="mt-4 space-y-2 text-xs text-cmt-neutral-600"><p>{bookingLabel}</p><p>{details.availabilityNote ?? "Availability confirmed with your quote"}</p><p>{details.quoteNote ?? "🔒 Secure payment · Instant booking confirmation"}</p></div>}
     {editing && <details open className="mt-5 border-t border-cmt-neutral-200 pt-4"><summary className="cursor-pointer text-sm font-semibold">Catalogue & departure settings</summary><fieldset disabled={disabled} className="mt-4 space-y-4">
       <label className="flex flex-wrap items-center justify-between gap-2 text-xs">Region<select className={smallSelect} value={pkg.region} onChange={event => change(["region"], event.target.value)}><option>India</option><option>International</option></select></label>
       <label className="block text-xs">Destination<input className={`${smallSelect} mt-1 w-full`} value={pkg.destination} list="preview-destinations" onChange={event => change(["destination"], event.target.value)} /><datalist id="preview-destinations">{filedUnderOptions[pkg.region].map(value => <option key={value} value={value} />)}</datalist></label>
