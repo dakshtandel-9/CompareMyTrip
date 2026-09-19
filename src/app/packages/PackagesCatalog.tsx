@@ -22,6 +22,8 @@ import { toIndiaState } from "@/lib/indiaStates";
 import { usePackagesState } from "@/lib/usePackages";
 import { bannerFor, type BannerContent } from "@/lib/siteContent";
 import { useSiteContent } from "@/lib/useSiteContent";
+import { PACKAGE_COLLECTIONS, parsePackageCollection, packagesForCollection, isCollectionDemo } from "@/lib/packageCollections";
+import ContentImage from "@/app/home/_components/ContentImage";
 import TrekGradeBadge from "@/components/TrekGradeBadge";
 import { useCompare } from "@/lib/useCompare";
 import {
@@ -62,6 +64,8 @@ const TYPE_CATEGORY: Record<string, PackageCategory> = {
   beach: "Beaches",
   weekend: "Weekend Treks",
   cultural: "Heritage",
+  cruise: "Cruise",
+  hotels: "Hotels",
 };
 
 /* Region has no control of its own on this page — the site header links into
@@ -120,7 +124,7 @@ function CatalogBanner({
   return (
     <section className="flex w-full justify-center p-3 sm:p-4 md:p-6">
       <div className="cmt-catalog-banner relative isolate flex min-h-[340px] w-full max-w-[1440px] items-center overflow-hidden rounded-2xl bg-cmt-secondary-900 px-6 py-14 sm:min-h-[400px] sm:rounded-3xl sm:px-10 sm:py-20">
-        <Image
+        <ContentImage
           src={image}
           alt=""
           fill
@@ -262,6 +266,7 @@ function PackageCard({
 }) {
   const discountPercent = getDiscountPercent(pkg);
   const hasReviews = pkg.reviews > 0 && pkg.rating > 0;
+  const demo = isCollectionDemo(pkg.id);
 
   return (
     <article className="cmt-catalog-card group relative flex min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md">
@@ -276,14 +281,14 @@ function PackageCard({
         <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
           {/* Imported operator listings carry no pre-discount price, so the
               pill is dropped rather than showing an invented "0% off". */}
-          {discountPercent > 0 ? (
+          {demo ? <span className="rounded-cmt-full bg-white px-2.5 py-1 text-xs font-semibold text-cmt-neutral-900">Demo package</span> : discountPercent > 0 ? (
             <span className="rounded-cmt-full border border-cmt-coral-500/30 bg-cmt-coral-100 px-2.5 py-1 text-xs font-semibold text-cmt-coral-700">
               {discountPercent}% off
             </span>
           ) : (
             <span />
           )}
-          <button
+          {!demo && (<button
             type="button"
             aria-pressed={isCompared}
             aria-label={
@@ -304,7 +309,7 @@ function PackageCard({
               <ArrowLeftRight className="size-3.5" strokeWidth={2.5} aria-hidden="true" />
             )}
             {isCompared ? "Added to compare" : "Compare"}
-          </button>
+          </button>)}
         </div>
         <div className="absolute inset-x-3 bottom-3 flex flex-wrap items-center gap-1.5">
           <TrekGradeBadge pkg={pkg} />
@@ -368,7 +373,8 @@ function PackageCard({
           ))}
         </div>
 
-        {/* The operating partner is deliberately not named on the card. */}
+        {/* Demo listings use the same card without implying live availability. */}
+        {demo ? <p className="mt-3 text-xs text-cmt-neutral-500">Sample price · Not available to book</p> : (
         <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-cmt-neutral-500">
           <span className="inline-flex items-center gap-1">
             <RotateCcw className="size-3" /> Free cancellation
@@ -377,6 +383,7 @@ function PackageCard({
             <Zap className="size-3" /> Instant confirm
           </span>
         </div>
+        )}
 
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">
           <div className="min-w-0">
@@ -396,7 +403,7 @@ function PackageCard({
               href={pkg.href ?? `/packages/${pkg.id}`}
               className="inline-flex h-10 shrink-0 after:absolute after:inset-0 after:content-[''] items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-colors hover:bg-cmt-primary-600 focus-visible:outline-none focus-visible:shadow-[var(--cmt-focus-ring)]"
             >
-              View package
+              {demo ? "View demo" : "View package"}
             </Link>
         </div>
       </div>
@@ -441,7 +448,7 @@ export function CatalogContent({
   search?: string;
 }) {
   const packageState = usePackagesState();
-  const packages = packageState.loading || packageState.error
+  const livePackages = packageState.loading || packageState.error
     ? initialPackages
     : packageState.packages;
   /* Masthead copy and photography, edited in /admin/banners. */
@@ -455,6 +462,9 @@ export function CatalogContent({
   const router = useRouter();
   const typeCategory = TYPE_CATEGORY[searchParams.get("type")?.trim().toLowerCase() ?? ""];
   const initialCategory = searchParams.get("category") ?? typeCategory;
+  const collection = parsePackageCollection(new URLSearchParams(search).get("category") ?? new URLSearchParams(search).get("type"));
+  const collectionConfig = collection ? PACKAGE_COLLECTIONS[collection] : null;
+  const packages = useMemo(() => collection ? packagesForCollection(livePackages, collection) : livePackages, [livePackages, collection]);
   const initialMinimum = Number(searchParams.get("budgetMin"));
   const initialMaximum = Number(searchParams.get("budgetMax"));
 
@@ -470,7 +480,7 @@ export function CatalogContent({
     ),
   );
   const [category, setCategory] = useState<Category>(
-    initialCategory &&
+    !collection && initialCategory &&
       initialCategory !== WEEKEND_TREKS_CATEGORY &&
       PACKAGE_CATEGORIES.includes(initialCategory as PackageCategory)
       ? (initialCategory as Category)
@@ -601,12 +611,12 @@ export function CatalogContent({
 
   /* With the tab row gone the masthead carries the region, so a visitor who
      arrived on ?region=international can still see what they are looking at. */
-  const regionHeading =
+  const regionHeading = collectionConfig?.label ?? (
     region === "India"
       ? "India holiday packages"
       : region === "International"
         ? "International holiday packages"
-        : "Holiday packages";
+        : "Holiday packages");
 
   /* Reflect the choice in the URL so the state survives a refresh and stays
      shareable. router.replace keeps it out of the back stack while still going
@@ -788,9 +798,10 @@ export function CatalogContent({
           visible as 0 before it is clicked. */}
       <FilterGroup title="Package type">
         <div className="flex flex-wrap gap-1.5">
-          {categories.map((item) => {
+          {categories.filter((item) => !collection || !parsePackageCollection(item)).map((item) => {
             const isActive = category === item;
-            const count =
+            const itemCollection = parsePackageCollection(item);
+            const count = itemCollection ? packagesForCollection(livePackages, itemCollection).length :
               item === "All packages"
                 ? regionPackages.length
                 : regionPackages.filter((pkg) => pkg.tags.includes(item)).length;
@@ -798,7 +809,7 @@ export function CatalogContent({
               <button
                 key={item}
                 type="button"
-                onClick={() => setCategory(item)}
+                onClick={() => itemCollection ? router.push(`/packages?category=${itemCollection}`) : setCategory(item)}
                 className={`inline-flex h-8 items-center gap-1 rounded-cmt-full border px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:shadow-[var(--cmt-focus-ring)] ${
                   isActive
                     ? "border-cmt-neutral-900 bg-cmt-neutral-900 text-white"
@@ -890,6 +901,7 @@ export function CatalogContent({
         ))}
       </FilterGroup>
 
+      {collection !== "cruise" && (
       <FilterGroup title="Hotel category">
         {[3, 4, 5].map((stars) => (
           <label key={stars} className="mb-3 flex min-h-11 cursor-pointer items-center justify-between text-sm last:mb-0">
@@ -908,6 +920,7 @@ export function CatalogContent({
           </label>
         ))}
       </FilterGroup>
+      )}
 
       <FilterGroup title="Traveller rating">
         {[4.5, 4].map((rating) => (
@@ -928,33 +941,37 @@ export function CatalogContent({
 
   return (
     <main className="cmt-catalog min-h-screen bg-cmt-neutral-50 font-body text-cmt-neutral-900">
-      {activeTrackConfig && trackPackages && (
+      {collectionConfig && <RegionBanner banner={bannerFor(banners, collectionConfig.bannerId)} packages={regionPackages} />}
+      {!collectionConfig && activeTrackConfig && trackPackages && (
         <WeekendTrackBanner
           banner={bannerFor(banners, `trek-${activeTrackConfig.id}`)}
           packages={trackPackages}
         />
       )}
-      {!activeTrackConfig && region !== "All" && (
+      {!collectionConfig && !activeTrackConfig && region !== "All" && (
         <RegionBanner
           banner={bannerFor(banners, REGION_BANNER_IDS[region])}
           packages={regionPackages}
         />
       )}
-      {!activeTrackConfig && region === "All" && dealsOnly && (
+      {!collectionConfig && !activeTrackConfig && region === "All" && dealsOnly && (
         <DealsBanner banner={bannerFor(banners, "packages-deals")} packages={packages} />
       )}
 
       {/* The unfiltered catalogue starts straight under the site header. Region
           weekend-trek, and deals views add their photography masthead above. */}
       <section className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        {!activeTrackConfig && region === "All" && !dealsOnly && (
+        {!collectionConfig && !activeTrackConfig && region === "All" && !dealsOnly && (
           <h1 className="sr-only">{regionHeading}</h1>
         )}
 
         <div className="cmt-catalog-toolbar mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-cmt-neutral-900">
-              {visiblePackages.length} holiday packages
+              {visiblePackages.length} {collection === "cruise" ? "cruise packages" : collection === "hotels" ? "hotel packages" : "holiday packages"}
+              {collectionConfig && <button type="button" onClick={() => router.replace("/packages", { scroll: false })} className="inline-flex items-center gap-1 rounded-cmt-full border border-cmt-neutral-200 bg-white px-2.5 py-1 text-xs font-medium text-cmt-neutral-600">
+                {collectionConfig.label}<X className="size-3" aria-hidden="true" /><span className="sr-only">Show every package again</span>
+              </button>}
               {/* The region arrives from the header link, so without this the
                   narrowed set would have no on-page way back out. */}
               {region !== "All" && (
@@ -995,7 +1012,7 @@ export function CatalogContent({
               )}
             </p>
             <p className="mt-1 text-xs text-cmt-neutral-500">
-              Prices shown are per person and include applicable taxes.
+              {collection && packages.some((pkg) => isCollectionDemo(pkg.id)) ? "Demo listings with illustrative per-person prices. Not available to book." : "Prices shown are per person and include applicable taxes."}
             </p>
           </div>
 
@@ -1073,8 +1090,8 @@ export function CatalogContent({
                   <button
                     type="button"
                     onClick={() => {
-                      chooseRegion("All");
-                      clearFilters();
+                      if (collection) router.replace("/packages");
+                      else { chooseRegion("All"); clearFilters(); }
                     }}
                     className="mt-5 rounded-cmt-control bg-cmt-primary-500 px-5 py-2.5 text-sm font-semibold text-cmt-neutral-900"
                   >

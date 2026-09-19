@@ -25,7 +25,7 @@ import PackageCard from "@/app/home/_components/PackageCard";
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
-export default function PackageDetailClient({ initialPackage, initialSimilarPackages = [], preview = false, publicPreview = false, previewSidebar }: { initialPackage: TravelPackage; initialSimilarPackages?: TravelPackage[]; preview?: boolean; publicPreview?: boolean; previewSidebar?: ReactNode }) {
+export default function PackageDetailClient({ initialPackage, initialSimilarPackages = [], preview = false, publicPreview = false, previewSidebar, bookingUnavailableReason }: { initialPackage: TravelPackage; initialSimilarPackages?: TravelPackage[]; preview?: boolean; publicPreview?: boolean; previewSidebar?: ReactNode; bookingUnavailableReason?: string }) {
   const editor = usePackageEditing();
   const PageRoot = preview ? "div" : "main";
   const legacyPreview = preview && !publicPreview;
@@ -92,6 +92,7 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
   /* A customized quote is filed against the customer's account, so it needs a
      real sign-in — the timed pop-up captures leads and cannot supply one. */
   const requestQuote = () => {
+    if (bookingUnavailableReason) return;
     if (authUser === null) {
       router.push(`/login?next=${encodeURIComponent(`/packages/${packageId}`)}`);
       return;
@@ -192,7 +193,7 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
           </div>
 
           <aside id="booking-options" style={{ scrollMarginTop: "10rem" }} className="cmt-booking-panel scroll-mt-40 space-y-4 lg:sticky lg:top-40">
-            {previewSidebar ?? <BookingCard pkg={pkg} details={details} travelDate={travelDate} onTravelDateChange={setTravelDate} travellers={travellers} onTravellersChange={setTravellers} onRequestQuote={requestQuote} />}
+            {previewSidebar ?? <BookingCard bookingUnavailableReason={bookingUnavailableReason} pkg={pkg} details={details} travelDate={travelDate} onTravelDateChange={setTravelDate} travellers={travellers} onTravellersChange={setTravellers} onRequestQuote={requestQuote} />}
 
           </aside>
         </div>

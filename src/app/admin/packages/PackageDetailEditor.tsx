@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
-import { PACKAGE_CATEGORIES, type TravelPackage } from "@/lib/packageData";
+import { PACKAGE_CATEGORIES, type TravelPackage, type PackageCategory } from "@/lib/packageData";
 import type { PackageBuiltinSection, PackageSectionPlacement } from "@/lib/packageDetailSections";
 import { getVisiblePackageReviews } from "@/app/packages/_components/PackagePageSections";
 import type { ContentPath } from "@/app/packages/_components/PackageInlineEditing";
@@ -35,7 +35,8 @@ export const PACKAGE_EDITOR_AREAS = [
 export type PackageEditorArea = typeof PACKAGE_EDITOR_AREAS[number]["id"];
 const button = "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-cmt-neutral-200 bg-white px-3 text-xs font-semibold disabled:opacity-40";
 
-export default function PackageDetailEditor({ form, pkg, section, onSectionChange, onChange, change, onUploadImages, disabled, filedUnderOptions, compact = false }: {
+export default function PackageDetailEditor({ lockedCategory, form, pkg, section, onSectionChange, onChange, change, onUploadImages, disabled, filedUnderOptions, compact = false }: {
+  lockedCategory?: PackageCategory;
   form: PackageForm; pkg: TravelPackage; section: PackageEditorArea; onSectionChange: (section: PackageEditorArea) => void;
   onChange: (next: PackageForm) => void; change: (path: ContentPath, value: unknown) => void;
   onUploadImages: (files: File[]) => Promise<string[]>; disabled: boolean;
@@ -75,7 +76,7 @@ export default function PackageDetailEditor({ form, pkg, section, onSectionChang
             <TextField label="Group size" value={form.pax} onChange={value => set("pax", value)} placeholder="e.g. 11–40 travellers" />
             <TextField label="Operator (internal)" value={form.operator} onChange={value => set("operator", value)} hint="The operating partner is not named on the public booking card." />
           </div>
-          <fieldset><legend className="mb-3 text-sm font-semibold">Categories</legend><div className={styles.checks}>{PACKAGE_CATEGORIES.map(category => <label key={category}><input type="checkbox" checked={form.tags.includes(category)} onChange={event => set("tags", event.target.checked ? [...form.tags, category] : form.tags.filter(tag => tag !== category))} />{category}</label>)}</div></fieldset>
+          <fieldset><legend className="mb-3 text-sm font-semibold">Categories</legend><div className={styles.checks}>{PACKAGE_CATEGORIES.map(category => <label key={category}><input type="checkbox" disabled={category === lockedCategory} checked={form.tags.includes(category)} onChange={event => set("tags", event.target.checked ? [...form.tags, category] : form.tags.filter(tag => tag !== category))} />{category}</label>)}</div>{lockedCategory && <p className="mt-3 text-xs text-cmt-neutral-500">{lockedCategory} is set automatically for this section. Use Travel packages to move a listing to another category.</p>}</fieldset>
         </>}
         {section === "images" && <><PackageImagesEditor pkg={pkg} change={change} disabled={disabled} onUploadImages={onUploadImages} onChangeImages={({ image, gallery }) => onChange({ ...form, image, gallery })} />{custom("gallery")}</>}
         {section === "booking" && <PackageBookingFields pkg={pkg} pricing={{ price: form.price, originalPrice: form.originalPrice }} change={change} disabled={disabled} />}

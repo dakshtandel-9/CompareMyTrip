@@ -203,6 +203,15 @@ export const BANNER_SLOTS: BannerSlot[] = [
       image: "/images/deals-mountain-backdrop.webp",
     },
   },
+  {
+    id: "packages-cruise", name: "Cruise packages", where: "/packages?category=cruise",
+    banner: { id: "packages-cruise", eyebrow: "Cruise holidays", title: "A new horizon every day.", description: "Discover coastal escapes and island voyages. Compare cruise packages and find your next adventure at sea.", image: "/catalogue/cruise.jpg" },
+  },
+  {
+    id: "packages-hotels", name: "Hotel packages", where: "/packages?category=hotels",
+    banner: { id: "packages-hotels", eyebrow: "Hotel stays", title: "Stay somewhere special.", description: "From beach resorts to hillside retreats, explore hotel stay packages with room, meal and duration details in one place.", image: "/catalogue/hotels.jpg" },
+  },
+
   /* One per weekend-trek track, built from the tracks themselves so a new
      track arrives in the CRM with a banner rather than without one. */
   ...WEEKEND_TRACKS.map((track) => ({
@@ -1032,6 +1041,8 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
           { id: "nav-4-6", label: "Explore More", href: "/packages?region=international" },
         ],
       },
+      { id: "nav-cruise", label: "Cruise", href: "/packages?category=cruise", children: [] },
+      { id: "nav-hotels", label: "Hotels", href: "/packages?category=hotels", children: [] },
       { id: "nav-5", label: "Deals", href: "/packages?deals=1", children: [] },
       {
         id: "nav-addon",
@@ -2179,12 +2190,20 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
      the id gets it. */
   const addedHeaderItems: { id: string; after: string }[] = [
     { id: "nav-addon", after: "nav-5" },
+    ...(upgradedHeaderItems.some((item) => item.id === "nav-4") ? [
+      { id: "nav-cruise", after: "nav-4" },
+      { id: "nav-hotels", after: "nav-cruise" },
+    ] : []),
   ];
   const headerItems = addedHeaderItems.reduce((items, added) => {
     if (items.some((item) => item.id === added.id)) return items;
+    if (added.id === "nav-cruise" || added.id === "nav-hotels") {
+      const category = added.id === "nav-cruise" ? "cruise" : "hotels";
+      if (items.some((item) => item.href.split(/[?#]/)[0] === `/${category}` || item.href === `/packages?category=${category}`)) return items;
+    }
     const shipped = base.header.items.find((item) => item.id === added.id);
     if (!shipped) return items;
-    const at = items.findIndex((item) => item.id === added.after);
+    const at = items.findIndex((item) => item.id === added.after || (added.after === "nav-cruise" && (item.href.split(/[?#]/)[0] === "/cruise" || item.href === "/packages?category=cruise")));
     const next = [...items];
     next.splice(at < 0 ? next.length : at + 1, 0, shipped);
     return next;
