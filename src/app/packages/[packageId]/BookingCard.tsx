@@ -36,6 +36,10 @@ export default function BookingCard({ bookingUnavailableReason, pkg, details, tr
   const discount = getDiscountPercent(pkg);
   const badges = getPackageBookingBadges(pkg, details).filter(badge => badge.visible && badge.text.trim());
 
+  /* Cruises are quoted rather than planned trip-by-trip, so the secondary
+     action asks for a quote instead of a custom plan. */
+  const customPlanLabel = pkg.tags.includes("Cruise") ? "Get a custom quote" : "Need a custom plan";
+
   const availabilityNote = details.availabilityNote ?? "Availability confirmed with your quote";
   const quoteNote = bookingUnavailableReason ? "" : details.quoteNote ?? "🔒 Secure payment · Instant booking confirmation";
 
@@ -201,7 +205,7 @@ export default function BookingCard({ bookingUnavailableReason, pkg, details, tr
             onClick={onRequestQuote}
             className="flex min-h-[52px] w-full items-center justify-center rounded-[10px] border border-cmt-neutral-900 bg-cmt-neutral-900 px-3 py-3 text-[15px] font-bold text-white transition-colors hover:border-cmt-secondary-900 hover:bg-cmt-secondary-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
           >
-            Need a custom plan
+            {customPlanLabel}
           </button>
         </div>
 

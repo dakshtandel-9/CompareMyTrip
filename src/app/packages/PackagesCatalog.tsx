@@ -65,7 +65,6 @@ const TYPE_CATEGORY: Record<string, PackageCategory> = {
   weekend: "Weekend Treks",
   cultural: "Heritage",
   cruise: "Cruise",
-  hotels: "Hotels",
 };
 
 /* Region has no control of its own on this page — the site header links into
@@ -968,7 +967,7 @@ export function CatalogContent({
         <div className="cmt-catalog-toolbar mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-cmt-neutral-900">
-              {visiblePackages.length} {collection === "cruise" ? "cruise packages" : collection === "hotels" ? "hotel packages" : "holiday packages"}
+              {visiblePackages.length} {collection === "cruise" ? "cruise packages" : "holiday packages"}
               {collectionConfig && <button type="button" onClick={() => router.replace("/packages", { scroll: false })} className="inline-flex items-center gap-1 rounded-cmt-full border border-cmt-neutral-200 bg-white px-2.5 py-1 text-xs font-medium text-cmt-neutral-600">
                 {collectionConfig.label}<X className="size-3" aria-hidden="true" /><span className="sr-only">Show every package again</span>
               </button>}

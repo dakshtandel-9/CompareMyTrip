@@ -19,9 +19,9 @@ import DeletePackageDialog from "./DeletePackageDialog";
 import { catalogueEditorMode, catalogueListHref } from "./catalogueEditorState";
 
 export default function AdminPackagesManager({ collection }: { collection?: PackageCollectionId }) {
-  const basePath = collection === "cruise" ? "/admin/cruises" : collection === "hotels" ? "/admin/hotels" : "/admin/packages";
-  const title = collection === "cruise" ? "Cruises" : collection === "hotels" ? "Hotels" : "Packages";
-  const itemLabel = collection === "cruise" ? "cruise" : collection === "hotels" ? "hotel" : "package";
+  const basePath = collection === "cruise" ? "/admin/cruises" : "/admin/packages";
+  const title = collection === "cruise" ? "Cruises" : "Packages";
+  const itemLabel = collection === "cruise" ? "cruise" : "package";
   const router = useRouter();
   const searchParams = useSearchParams();
   const pageSize = 10;
@@ -140,7 +140,7 @@ export default function AdminPackagesManager({ collection }: { collection?: Pack
   return <div className="font-body text-cmt-neutral-900">
     {pendingDelete && <DeletePackageDialog packages={pendingDelete} busy={working} onCancel={() => setPendingDelete(null)} onConfirm={() => void remove(pendingDelete)} />}
     <div className="flex flex-wrap items-end justify-between gap-4">
-      <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-900">Travel catalogue</p><h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1><p className="mt-2 text-sm text-cmt-neutral-600">{collection ? `Create and manage ${title.toLowerCase()} with the package editor. Published listings appear on your ${collection === "cruise" ? "cruise" : "hotels"} page.` : "Manage every trip in one place. Drafts stay private; published packages appear on your website."}</p></div>
+      <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-900">Travel catalogue</p><h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1><p className="mt-2 text-sm text-cmt-neutral-600">{collection ? `Create and manage ${title.toLowerCase()} with the package editor. Published listings appear on your cruise page.` : "Manage every trip in one place. Drafts stay private; published packages appear on your website."}</p></div>
       <button disabled={!databaseInitialized} title={!databaseInitialized ? "Import the existing catalogue first" : undefined} onClick={() => router.push(`${basePath}?create=1`, { scroll: false })} className="inline-flex h-11 items-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold shadow-cmt-primary hover:bg-cmt-primary-600 disabled:cursor-not-allowed disabled:opacity-50"><PackagePlus className="size-4" /> Create {itemLabel}</button>
     </div>
 

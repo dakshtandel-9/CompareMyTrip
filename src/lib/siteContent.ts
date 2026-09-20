@@ -207,10 +207,6 @@ export const BANNER_SLOTS: BannerSlot[] = [
     id: "packages-cruise", name: "Cruise packages", where: "/packages?category=cruise",
     banner: { id: "packages-cruise", eyebrow: "Cruise holidays", title: "A new horizon every day.", description: "Discover coastal escapes and island voyages. Compare cruise packages and find your next adventure at sea.", image: "/catalogue/cruise.jpg" },
   },
-  {
-    id: "packages-hotels", name: "Hotel packages", where: "/packages?category=hotels",
-    banner: { id: "packages-hotels", eyebrow: "Hotel stays", title: "Stay somewhere special.", description: "From beach resorts to hillside retreats, explore hotel stay packages with room, meal and duration details in one place.", image: "/catalogue/hotels.jpg" },
-  },
 
   /* One per weekend-trek track, built from the tracks themselves so a new
      track arrives in the CRM with a banner rather than without one. */
@@ -1042,7 +1038,6 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         ],
       },
       { id: "nav-cruise", label: "Cruise", href: "/packages?category=cruise", children: [] },
-      { id: "nav-hotels", label: "Hotels", href: "/packages?category=hotels", children: [] },
       { id: "nav-5", label: "Deals", href: "/packages?deals=1", children: [] },
       {
         id: "nav-addon",
@@ -2148,6 +2143,16 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
       : [],
   }));
 
+  /* The Hotels section was retired. A header published while it existed still
+     carries the entry in Firestore, so it is dropped on read — by id and by
+     link, since the editor may have renamed it. Add-On's own Hotels child is
+     a different feature and stays. */
+  const retiredHeaderItems = normalizedHeaderItems.filter((item) =>
+    item.id !== "nav-hotels" &&
+    item.href.split(/[?#]/)[0] !== "/hotels" &&
+    item.href !== "/packages?category=hotels",
+  );
+
   /* Upgrade only the three original shipped nav entries. This lets an older
      Firestore homepage document pick up the new menus without overwriting
      genuinely custom links created in the admin editor. */
@@ -2156,7 +2161,7 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     "nav-3": "Domestic Tours",
     "nav-4": "International Holidays",
   };
-  const upgradedHeaderItems = normalizedHeaderItems.map((item) => {
+  const upgradedHeaderItems = retiredHeaderItems.map((item) => {
     // New services also reach headers already saved in the CRM, while
     // existing service labels, links and positions remain editable.
     if (item.id === "nav-addon") {
@@ -2192,14 +2197,12 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     { id: "nav-addon", after: "nav-5" },
     ...(upgradedHeaderItems.some((item) => item.id === "nav-4") ? [
       { id: "nav-cruise", after: "nav-4" },
-      { id: "nav-hotels", after: "nav-cruise" },
     ] : []),
   ];
   const headerItems = addedHeaderItems.reduce((items, added) => {
     if (items.some((item) => item.id === added.id)) return items;
-    if (added.id === "nav-cruise" || added.id === "nav-hotels") {
-      const category = added.id === "nav-cruise" ? "cruise" : "hotels";
-      if (items.some((item) => item.href.split(/[?#]/)[0] === `/${category}` || item.href === `/packages?category=${category}`)) return items;
+    if (added.id === "nav-cruise") {
+      if (items.some((item) => item.href.split(/[?#]/)[0] === "/cruise" || item.href === "/packages?category=cruise")) return items;
     }
     const shipped = base.header.items.find((item) => item.id === added.id);
     if (!shipped) return items;

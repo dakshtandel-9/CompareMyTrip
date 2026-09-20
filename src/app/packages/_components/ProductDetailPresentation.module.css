@@ -182,11 +182,6 @@
 .page :global(#package-itinerary) ol h3 { margin: 4px 0 8px; font-size: 15px; }
 .page :global(#package-itinerary) ol :global(.cmt-activity-time) { display: inline-block; padding: 2px 8px; border-radius: 5px; background: #fff6dc; color: #8b630a; font-size: 11px; }
 .page :global(#package-transfers) > div > svg { width: 36px; height: 36px; padding: 8px; margin-top: 0; border-radius: 10px; background: #fff4d1; }
-.page :global(#package-stays) article { padding: 20px; border: 1px solid var(--package-border); }
-.page :global(#package-stays) dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.page :global(#package-stays) dl > div { flex-direction: column; gap: 4px; }
-.page :global(#package-stays) dt { color: #6b788b; }
-.page :global(#package-stays) dd { font-weight: 600; }
 .page :global(#package-locations) article { background: #f8fafb; }
 .page :global(#package-locations) article a { padding: 10px 14px; border: 1px solid #dbe1e8; border-radius: 9px; background: white; text-decoration: none; }
 .page :global(#package-locations) article a:hover { background: #fff5d5; border-color: #e4c46e; }
@@ -367,4 +362,46 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .page *, .page *::before, .page *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* Hotel cards share the same layout in the public page and inline editor. */
+.stayCard {
+  overflow: hidden;
+  min-width: 0;
+  border: 1px solid #e4e7ec;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 4px 18px #18253b06;
+}
+.stayHeader { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px; padding: 16px; }
+.stayWithoutImage { grid-template-columns: minmax(0, 1fr); }
+.stayPhoto { position: relative; min-height: 164px; overflow: hidden; border-radius: 12px; background: #f6f4ec; }
+.stayPlaceholder { display: flex; min-height: 164px; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #9a8148; font-size: 12px; }
+.stayIntro { min-width: 0; align-self: center; padding: 8px 8px 8px 0; }
+.stayEyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; color: #947022; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.stayNights { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; padding: 5px 9px; border-radius: 20px; background: #fff7dd; color: #755614; font-size: 11px; letter-spacing: 0; text-transform: none; }
+.stayCard .stayName { margin: 12px 0 7px; color: #19263c; font-size: 22px; font-weight: 650; line-height: 1.25; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.stayLocation { display: flex; align-items: flex-start; gap: 6px; color: #758092; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.stayLocation svg { flex-shrink: 0; margin-top: 2px; }
+.stayStars { display: flex; gap: 3px; margin-top: 14px; color: #e9ac00; }
+.stayDescription { margin: 0 24px; padding: 4px 0 20px; color: #687386; font-size: 13px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.stayTerms { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin: 0 24px; padding: 20px 0; border-top: 1px solid #edf0f3; }
+.stayTerm { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.stayTerm > div { min-width: 0; }
+.stayTermIcon { display: grid; flex-shrink: 0; width: 32px; height: 32px; place-items: center; border-radius: 9px; color: #a07824; background: #fff8e4; }
+.stayCard dt { color: #7a8392; font-size: 10px; font-weight: 600; line-height: 1.5; letter-spacing: .06em; text-transform: uppercase; }
+.stayCard dd { margin: 5px 0 0; color: #253247; font-size: 13px; font-weight: 600; line-height: 1.6; overflow-wrap: anywhere; }
+.stayDates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding: 16px 24px; border-top: 1px solid #eceef2; background: #f8f9fb; }
+.stayDates > div { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.stayDates > div > div { min-width: 0; }
+.stayDates svg { flex-shrink: 0; margin-top: 2px; color: #8a95a5; }
+.stayEditor { padding: 12px 24px; }
+@media (max-width: 639px) {
+  .stayHeader { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; }
+  .stayPhoto { aspect-ratio: 16 / 10; min-height: 0; }
+  .stayIntro { padding: 12px 8px 8px; }
+  .stayCard .stayName { font-size: 21px; }
+  .stayDescription { margin: 0 20px; }
+  .stayTerms { grid-template-columns: minmax(0, 1fr); margin: 0 20px; gap: 18px; }
+  .stayDates { padding: 16px 20px; gap: 14px; }
 }

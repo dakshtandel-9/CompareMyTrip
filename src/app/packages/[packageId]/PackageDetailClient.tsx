@@ -1,14 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowLeft, Check, ChevronDown, MapPin, ShieldCheck, Star, X } from "lucide-react";
+import { ArrowLeft, BedDouble, CalendarDays, Check, ChevronDown, Hotel, MapPin, Moon, ShieldCheck, Star, Utensils, X } from "lucide-react";
 import { getDiscountPercent, getPackageDetails, getPackageItinerary } from "@/lib/packageData";
 import { getPackageFacts } from "@/lib/packageFacts";
+import { bypassesImageOptimizer, isDisplayableImage } from "@/lib/displayableImage";
 import { getPackagePageSections, isVisiblePackageSection } from "@/lib/packageDetailSections";
 import PackageFactsBar from "../_components/PackageFactsBar";
-import { InlineText, EditableGallery, EditorOnly, EditAction, usePackageEditing } from "../_components/PackageInlineEditing";
+import { InlineText, EditableGallery, EditableImage, EditorOnly, EditAction, usePackageEditing } from "../_components/PackageInlineEditing";
 import styles from "../_components/SimplePackagePage.module.css";
 import presentation from "../_components/ProductDetailPresentation.module.css";
 import PackagePageSections, { getVisiblePackageReviews, PackageDescription, PracticalSection } from "../_components/PackagePageSections";
@@ -18,7 +20,7 @@ import CompareButton from "@/components/CompareButton";
 import BookingCard from "./BookingCard";
 import QuoteModal from "./QuoteModal";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
-import type { TravelPackage } from "@/lib/packageData";
+import type { PackageStay, TravelPackage } from "@/lib/packageData";
 import { usePackagesState } from "@/lib/usePackages";
 import { getSimilarPackages } from "@/lib/similarPackages";
 import PackageCard from "@/app/home/_components/PackageCard";
@@ -165,13 +167,7 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
               {(editor || pageSections.itineraryNote?.trim()) && <Note><InlineText value={pageSections.itineraryNote ?? ""} path={["details", "pageSections", "itineraryNote"]} label="itineraryNote" multiline /></Note>}
             </Section>}
             {showStays && <Section id="package-stays" title="Stay and meal plan">
-              <div className="space-y-5">{details.stays.map((stay, index) => <article key={index} className="min-w-0 border-b border-cmt-neutral-100 pb-5">
-                <h3 className="font-semibold"><InlineText value={stay.name} path={["details", "stays", index, "name"]} label="Stay name" /></h3>
-                <p className="mt-2 text-sm text-cmt-neutral-500"><InlineText value={stay.place} path={["details", "stays", index, "place"]} label="Stay location" /> · <InlineText value={stay.nights} numeric path={["details", "stays", index, "nights"]} label="Stay nights" /> nights</p>
-                <p className="mt-3 text-sm leading-7"><InlineText value={stay.comfort} path={["details", "stays", index, "comfort"]} label="Stay description" multiline /></p>
-                <dl className="mt-3 space-y-2 text-xs">{([['Room', 'roomType'], ['Meal plan', 'mealPlan'], ['Check-in', 'checkIn'], ['Check-out', 'checkOut']] as const).filter(([, key]) => editor || stay[key]?.trim()).map(([label, key]) => <div key={key} className="flex flex-wrap gap-3"><dt>{label}</dt><dd><InlineText value={stay[key] ?? ""} path={["details", "stays", index, key]} label={label} /></dd></div>)}</dl>
-                <EditAction kind="remove" label="Remove stay" onClick={() => editor?.change(["details", "stays"], details.stays.filter((_, i) => i !== index))} />
-              </article>)}</div>
+              <div className="cmt-package-stays space-y-5">{details.stays.map((stay, index) => <StayCard key={index} stay={stay} index={index} stays={details.stays} />)}</div>
               <EditAction label="Add stay" onClick={() => editor?.change(["details", "stays"], [...details.stays, { name: "New stay", place: "", nights: 1, comfort: "" }])} />
               {(editor || pageSections.stayNote?.trim()) && <Note><InlineText value={pageSections.stayNote ?? ""} path={["details", "pageSections", "stayNote"]} label="stayNote" multiline /></Note>}
             </Section>}
@@ -302,6 +298,50 @@ function Section({ id, title, eyebrow, children }: { id?: string; title: string;
 function ListSection({ id, title, items, path, positive = false }: { id: string; title: string; items: string[]; path: "inclusions" | "exclusions"; positive?: boolean }) {
   const editor = usePackageEditing();
   return <Section id={id} title={title}><ul className="space-y-3">{items.map((item, index) => <li key={index} className="flex gap-2.5 text-sm leading-6 text-cmt-neutral-600">{positive ? <Check className="mt-1 size-4 shrink-0 text-cmt-success-700" /> : <X className="mt-1 size-4 shrink-0 text-cmt-coral-700" />}<InlineText value={item} path={["details", path, index]} label={`${title} item ${index + 1}`} multiline /><EditAction kind="remove" label="Remove item" onClick={() => editor?.change(["details", path], items.filter((_, i) => i !== index))} /></li>)}</ul><EditAction label="Add item" onClick={() => editor?.change(["details", path], [...items, "New item"])} /></Section>;
+}
+
+function StayCard({ stay, index, stays }: { stay: PackageStay; index: number; stays: PackageStay[] }) {
+  const editor = usePackageEditing();
+  const path = (key: keyof PackageStay) => ["details", "stays", index, key];
+  const stars = Math.max(0, Math.min(5, Math.round(stay.stars ?? 0)));
+  const terms = ([["Room type", "roomType", BedDouble], ["Meal plan", "mealPlan", Utensils], ["Room inclusion", "roomInclusion", Check]] as const)
+    .filter(([, key]) => editor || stay[key]?.toString().trim());
+  const dates = ([["Check-in", "checkIn"], ["Check-out", "checkOut"]] as const)
+    .filter(([, key]) => editor || stay[key]?.trim());
+  const hasImage = Boolean(editor) || isDisplayableImage(stay.image);
+
+  return (
+    <article className={`cmt-package-stay ${presentation.stayCard}`}>
+      <div className={`${presentation.stayHeader} ${!hasImage ? presentation.stayWithoutImage : ""}`}>
+        {hasImage && <div className={presentation.stayPhoto}>
+          {isDisplayableImage(stay.image)
+            ? <Image src={stay.image} alt={stay.name.trim() || "Hotel photo"} fill sizes="(min-width: 640px) 220px, 100vw" className="object-cover" unoptimized={bypassesImageOptimizer(stay.image)} />
+            : <span className={presentation.stayPlaceholder}><Hotel size={32} aria-hidden="true" /><span>Add a hotel photo</span></span>}
+        </div>}
+        <div className={presentation.stayIntro}>
+          <div className={presentation.stayEyebrow}><Hotel size={14} aria-hidden="true" /> Your stay
+            {(editor || stay.nights > 0) && <span className={presentation.stayNights}><Moon size={12} aria-hidden="true" /><InlineText value={stay.nights} numeric path={path("nights")} label="Stay nights" /> night{stay.nights === 1 ? "" : "s"}</span>}
+          </div>
+          <h3 className={presentation.stayName}><InlineText value={stay.name} path={path("name")} label="Stay name" /></h3>
+          {(editor || stay.place.trim()) && <p className={presentation.stayLocation}><MapPin size={14} aria-hidden="true" /><span><InlineText value={stay.place} path={path("place")} label="Stay location" /></span></p>}
+          {(editor || stars > 0) && <div className={presentation.stayStars}>
+            {editor ? <span><InlineText value={stay.stars ?? 0} numeric path={path("stars")} label="Stay star rating" /> ★</span> : <><span className="sr-only">{stars} star hotel</span>{Array.from({ length: stars }, (_, star) => <Star key={star} size={14} fill="currentColor" aria-hidden="true" />)}</>}
+          </div>}
+        </div>
+      </div>
+      {(editor || stay.comfort.trim()) && <p className={presentation.stayDescription}><InlineText value={stay.comfort} path={path("comfort")} label="Stay description" multiline /></p>}
+      {terms.length > 0 && <dl className={presentation.stayTerms}>
+        {terms.map(([label, key, Icon]) => <div key={key} className={presentation.stayTerm}>
+          <span className={presentation.stayTermIcon}><Icon size={17} aria-hidden="true" /></span>
+          <div><dt>{label}</dt><dd><InlineText value={stay[key] ?? ""} path={path(key)} label={label} /></dd></div>
+        </div>)}
+      </dl>}
+      {dates.length > 0 && <dl className={presentation.stayDates}>
+        {dates.map(([label, key]) => <div key={key}><CalendarDays size={16} aria-hidden="true" /><div><dt>{label}</dt><dd><InlineText value={stay[key] ?? ""} path={path(key)} label={label} /></dd></div></div>)}
+      </dl>}
+      {editor && <div className={presentation.stayEditor}><EditableImage value={stay.image ?? ""} path={path("image")} label="hotel photo" /><EditAction kind="remove" label="Remove stay" onClick={() => editor.change(["details", "stays"], stays.filter((_, i) => i !== index))} /></div>}
+    </article>
+  );
 }
 
 function Note({ children }: { children: React.ReactNode }) {

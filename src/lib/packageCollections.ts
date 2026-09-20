@@ -1,15 +1,13 @@
 import type { PackageCategory, TravelPackage } from "@/lib/packageData";
 
-export type PackageCollectionId = "cruise" | "hotels";
+export type PackageCollectionId = "cruise";
 export const PACKAGE_COLLECTIONS: Record<PackageCollectionId, { label: string; category: PackageCategory; bannerId: string }> = {
   cruise: { label: "Cruise packages", category: "Cruise", bannerId: "packages-cruise" },
-  hotels: { label: "Hotel packages", category: "Hotels", bannerId: "packages-hotels" },
 };
 
 export function parsePackageCollection(value: string | null): PackageCollectionId | null {
   const category = value?.trim().toLowerCase();
   if (category === "cruise" || category === "cruises") return "cruise";
-  if (category === "hotels" || category === "hotel") return "hotels";
   return null;
 }
 
@@ -54,9 +52,6 @@ export const COLLECTION_DEMO_PACKAGES: TravelPackage[] = [
   sample({ id: "demo-cruise-arabian-sea", title: "Arabian Sea Weekend Cruise", location: "Mumbai · Goa", destination: "Maharashtra", region: "India", days: 3, price: 17999, hotelStars: 4, tags: ["Cruise", "Family", "Beaches"], image: "/catalogue/cruise.jpg", highlights: ["Ocean-view cabin", "Sunset on deck", "Onboard entertainment"] }),
   sample({ id: "demo-cruise-singapore", title: "Singapore Island Voyage", location: "Singapore · Penang", destination: "Singapore", region: "International", days: 4, price: 32999, hotelStars: 4, tags: ["Cruise", "Family", "Adventure"], image: "/catalogue/cruise-singapore.jpg", highlights: ["Island port calls", "Pool deck access", "Evening performances"] }),
   sample({ id: "demo-cruise-mediterranean", title: "Mediterranean Coastal Escape", location: "Barcelona · Marseille · Genoa", destination: "Spain", region: "International", days: 6, price: 69999, hotelStars: 5, tags: ["Cruise", "Luxury", "Heritage"], image: "/catalogue/cruise-mediterranean.jpg", highlights: ["Mediterranean ports", "Balcony cabin", "Leisure time ashore"] }),
-  sample({ id: "demo-hotel-goa", title: "Palm Cove Beach Resort", location: "Candolim · Goa", destination: "Goa", region: "India", days: 3, price: 8999, hotelStars: 4, tags: ["Hotels", "Beaches", "Family"], image: "/catalogue/hotels.jpg", highlights: ["Beachside setting", "Swimming pool", "Daily breakfast"] }),
-  sample({ id: "demo-hotel-coorg", title: "Coorg Hillside Retreat", location: "Madikeri · Coorg", destination: "Karnataka", region: "India", days: 3, price: 11999, hotelStars: 4, tags: ["Hotels", "Mountains", "Honeymoon"], image: "/catalogue/hotel-hills.jpg", highlights: ["Coffee estate setting", "Valley-view room", "Guided estate walk"] }),
-  sample({ id: "demo-hotel-bali", title: "Bali Lagoon Villa Stay", location: "Ubud · Bali", destination: "Bali", region: "International", days: 5, price: 24999, hotelStars: 5, tags: ["Hotels", "Luxury", "Honeymoon"], image: "/categories/honeymoon.jpg", highlights: ["Private villa", "Pool access", "Tropical garden setting"] }),
 ];
 
 export function isCollectionDemo(id: string): boolean {

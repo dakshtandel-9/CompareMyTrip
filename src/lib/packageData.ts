@@ -33,6 +33,11 @@ export type PackageStay = {
   mealPlan?: string;
   checkIn?: string;
   checkOut?: string;
+  /* Optional hotel-card extras. A stay shows as a plain entry without them
+     and gains the star row, photo and inclusion line as each is filled in. */
+  stars?: number;
+  image?: string;
+  roomInclusion?: string;
 };
 
 export type PackageBookingBadge = {

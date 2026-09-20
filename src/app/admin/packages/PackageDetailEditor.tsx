@@ -13,6 +13,7 @@ import PackageFactsEditor from "./PackageFactsEditor";
 import PackagePageSectionsEditor from "./PackagePageSectionsEditor";
 import PackageContentField from "./PackageContentField";
 import PackageDestinationSelect from "./PackageDestinationSelect";
+import StayPhotoField from "./StayPhotoField";
 import styles from "./AdminPackageBuilder.module.css";
 
 export const PACKAGE_EDITOR_AREAS = [
@@ -117,8 +118,9 @@ export default function PackageDetailEditor({ lockedCategory, form, pkg, section
         {section === "stays" && <>
           {visibility("stays")}
           {form.stays.map((stay, index) => <details key={index} open={index === 0} className={styles.item}><summary>{stay.name || `Stay ${index + 1}`}</summary><div className={styles.itemFields}>
-            <div className={styles.fieldGrid}>{([['Name', 'name'], ['Location', 'place'], ['Room type', 'roomType'], ['Meal plan', 'mealPlan'], ['Check-in', 'checkIn'], ['Check-out', 'checkOut']] as const).map(([label, key]) => <TextField key={key} label={`Stay ${index + 1}: ${label}`} value={stay[key] ?? ""} onChange={value => change(["details", "stays", index, key], value)} />)}<label><FieldLabel>Stay {index + 1}: Nights</FieldLabel><input className={inputClass} type="number" min="1" value={stay.nights} onChange={event => change(["details", "stays", index, "nights"], Number(event.target.value))} /></label></div>
+            <div className={styles.fieldGrid}>{([['Name', 'name'], ['Location', 'place'], ['Room type', 'roomType'], ['Meal plan', 'mealPlan'], ['Room inclusion', 'roomInclusion'], ['Check-in', 'checkIn'], ['Check-out', 'checkOut']] as const).map(([label, key]) => <TextField key={key} label={`Stay ${index + 1}: ${label}`} value={stay[key] ?? ""} onChange={value => change(["details", "stays", index, key], value)} />)}<label><FieldLabel>Stay {index + 1}: Nights</FieldLabel><input className={inputClass} type="number" min="1" value={stay.nights} onChange={event => change(["details", "stays", index, "nights"], Number(event.target.value))} /></label><label><FieldLabel>Stay {index + 1}: Star rating</FieldLabel><input className={inputClass} type="number" min="0" max="5" value={stay.stars ?? 0} onChange={event => change(["details", "stays", index, "stars"], Number(event.target.value))} /></label></div>
             <PackageContentField disabled={disabled} label={`Stay ${index + 1}: description`} value={stay.comfort} onChange={value => change(["details", "stays", index, "comfort"], value)} />
+            <StayPhotoField label={`Stay ${index + 1}: Hotel photo`} value={stay.image ?? ""} disabled={disabled} onUploadImages={onUploadImages} onChange={value => change(["details", "stays", index, "image"], value)} />
             <div className={styles.rowActions}><button type="button" className={button} disabled={index === 0} aria-label={`Move stay ${index + 1} up`} onClick={() => set("stays", move(form.stays, index, -1))}><ArrowUp size={14} /></button><button type="button" className={button} disabled={index === form.stays.length - 1} aria-label={`Move stay ${index + 1} down`} onClick={() => set("stays", move(form.stays, index, 1))}><ArrowDown size={14} /></button><button type="button" className={button} onClick={() => set("stays", form.stays.filter((_, i) => i !== index))}><Trash2 size={14} />Remove stay</button></div>
           </div></details>)}
           {!form.stays.length && <p>No stays added. This section stays off the website until you add a stay.</p>}

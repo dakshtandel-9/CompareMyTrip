@@ -22,7 +22,7 @@ import { useUnsavedContentChanges } from "../content/useUnsavedContentChanges";
 
 const button = "inline-flex items-center gap-2 rounded-lg border border-cmt-neutral-200 bg-white px-3 py-2 text-xs font-semibold disabled:opacity-40";
 export default function AdminPackageBuilder({ collection, initialPackage, initialDestination = "", initialRegion = "India", filedUnderOptions, protectedImages = [], onCancel, onSaved }: { collection?: PackageCollectionId; initialPackage?: TravelPackage; initialDestination?: string; initialRegion?: TravelPackage["region"]; filedUnderOptions: Record<TravelPackage["region"], string[]>; protectedImages?: string[]; onCancel: () => void; onSaved: (message: string) => void }) {
-  const itemLabel = collection === "cruise" ? "cruise" : collection === "hotels" ? "hotel" : "package";
+  const itemLabel = collection === "cruise" ? "cruise" : "package";
   const draftStorageKey = `${PACKAGE_DRAFT_IMAGE_KEY_PREFIX}${initialPackage?.id ?? `new-${collection ?? "package"}`}`;
   const draftImagesRef = useRef<string[]>([]);
   const protectedImagesRef = useRef(protectedImages);
@@ -157,7 +157,7 @@ export default function AdminPackageBuilder({ collection, initialPackage, initia
 
   return <div className={styles.editor}>
     <div ref={toolbarRef} className={styles.toolbar}>
-      <div><button type="button" className="mb-1 inline-flex items-center gap-1 text-xs text-cmt-neutral-500" disabled={busy} onClick={() => void handleCancel()}><ArrowLeft size={13} />Back to {collection === "cruise" ? "cruises" : collection === "hotels" ? "hotels" : "packages"}</button><h1 className="text-lg font-semibold">{`${initialPackage ? "Edit" : "Create"} ${itemLabel}`}</h1><p className="text-xs text-cmt-neutral-500">{dirty ? "Unsaved changes" : "All changes saved"} · Drafts stay private. Published packages update after saving.</p></div>
+      <div><button type="button" className="mb-1 inline-flex items-center gap-1 text-xs text-cmt-neutral-500" disabled={busy} onClick={() => void handleCancel()}><ArrowLeft size={13} />Back to {collection === "cruise" ? "cruises" : "packages"}</button><h1 className="text-lg font-semibold">{`${initialPackage ? "Edit" : "Create"} ${itemLabel}`}</h1><p className="text-xs text-cmt-neutral-500">{dirty ? "Unsaved changes" : "All changes saved"} · Drafts stay private. Published packages update after saving.</p></div>
       <div className={styles.actions}>
         <button className={button} type="button" disabled={!history.length || busy} onClick={() => { const previous = history[history.length - 1]; setHistory(items => items.slice(0, -1)); formRef.current = previous; setForm(previous); setError(""); }}><Undo2 size={14} />Undo</button>
         <button className={button} type="button" disabled={busy} onClick={() => setEditing(value => !value)}>{editing ? <Eye size={14} /> : <Pencil size={14} />}{editing ? "Preview page" : "Back to editor"}</button>

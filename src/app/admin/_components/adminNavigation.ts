@@ -1,4 +1,4 @@
-import { Ship, Hotel, BookOpen, Compass, GalleryHorizontalEnd, LayoutDashboard, Mail, MessageSquareText, MessagesSquare, Newspaper, PackageSearch, PanelsTopLeft, Plane, Sparkles, TicketPercent, Users, type LucideIcon } from "lucide-react";
+import { Ship, BookOpen, Compass, GalleryHorizontalEnd, LayoutDashboard, Mail, MessageSquareText, MessagesSquare, Newspaper, PackageSearch, PanelsTopLeft, Plane, Sparkles, TicketPercent, Users, type LucideIcon } from "lucide-react";
 
 export type AdminNavItem = { href: string; label: string; description: string; icon: LucideIcon; keywords?: string };
 export const ADMIN_NAV_GROUPS: { label: string; items: AdminNavItem[] }[] = [
@@ -14,7 +14,6 @@ export const ADMIN_NAV_GROUPS: { label: string; items: AdminNavItem[] }[] = [
   { label: "Travel catalogue", items: [
     { href: "/admin/packages", label: "Travel packages", description: "Create and edit prices, itineraries, photos and availability.", icon: PackageSearch, keywords: "inventory products draft publish" },
     { href: "/admin/cruises", label: "Cruises", description: "Create and manage cruise packages, cabins, prices and sailing itineraries.", icon: Ship, keywords: "cruise ship voyage sailing draft publish" },
-    { href: "/admin/hotels", label: "Hotels", description: "Create and manage hotel stays, rooms, photos and prices.", icon: Hotel, keywords: "hotel resort accommodation draft publish" },
     { href: "/admin/destinations", label: "Destinations", description: "Create destinations, add packages and manage cover photos.", icon: Compass, keywords: "places countries states image create add package" },
     { href: "/admin/coupons", label: "Discount codes", description: "Manage coupon amounts, dates and eligible packages.", icon: TicketPercent, keywords: "coupons offers promotions" },
   ] },

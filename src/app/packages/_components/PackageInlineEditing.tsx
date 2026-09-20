@@ -62,6 +62,26 @@ export function EditAction({ label, onClick, kind = "add", disabled = false }: {
   return <button type="button" className={styles.action} disabled={disabled || editor.disabled} onClick={event => { event.preventDefault(); event.stopPropagation(); onClick(); }}><Icon size={13} />{label}</button>;
 }
 
+/* A single optional photo, uploaded or pasted. Used where one picture
+   belongs to one item — a stay's hotel photo — rather than a gallery. */
+export function EditableImage({ value, path, label }: { value: string; path: ContentPath; label: string }) {
+  const editor = usePackageEditing();
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const file = useRef<HTMLInputElement>(null);
+  if (!editor) return null;
+  return <div className={styles.photos}>
+    <button type="button" className={styles.action} disabled={busy || editor.disabled} onClick={() => file.current?.click()}><Upload size={14} />{busy ? "Uploading…" : value ? `Replace ${label}` : `Add ${label}`}</button>
+    {value && <EditAction kind="remove" label={`Remove ${label}`} disabled={busy} onClick={() => editor.change(path, "")} />}
+    <input ref={file} hidden type="file" accept="image/jpeg,image/png,image/webp" aria-label={`Upload ${label}`} onChange={async event => {
+      const files = Array.from(event.target.files ?? []).slice(0, 1); event.target.value = "";
+      if (!files.length) return; setBusy(true); setError("");
+      try { const uploaded = await editor.upload(files); if (uploaded[0]) editor.change(path, uploaded[0]); } catch (cause) { setError(cause instanceof Error ? cause.message : "Upload failed"); } finally { setBusy(false); }
+    }} />
+    {error && <p role="alert">{error}</p>}
+  </div>;
+}
+
 export function EditableGallery({ images, path = ["details", "gallery"], maxImages = 10 }: { images: string[]; path?: ContentPath; maxImages?: number }) {
   const editor = usePackageEditing();
   const [error, setError] = useState("");

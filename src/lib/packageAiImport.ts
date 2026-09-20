@@ -32,7 +32,7 @@ const productSchema = object({
   dayZeroEnabled: bool,
   itinerary: array(object({ day: number(0, 30), title: str("", true), route: str(), description: str(), meals: str(),
     activities: array(object({ time: str(), title: str("", true), description: str() })) }), 31, 1),
-  stays: array(object({ name: str("", true), nights: number(1, 30), place: str(), comfort: str(), roomType: str(), mealPlan: str(), checkIn: str(), checkOut: str() }), 30),
+  stays: array(object({ name: str("", true), nights: number(1, 30), place: str(), comfort: str(), roomType: str(), mealPlan: str(), checkIn: str(), checkOut: str(), stars: number(0, 5), roomInclusion: str("Extras bundled with the room, for example breakfast or airport transfer") }), 30),
   inclusions: textList, exclusions: textList, meals: str(), transfers: str(), flights: str(), cancellationPolicy: str(),
   pageSections: object({
     tagline: str(), introduction: str(), itineraryNote: str(), stayNote: str(), inclusionNote: str(), bookingNote: str(),

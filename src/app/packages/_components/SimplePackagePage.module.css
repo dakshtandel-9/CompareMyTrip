@@ -199,11 +199,6 @@
 .page :global(#package-itinerary) ol h3 { margin: 4px 0 8px; font-size: 15px; }
 .page :global(#package-itinerary) ol :global(.cmt-activity-time) { display: inline-block; padding: 2px 8px; border-radius: 5px; background: #fff6dc; color: #8b630a; font-size: 11px; }
 .page :global(#package-transfers) > div > svg { width: 36px; height: 36px; padding: 8px; margin-top: 0; border-radius: 10px; background: #fff4d1; }
-.page :global(#package-stays) article { padding: 20px; border: 1px solid var(--package-border); }
-.page :global(#package-stays) dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.page :global(#package-stays) dl > div { flex-direction: column; gap: 4px; }
-.page :global(#package-stays) dt { color: #6b788b; }
-.page :global(#package-stays) dd { font-weight: 600; }
 .page :global(#package-locations) article { background: #f8fafb; }
 .page :global(#package-locations) article a { padding: 10px 14px; border: 1px solid #dbe1e8; border-radius: 9px; background: white; text-decoration: none; }
 .page :global(#package-locations) article a:hover { background: #fff5d5; border-color: #e4c46e; }

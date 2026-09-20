@@ -129,9 +129,10 @@ export function createPackageItineraryPdf(pkg: TravelPackage, packageUrl: string
     section("Hotels & accommodation");
     for (const stay of details.stays) {
       ensureSpace(24);
-      paragraph(`${stay.name}${stay.nights > 0 ? ` - ${stay.nights} night${stay.nights === 1 ? "" : "s"}` : ""}`, 11, true);
+      const rating = stay.stars && stay.stars > 0 ? ` (${Math.round(stay.stars)} star)` : "";
+      paragraph(`${stay.name}${rating}${stay.nights > 0 ? ` - ${stay.nights} night${stay.nights === 1 ? "" : "s"}` : ""}`, 11, true);
       paragraph(`${stay.place}\n${stay.comfort}`);
-      for (const [label, value] of [["Room", stay.roomType], ["Meal plan", stay.mealPlan], ["Check-in", stay.checkIn], ["Check-out", stay.checkOut]]) {
+      for (const [label, value] of [["Room", stay.roomType], ["Meal plan", stay.mealPlan], ["Room inclusion", stay.roomInclusion], ["Check-in", stay.checkIn], ["Check-out", stay.checkOut]]) {
         if (value?.trim()) paragraph(`${label}: ${value}`, 9);
       }
     }
