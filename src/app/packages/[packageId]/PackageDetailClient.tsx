@@ -302,6 +302,7 @@ function ListSection({ id, title, items, path, positive = false }: { id: string;
 
 function StayCard({ stay, index, stays }: { stay: PackageStay; index: number; stays: PackageStay[] }) {
   const editor = usePackageEditing();
+  const [failedImage, setFailedImage] = useState<string | null>(null);
   const path = (key: keyof PackageStay) => ["details", "stays", index, key];
   const stars = Math.max(0, Math.min(5, Math.round(stay.stars ?? 0)));
   const terms = ([["Room type", "roomType", BedDouble], ["Meal plan", "mealPlan", Utensils], ["Room inclusion", "roomInclusion", Check]] as const)
@@ -314,9 +315,9 @@ function StayCard({ stay, index, stays }: { stay: PackageStay; index: number; st
     <article className={`cmt-package-stay ${presentation.stayCard}`}>
       <div className={`${presentation.stayHeader} ${!hasImage ? presentation.stayWithoutImage : ""}`}>
         {hasImage && <div className={presentation.stayPhoto}>
-          {isDisplayableImage(stay.image)
-            ? <Image src={stay.image} alt={stay.name.trim() || "Hotel photo"} fill sizes="(min-width: 640px) 220px, 100vw" className="object-cover" unoptimized={bypassesImageOptimizer(stay.image)} />
-            : <span className={presentation.stayPlaceholder}><Hotel size={32} aria-hidden="true" /><span>Add a hotel photo</span></span>}
+          {isDisplayableImage(stay.image) && failedImage !== stay.image
+            ? <Image key={stay.image} src={stay.image} alt={stay.name.trim() || "Hotel photo"} fill sizes="(min-width: 640px) 220px, 100vw" className="object-cover" unoptimized={bypassesImageOptimizer(stay.image)} onError={() => setFailedImage(stay.image!)} />
+            : <span className={presentation.stayPlaceholder}><Hotel size={32} aria-hidden="true" /><span>{failedImage === stay.image ? "Hotel photo unavailable" : "Add a hotel photo"}</span></span>}
         </div>}
         <div className={presentation.stayIntro}>
           <div className={presentation.stayEyebrow}><Hotel size={14} aria-hidden="true" /> Your stay

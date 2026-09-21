@@ -202,6 +202,8 @@ test('admin Save uses the shared editor draft, waits for text imports, preserves
     react: hooks, 'react/jsx-runtime': jsx,
     'lucide-react': Object.fromEntries(['ArrowLeft','Save','Undo2','Eye','Pencil'].map(name => [name, noop])),
     '@/lib/packageData': data, '@/lib/packageDetailSections': sections,
+    '@/lib/packageImages': load('src/lib/packageImages.ts', { '@/lib/packageData': data, '@/lib/packageDetailSections': sections }),
+    '@/lib/packageCollections': load('src/lib/packageCollections.ts'),
     '@/lib/firebase/packages': { savePackage: async pkg => saved.push(pkg), uploadPackageImage: async () => '/uploaded.jpg' },
     '@/lib/cloudflareUpload': { PACKAGE_DRAFT_IMAGE_KEY_PREFIX: 'test-', deleteImageFromCloudflare: async () => {} },
     '@/lib/packageAiImport': { applyPackageImport: () => {} },

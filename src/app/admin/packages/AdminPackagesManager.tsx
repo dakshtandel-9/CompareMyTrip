@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Database, Edit3, ExternalLink, PackagePlus, Search, Trash2 } from "lucide-react";
 import { deletePackages, seedPackages } from "@/lib/firebase/packages";
-import { DUMMY_PACKAGES, getPackageDetails, isPublishedPackage, type TravelPackage } from "@/lib/packageData";
-import { getPackagePageSections, packagePageSectionImages } from "@/lib/packageDetailSections";
+import { DUMMY_PACKAGES, isPublishedPackage, type TravelPackage } from "@/lib/packageData";
+import { packageImages } from "@/lib/packageImages";
 import { cleanupAbandonedPackageImages, deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
 import { INDIA_STATES, toIndiaState } from "@/lib/indiaStates";
 import { useDestinationCoversState } from "@/lib/useDestinationCovers";
@@ -45,10 +45,7 @@ export default function AdminPackagesManager({ collection }: { collection?: Pack
   useEffect(() => {
     if (loading || error || !databaseInitialized || editing || searchParams.has("create") || imageCleanupStarted.current) return;
     imageCleanupStarted.current = true;
-    const retained = packages.flatMap(pkg => {
-      const details = getPackageDetails(pkg);
-      return [pkg.image, ...details.gallery, ...packagePageSectionImages(getPackagePageSections(details))];
-    });
+    const retained = packages.flatMap(packageImages);
     void cleanupAbandonedPackageImages(retained).then(({ failedCount }) => {
       if (failedCount) setActionError(`${failedCount} abandoned package image${failedCount === 1 ? "" : "s"} could not be deleted. Cleanup will retry next time.`);
     });
@@ -99,10 +96,7 @@ export default function AdminPackagesManager({ collection }: { collection?: Pack
   };
 
   if (currentEditing) {
-    const protectedImages = packages.filter(pkg => currentEditing === "new" || pkg.id !== currentEditing.id).flatMap(pkg => {
-      const details = getPackageDetails(pkg);
-      return [pkg.image, ...details.gallery, ...packagePageSectionImages(getPackagePageSections(details))];
-    });
+    const protectedImages = packages.filter(pkg => currentEditing === "new" || pkg.id !== currentEditing.id).flatMap(packageImages);
     return <AdminPackageBuilder collection={collection} initialDestination={searchParams.get("destination") ?? ""} initialRegion={searchParams.get("region") === "International" ? "International" : "India"} initialPackage={currentEditing === "new" ? undefined : currentEditing} filedUnderOptions={filedUnderOptions} protectedImages={protectedImages} onCancel={closeEditor} onSaved={(message) => { setSuccess(message); closeEditor(); }} />;
   }
 
@@ -121,10 +115,6 @@ export default function AdminPackagesManager({ collection }: { collection?: Pack
       const { refreshWarning } = await deletePackages(targets.map((pkg) => pkg.id));
       const deletedIds = new Set(targets.map((pkg) => pkg.id));
       setSelectedIds((previous) => new Set([...previous].filter((id) => !deletedIds.has(id))));
-      const packageImages = (pkg: TravelPackage) => {
-        const details = getPackageDetails(pkg);
-        return [pkg.image, ...details.gallery, ...packagePageSectionImages(getPackagePageSections(details))];
-      };
       const retainedImages = new Set(packages.filter((pkg) => !deletedIds.has(pkg.id)).flatMap(packageImages));
       const images = [...new Set(targets.flatMap(packageImages))].filter((image) => !retainedImages.has(image));
       const cleanup = await Promise.allSettled(images.map(deleteImageFromCloudflare));

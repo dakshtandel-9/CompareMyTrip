@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Save, Undo2, Eye, Pencil } from "lucide-react";
 import { getPackageDetails, type TravelPackage } from "@/lib/packageData";
-import { getPackagePageSections, packagePageSectionImages } from "@/lib/packageDetailSections";
+import { packageImages } from "@/lib/packageImages";
 import { savePackage, uploadPackageImage } from "@/lib/firebase/packages";
 import { deleteImageFromCloudflare, PACKAGE_DRAFT_IMAGE_KEY_PREFIX } from "@/lib/cloudflareUpload";
 import { PACKAGE_COLLECTIONS, withPackageCollection, type PackageCollectionId } from "@/lib/packageCollections";
@@ -70,8 +70,7 @@ export default function AdminPackageBuilder({ collection, initialPackage, initia
     // package. Cleanup happens only when this draft is saved or discarded.
     const stored = sessionStorage.getItem(draftStorageKey);
     if (!stored) return;
-    const savedDetails = initialPackage ? getPackageDetails(initialPackage) : null;
-    const retained = new Set([...protectedImagesRef.current, ...(savedDetails ? [initialPackage!.image, ...savedDetails.gallery, ...packagePageSectionImages(getPackagePageSections(savedDetails))] : [])]);
+    const retained = new Set([...protectedImagesRef.current, ...(initialPackage ? packageImages(initialPackage) : [])]);
     try {
       const values: unknown = JSON.parse(stored);
       draftImagesRef.current = Array.isArray(values) ? [...new Set(values.filter((value): value is string => typeof value === "string" && !retained.has(value)))] : [];
@@ -132,9 +131,8 @@ export default function AdminPackageBuilder({ collection, initialPackage, initia
       setSaving(true); const result = await savePackage(newPackage);
       // Retain images in hidden sections. Clean removed uploads only after the
       // package has saved successfully, so cancelling never breaks a live page.
-      const retained = new Set([newPackage.image, ...form.gallery, ...packagePageSectionImages(form.pageSections), ...protectedImages]);
-      const previousDetails = initialPackage ? getPackageDetails(initialPackage) : null;
-      const previousImages = previousDetails ? [initialPackage!.image, ...previousDetails.gallery, ...packagePageSectionImages(getPackagePageSections(previousDetails))] : [];
+      const retained = new Set([...packageImages(newPackage), ...protectedImagesRef.current]);
+      const previousImages = initialPackage ? packageImages(initialPackage) : [];
       const removed = [...new Set([...draftImagesRef.current, ...previousImages])].filter((image) => image.startsWith("https://") && !retained.has(image));
       draftImagesRef.current = [];
       sessionStorage.removeItem(draftStorageKey);

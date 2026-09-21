@@ -222,6 +222,8 @@ let activePackage;
 let relatedCatalogue = [];
 let catalogueLoading = false;
 const { default: PackageDetailClient } = load('src/app/packages/[packageId]/PackageDetailClient.tsx', {
+  'next/image': { default: imageMock },
+  '@/lib/displayableImage': load('src/lib/displayableImage.ts'),
   'react/jsx-runtime': jsxRuntime,
   react: React,
   'next/link': { default: ({ children, ...props }) => React.createElement('a', props, children) },

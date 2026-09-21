@@ -15,7 +15,9 @@ function load(file, dependencies = {}, globals = {}) {
   return exports;
 }
 const data = load('src/lib/packageData.ts');
+const collections = load('src/lib/packageCollections.ts', { '@/lib/packageData': data });
 const sections = load('src/lib/packageDetailSections.ts');
+const images = load('src/lib/packageImages.ts', { '@/lib/packageData': data, '@/lib/packageDetailSections': sections });
 const facts = load('src/lib/packageFacts.ts', { '@/lib/packageData': data });
 const changes = load('src/lib/packagePreviewEditing.ts');
 const model = load('src/app/admin/packages/packageFormModel.ts', {
@@ -35,6 +37,7 @@ function fixture() {
   Object.assign(pkg, { status: 'published', price: 799, originalPrice: 999, discount: 20 });
   pkg.image = 'https://cdn.example/saved-cover.jpg';
   pkg.details.gallery = ['https://cdn.example/shared-hero.jpg'];
+  pkg.details.stays = [{ name: 'Saved hotel', nights: 1, place: 'Manali', comfort: '', image: 'https://cdn.example/saved-hotel.jpg' }];
   pkg.details.pageSections.gallery = { enabled: false, images: ['https://cdn.example/hidden-gallery.jpg'] };
   pkg.details.pageSections.locations = { enabled: false, items: [{ id: 'saved-location', type: 'pickup', name: 'Saved pickup', address: '', notes: '', mapUrl: '', image: 'https://cdn.example/hidden-location.jpg', visible: false }] };
   return pkg;
@@ -74,6 +77,8 @@ function harness({ saveError, refreshWarning = '', uploadFails = [], uploadBarri
     react: hooks, 'react/jsx-runtime': jsx,
     'lucide-react': Object.fromEntries(['ArrowLeft', 'Save', 'Undo2', 'Eye', 'Pencil'].map(name => [name, noop])),
     '@/lib/packageData': data, '@/lib/packageDetailSections': sections,
+    '@/lib/packageImages': images,
+    '@/lib/packageCollections': collections,
     '@/lib/firebase/packages': {
       savePackage: async value => { calls.saved.push(clone(value)); if (saveError) throw new Error(saveError); return { refreshWarning }; },
       uploadPackageImage: async file => { calls.uploaded.push(file.name); if (uploadBarrier) await uploadBarrier; if (uploadFails.includes(file.name)) throw new Error('Upload failed'); return `https://cdn.example/${file.name}`; },
@@ -116,6 +121,50 @@ function harness({ saveError, refreshWarning = '', uploadFails = [], uploadBarri
     async click(label) { this.button(label).props.onClick(); await settle(); },
   };
 }
+
+test('saving a newly uploaded hotel photo retains it in storage, including hidden stays', async () => {
+  for (const hidden of [false, true]) {
+    const editor = harness();
+    const [image] = await editor.upload(['hotel.jpg']);
+    const form = editor.editor.form;
+    editor.editor.onChange({ ...form,
+      stays: [{ ...form.stays[0], image }],
+      pageSections: { ...form.pageSections, hiddenSections: hidden ? ['stays'] : [] },
+    });
+    await editor.click('Save package');
+    assert.equal(editor.calls.saved[0].details.stays[0].image, image);
+    assert.ok(!editor.calls.deleted.includes(image), 'Saved hotel photo must never be deleted');
+    assert.deepEqual(editor.calls.deleted, ['https://cdn.example/saved-hotel.jpg']);
+    assert.equal(editor.storage[editor.key], undefined);
+  }
+});
+
+test('reopening and cancelling protects a saved hotel photo left in the draft queue', async () => {
+  const hotel = 'https://cdn.example/saved-hotel.jpg';
+  const editor = harness({ pending: [hotel, 'https://cdn.example/abandoned.jpg'] });
+  await editor.click('Back to packages');
+  assert.deepEqual(editor.calls.deleted, ['https://cdn.example/abandoned.jpg']);
+});
+
+test('replacing a hotel photo preserves the old image when another package uses it', async () => {
+  const editor = harness({ protectedImages: ['https://cdn.example/saved-hotel.jpg'] });
+  const [image] = await editor.upload(['replacement-hotel.jpg']);
+  const form = editor.editor.form;
+  editor.editor.onChange({ ...form, stays: [{ ...form.stays[0], image }] });
+  await editor.click('Save package');
+  assert.equal(editor.calls.saved[0].details.stays[0].image, image);
+  assert.deepEqual(editor.calls.deleted, []);
+});
+
+test('package image ownership includes hotel, cover, gallery and hidden section images', () => {
+  const pkg = fixture();
+  pkg.details.pageSections.hiddenSections = ['stays'];
+  assert.deepEqual(clone(images.packageImages(pkg)).sort(), [
+    'https://cdn.example/saved-cover.jpg', 'https://cdn.example/shared-hero.jpg',
+    'https://cdn.example/saved-hotel.jpg', 'https://cdn.example/hidden-gallery.jpg',
+    'https://cdn.example/hidden-location.jpg',
+  ].sort());
+});
 
 test('builder successful Save keeps hidden and shared assets and reports a refresh warning as saved', async () => {
   const oldCover = 'https://cdn.example/saved-cover.jpg';
