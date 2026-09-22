@@ -79,6 +79,14 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        /* Cruises left the catalogue for their own page. Old menus, saved
+           links and the previous ?category=cruise filter land here. */
+        source: "/packages",
+        has: [{ type: "query", key: "category", value: "[Cc]ruises?" }],
+        destination: "/cruise",
+        permanent: true,
+      },
+      {
         source: "/account/saved",
         destination: "/account",
         permanent: true,

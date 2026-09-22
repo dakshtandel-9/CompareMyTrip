@@ -13,6 +13,10 @@ import type { TravelPackage } from "@/lib/packageData";
 /* no card is rendered twice on a page showing all three. The last track */
 /* is the catch-all, so a trek nobody thought to name here is still      */
 /* reachable rather than silently invisible.                             */
+/*                                                                      */
+/* A track assigned by hand in /admin/packages overrides all of that.    */
+/* Keyword matching stays the default, so filing one trek deliberately   */
+/* never disturbs where the rest of the catalogue already appears.       */
 /* ------------------------------------------------------------------ */
 
 /** The category a package carries to count as a weekend trek at all. */
@@ -70,6 +74,15 @@ export function weekendTreks(packages: TravelPackage[]): TravelPackage[] {
   return packages.filter((pkg) => pkg.tags.includes(WEEKEND_TREKS_CATEGORY));
 }
 
+/** The track a single trek shows under, by the same rules the grouping uses.
+    Undefined when the package is not a weekend trek at all. Used by the admin
+    list, so a row states where the trek currently appears rather than leaving
+    an unfiled one looking unassigned. */
+export function trackForTrek(pkg: TravelPackage): WeekendTrack | undefined {
+  if (!pkg.tags.includes(WEEKEND_TREKS_CATEGORY)) return undefined;
+  return groupWeekendTracks([pkg]).find((group) => group.items.length > 0)?.track;
+}
+
 export type WeekendTrackGroup = {
   track: WeekendTrack;
   items: TravelPackage[];
@@ -85,12 +98,18 @@ export function groupWeekendTracks(packages: TravelPackage[]): WeekendTrackGroup
   const fallback = WEEKEND_TRACKS.find((track) => track.catchAll) ?? WEEKEND_TRACKS.at(-1);
 
   for (const trek of treks) {
+    /* An assignment naming a track that has since been removed is ignored
+       rather than dropping the trek, which falls back to the keywords. */
+    const assigned = trek.weekendTrack
+      ? WEEKEND_TRACKS.find((track) => track.id === trek.weekendTrack)
+      : undefined;
+
     const haystack = `${trek.title} ${trek.location}`.toLowerCase();
     const claimed = WEEKEND_TRACKS.find((track) =>
       track.keywords.some((keyword) => haystack.includes(keyword)),
     );
 
-    const target = claimed ?? fallback;
+    const target = assigned ?? claimed ?? fallback;
     if (target) groups.get(target.id)!.push(trek);
   }
 

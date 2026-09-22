@@ -26,6 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl("/blog"), changeFrequency: "weekly", priority: 0.8 },
     { url: absoluteUrl("/contact"), changeFrequency: "yearly", priority: 0.5 },
     { url: absoluteUrl("/add-on"), changeFrequency: "monthly", priority: 0.6 },
+    { url: absoluteUrl("/cruise"), changeFrequency: "weekly", priority: 0.7 },
     // Legal pages remain noindex until approved business policies are published.
   ];
 

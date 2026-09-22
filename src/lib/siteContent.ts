@@ -204,7 +204,7 @@ export const BANNER_SLOTS: BannerSlot[] = [
     },
   },
   {
-    id: "packages-cruise", name: "Cruise packages", where: "/packages?category=cruise",
+    id: "packages-cruise", name: "Cruise packages", where: "/cruise",
     banner: { id: "packages-cruise", eyebrow: "Cruise holidays", title: "A new horizon every day.", description: "Discover coastal escapes and island voyages. Compare cruise packages and find your next adventure at sea.", image: "/catalogue/cruise.jpg" },
   },
 
@@ -1037,7 +1037,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
           { id: "nav-4-6", label: "Explore More", href: "/packages?region=international" },
         ],
       },
-      { id: "nav-cruise", label: "Cruise", href: "/packages?category=cruise", children: [] },
+      { id: "nav-cruise", label: "Cruise", href: "/cruise", children: [] },
       { id: "nav-5", label: "Deals", href: "/packages?deals=1", children: [] },
       {
         id: "nav-addon",
@@ -2162,6 +2162,10 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     "nav-4": "International Holidays",
   };
   const upgradedHeaderItems = retiredHeaderItems.map((item) => {
+    /* Cruises left the catalogue for their own page, so a header saved
+       before that still points at a filter that no longer selects anything.
+       The label and position stay as edited; only the dead link moves. */
+    if (item.href === "/packages?category=cruise") return { ...item, href: "/cruise" };
     // New services also reach headers already saved in the CRM, while
     // existing service labels, links and positions remain editable.
     if (item.id === "nav-addon") {

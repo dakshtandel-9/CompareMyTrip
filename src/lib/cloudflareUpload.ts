@@ -7,7 +7,7 @@ export const PACKAGE_DRAFT_IMAGE_KEY_PREFIX = "cmt:package-draft-images:";
 export const BLOG_DRAFT_IMAGE_KEY_PREFIX = "cmt:blog-draft-images:";
 export const BANNER_DRAFT_IMAGE_KEY_PREFIX = "cmt:banner-draft-images:";
 
-export type UploadFolder = "homepage" | "packages" | "blog" | "destinations";
+export type UploadFolder = "homepage" | "packages" | "blog" | "destinations" | "brochures";
 
 export async function uploadImageToCloudflare(file: File, folder: UploadFolder) {
   if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.");
@@ -28,6 +28,30 @@ export async function uploadImageToCloudflare(file: File, folder: UploadFolder) 
   });
   const result = await response.json() as { url?: string; error?: string };
   if (!response.ok || !result.url) throw new Error(result.error || "The image could not be uploaded.");
+  return result.url;
+}
+
+/** Cruise brochures. Separate from the image upload because that one rejects
+    anything that is not an image, and the route skips sharp for a PDF. */
+export async function uploadBrochureToCloudflare(file: File) {
+  if (file.type !== "application/pdf") throw new Error("Please choose a PDF file.");
+  if (file.size > 10_000_000) throw new Error("The brochure must be 10 MB or smaller.");
+
+  const auth = getFirebaseAuth();
+  await auth.authStateReady();
+  const token = await auth.currentUser?.getIdToken();
+  if (!token) throw new Error("Sign in to the CRM before uploading a brochure.");
+
+  const body = new FormData();
+  body.set("file", file);
+  body.set("folder", "brochures");
+  const response = await fetch("/api/uploads/image", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body,
+  });
+  const result = await response.json() as { url?: string; error?: string };
+  if (!response.ok || !result.url) throw new Error(result.error || "The brochure could not be uploaded.");
   return result.url;
 }
 

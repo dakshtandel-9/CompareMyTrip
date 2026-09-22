@@ -8,6 +8,7 @@ import {
   type BlogPost,
 } from "@/lib/blogData";
 import { getAdminDb } from "@/lib/firebase/admin";
+import { isPublishedCruise, type CruiseListing } from "@/lib/cruiseListings";
 import {
   DUMMY_PACKAGES,
   publishedPackages,
@@ -144,6 +145,41 @@ export const getPublishedBlogPost = cache(async (slug: string) => {
   const posts = await getPublishedBlogPosts();
   return posts.find((item) => item.id === slug) ?? null;
 });
+
+/* Published cruises for /cruise. Returns [] on failure rather than throwing:
+   the page falls back to the demo listings, so a database blip shows
+   placeholders instead of an error. */
+export const getPublishedCruises = cache(unstable_cache(async (): Promise<CruiseListing[]> => {
+  const db = getAdminDb();
+  if (!db) return [];
+
+  try {
+    const snapshot = await db.collection("cruises").get();
+    return snapshot.docs
+      .map((item) => {
+        const data = item.data();
+        const asText = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+        const price = Number(data.fromPrice);
+        return {
+          id: item.id,
+          name: asText(data.name),
+          route: asText(data.route),
+          image: asText(data.image),
+          fromPrice: Number.isFinite(price) ? Math.max(0, price) : 0,
+          pitch: asText(data.pitch),
+          badge: asText(data.badge),
+          brochureUrl: asText(data.brochureUrl),
+          status: data.status === "draft" ? "draft" as const : "published" as const,
+          position: Number(data.position) || 0,
+        };
+      })
+      .filter((cruise) => cruise.name && isPublishedCruise(cruise))
+      .sort((a, b) => b.position - a.position);
+  } catch (error) {
+    console.error("Unable to load cruises for server rendering:", error instanceof Error ? error.message : "Unknown database error");
+    return [];
+  }
+}, ["published-cruises-v1"], { revalidate: 3600, tags: ["public-content"] }));
 
 export const getDestinationCovers = cache(unstable_cache(async (): Promise<Record<string, string>> => {
   const db = getAdminDb();

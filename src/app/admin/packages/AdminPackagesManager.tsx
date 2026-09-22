@@ -5,30 +5,33 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Database, Edit3, ExternalLink, PackagePlus, Search, Trash2 } from "lucide-react";
-import { deletePackages, seedPackages } from "@/lib/firebase/packages";
+import { assignWeekendTrack, deletePackages, seedPackages } from "@/lib/firebase/packages";
 import { DUMMY_PACKAGES, isPublishedPackage, type TravelPackage } from "@/lib/packageData";
 import { packageImages } from "@/lib/packageImages";
 import { cleanupAbandonedPackageImages, deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
 import { INDIA_STATES, toIndiaState } from "@/lib/indiaStates";
 import { useDestinationCoversState } from "@/lib/useDestinationCovers";
 import { useAllPackagesState } from "@/lib/usePackages";
-import { managedCollectionPackages, type PackageCollectionId } from "@/lib/packageCollections";
+import { trackForTrek, WEEKEND_TRACKS } from "@/lib/weekendTracks";
 import AdminPackageBuilder from "./AdminPackageBuilder";
 import DeletePackageDialog from "./DeletePackageDialog";
 
 import { catalogueEditorMode, catalogueListHref } from "./catalogueEditorState";
 
-export default function AdminPackagesManager({ collection }: { collection?: PackageCollectionId }) {
-  const basePath = collection === "cruise" ? "/admin/cruises" : "/admin/packages";
-  const title = collection === "cruise" ? "Cruises" : "Packages";
-  const itemLabel = collection === "cruise" ? "cruise" : "package";
+/* Distinguishes "clear the track" from the select's own empty placeholder. */
+const CLEAR_TRACK = "__clear__";
+
+export default function AdminPackagesManager() {
+  const basePath = "/admin/packages";
+  const title = "Packages";
+  const itemLabel = "package";
   const router = useRouter();
   const searchParams = useSearchParams();
   const pageSize = 10;
   const { destinations } = useDestinationCoversState();
   const destinationFilter = searchParams.get("destination") ?? "";
   const { packages, loading, error, databaseInitialized } = useAllPackagesState();
-  const managedPackages = useMemo(() => managedCollectionPackages(packages, collection), [packages, collection]);
+  const managedPackages = packages;
   const [editing, setEditing] = useState<TravelPackage | null>(null);
   const [actionError, setActionError] = useState("");
   const [working, setWorking] = useState(false);
@@ -97,13 +100,27 @@ export default function AdminPackagesManager({ collection }: { collection?: Pack
 
   if (currentEditing) {
     const protectedImages = packages.filter(pkg => currentEditing === "new" || pkg.id !== currentEditing.id).flatMap(packageImages);
-    return <AdminPackageBuilder collection={collection} initialDestination={searchParams.get("destination") ?? ""} initialRegion={searchParams.get("region") === "International" ? "International" : "India"} initialPackage={currentEditing === "new" ? undefined : currentEditing} filedUnderOptions={filedUnderOptions} protectedImages={protectedImages} onCancel={closeEditor} onSaved={(message) => { setSuccess(message); closeEditor(); }} />;
+    return <AdminPackageBuilder initialDestination={searchParams.get("destination") ?? ""} initialRegion={searchParams.get("region") === "International" ? "International" : "India"} initialPackage={currentEditing === "new" ? undefined : currentEditing} filedUnderOptions={filedUnderOptions} protectedImages={protectedImages} onCancel={closeEditor} onSaved={(message) => { setSuccess(message); closeEditor(); }} />;
   }
 
   const importExisting = async () => {
     setWorking(true); setActionError("");
     try { await seedPackages(DUMMY_PACKAGES); setSuccess("Your existing packages are ready to manage. You can now edit them or create a new package."); }
     catch (cause) { setActionError(cause instanceof Error ? cause.message : "The packages could not be imported."); }
+    finally { setWorking(false); }
+  };
+
+  const moveToTrack = async (targets: TravelPackage[], track: string | null) => {
+    if (!targets.length) return;
+    setWorking(true); setActionError(""); setSuccess("");
+    try {
+      const { refreshWarning } = await assignWeekendTrack(targets, track);
+      const label = WEEKEND_TRACKS.find((item) => item.id === track)?.label;
+      const count = `${targets.length} ${targets.length === 1 ? "package" : "packages"}`;
+      setSuccess(label ? `${count} moved to ${label}.` : `${count} removed from their weekend track.`);
+      setActionError(refreshWarning);
+    }
+    catch (cause) { setActionError(cause instanceof Error ? cause.message : "The packages could not be moved. Please try again."); }
     finally { setWorking(false); }
   };
 
@@ -130,11 +147,9 @@ export default function AdminPackagesManager({ collection }: { collection?: Pack
   return <div className="font-body text-cmt-neutral-900">
     {pendingDelete && <DeletePackageDialog packages={pendingDelete} busy={working} onCancel={() => setPendingDelete(null)} onConfirm={() => void remove(pendingDelete)} />}
     <div className="flex flex-wrap items-end justify-between gap-4">
-      <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-900">Travel catalogue</p><h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1><p className="mt-2 text-sm text-cmt-neutral-600">{collection ? `Create and manage ${title.toLowerCase()} with the package editor. Published listings appear on your cruise page.` : "Manage every trip in one place. Drafts stay private; published packages appear on your website."}</p></div>
+      <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-cmt-primary-900">Travel catalogue</p><h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1><p className="mt-2 text-sm text-cmt-neutral-600">Manage every trip in one place. Drafts stay private; published packages appear on your website.</p></div>
       <button disabled={!databaseInitialized} title={!databaseInitialized ? "Import the existing catalogue first" : undefined} onClick={() => router.push(`${basePath}?create=1`, { scroll: false })} className="inline-flex h-11 items-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold shadow-cmt-primary hover:bg-cmt-primary-600 disabled:cursor-not-allowed disabled:opacity-50"><PackagePlus className="size-4" /> Create {itemLabel}</button>
     </div>
-
-    {collection && <div className="mt-4 flex flex-wrap gap-4 text-sm font-semibold text-cmt-primary-900"><Link href={`/packages?category=${collection}`} target="_blank">View {title.toLowerCase()} page <span aria-hidden="true">↗</span></Link><Link href="/admin/banners">Edit page banner</Link></div>}
 
     {!databaseInitialized && !loading && <section className="mt-7 flex flex-wrap items-center justify-between gap-4 rounded-cmt-md border border-cmt-primary-200 bg-cmt-primary-50 p-5">
       <div className="flex gap-3"><Database className="mt-0.5 size-5 text-cmt-primary-800" /><div><p className="font-semibold">Set up your existing packages</p><p className="mt-1 text-sm text-cmt-neutral-600">Your website already has {DUMMY_PACKAGES.length} packages. Import them once to start editing them here. This keeps your current catalogue available.</p></div></div>
@@ -168,6 +183,14 @@ export default function AdminPackagesManager({ collection }: { collection?: Pack
           <span role="status" className="text-xs font-semibold text-cmt-primary-800">{selectedPackages.length} selected across pages</span>
           {selectedPackages.length < filteredPackages.length && filteredPackages.length <= 500 && <button type="button" disabled={working} onClick={() => setSelectedIds(new Set(filteredPackages.map((pkg) => pkg.id)))} className="min-h-9 text-xs font-semibold text-cmt-primary-800 underline underline-offset-4">Select all {filteredPackages.length} matching packages</button>}
           <button type="button" disabled={working} onClick={() => setSelectedIds(new Set())} className="min-h-9 text-xs font-semibold text-cmt-neutral-600">Clear selection</button>
+          <label className="inline-flex min-h-9 items-center gap-2 text-xs font-semibold text-cmt-neutral-600">
+            Weekend track
+            <select aria-label="Move selected packages to a weekend track" value="" disabled={working || selectedPackages.length > 500} onChange={(event) => { const value = event.target.value; event.target.value = ""; if (value) void moveToTrack(selectedPackages, value === CLEAR_TRACK ? null : value); }} className="h-9 rounded-xl border border-cmt-neutral-200 bg-white px-2 text-xs font-semibold disabled:opacity-40">
+              <option value="">Move to…</option>
+              {WEEKEND_TRACKS.map((track) => <option key={track.id} value={track.id}>{track.label}</option>)}
+              <option value={CLEAR_TRACK}>Remove from track</option>
+            </select>
+          </label>
           <button type="button" disabled={working || selectedPackages.length > 500} onClick={() => setPendingDelete(selectedPackages)} className="ml-auto inline-flex min-h-9 items-center gap-2 rounded-xl bg-red-600 px-4 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-40"><Trash2 className="size-4" />Delete selected ({selectedPackages.length})</button>
           {selectedPackages.length > 500 && <p className="w-full text-xs text-red-700">Select up to 500 packages at a time.</p>}
         </>}
@@ -176,7 +199,7 @@ export default function AdminPackagesManager({ collection }: { collection?: Pack
         {visiblePackages.map((pkg) => <article key={pkg.id} className="grid gap-4 p-4 lg:grid-cols-[24px_88px_minmax(0,1fr)_auto] lg:items-center sm:px-5">
           <input type="checkbox" aria-label={`Select ${pkg.title}`} checked={selectedIds.has(pkg.id)} disabled={working || !databaseInitialized} onChange={(event) => toggleSelection([pkg.id], event.target.checked)} className="size-4 cursor-pointer accent-cmt-primary-700" />
           <div className="relative aspect-[4/3] w-28 lg:w-full overflow-hidden rounded-cmt-sm bg-cmt-neutral-100">{pkg.image ? <Image src={pkg.image} alt="" fill sizes="112px" className="object-cover" /> : <span className="grid h-full place-items-center text-xs text-cmt-neutral-500">No cover photo</span>}</div>
-          <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="break-words font-display text-base font-semibold">{pkg.title}</h2><span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${isPublishedPackage(pkg) ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>{isPublishedPackage(pkg) ? "Live on website" : "Draft · private"}</span></div><p className="mt-1 text-xs font-medium text-cmt-neutral-600">Destination: {pkg.region === "India" ? toIndiaState(pkg.destination) : pkg.destination} · {pkg.region}</p><p className="mt-1 truncate text-xs text-cmt-neutral-500">{pkg.location} · {pkg.nights} nights / {pkg.days} days · ₹{pkg.price.toLocaleString("en-IN")} per person</p></div>
+          <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h2 className="break-words font-display text-base font-semibold">{pkg.title}</h2><span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${isPublishedPackage(pkg) ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>{isPublishedPackage(pkg) ? "Live on website" : "Draft · private"}</span>{(() => { const track = trackForTrek(pkg); return track ? <span className="shrink-0 rounded-full bg-cmt-primary-50 px-2.5 py-1 text-[11px] font-semibold text-cmt-primary-900">{track.label}{pkg.weekendTrack ? "" : " · auto"}</span> : null; })()}</div><p className="mt-1 text-xs font-medium text-cmt-neutral-600">Destination: {pkg.region === "India" ? toIndiaState(pkg.destination) : pkg.destination} · {pkg.region}</p><p className="mt-1 truncate text-xs text-cmt-neutral-500">{pkg.location} · {pkg.nights} nights / {pkg.days} days · ₹{pkg.price.toLocaleString("en-IN")} per person</p></div>
           <div className="flex flex-wrap gap-2">{isPublishedPackage(pkg) && <Link href={`/packages/${pkg.id}`} target="_blank" className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold"><ExternalLink className="size-3.5" /> View</Link>}<button disabled={!databaseInitialized} title={!databaseInitialized ? "Import the existing catalogue first" : undefined} onClick={() => setEditing(pkg)} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold disabled:opacity-40"><Edit3 className="size-3.5" /> Edit</button><button disabled={working || !databaseInitialized} onClick={() => setPendingDelete([pkg])} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-error-500/30 px-3 text-xs font-semibold text-cmt-error-700 disabled:opacity-40"><Trash2 className="size-3.5" /> Delete</button></div>
         </article>)}
         {!loading && filteredPackages.length === 0 && <p className="p-8 text-center text-sm text-cmt-neutral-500">{search || status !== "all" || region !== "all" || destinationFilter ? "No packages match these filters. Try another search or clear the filters." : `No ${title.toLowerCase()} yet. Select Create ${itemLabel} to add your first listing.`}</p>}

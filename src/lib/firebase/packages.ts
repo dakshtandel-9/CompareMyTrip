@@ -1,6 +1,7 @@
 import { revalidatePublicContent } from "./revalidateContent";
-import { collection, deleteDoc, doc, onSnapshot, serverTimestamp, writeBatch } from "firebase/firestore";
+import { collection, deleteDoc, deleteField, doc, onSnapshot, serverTimestamp, writeBatch } from "firebase/firestore";
 import type { TravelPackage } from "@/lib/packageData";
+import { WEEKEND_TRACKS, WEEKEND_TREKS_CATEGORY, type WeekendTrackId } from "@/lib/weekendTracks";
 import { uploadImageToCloudflare } from "@/lib/cloudflareUpload";
 import { getFirebaseAuth, getFirebaseDb } from "./client";
 
@@ -85,6 +86,47 @@ export async function deletePackages(packageIds: string[]) {
     return { refreshWarning: "" };
   } catch {
     return { refreshWarning: "The packages were deleted, but public pages could not be refreshed immediately." };
+  }
+}
+
+/** Files several treks under one weekend track, or clears the assignment when
+    `track` is null so they fall back to keyword matching. Writes only the two
+    affected fields, leaving the rest of each package untouched — a bulk action
+    must not overwrite edits made elsewhere in the catalogue meanwhile.
+
+    The Weekend Treks tag is added where it is missing, since a package with no
+    tag would be filed under a track nothing ever reads. */
+export async function assignWeekendTrack(
+  packages: TravelPackage[],
+  track: WeekendTrackId | null,
+) {
+  const user = requireUser();
+  if (!packages.length) return { refreshWarning: "" };
+  if (packages.length > 500) throw new Error("Select up to 500 packages at a time.");
+  if (track && !WEEKEND_TRACKS.some((item) => item.id === track)) {
+    throw new Error("Unknown weekend track.");
+  }
+
+  const db = getFirebaseDb();
+  const batch = writeBatch(db);
+  packages.forEach((pkg) => {
+    const tags = track && !pkg.tags.includes(WEEKEND_TREKS_CATEGORY)
+      ? [...pkg.tags, WEEKEND_TREKS_CATEGORY]
+      : pkg.tags;
+    batch.set(doc(db, "packages", pkg.id), {
+      // Firestore rejects undefined, so a cleared track is stored as a
+      // deletion rather than left behind as a stale value.
+      package: { weekendTrack: track ?? deleteField(), tags: clean(tags) },
+      updatedAt: serverTimestamp(),
+      updatedByUid: user.uid,
+    }, { merge: true });
+  });
+  await batch.commit();
+  try {
+    await revalidatePublicContent();
+    return { refreshWarning: "" };
+  } catch {
+    return { refreshWarning: "The treks were moved, but public pages could not be refreshed immediately." };
   }
 }
 

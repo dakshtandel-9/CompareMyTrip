@@ -6,7 +6,6 @@ import { getPackageDetails, type TravelPackage } from "@/lib/packageData";
 import { packageImages } from "@/lib/packageImages";
 import { savePackage, uploadPackageImage } from "@/lib/firebase/packages";
 import { deleteImageFromCloudflare, PACKAGE_DRAFT_IMAGE_KEY_PREFIX } from "@/lib/cloudflareUpload";
-import { PACKAGE_COLLECTIONS, withPackageCollection, type PackageCollectionId } from "@/lib/packageCollections";
 import { applyPackageImport } from "@/lib/packageAiImport";
 import PackageDetailClient from "@/app/packages/[packageId]/PackageDetailClient";
 import { type ContentPath } from "@/app/packages/_components/PackageInlineEditing";
@@ -21,9 +20,9 @@ import { packageEditorSteps, packageValidationIssue, type PackageForm } from "./
 import { useUnsavedContentChanges } from "../content/useUnsavedContentChanges";
 
 const button = "inline-flex items-center gap-2 rounded-lg border border-cmt-neutral-200 bg-white px-3 py-2 text-xs font-semibold disabled:opacity-40";
-export default function AdminPackageBuilder({ collection, initialPackage, initialDestination = "", initialRegion = "India", filedUnderOptions, protectedImages = [], onCancel, onSaved }: { collection?: PackageCollectionId; initialPackage?: TravelPackage; initialDestination?: string; initialRegion?: TravelPackage["region"]; filedUnderOptions: Record<TravelPackage["region"], string[]>; protectedImages?: string[]; onCancel: () => void; onSaved: (message: string) => void }) {
-  const itemLabel = collection === "cruise" ? "cruise" : "package";
-  const draftStorageKey = `${PACKAGE_DRAFT_IMAGE_KEY_PREFIX}${initialPackage?.id ?? `new-${collection ?? "package"}`}`;
+export default function AdminPackageBuilder({ initialPackage, initialDestination = "", initialRegion = "India", filedUnderOptions, protectedImages = [], onCancel, onSaved }: { initialPackage?: TravelPackage; initialDestination?: string; initialRegion?: TravelPackage["region"]; filedUnderOptions: Record<TravelPackage["region"], string[]>; protectedImages?: string[]; onCancel: () => void; onSaved: (message: string) => void }) {
+  const itemLabel = "package";
+  const draftStorageKey = `${PACKAGE_DRAFT_IMAGE_KEY_PREFIX}${initialPackage?.id ?? "new-package"}`;
   const draftImagesRef = useRef<string[]>([]);
   const protectedImagesRef = useRef(protectedImages);
   useEffect(() => { protectedImagesRef.current = protectedImages; }, [protectedImages]);
@@ -41,7 +40,7 @@ export default function AdminPackageBuilder({ collection, initialPackage, initia
   const readingRef = useRef(0);
   const [reading, setReading] = useState(0);
   const [section, setSection] = useState<PackageEditorArea>("basics");
-  const [form, setForm] = useState<PackageForm>(() => withPackageCollection(initialPackage ? formFromPackage(initialPackage) : { ...formFromPackage(), destination: initialDestination, region: initialRegion }, collection));
+  const [form, setForm] = useState<PackageForm>(() => (initialPackage ? formFromPackage(initialPackage) : { ...formFromPackage(), destination: initialDestination, region: initialRegion }));
   const [originalForm] = useState(() => JSON.stringify(form));
   const [history, setHistory] = useState<PackageForm[]>([]);
   const [error, setError] = useState("");
@@ -56,7 +55,6 @@ export default function AdminPackageBuilder({ collection, initialPackage, initia
   const busy = saving || uploading || reading > 0;
   useUnsavedContentChanges(dirty && !saving);
   const replaceForm = (next: PackageForm) => {
-    next = withPackageCollection(next, collection);
     const previous = formRef.current;
     setHistory(items => [...items.slice(-29), previous]);
     formRef.current = next; setForm(next); setError("");
@@ -155,7 +153,7 @@ export default function AdminPackageBuilder({ collection, initialPackage, initia
 
   return <div className={styles.editor}>
     <div ref={toolbarRef} className={styles.toolbar}>
-      <div><button type="button" className="mb-1 inline-flex items-center gap-1 text-xs text-cmt-neutral-500" disabled={busy} onClick={() => void handleCancel()}><ArrowLeft size={13} />Back to {collection === "cruise" ? "cruises" : "packages"}</button><h1 className="text-lg font-semibold">{`${initialPackage ? "Edit" : "Create"} ${itemLabel}`}</h1><p className="text-xs text-cmt-neutral-500">{dirty ? "Unsaved changes" : "All changes saved"} · Drafts stay private. Published packages update after saving.</p></div>
+      <div><button type="button" className="mb-1 inline-flex items-center gap-1 text-xs text-cmt-neutral-500" disabled={busy} onClick={() => void handleCancel()}><ArrowLeft size={13} />Back to packages</button><h1 className="text-lg font-semibold">{`${initialPackage ? "Edit" : "Create"} ${itemLabel}`}</h1><p className="text-xs text-cmt-neutral-500">{dirty ? "Unsaved changes" : "All changes saved"} · Drafts stay private. Published packages update after saving.</p></div>
       <div className={styles.actions}>
         <button className={button} type="button" disabled={!history.length || busy} onClick={() => { const previous = history[history.length - 1]; setHistory(items => items.slice(0, -1)); formRef.current = previous; setForm(previous); setError(""); }}><Undo2 size={14} />Undo</button>
         <button className={button} type="button" disabled={busy} onClick={() => setEditing(value => !value)}>{editing ? <Eye size={14} /> : <Pencil size={14} />}{editing ? "Preview page" : "Back to editor"}</button>
@@ -173,7 +171,7 @@ export default function AdminPackageBuilder({ collection, initialPackage, initia
           page={<PackageDetailClient initialPackage={pkg} preview publicPreview previewSidebar={pkg.image ? <div inert={!editing || busy}><BookingCard pkg={pkg} details={getPackageDetails(pkg)} travelDate="" onTravelDateChange={() => {}} travellers={2} onTravellersChange={() => {}} onRequestQuote={() => {}} /></div> : <div className="rounded-lg border border-dashed bg-white p-5 text-sm"><p className="font-semibold">Price & booking card</p><p className="mt-2 text-cmt-neutral-500">Add a cover photo to preview the card. Click here to set prices, badges and departure dates.</p></div>} />}
         >
           {section === "basics" && <details className="m-4 rounded-lg border border-cmt-neutral-200 bg-white p-4"><summary className="cursor-pointer text-sm font-semibold">Import package content (optional)</summary><div className="mt-4"><PackageAiImporter disabled={busy} onApply={product => replaceForm(applyPackageImport(formRef.current, product))} /></div></details>}
-          <PackageDetailEditor lockedCategory={collection ? PACKAGE_COLLECTIONS[collection].category : undefined} key={section} compact form={form} pkg={pkg} section={section} onSectionChange={next => { setSection(next); setInspectorOpen(true); }} onChange={replaceForm} change={change} disabled={busy} onUploadImages={handleSectionImageUpload} filedUnderOptions={filedUnderOptions} />
+          <PackageDetailEditor key={section} compact form={form} pkg={pkg} section={section} onSectionChange={next => { setSection(next); setInspectorOpen(true); }} onChange={replaceForm} change={change} disabled={busy} onUploadImages={handleSectionImageUpload} filedUnderOptions={filedUnderOptions} />
         </PackageVisualEditor>
       </div>
     </PackageContentIOContext.Provider>

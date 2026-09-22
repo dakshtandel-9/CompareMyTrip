@@ -165,7 +165,7 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
               {/* The blueprint's 7 + 5 split: the form, and what we come back
                   with beside it. */}
               <div className="grid gap-10 lg:grid-cols-12 lg:gap-8">
-                <div className={service.id === "transport" ? "min-w-0 lg:col-span-12" : "lg:col-span-7"}>
+                <div className="min-w-0 lg:col-span-7">
                   <h2 className="font-display text-2xl font-semibold leading-[1.2] text-cmt-neutral-900 sm:text-[28px]">
                     {service.title}
                   </h2>
@@ -184,12 +184,12 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
                   </div>
                 </div>
 
-                <aside className={service.id === "transport" ? "lg:col-span-12" : "lg:col-span-5"}>
-                  <div className={`rounded-cmt-lg border border-cmt-neutral-200 bg-cmt-neutral-50 p-6 sm:p-8 ${service.id === "transport" ? "lg:grid lg:grid-cols-2 lg:gap-x-12" : ""}`}>
+                <aside className={service.id === "transport" ? "flex min-w-0 flex-col lg:col-span-5" : "lg:col-span-5"}>
+                  <div className="rounded-cmt-lg border border-cmt-neutral-200 bg-cmt-neutral-50 p-6 sm:p-8">
                     <h3 className="font-display text-xl font-semibold leading-[1.25] text-cmt-neutral-900 sm:text-2xl">
                       What comes back
                     </h3>
-                    <ul className={`mt-6 space-y-4 ${service.id === "transport" ? "lg:col-start-1" : ""}`}>
+                    <ul className="mt-6 space-y-4">
                       {service.promises.map((promise) => (
                         <li key={promise} className="flex gap-3">
                           <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-cmt-full bg-cmt-primary-500">
@@ -202,7 +202,7 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
                       ))}
                     </ul>
 
-                    <div className={service.id === "transport" ? "mt-8 space-y-5 border-t border-cmt-neutral-200 pt-6 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:mt-0 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0" : "mt-8 space-y-5 border-t border-cmt-neutral-200 pt-6"}>
+                    <div className="mt-8 space-y-5 border-t border-cmt-neutral-200 pt-6">
                       {REASSURANCE.filter((item) => service.id !== "byq" || item.title !== "No booking, no fee").map((item) => (
                         <div key={item.title} className="flex gap-3">
                           <item.icon
@@ -262,6 +262,35 @@ export default function AddOnBody({ initialService }: { initialService: ServiceI
                             How the price-beat guarantee works
                             <ArrowDown size={16} aria-hidden="true" />
                           </a>
+                        </div>
+                      </section>
+                    )}
+                    {service.id === "transport" && (
+                      <section aria-labelledby="transport-banner-heading" className="relative isolate mt-6 flex min-h-[420px] flex-col justify-end overflow-hidden rounded-cmt-lg bg-cmt-neutral-900 p-6 sm:min-h-[480px] sm:p-8 lg:flex-1">
+                        <Image
+                          src="/destinations/ladakh.jpg"
+                          alt=""
+                          fill
+                          sizes="(min-width: 1024px) 40vw, 100vw"
+                          className="-z-20 object-cover object-[65%_center]"
+                        />
+                        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(15,23,42,0.05)_10%,rgba(15,23,42,0.45)_45%,rgba(15,23,42,0.96)_100%)]" />
+                        <span className="mb-auto self-start rounded-cmt-full border border-white/30 bg-cmt-neutral-900/40 px-4 py-2 text-xs font-semibold tracking-wide text-white backdrop-blur-sm">
+                          Every mile, made yours
+                        </span>
+                        <div className="mt-16">
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cmt-primary-500">Enjoy the journey</p>
+                          <h3 id="transport-banner-heading" className="mt-3 max-w-[14ch] font-display text-3xl font-semibold leading-[1.15] tracking-tight text-white sm:text-4xl">
+                            A great trip starts with the ride.
+                          </h3>
+                          <p className="mt-4 max-w-[36ch] text-sm leading-relaxed text-white/85">
+                            Airport arrivals, weekend escapes or the scenic way home. Tell us where you’re headed — we’ll help you find your ride.
+                          </p>
+                          <div className="mt-6 flex flex-wrap gap-2 border-t border-white/20 pt-5">
+                            {["Airport transfers", "Outstation trips", "Hourly rentals"].map((label) => (
+                              <span key={label} className="rounded-cmt-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-medium text-white">{label}</span>
+                            ))}
+                          </div>
                         </div>
                       </section>
                     )}

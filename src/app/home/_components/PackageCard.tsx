@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { BedDouble, Clock, MapPin, RotateCcw, Users } from "lucide-react";
+import { BedDouble, Clock, MapPin, Users } from "lucide-react";
 
 import { getPackageAccommodationLabel, getDiscountPercent, type TravelPackage } from "@/lib/packageData";
 import TrekGradeBadge from "@/components/TrekGradeBadge";
@@ -96,7 +96,7 @@ export default function PackageCard({
           </span>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mb-4 mt-3 flex flex-wrap gap-1.5">
           {pkg.tags.map((tag) => (
             <span
               key={tag}
@@ -106,12 +106,6 @@ export default function PackageCard({
             </span>
           ))}
         </div>
-
-        {/* The operating partner is deliberately not named on the card. */}
-        <p className="mt-3 inline-flex items-center gap-1 text-xs text-cmt-neutral-500">
-          <RotateCcw className="h-3 w-3" strokeWidth={2} />
-          Free cancellation
-        </p>
 
         {/* Price and action pinned to the bottom so cards in a row align. */}
         <div className="mt-auto flex flex-wrap items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">

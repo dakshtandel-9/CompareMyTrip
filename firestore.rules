@@ -218,6 +218,76 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    match /cruiseEnquiries/{enquiryId} {
+      // Get quote on /cruise. Anyone browsing may create one — that is the
+      // point of the form — but only the travel desk may read them. Every
+      // field is constrained because this is an unauthenticated write path.
+      function validNewCruiseEnquiry() {
+        return request.resource.data.keys().hasOnly([
+          'name', 'email', 'phone', 'cruiseId', 'cruiseName',
+          'rooms', 'adults', 'children', 'infants',
+          'bookingTimeline', 'sailDate', 'nights', 'cabinType',
+          'budgetPerPerson', 'specialOccasion', 'flightBooked',
+          'notes', 'status', 'submittedAt'
+        ])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 2
+          && request.resource.data.name.size() <= 120
+          && request.resource.data.email is string
+          && request.resource.data.email.size() <= 254
+          && request.resource.data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
+          && request.resource.data.phone is string
+          && request.resource.data.phone.size() >= 7
+          && request.resource.data.phone.size() <= 24
+          && request.resource.data.cruiseId is string
+          && request.resource.data.cruiseId.size() <= 180
+          && request.resource.data.cruiseName is string
+          && request.resource.data.cruiseName.size() >= 1
+          && request.resource.data.cruiseName.size() <= 240
+          && request.resource.data.rooms is int
+          && request.resource.data.rooms >= 1
+          && request.resource.data.rooms <= 20
+          && request.resource.data.adults is int
+          && request.resource.data.adults >= 1
+          && request.resource.data.adults <= 60
+          && request.resource.data.children is int
+          && request.resource.data.children >= 0
+          && request.resource.data.children <= 60
+          && request.resource.data.infants is int
+          && request.resource.data.infants >= 0
+          && request.resource.data.infants <= 60
+          && request.resource.data.bookingTimeline in
+               ['immediately', '1_month', '3_months', 'later', 'unsure']
+          && request.resource.data.sailDate is string
+          && (request.resource.data.sailDate == ''
+              || request.resource.data.sailDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
+          && request.resource.data.nights is int
+          && request.resource.data.nights >= 0
+          && request.resource.data.nights <= 365
+          && request.resource.data.cabinType in
+               ['interior', 'ocean_view', 'balcony', 'suite', 'any']
+          && request.resource.data.budgetPerPerson is int
+          && request.resource.data.budgetPerPerson >= 0
+          && request.resource.data.budgetPerPerson <= 100000000
+          && request.resource.data.specialOccasion is bool
+          && request.resource.data.flightBooked is bool
+          && request.resource.data.notes is string
+          && request.resource.data.notes.size() <= 5000
+          && request.resource.data.status == 'new'
+          && request.resource.data.submittedAt == request.time;
+      }
+
+      allow create: if validNewCruiseEnquiry();
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /cruises/{cruiseId} {
+      // Cruise listings shown on /cruise. Drafts are filtered out when
+      // reading, not here, matching how packages handle their own drafts.
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
     match /destinationCovers/{destinationId} {
       // Destination names reserved by admins and optional cover artwork.
       // Public destination pages remain derived from published packages.

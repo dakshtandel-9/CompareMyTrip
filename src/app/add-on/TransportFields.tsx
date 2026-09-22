@@ -6,6 +6,7 @@ import { flushSync } from "react-dom";
 import { visibleFields, type FieldSpec, type ServiceSpec, type Values } from "./services";
 import { isOutstationTrip, localDateValue, MAX_TRANSPORT_STOPS } from "./transport";
 import styles from "./TransportEnquiry.module.css";
+import shared from "./FlightEnquiry.module.css";
 
 type Props = {
   service: ServiceSpec;
@@ -93,13 +94,17 @@ export default function TransportFields({ service, values, errors, onChange }: P
   }
 
   return (
-    <section className={styles.journey} aria-label="Transport journey details">
+    <section className={shared.journey} aria-labelledby="transport-journey-heading">
+      <div className={shared.sectionHeading}>
+        <span className={shared.sectionIcon}><CarFront size={19} aria-hidden="true" /></span>
+        <div><h3 id="transport-journey-heading">Your journey</h3><p>Choose your route, dates and pickup preferences.</p></div>
+      </div>
       <div className={styles.heading}>
-        <fieldset className={styles.tripTypes}>
-          <legend className="sr-only">Transport trip type</legend>
-          <div className={styles.tripOptions}>
+        <fieldset className={shared.tripType}>
+          <legend className="block font-body text-sm font-semibold text-cmt-neutral-900">Trip type <span className="text-cmt-error-500">*</span></legend>
+          <div className={shared.tripOptions}>
             {tripType?.options?.map((option, index) => (
-              <label key={option.value} className={styles.tripOption}>
+              <label key={option.value} className={shared.tripOption}>
                 <input id={index === 0 ? "transport-tripType" : `transport-tripType-${option.value}`} type="radio" name="tripType" value={option.value} checked={values.tripType === option.value} onChange={() => onChange("tripType", option.value)} required aria-describedby={errors.tripType ? "transport-tripType-error" : undefined} />
                 <span>{option.label}</span>
               </label>
@@ -107,7 +112,6 @@ export default function TransportFields({ service, values, errors, onChange }: P
           </div>
           {errors.tripType && <p id="transport-tripType-error" className={styles.error}>{errors.tripType}</p>}
         </fieldset>
-        <span className={styles.bookingLabel}><CarFront size={18} aria-hidden="true" /> Cab booking enquiry</span>
       </div>
 
       <div className={`${styles.route} ${isHourly ? styles.hourlyRoute : ""}`}>
@@ -140,7 +144,7 @@ export default function TransportFields({ service, values, errors, onChange }: P
             </div>
           ))}
         </div>}
-        <button ref={addStopRef} type="button" className={styles.addStop} disabled={stopCount >= MAX_TRANSPORT_STOPS} onClick={addStop}><Plus size={18} aria-hidden="true" /> Add Stops</button>
+        <button ref={addStopRef} type="button" className={shared.addCity} disabled={stopCount >= MAX_TRANSPORT_STOPS} onClick={addStop}><Plus size={18} aria-hidden="true" /> Add Stops</button>
         <span className={styles.stopsHint}>{stopCount >= MAX_TRANSPORT_STOPS ? "Maximum 5 stops added" : "Plan pickups or breaks along the way"}</span>
       </div>}
     </section>

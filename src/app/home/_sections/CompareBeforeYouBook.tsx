@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { getPackageAccommodationLabel, getPackageDetails, type TravelPackage } from "@/lib/packageData";
-import { usePackages } from "@/lib/usePackages";
+import { usePackagesState } from "@/lib/usePackages";
 import { useCompare } from "@/lib/useCompare";
 import { useSiteContent } from "@/lib/useSiteContent";
 import Price from "../_components/Price";
@@ -310,8 +310,14 @@ const EXTRA_ROW_COUNT = ROWS.length - PRIMARY_ROWS.length;
 
 export default function CompareBeforeYouBook() {
   const { compare } = useSiteContent();
-  const packages = usePackages();
-  const { slots, setSlot } = useCompare();
+  const { packages, loading, error } = usePackagesState();
+  const { slots, setSlot, initialiseSuggestions } = useCompare();
+  const suggestionsInitialised = useRef(false);
+  useEffect(() => {
+    if (suggestionsInitialised.current || loading || error || !packages.length) return;
+    suggestionsInitialised.current = true;
+    initialiseSuggestions(packages.map((pkg) => pkg.id));
+  }, [packages, loading, error, initialiseSuggestions]);
   /* Which slot's picker is open, or null when the dialog is closed. */
   const [pickerColumn, setPickerColumn] = useState<number | null>(null);
   const [expanded, setExpanded] = useState(false);

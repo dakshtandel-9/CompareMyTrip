@@ -5,10 +5,16 @@ export const runtime = "nodejs";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 
+/* Cruise brochures are the one non-image the CRM uploads. They are public and
+   permanent, so they are stored beside the images rather than through the
+   quotes pipeline, which signs short-lived URLs and expires them by cron. */
+const BROCHURE_FOLDER = "brochures";
+const MAX_BROCHURE_BYTES = 10_000_000;
+
 /* Every prefix the CRM owns in the bucket. Uploads outside this list are
    filed under packages, and deletes outside it are refused, so the route
    can never be pointed at another application's objects. */
-const UPLOAD_FOLDERS = ["homepage", "packages", "blog", "destinations"] as const;
+const UPLOAD_FOLDERS = ["homepage", "packages", "blog", "destinations", BROCHURE_FOLDER] as const;
 type UploadFolder = (typeof UPLOAD_FOLDERS)[number];
 
 function r2Config() {
@@ -67,7 +73,25 @@ export async function POST(request: Request) {
   const folder = UPLOAD_FOLDERS.includes(requestedFolder as UploadFolder)
     ? (requestedFolder as UploadFolder)
     : "packages";
-  if (!(file instanceof File) || !allowedTypes.has(file.type)) return Response.json({ error: "Choose a JPG, PNG or WebP image." }, { status: 400 });
+  if (!(file instanceof File)) return Response.json({ error: "Choose a file to upload." }, { status: 400 });
+
+  /* A brochure is stored as uploaded: sharp would reject it, and a PDF has
+     nothing to resize or re-encode. */
+  if (folder === BROCHURE_FOLDER) {
+    if (file.type !== "application/pdf") return Response.json({ error: "Choose a PDF file." }, { status: 400 });
+    if (file.size > MAX_BROCHURE_BYTES) return Response.json({ error: "The brochure must be 10 MB or smaller." }, { status: 400 });
+    const key = `${BROCHURE_FOLDER}/${crypto.randomUUID()}.pdf`;
+    await config.client.send(new PutObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+      Body: Buffer.from(await file.arrayBuffer()),
+      ContentType: "application/pdf",
+      CacheControl: "public, max-age=31536000, immutable",
+    }));
+    return Response.json({ url: `${config.publicUrl}/${key}` });
+  }
+
+  if (!allowedTypes.has(file.type)) return Response.json({ error: "Choose a JPG, PNG or WebP image." }, { status: 400 });
   if (file.size > 5_000_000) return Response.json({ error: "Each image must be 5 MB or smaller." }, { status: 400 });
 
   const original = Buffer.from(await file.arrayBuffer());

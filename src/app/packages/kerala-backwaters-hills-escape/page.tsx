@@ -408,10 +408,7 @@ export default function KeralaPackagePage() {
                       {pkg.tags.map((tag) => <span key={tag} className="rounded-cmt-full border border-cmt-neutral-200 bg-cmt-neutral-50 px-2 py-0.5 text-xs font-medium text-cmt-neutral-700">{tag}</span>)}
                     </div>
                     {/* Operating partner deliberately not named — see BookingCard. */}
-                    <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-cmt-neutral-500">
-                      <span className="inline-flex items-center gap-1"><RotateCcw className="size-3" /> Free cancellation</span>
-                      <span className="inline-flex items-center gap-1"><Zap className="size-3" /> Instant confirm</span>
-                    </div>
+
                     <div className="mt-4 flex items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">
                       <div className="min-w-0"><p className="text-xs text-cmt-neutral-400 line-through">{formatINR(pkg.originalPrice)}</p><p className="whitespace-nowrap font-display text-lg font-bold text-cmt-neutral-900">{formatINR(pkg.price)}<span className="ml-1 font-body text-xs font-normal text-cmt-neutral-500">/person</span></p></div>
                       <Link href={`/packages/${pkg.id}`} className="inline-flex h-10 shrink-0 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-colors hover:bg-cmt-primary-600">View package</Link>

@@ -11,6 +11,7 @@ function setup({ signedIn = true, commitFails = false, refreshFails = false } = 
     './client': { getFirebaseAuth: () => ({ currentUser: signedIn ? { uid: 'admin' } : null }), getFirebaseDb: () => ({}) },
     './revalidateContent': { revalidatePublicContent: async () => { calls.refreshes++; if (refreshFails) throw new Error('Refresh failed'); } },
     '@/lib/cloudflareUpload': {},
+    '@/lib/weekendTracks': { WEEKEND_TRACKS: [{ id: 'sunrise', label: 'Sunrise Trek' }], WEEKEND_TREKS_CATEGORY: 'Weekend Treks' },
     'firebase/firestore': {
       doc: (_db, collection, id) => ({ collection, id }),
       writeBatch: () => ({

@@ -15,7 +15,6 @@ function load(file, dependencies = {}, globals = {}) {
   return exports;
 }
 const data = load('src/lib/packageData.ts');
-const collections = load('src/lib/packageCollections.ts', { '@/lib/packageData': data });
 const sections = load('src/lib/packageDetailSections.ts');
 const images = load('src/lib/packageImages.ts', { '@/lib/packageData': data, '@/lib/packageDetailSections': sections });
 const facts = load('src/lib/packageFacts.ts', { '@/lib/packageData': data });
@@ -78,7 +77,6 @@ function harness({ saveError, refreshWarning = '', uploadFails = [], uploadBarri
     'lucide-react': Object.fromEntries(['ArrowLeft', 'Save', 'Undo2', 'Eye', 'Pencil'].map(name => [name, noop])),
     '@/lib/packageData': data, '@/lib/packageDetailSections': sections,
     '@/lib/packageImages': images,
-    '@/lib/packageCollections': collections,
     '@/lib/firebase/packages': {
       savePackage: async value => { calls.saved.push(clone(value)); if (saveError) throw new Error(saveError); return { refreshWarning }; },
       uploadPackageImage: async file => { calls.uploaded.push(file.name); if (uploadBarrier) await uploadBarrier; if (uploadFails.includes(file.name)) throw new Error('Upload failed'); return `https://cdn.example/${file.name}`; },

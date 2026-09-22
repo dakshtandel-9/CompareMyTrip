@@ -17,6 +17,7 @@ function setupSave({ commitFails = false, refreshFails = false } = {}) {
     './client': { getFirebaseAuth: () => ({ currentUser: { uid: 'admin' } }), getFirebaseDb: () => ({}) },
     './revalidateContent': { revalidatePublicContent: async () => { calls.refreshes++; if (refreshFails) throw new Error('Offline refresh'); } },
     '@/lib/cloudflareUpload': {},
+    '@/lib/weekendTracks': { WEEKEND_TRACKS: [], WEEKEND_TREKS_CATEGORY: 'Weekend Treks' },
     'firebase/firestore': {
       doc: (_db, collection, id) => ({ collection, id }), serverTimestamp: () => 123,
       writeBatch: () => ({

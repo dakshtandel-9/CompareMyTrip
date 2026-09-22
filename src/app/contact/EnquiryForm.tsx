@@ -25,7 +25,7 @@ type FieldName =
   | "message";
 
 type Values = Record<FieldName, string>;
-type Errors = Partial<Record<FieldName, string>>;
+type Errors = Partial<Record<FieldName | "consent", string>>;
 
 const EMPTY: Values = {
   name: "",
@@ -91,6 +91,7 @@ export default function EnquiryForm() {
   const [values, setValues] = useState<Values>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [sent, setSent] = useState(false);
+  const [consent, setConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
 
@@ -131,7 +132,9 @@ export default function EnquiryForm() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmissionError("");
+    if (submitting) return;
     const found = validate(values);
+    if (!consent) found.consent = "Please agree to the Terms & Conditions and acknowledge the Privacy Policy before sending your enquiry.";
     setErrors(found);
     if (Object.keys(found).length > 0) {
       // Move focus to the first problem so keyboard and screen-reader users
@@ -147,6 +150,7 @@ export default function EnquiryForm() {
       setSent(true);
       // Reset the form, but keep the signed-in user's details filled in for the next enquiry.
       setValues(applyPrefill(EMPTY));
+      setConsent(false);
     } catch (cause) {
       setSubmissionError(cause instanceof Error ? cause.message : "Your enquiry could not be sent. Please try again.");
     } finally {
@@ -313,6 +317,34 @@ export default function EnquiryForm() {
           className={`mt-2 min-h-[140px] resize-y px-4 py-3 leading-[1.6] ${fieldClass(Boolean(errors.message))}`}
         />
         <FieldError id="enquiry-message-error" message={errors.message} />
+      </div>
+
+      <div className="sm:col-span-2">
+        <div className="flex items-start gap-2.5 text-xs leading-5 text-cmt-neutral-600">
+          <input
+            id="enquiry-consent"
+            name="consent"
+            type="checkbox"
+            required
+            checked={consent}
+            disabled={submitting}
+            onChange={(event) => {
+              setConsent(event.target.checked);
+              setErrors((current) => ({ ...current, consent: undefined }));
+            }}
+            aria-invalid={Boolean(errors.consent)}
+            aria-describedby={errors.consent ? "enquiry-consent-error" : undefined}
+            className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-cmt-neutral-300 accent-cmt-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+          />
+          <label htmlFor="enquiry-consent" className="cursor-pointer">
+            I have read and agree to the{" "}
+            <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-cmt-neutral-900 underline underline-offset-2">Terms & Conditions</a>
+            {" "}and acknowledge the{" "}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-cmt-neutral-900 underline underline-offset-2">Privacy Policy</a>.
+            {" "}<span className="text-cmt-error-500">*</span>
+          </label>
+        </div>
+        <FieldError id="enquiry-consent-error" message={errors.consent} />
       </div>
 
       <div className="sm:col-span-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-6">

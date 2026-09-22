@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Briefcase,
   CalendarDays,
+  ChevronLeft,
   ChevronRight,
   Gem,
   Heart,
@@ -87,7 +88,7 @@ function PickCard({ pkg }: { pkg: TravelPackage }) {
   return (
     <Link
       href={pkg.href ?? `/packages/${pkg.id}`}
-      className="cmt-hero-pick group flex w-[290px] shrink-0 items-center gap-3 rounded-cmt-md border border-white/15 bg-slate-900/70 p-2.5 transition-colors hover:border-white/30 hover:bg-slate-800/80"
+      className="cmt-hero-pick group flex w-[290px] shrink-0 items-center gap-3 rounded-cmt-md border border-white/15 bg-slate-900/70 p-2.5 transition-colors hover:border-white/30 hover:bg-slate-800/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
     >
       <div className="cmt-hero-pick-image relative size-14 shrink-0 overflow-hidden rounded-cmt-sm bg-white/10">
         <ContentImage
@@ -118,9 +119,10 @@ function PickCard({ pkg }: { pkg: TravelPackage }) {
 
         <div className="mt-1 flex items-center justify-between gap-2">
           <span className="cmt-hero-pick-rating inline-flex items-center gap-1 font-body text-xs font-medium text-white/85">
-            <Star className="size-3 fill-cmt-primary-500 text-cmt-primary-500" />
-            {pkg.rating}
-            <span className="text-white/50">({pkg.reviews})</span>
+            {pkg.reviews > 0 && pkg.rating > 0 && <>
+              <Star className="size-3 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" />
+              <span aria-label={`${pkg.rating} out of 5 stars`}>{pkg.rating}</span>
+            </>}
           </span>
           <span className="cmt-hero-pick-unit shrink-0 font-body text-xs text-white/55">/person</span>
         </div>
@@ -178,38 +180,43 @@ export default function HeroSearch() {
         ? `${formatDay(startDate)} – add return`
         : "Add dates";
 
-  // Two ways to fill the shelf, chosen in /admin/content.
-  //
-  // Hand-picked is literal: exactly the packages named, in the order they
-  // were named, whatever style pill is active — an editor who picks a shelf
-  // means that shelf.
-  //
-  // Automatic follows the pill row, so switching travel style changes what's
-  // on offer instead of leaving a stale shelf underneath the search.
+  // Choose a seed after hydration, then keep the order stable while filling the form.
+  const [pickSeed, setPickSeed] = useState(0);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPickSeed(crypto.getRandomValues(new Uint32Array(1))[0]);
+  }, []);
+
   const { mode, packageIds, limit } = hero.topPicks;
   const topPicks = useMemo(() => {
-    if (mode === "manual") {
-      return packageIds
-        .map((id) => packages.find((pkg) => pkg.id === id))
-        .filter((pkg): pkg is TravelPackage => Boolean(pkg));
-    }
-
     const matching = tripType
       ? packages.filter((pkg) => pkg.tags.includes(tripType))
       : packages;
-    const pool = matching.length > 0 ? matching : packages;
-    return [...pool]
-      .sort((a, b) => b.rating * 20 + b.reviews - (a.rating * 20 + a.reviews))
-      .slice(0, limit);
-  }, [tripType, packages, mode, packageIds, limit]);
+    const pool = mode === "manual"
+      ? packageIds.map((id) => packages.find((pkg) => pkg.id === id))
+          .filter((pkg): pkg is TravelPackage => Boolean(pkg))
+      : matching.length > 0 ? matching : packages;
+    const shuffled = [...pool];
+    let seed = pickSeed;
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      const target = Math.floor((seed / 4294967296) * (index + 1));
+      [shuffled[index], shuffled[target]] = [shuffled[target], shuffled[index]];
+    }
+    return mode === "manual" ? shuffled : shuffled.slice(0, limit);
+  }, [tripType, packages, mode, packageIds, limit, pickSeed]);
 
-  const scrollPicks = () => {
+  const scrollPicks = (direction: "previous" | "next") => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
     const atEnd =
       scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 8;
+    const step = (scroller.firstElementChild?.getBoundingClientRect().width ?? 290) + 12;
+    const left = direction === "previous"
+      ? scroller.scrollLeft <= 8 ? scroller.scrollWidth - scroller.clientWidth : scroller.scrollLeft - step
+      : atEnd ? 0 : scroller.scrollLeft + step;
     scroller.scrollTo({
-      left: atEnd ? 0 : scroller.scrollLeft + (scroller.firstElementChild?.getBoundingClientRect().width ?? 290) + 12,
+      left,
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
     });
   };
@@ -427,6 +434,15 @@ export default function HeroSearch() {
           </p>
         </div>
 
+        <button
+          type="button"
+          onClick={() => scrollPicks("previous")}
+          aria-label="Show previous picks"
+          className="cmt-hero-picks-prev grid size-10 shrink-0 place-items-center rounded-cmt-full border border-white/20 bg-slate-900/70 text-white transition-colors hover:bg-slate-800/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+        >
+          <ChevronLeft className="size-5" strokeWidth={2} aria-hidden="true" />
+        </button>
+
         <div
           ref={scrollerRef}
           className="cmt-hero-picks-rail flex min-w-0 flex-1 gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -438,11 +454,11 @@ export default function HeroSearch() {
 
         <button
           type="button"
-          onClick={scrollPicks}
+          onClick={() => scrollPicks("next")}
           aria-label="Show more picks"
-          className="cmt-hero-picks-next grid size-10 shrink-0 place-items-center rounded-cmt-full border border-white/20 bg-slate-900/70 text-white transition-colors hover:bg-slate-800/80"
+          className="cmt-hero-picks-next grid size-10 shrink-0 place-items-center rounded-cmt-full border border-white/20 bg-slate-900/70 text-white transition-colors hover:bg-slate-800/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
         >
-          <ChevronRight className="size-5" strokeWidth={2} />
+          <ChevronRight className="size-5" strokeWidth={2} aria-hidden="true" />
         </button>
       </div>
       )}

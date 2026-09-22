@@ -148,6 +148,33 @@ export function useCompare() {
     [commit],
   );
 
+  // Initialise from the published catalogue, replacing retired default IDs.
+  // Explicitly cleared slots in an existing valid tray stay empty.
+  const initialiseSuggestions = useCallback((packageIds: string[]) => {
+    if (!packageIds.length) return;
+    let hasSavedTray = false;
+    try {
+      hasSavedTray = Boolean(window.localStorage.getItem(COMPARE_STORAGE_KEY));
+    } catch { /* The in-memory state still supports this page. */ }
+    const current = readCompare();
+    const available = new Set(packageIds);
+    const hasStaleIds = current.slots.some((id) => id && !available.has(id));
+    if (hasSavedTray && !hasStaleIds) return;
+
+    const slots = hasSavedTray
+      ? current.slots.map((id) => id && available.has(id) ? id : null)
+      : Array<string | null>(COMPARE_SLOTS).fill(null);
+    const candidates = [...new Set(packageIds)].filter((id) => !slots.includes(id));
+    while (slots.filter(Boolean).length < 2 && candidates.length) {
+      const index = Math.floor(Math.random() * candidates.length);
+      slots[slots.indexOf(null)] = candidates.splice(index, 1)[0];
+    }
+    const empty = slots.indexOf(null);
+    const next = { slots, cursor: empty === -1 ? current.cursor : empty };
+    writeCompare(next);
+    setState(next);
+  }, []);
+
   const isCompared = useCallback(
     (packageId: string) => state.slots.includes(packageId),
     [state.slots],
@@ -159,5 +186,6 @@ export function useCompare() {
     toggle,
     setSlot,
     isCompared,
+    initialiseSuggestions,
   };
 }

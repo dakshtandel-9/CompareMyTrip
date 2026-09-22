@@ -9,11 +9,12 @@ export const ADMIN_NAV_GROUPS: { label: string; items: AdminNavItem[] }[] = [
     { href: "/admin/enquiries", label: "Contact enquiries", description: "Reply to questions sent through the contact form.", icon: MessageSquareText, keywords: "inbox messages support" },
     { href: "/admin/package-enquiries", label: "Package quotes", description: "Review requests for a customised package price.", icon: MessagesSquare, keywords: "customized quotation" },
     { href: "/admin/popup-form", label: "Trip planning leads", description: "Follow up with visitors who need help planning a trip.", icon: Sparkles, keywords: "pop-up popup form" },
+    { href: "/admin/cruise-enquiries", label: "Cruise enquiries", description: "Quote requests sent from your cruise page.", icon: Ship, keywords: "cruise ship cabin sailing quote enquiry lead" },
     { href: "/admin/trips", label: "Bookings & payments", description: "Check payments, confirm bookings and set departure dates.", icon: Plane, keywords: "trips revenue refund reports" },
   ] },
   { label: "Travel catalogue", items: [
     { href: "/admin/packages", label: "Travel packages", description: "Create and edit prices, itineraries, photos and availability.", icon: PackageSearch, keywords: "inventory products draft publish" },
-    { href: "/admin/cruises", label: "Cruises", description: "Create and manage cruise packages, cabins, prices and sailing itineraries.", icon: Ship, keywords: "cruise ship voyage sailing draft publish" },
+    { href: "/admin/cruises", label: "Cruises", description: "Manage the cruise cards, their prices and brochures.", icon: Ship, keywords: "cruise ship voyage sailing brochure quote draft publish" },
     { href: "/admin/destinations", label: "Destinations", description: "Create destinations, add packages and manage cover photos.", icon: Compass, keywords: "places countries states image create add package" },
     { href: "/admin/coupons", label: "Discount codes", description: "Manage coupon amounts, dates and eligible packages.", icon: TicketPercent, keywords: "coupons offers promotions" },
   ] },

@@ -1,4 +1,5 @@
 import type { PackagePageSections } from "@/lib/packageDetailSections";
+import type { WeekendTrackId } from "@/lib/weekendTracks";
 
 export type PackageCategory =
   | "Honeymoon"
@@ -111,6 +112,11 @@ export type TravelPackage = {
   hotelStars: number;
   /** 0 hides difficulty; missing preserves the legacy weekend-trek grade. */
   trekGrade?: 0 | 1 | 2 | 3;
+  /** Which weekend track this trek is filed under, assigned in /admin/packages.
+      Unset falls back to matching the title against the track keywords, so
+      packages nobody has filed by hand keep the track they already showed on.
+      Only meaningful while the package carries the Weekend Treks tag. */
+  weekendTrack?: WeekendTrackId;
   tags: PackageCategory[];
   region: "India" | "International";
   operator: string;

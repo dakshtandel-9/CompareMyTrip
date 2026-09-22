@@ -38,7 +38,7 @@ export default function BookingCard({ bookingUnavailableReason, pkg, details, tr
 
   /* Cruises are quoted rather than planned trip-by-trip, so the secondary
      action asks for a quote instead of a custom plan. */
-  const customPlanLabel = pkg.tags.includes("Cruise") ? "Get a custom quote" : "Need a custom plan";
+  const customPlanLabel = "Get a Custom Quote";
 
   const availabilityNote = details.availabilityNote ?? "Availability confirmed with your quote";
   const quoteNote = bookingUnavailableReason ? "" : details.quoteNote ?? "🔒 Secure payment · Instant booking confirmation";

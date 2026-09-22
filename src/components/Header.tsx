@@ -24,6 +24,11 @@ import { useAuthUser } from "@/lib/firebase/useAuthUser";
 import { useSiteContent } from "@/lib/useSiteContent";
 import { whatsAppHref } from "@/lib/whatsapp";
 
+/* The catch-all link at the end of a dropdown is emphasised. Matched on the
+   label rather than the id, since the nav is edited in /admin/content. */
+const isExploreMore = (label: string) =>
+  label.trim().toLowerCase() === "explore more";
+
 export default function Header() {
   const user = useAuthUser();
   const { header, contact } = useSiteContent();
@@ -376,7 +381,9 @@ export default function Header() {
                           href={child.href}
                           role="menuitem"
                           onClick={closeDropdown}
-                          className="block rounded-cmt-control px-3 py-2 text-[14px] text-cmt-neutral-700 hover:bg-cmt-neutral-50 hover:text-cmt-neutral-900"
+                          className={`block rounded-cmt-control px-3 py-2 text-[14px] text-cmt-neutral-700 hover:bg-cmt-neutral-50 hover:text-cmt-neutral-900 ${
+                            isExploreMore(child.label) ? "font-semibold" : ""
+                          }`}
                         >
                           {child.label}
                         </Link>

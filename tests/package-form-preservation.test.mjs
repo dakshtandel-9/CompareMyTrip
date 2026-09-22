@@ -197,18 +197,3 @@ test('formatted descriptions and separate highlight cards survive save, reload a
   assert.deepEqual(plain(richTextDocument(reopened.highlights)), plain(richTextDocument(form.highlights)));
   assert.equal(reopened.summary, form.summary);
 });
-
-
-test('cruise and hotel listings retain their collection through draft save, reopen and publication', () => {
-  const { withPackageCollection, packagesForCollection } = load('src/lib/packageCollections.ts');
-  for (const collection of ['cruise', 'hotels']) {
-    const form = withPackageCollection({ ...formFromPackage(fixture()), status: 'draft' }, collection);
-    const saved = packageFromForm(form);
-    const reopened = formFromPackage(plain(saved));
-    assert.ok(reopened.tags.includes(collection === 'cruise' ? 'Cruise' : 'Hotels'));
-    assert.equal(reopened.status, 'draft');
-    assert.equal(packagesForCollection([saved], collection).length, 3, 'draft does not replace public samples');
-    const published = packageFromForm({ ...reopened, status: 'published' }, saved);
-    assert.deepEqual(plain(packagesForCollection([published], collection)), plain([published]));
-  }
-});

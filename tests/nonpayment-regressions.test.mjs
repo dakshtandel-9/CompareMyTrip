@@ -89,6 +89,7 @@ function content(db) {
     '@/lib/blogSeed': { BLOG_SEED_POSTS: [{ id: 'seed', status: 'published' }] },
     '@/lib/blogData': { normalizeBlogPost: (id, data) => ({ id, ...data }), sortBlogPosts: posts => posts },
     '@/lib/firebase/admin': { getAdminDb: () => db }, '@/lib/packageData': packages,
+    '@/lib/cruiseListings': { isPublishedCruise: (cruise) => (cruise.status ?? 'published') === 'published' },
   });
 }
 

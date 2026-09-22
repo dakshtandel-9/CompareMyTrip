@@ -415,17 +415,19 @@ body {
   .cmt-hero-search .cmt-search-popover { position: fixed; inset: auto 16px calc(76px + env(safe-area-inset-bottom)); width: auto; max-height: 60svh; overflow-y: auto; overscroll-behavior: contain; margin: 0; padding: 16px; border-radius: 18px; box-shadow: 0 8px 40px #0f172a30; }
   .cmt-search-popover button[aria-label] { width: 40px; height: 40px; }
 
-  .cmt-hero-picks { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 10px 12px; margin-top: 18px; }
+  .cmt-hero-picks { display: grid; grid-template-columns: minmax(0, 1fr) 44px 44px; gap: 10px 12px; margin-top: 18px; }
   .cmt-hero-picks-heading { display: block; width: auto; min-width: 0; }
   .cmt-hero-picks-heading h2 { gap: 7px; color: #0f172a; font-size: 17px; line-height: 1.25; }
   .cmt-hero-picks-heading h2 svg { width: 17px; height: 17px; color: #a37600; }
   .cmt-hero-picks-heading > p { margin-top: 3px; color: #64748b; font-size: 11px; }
-  .cmt-hero-picks-next { grid-column: 2; grid-row: 1; width: 44px; height: 44px; color: #0f172a; background: #fff; border-color: #e2e8f0; }
-  .cmt-hero-picks-next:hover { background: #fff7d6; border-color: #eab308; }
+  .cmt-hero-picks-prev, .cmt-hero-picks-next { grid-row: 1; width: 44px; height: 44px; color: #0f172a; background: #fff; border-color: #e2e8f0; }
+  .cmt-hero-picks-prev { grid-column: 2; }
+  .cmt-hero-picks-next { grid-column: 3; }
+  .cmt-hero-picks-prev:hover, .cmt-hero-picks-next:hover { background: #fff7d6; border-color: #eab308; }
   .cmt-hero-picks-rail { grid-column: 1 / -1; grid-row: 2; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding: 2px 2px 6px; margin-inline: -2px; }
   .cmt-hero-pick { width: min(290px, 90%); min-height: 92px; padding: 10px; gap: 10px; scroll-snap-align: start; border: 1px solid #e2e8f0; border-radius: 15px; background: #fff; box-shadow: 0 2px 6px #0f172a04; }
   .cmt-hero-pick:hover { background: #fffdf5; border-color: #eab308; }
-  .cmt-hero-pick:focus-visible, .cmt-hero-picks-next:focus-visible { outline: 2px solid #a37600; outline-offset: -2px; }
+  .cmt-hero-pick:focus-visible, .cmt-hero-picks-prev:focus-visible, .cmt-hero-picks-next:focus-visible { outline: 2px solid #a37600; outline-offset: -2px; }
   .cmt-hero-pick-image { width: 64px; height: 68px; border-radius: 10px; }
   .cmt-hero-pick-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; color: #0f172a; font-size: 13px; line-height: 1.35; }
   .cmt-hero-pick-from { display: none; }

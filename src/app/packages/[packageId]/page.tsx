@@ -2,7 +2,6 @@
 import { plainPackageText } from "@/lib/packageRichText";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { COLLECTION_DEMO_PACKAGES, isCollectionDemo } from "@/lib/packageCollections";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
@@ -36,7 +35,7 @@ function packageDescription(pkg: Awaited<ReturnType<typeof getPublishedPackage>>
 
 export async function generateMetadata({ params }: PackagePageProps): Promise<Metadata> {
   const { packageId } = await params;
-  const pkg = COLLECTION_DEMO_PACKAGES.find((item) => item.id === packageId) ?? await getPublishedPackage(packageId);
+  const pkg = await getPublishedPackage(packageId);
   if (!pkg) return { title: "Package Not Found", robots: { index: false, follow: false } };
 
   const canonicalPath = pkg.href || `/packages/${pkg.id}`;
@@ -48,23 +47,15 @@ export async function generateMetadata({ params }: PackagePageProps): Promise<Me
     imageAlt: `${pkg.title} in ${pkg.location}`,
     // The page still serves whoever holds the link; it just does not go into
     // the index carrying a half-finished title.
-    index: !isCollectionDemo(pkg.id) && isIndexablePackage(pkg),
+    index: isIndexablePackage(pkg),
   });
 }
 
 export default async function PackageDetailPage({ params }: PackagePageProps) {
   const { packageId } = await params;
-  const pkg = COLLECTION_DEMO_PACKAGES.find((item) => item.id === packageId) ?? await getPublishedPackage(packageId);
+  const pkg = await getPublishedPackage(packageId);
   if (!pkg) notFound();
   if (pkg.href && pkg.href !== `/packages/${packageId}`) permanentRedirect(pkg.href);
-
-  if (isCollectionDemo(pkg.id)) {
-    return <><Header /><main>
-      <div className="bg-cmt-primary-50 px-4 py-3 text-center font-body text-sm text-cmt-neutral-700">Demo package · Sample prices and inclusions · Not available to book</div>
-      <PackageDetailClient initialPackage={pkg} preview publicPreview bookingUnavailableReason="Demo listing · Reservations and payments are unavailable." />
-    </main><Footer /></>;
-  }
-
 
   const packageUrl = absoluteUrl(`/packages/${pkg.id}`);
   const schemaImages = pkg.details?.gallery?.length ? pkg.details.gallery : [pkg.image];
