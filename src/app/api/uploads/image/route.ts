@@ -9,7 +9,7 @@ const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
    permanent, so they are stored beside the images rather than through the
    quotes pipeline, which signs short-lived URLs and expires them by cron. */
 const BROCHURE_FOLDER = "brochures";
-const MAX_BROCHURE_BYTES = 10_000_000;
+const MAX_BROCHURE_BYTES = 25_000_000;
 
 /* Every prefix the CRM owns in the bucket. Uploads outside this list are
    filed under packages, and deletes outside it are refused, so the route
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
      nothing to resize or re-encode. */
   if (folder === BROCHURE_FOLDER) {
     if (file.type !== "application/pdf") return Response.json({ error: "Choose a PDF file." }, { status: 400 });
-    if (file.size > MAX_BROCHURE_BYTES) return Response.json({ error: "The brochure must be 10 MB or smaller." }, { status: 400 });
+    if (file.size > MAX_BROCHURE_BYTES) return Response.json({ error: "The brochure must be 25 MB or smaller." }, { status: 400 });
     const key = `${BROCHURE_FOLDER}/${crypto.randomUUID()}.pdf`;
     await config.client.send(new PutObjectCommand({
       Bucket: config.bucket,

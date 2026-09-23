@@ -1,7 +1,7 @@
 "use client";
 
 import { shouldLoadVideo } from "@/lib/videoSource";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import ContentImage from "../_components/ContentImage";
 import HeroSearch from "../_components/HeroSearch";
 import { startScrollVideo } from "@/lib/scrollVideo";
@@ -34,7 +34,17 @@ const clamp01 = (value: number) => (value < 0 ? 0 : value > 1 ? 1 : value);
 
 const smoothstep = (t: number) => t * t * (3 - 2 * t);
 
+const PHONE_QUERY = "(max-width: 767px)";
+const subscribePhone = (notify: () => void) => {
+  const query = window.matchMedia(PHONE_QUERY);
+  query.addEventListener("change", notify);
+  return () => query.removeEventListener("change", notify);
+};
+const isPhone = () => window.matchMedia(PHONE_QUERY).matches;
+const serverPhone = () => false;
+
 export default function ScrollFrameSequence() {
+  const phoneLayout = useSyncExternalStore(subscribePhone, isPhone, serverPhone);
   const { hero } = useSiteContent();
   const heroCopy = hero.copy;
 
@@ -66,7 +76,7 @@ export default function ScrollFrameSequence() {
     if (!wrapper || !video || !stage) return;
 
     const motion = window.matchMedia("(prefers-reduced-motion: no-preference)");
-    const phone = window.matchMedia("(max-width: 767px)");
+    const phone = window.matchMedia(PHONE_QUERY);
     const reducedData = window.matchMedia("(prefers-reduced-data: reduce)");
     const connection = (navigator as Navigator & { connection?: EventTarget }).connection;
     // Last values written to the DOM, so the copy only touches style when it
@@ -113,50 +123,73 @@ export default function ScrollFrameSequence() {
     refreshCopyRef.current = () => drawCopy(lastProgress);
 
     let stopSequence: (() => void) | undefined;
-    let stopPhoneMeasure: (() => void) | undefined;
+    let stopPhoneLayout: (() => void) | undefined;
+    let openingInset = 0;
     let activeLayout: string | undefined;
     const syncLayout = () => {
-      const enabled = shouldLoadVideo({ allowMobile: true });
+      // Try the video on estimated 3G; the controller handles actual stalls.
+      const enabled = shouldLoadVideo({ allowMobile: true, allow3g: true });
       const nextLayout = `${enabled}:${phone.matches}`;
       // Network estimates can change frequently without changing the policy.
       // Preserve the decoded video unless its rendition or eligibility changes.
       if (activeLayout === nextLayout) return;
       activeLayout = nextLayout;
       stopSequence?.();
-      stopPhoneMeasure?.();
+      stopPhoneLayout?.();
       stopSequence = undefined;
-      stopPhoneMeasure = undefined;
+      stopPhoneLayout = undefined;
+      openingInset = 0;
       copyDirtyRef.current = true;
       wrapper.classList.toggle("cmt-hero-static", !enabled);
-      if (!enabled) { drawCopy(0); return; }
       if (phone.matches) {
-        // Reserve a scroll runway behind the complete phone panel. Keep its
-        // top fixed while the video plays, then release all the content.
-        const measure = () => wrapper.style.setProperty("--cmt-phone-stage-height", `${stage.offsetHeight}px`);
+        let start = 0;
+        let frame = 0;
+        const fit = () => {
+          frame = 0;
+          // Only the opening view includes the header in document flow.
+          // Expand to the full pinned height as that space scrolls away.
+          const inset = Math.max(0, start - window.scrollY);
+          if (inset === openingInset && wrapper.style.getPropertyValue("--cmt-phone-opening-inset")) return;
+          openingInset = inset;
+          wrapper.style.setProperty("--cmt-phone-opening-inset", `${inset}px`);
+        };
+        const scheduleFit = () => {
+          if (!frame) frame = requestAnimationFrame(fit);
+        };
+        const measure = () => {
+          cancelAnimationFrame(frame);
+          start = wrapper.getBoundingClientRect().top + window.scrollY;
+          fit();
+        };
         measure();
+        window.addEventListener("scroll", scheduleFit, { passive: true });
+        window.addEventListener("resize", measure);
+        const header = document.querySelector(".cmt-header");
         const observer = new ResizeObserver(measure);
-        observer.observe(stage);
-        stopPhoneMeasure = () => {
+        if (header) observer.observe(header);
+        stopPhoneLayout = () => {
+          cancelAnimationFrame(frame);
+          window.removeEventListener("scroll", scheduleFit);
+          window.removeEventListener("resize", measure);
           observer.disconnect();
-          wrapper.style.removeProperty("--cmt-phone-stage-height");
+          wrapper.style.removeProperty("--cmt-phone-opening-inset");
         };
       }
+      if (!enabled) { drawCopy(0); return; }
       stopSequence = startScrollVideo({
         wrapper,
         video,
         src: phone.matches ? MOBILE_VIDEO_SRC : DESKTOP_VIDEO_SRC,
         tailHold: TAIL_HOLD,
         scrubDuration: phone.matches ? 0.18 : 0.1,
-        // Keep the phone heading above the video steady during playback.
-        // Desktop retains its synchronized rotating headlines.
-        onFrame: (progress) => drawCopy(phone.matches ? 0 : progress),
+        // Both layouts follow the decoded frame, including reverse scrolling.
+        onFrame: drawCopy,
         onError: () => {
           wrapper.classList.add("cmt-hero-static");
           drawCopy(0);
         },
-        scrollDistance: () => phone.matches
-          ? wrapper.offsetHeight - stage.offsetHeight
-          : wrapper.offsetHeight - window.innerHeight,
+        // Keep the video timeline independent of the opening resize.
+        scrollDistance: () => wrapper.offsetHeight - stage.offsetHeight - openingInset,
       });
     };
     syncLayout();
@@ -166,7 +199,7 @@ export default function ScrollFrameSequence() {
     return () => {
       refreshCopyRef.current = undefined;
       stopSequence?.();
-      stopPhoneMeasure?.();
+      stopPhoneLayout?.();
       queries.forEach(query => query.removeEventListener("change", syncLayout));
       connection?.removeEventListener("change", syncLayout);
     };
@@ -177,7 +210,7 @@ export default function ScrollFrameSequence() {
   if (!hero.enabled) return null;
 
   return (
-    // A shorter scroll journey, with a pause on the closing frame.
+    <>
     <div ref={wrapperRef} className="cmt-hero relative h-[450vh] bg-white">
       <div ref={stageRef} className="cmt-hero-stage sticky top-0 flex h-screen w-full items-center justify-center p-3 sm:p-4 md:p-6">
         <div className="cmt-hero-surface relative h-full w-full overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:rounded-3xl">
@@ -205,9 +238,8 @@ export default function ScrollFrameSequence() {
               contrast over the brightest frames of the sequence. */}
           <div className="cmt-hero-overlay pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-black/70" />
 
-          {/* The sticky site header takes 64px of flow above this box, so at
-              rest its last 64px sit under the fold — the symmetric vertical
-              padding keeps the search panel and picks clear of both edges. */}
+          {/* The desktop stage fills the viewport once pinned. A minimum
+              gap keeps booking controls clear of every copy block. */}
           <div className="cmt-hero-content relative z-10 flex h-full flex-col px-4 py-[72px] sm:px-6 lg:px-10 [@media(max-height:820px)]:py-14">
             <div className="cmt-hero-intro flex min-h-0 flex-1 flex-col justify-center">
               {/* Every block shares one grid cell, so the cell is as tall as
@@ -275,12 +307,20 @@ export default function ScrollFrameSequence() {
 
             {/* Deliberately outside the clip-change fade: the search stays put
                 and stays usable while the background hands over. */}
-            <div className="w-full">
-              <HeroSearch />
-            </div>
+            {!phoneLayout && (
+              <div className="cmt-hero-desktop-booking w-full">
+                <HeroSearch />
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
+    {phoneLayout && (
+      <div className="cmt-hero-mobile-booking">
+        <HeroSearch />
+      </div>
+    )}
+    </>
   );
 }

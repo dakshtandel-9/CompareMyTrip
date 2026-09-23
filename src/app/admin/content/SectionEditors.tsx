@@ -27,12 +27,13 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import { PACKAGE_CATEGORIES } from "@/lib/packageData";
+import { PACKAGE_CATEGORIES, type TravelPackage } from "@/lib/packageData";
 import { usePackages } from "@/lib/usePackages";
-import { internationalCardPackage } from "@/lib/internationalPackages";
+import { internationalCardTarget } from "@/lib/internationalPackages";
 import {
   VISA_TYPES,
   type CompareContent,
+  type CountryCard,
   type DomesticContent,
   type FaqContent,
   type FeaturedContent,
@@ -51,6 +52,7 @@ import {
   type VisaType,
   type WeekendTreksContent,
   type WhyUsContent,
+  isPastedLink,
   nextId,
 } from "@/lib/siteContent";
 import IconPicker from "../_components/IconPicker";
@@ -1373,7 +1375,6 @@ export function DomesticEditor({
   value: DomesticContent;
   onChange: (next: DomesticContent) => void;
 }) {
-  const packages = usePackages();
   return (
     <div className="space-y-5">
       <Card
@@ -1439,27 +1440,20 @@ export function DomesticEditor({
                 value={item.alt}
                 onChange={(alt) => patch({ alt })}
               />
-              <label className="block">
-                <FieldLabel>Package details page</FieldLabel>
-                <select
-                  value={item.link}
-                  onChange={(event) => patch({ link: event.target.value })}
-                  className="w-full rounded-cmt-sm border border-cmt-neutral-200 bg-white px-3 py-2 text-sm text-cmt-neutral-900 focus:border-cmt-primary-500 focus:outline-none"
-                >
-                  <option value="" disabled>Select a package</option>
-                  {item.link && !packages.some((pkg) => `/packages/${pkg.id}` === item.link) && (
-                    <option value={item.link}>Current selection: {item.link}</option>
-                  )}
-                  {packages.map((pkg) => (
-                    <option key={pkg.id} value={`/packages/${pkg.id}`}>
-                      {pkg.destination} — {pkg.title}
-                    </option>
-                  ))}
-                </select>
-                <span className="mt-1 block text-[11px] text-cmt-neutral-500">
-                  Clicking or tapping this photo opens the selected package immediately.
-                </span>
-              </label>
+              {/* A pasted link rather than a package picker: these panels are
+                  often pointed at a filtered catalogue or a destination page,
+                  neither of which a list of packages can offer. */}
+              <TextField
+                label="Link this photo opens"
+                value={item.link}
+                onChange={(link) => patch({ link })}
+                placeholder="/packages/ladakh-land-of-lamas-e6ff"
+                hint={
+                  item.link.trim() && !isPastedLink(item.link)
+                    ? "Paste a link from your own site starting with / , or a full https:// address."
+                    : "Paste any page on your site, for example /packages?destination=Ladakh. Leave it empty and the photo does not open anything."
+                }
+              />
             </div>
           )}
         </ListEditor>
@@ -1469,6 +1463,22 @@ export function DomesticEditor({
 }
 
 /* --------------------- International holidays --------------------- */
+
+/* Says what the card will actually do, since an empty box, an attached
+   package and a pasted link each behave differently. */
+function intlCardHint(item: CountryCard, packages: TravelPackage[]): string {
+  const link = item.href.trim();
+  if (link && !isPastedLink(link)) {
+    return "Paste a link from your own site starting with / , or a full https:// address.";
+  }
+  const { pkg, href } = internationalCardTarget(item, packages);
+  if (pkg) {
+    return `Opens ${pkg.title}, and the card shows that package's current price.`;
+  }
+  return link
+    ? `Opens ${href}. The card shows the "From price" above, since no single package is attached.`
+    : "Empty, so the card opens this country's first live package. Paste a link to send it somewhere else.";
+}
 
 export function InternationalEditor({
   value,
@@ -1605,26 +1615,15 @@ export function InternationalEditor({
                   onChange={(currency) => patch({ currency })}
                   placeholder="Thai baht (THB)"
                 />
-                <label className="block">
-                  <FieldLabel>Attached package</FieldLabel>
-                  <select
-                    value={packages.some((pkg) => `/packages/${pkg.id}` === item.href) ? item.href : ""}
-                    onChange={(event) => patch({ href: event.target.value })}
-                    className="w-full rounded-cmt-sm border border-cmt-neutral-200 bg-white px-3 py-2 text-sm text-cmt-neutral-900 focus:border-cmt-primary-500 focus:outline-none"
-                  >
-                    <option value="">Automatic — match this country</option>
-                    {packages.map((pkg) => (
-                      <option key={pkg.id} value={`/packages/${pkg.id}`}>
-                        {pkg.destination} — {pkg.title}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="mt-1 block text-[11px] text-cmt-neutral-500">
-                    {internationalCardPackage(item, packages)
-                      ? `Opens: ${internationalCardPackage(item, packages)!.title}. The card shows this package’s current price.`
-                      : "No matching published package yet. Attach one above; until then the card opens all international packages."}
-                  </span>
-                </label>
+                {/* A pasted link rather than a package picker, so a card can
+                    point at a filtered catalogue or a destination page. */}
+                <TextField
+                  label="Link this card opens"
+                  value={item.href}
+                  onChange={(href) => patch({ href })}
+                  placeholder="Leave empty to match this country automatically"
+                  hint={intlCardHint(item, packages)}
+                />
               </div>
             </div>
           )}

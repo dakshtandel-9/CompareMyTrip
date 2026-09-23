@@ -6,7 +6,7 @@ import { ArrowRight, Clock, Plane, Sun, Wallet } from "lucide-react";
 import type { VisaType } from "@/lib/siteContent";
 import { useSiteContent } from "@/lib/useSiteContent";
 import { usePackages } from "@/lib/usePackages";
-import { internationalCardPackage } from "@/lib/internationalPackages";
+import { internationalCardTarget } from "@/lib/internationalPackages";
 import ContentImage from "../_components/ContentImage";
 import Price from "../_components/Price";
 import SectionHeader from "../_components/SectionHeader";
@@ -56,8 +56,7 @@ export default function InternationalHolidays() {
 
         <div className="cmt-mobile-rail mt-8 grid grid-cols-1 gap-6 sm:mt-10 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((country) => {
-            const attachedPackage = internationalCardPackage(country, packages);
-            const href = attachedPackage ? `/packages/${attachedPackage.id}` : "/packages?region=international";
+            const { pkg: attachedPackage, href } = internationalCardTarget(country, packages);
             return (
             <article
               key={country.id}

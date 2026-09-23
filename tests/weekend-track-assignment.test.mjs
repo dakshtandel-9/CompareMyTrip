@@ -67,7 +67,6 @@ test('trackForTrek reports where a trek currently appears', () => {
 
 function setupWrite({ signedIn = true } = {}) {
   const calls = { writes: [], commits: 0, refreshes: 0 };
-  const DELETE = { __delete: true };
   const exports = load('src/lib/firebase/packages.ts', {
     './client': { getFirebaseAuth: () => ({ currentUser: signedIn ? { uid: 'admin' } : null }), getFirebaseDb: () => ({}) },
     './revalidateContent': { revalidatePublicContent: async () => { calls.refreshes++; } },
@@ -78,7 +77,6 @@ function setupWrite({ signedIn = true } = {}) {
     },
     'firebase/firestore': {
       doc: (_db, collection, id) => ({ collection, id }),
-      deleteField: () => DELETE,
       serverTimestamp: () => 'now',
       writeBatch: () => ({
         set: (ref, data) => calls.writes.push({ id: ref.id, ...data.package }),
@@ -90,7 +88,7 @@ function setupWrite({ signedIn = true } = {}) {
      that context's Array prototype and deepStrictEqual refuses to match them
      against ours. Comparing the values sidesteps the cross-realm check. */
   const tagsOf = (index) => [...calls.writes[index].tags];
-  return { assign: exports.assignWeekendTrack, calls, DELETE, tagsOf };
+  return { assign: exports.assignWeekendTrack, calls, tagsOf };
 }
 
 test('assigning a track writes only the track and tags, in one batch', async () => {
@@ -112,10 +110,10 @@ test('a package missing the weekend tag gains it when filed', async () => {
   assert.deepEqual(tagsOf(0), ['Adventure', 'Weekend Treks']);
 });
 
-test('clearing a track deletes the field rather than storing undefined', async () => {
-  const { assign, calls, DELETE, tagsOf } = setupWrite();
+test('removing a track persists exclusion instead of restoring automatic assignment', async () => {
+  const { assign, calls, tagsOf } = setupWrite();
   await assign([trek({ id: 'a' })], null);
-  assert.equal(calls.writes[0].weekendTrack, DELETE);
+  assert.equal(calls.writes[0].weekendTrack, null);
   // Clearing must not add the tag to something that never had it.
   assert.deepEqual(tagsOf(0), ['Weekend Treks']);
 });
@@ -137,4 +135,17 @@ test('an empty selection is a no-op', async () => {
   const result = await assign([], 'monsoon');
   assert.equal(calls.commits, 0);
   assert.equal(result.refreshWarning, '');
+});
+
+ test('removed automatic treks stay outside tracks after reload and can be reassigned', async () => {
+  const { assign, calls } = setupWrite();
+  const { trackForTrek, weekendTreks, buildWeekendTrackSummaries } = tracks();
+  const original = trek({ title: 'Skandagiri Sunrise Trek' });
+  await assign([original], null);
+  const reloaded = JSON.parse(JSON.stringify({ ...original, ...calls.writes[0] }));
+  assert.equal(trackForTrek(reloaded), undefined);
+  assert.equal(buildWeekendTrackSummaries([reloaded]).length, 0);
+  assert.equal(weekendTreks([reloaded]).length, 1);
+  await assign([reloaded], 'monsoon');
+  assert.equal(trackForTrek({ ...reloaded, ...calls.writes[1] }).id, 'monsoon');
 });

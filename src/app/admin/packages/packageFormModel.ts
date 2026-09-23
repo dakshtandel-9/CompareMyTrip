@@ -64,6 +64,7 @@ export function packageFromForm(form: PackageForm, initialPackage?: TravelPackag
   const places = normalize ? splitPlaces(form.places) : form.places.split(/[,·]/);
   return {
       id: initialPackage?.id ?? "preview",
+      ...(initialPackage?.weekendTrack !== undefined ? { weekendTrack: initialPackage.weekendTrack } : {}),
       ...(initialPackage?.href !== undefined ? { href: initialPackage.href } : {}),
       ...(form.trekGrade !== undefined ? { trekGrade: form.trekGrade } : {}),
       title: text(form.title), location: text(form.location), operator: text(form.operator), region: form.region,

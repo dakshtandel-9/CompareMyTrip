@@ -337,6 +337,15 @@ body {
 .cmt-hero-static .cmt-hero-stage { position: relative; height: auto; min-height: 85svh; }
 .cmt-hero-static .cmt-hero-surface { min-height: 85svh; }
 .cmt-hero-static .cmt-hero-copy:not(:first-child) { display: none; }
+/* The pinned desktop hero fills the viewport after the header scrolls away.
+   Keep copy clear of booking controls, including the still-image fallback. */
+@media (min-width: 768px) {
+  .cmt-hero-stage { height: 100svh; }
+  .cmt-hero-content { gap: 32px; padding-block: clamp(32px, 5vh, 64px); }
+  .cmt-hero-intro { min-height: min-content; }
+  .cmt-hero-static .cmt-hero-content { height: auto; }
+  .cmt-hero-static .cmt-hero-intro { flex: none; }
+}
 /* Phone layouts are deliberately isolated: tablet/desktop composition is retained. */
 @media (max-width: 767px) {
   /* These pages use light surfaces. OS dark mode must not turn inherited
@@ -374,28 +383,27 @@ body {
   .cmt-mobile-nav-count { position: absolute; top: -7px; right: -10px; min-width: 17px; height: 17px; padding-inline: 3px; display: grid; place-items: center; background: #facc15; color: #0f172a; border-radius: 50%; font-size: 10px; font-weight: 700; }
   .cmt-mobile-nav-link:focus-visible { outline: 2px solid #d69e00; outline-offset: -2px; }
 
-  .cmt-hero { --cmt-hero-visual-height: clamp(320px, 45svh, 390px); height: auto; background: #f8fafc; }
-  .cmt-hero .cmt-hero-stage { position: relative; height: auto; min-height: 0; padding: 0; align-items: start; }
+  .cmt-hero { --cmt-phone-stage-height: calc(100svh - 64px - env(safe-area-inset-bottom)); height: auto; background: #f8fafc; }
+  .cmt-hero .cmt-hero-stage { position: relative; height: calc(var(--cmt-phone-stage-height) - var(--cmt-phone-opening-inset, 96px)); min-height: 0; padding: 0 0 16px; align-items: start; }
   /* Keep the phone panel pinned through the video, then release the page. */
   .cmt-hero:not(.cmt-hero-static) { height: calc(var(--cmt-phone-stage-height, 100svh) + 220svh); }
   .cmt-hero:not(.cmt-hero-static) .cmt-hero-stage { position: sticky; top: 0; }
-  .cmt-hero .cmt-hero-surface, .cmt-hero-static .cmt-hero-surface { display: grid; grid-template-columns: minmax(0, 1fr); height: auto; min-height: 0; overflow: visible; border-radius: 0 0 28px 28px; background: #f8fafc; }
-  .cmt-hero .cmt-hero-poster, .cmt-hero video { grid-area: 2 / 1; position: relative !important; inset: auto !important; height: var(--cmt-hero-visual-height) !important; border-radius: 28px; object-position: center; }
+  .cmt-hero .cmt-hero-surface, .cmt-hero-static .cmt-hero-surface { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: 100%; min-height: 0; overflow: hidden; border-radius: 0; background: #f8fafc; }
+  .cmt-hero .cmt-hero-poster, .cmt-hero video { grid-area: 2 / 1; position: relative !important; inset: auto !important; height: 100% !important; min-height: 0; width: 100%; border-radius: 28px; object-position: center; }
   .cmt-hero .cmt-hero-overlay { display: none; }
   .cmt-hero .cmt-hero-content { display: contents; }
   .cmt-hero .cmt-hero-intro { grid-area: 1 / 1; position: relative; flex: none; min-width: 0; min-height: 0; margin: 0; padding: 24px 22px; justify-content: center; }
   .cmt-hero-copy > :first-child { max-width: 20ch; font-size: clamp(27px,7.3vw,34px); line-height: 1.12; letter-spacing: -.035em; color: #0f172a; text-shadow: none; }
   .cmt-hero-copy > :last-child { margin-top: 10px; max-width: 42ch; font-size: 13px; line-height: 1.55; color: #475569; }
-  .cmt-hero-copy:not(:first-child) { display: none; }
-  .cmt-hero-copy:first-child { opacity: 1 !important; transform: none !important; }
   .cmt-hero-scroll-hint { display: none; }
   .cmt-hero-scroll-hint > span { width: 6px; height: 6px; border-radius: 50%; background: #ffc40c; box-shadow: 0 0 0 4px #ffc40c26; }
   .cmt-hero-static .cmt-hero-scroll-hint { display: none; }
-  .cmt-hero-proof { display: flex; gap: 9px; margin-top: 14px; }
+  .cmt-hero-proof { display: none; }
   .cmt-hero-proof > div > span { width: 23px; height: 23px; }
   .cmt-hero-proof > p { color: #64748b; font-size: 11px; }
   .cmt-hero-proof > p > span { color: #8a6100; }
-  .cmt-hero-content > div:last-child { grid-area: 3 / 1; position: relative; min-width: 0; width: auto; margin: 20px 16px; }
+  .cmt-hero-desktop-booking { display: none; }
+  .cmt-hero-mobile-booking { padding: 20px 16px; background: #f8fafc; }
   .cmt-hero-search { border: 1px solid #e2e8f0; border-radius: 20px; padding: 12px; background: #fff; box-shadow: 0 8px 28px #0f172a0c; backdrop-filter: none; }
   .cmt-search-tabs { gap: 6px; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; overscroll-behavior-x: contain; }
   .cmt-search-tabs button { min-height: 44px; padding: 9px 12px; font-size: 12px; }
@@ -637,15 +645,10 @@ body {
   }
   .cmt-mobile-nav-link { min-width: 0; line-height: 1.2; white-space: nowrap; }
 
-  /* Give the unobstructed phone video one screen of scrolling before the
-     panel releases. Copy stays below it; the full search and picks follow. */
-  .cmt-hero:not(.cmt-hero-static) { height: calc(var(--cmt-phone-stage-height, 100svh) + 100svh); }
-  .cmt-hero:not(.cmt-hero-static) .cmt-hero-stage { position: sticky; top: 0; }
   @media (prefers-reduced-motion: reduce) {
     .cmt-hero:not(.cmt-hero-static) { height: auto; }
     .cmt-hero:not(.cmt-hero-static) .cmt-hero-stage { position: relative; }
   }
-  .cmt-hero-content > div:last-child { margin-bottom: 20px; }
   .cmt-search-field, .cmt-catalog-toolbar > div:last-child > label { min-width: 0; }
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea {
     min-width: 0;

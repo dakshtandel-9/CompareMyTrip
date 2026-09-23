@@ -35,7 +35,7 @@ export async function uploadImageToCloudflare(file: File, folder: UploadFolder) 
     anything that is not an image, and the route skips sharp for a PDF. */
 export async function uploadBrochureToCloudflare(file: File) {
   if (file.type !== "application/pdf") throw new Error("Please choose a PDF file.");
-  if (file.size > 10_000_000) throw new Error("The brochure must be 10 MB or smaller.");
+  if (file.size > 25_000_000) throw new Error("The brochure must be 25 MB or smaller.");
 
   const auth = getFirebaseAuth();
   await auth.authStateReady();

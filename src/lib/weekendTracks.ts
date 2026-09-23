@@ -98,6 +98,8 @@ export function groupWeekendTracks(packages: TravelPackage[]): WeekendTrackGroup
   const fallback = WEEKEND_TRACKS.find((track) => track.catchAll) ?? WEEKEND_TRACKS.at(-1);
 
   for (const trek of treks) {
+    // An explicit removal must not fall back to automatic keyword matching.
+    if (trek.weekendTrack === null) continue;
     /* An assignment naming a track that has since been removed is ignored
        rather than dropping the trek, which falls back to the keywords. */
     const assigned = trek.weekendTrack

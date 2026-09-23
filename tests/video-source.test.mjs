@@ -35,3 +35,16 @@ test('phone hero still respects reduced motion, data saving and slow connections
     assert.equal(policy(preferences)({ allowMobile: true }), false);
   }
 });
+
+
+test('hero can attempt video on estimated 3g without bypassing user preferences', () => {
+  const hero = { allowMobile: true, allow3g: true };
+  assert.equal(policy({ connection: { effectiveType: '3g' } })(hero), true);
+  for (const preferences of [
+    { reducedMotion: true }, { reducedData: true },
+    { connection: { effectiveType: '3g', saveData: true } },
+    ...['slow-2g', '2g'].map(effectiveType => ({ connection: { effectiveType } })),
+  ]) {
+    assert.equal(policy(preferences)(hero), false);
+  }
+});

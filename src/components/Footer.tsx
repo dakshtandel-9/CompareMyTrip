@@ -1,8 +1,10 @@
 import BrandLogo from "@/components/BrandLogo";
+import Image from "next/image";
 import { Fragment } from "react";
 import Link from "next/link";
 import { ArrowUpRight, CreditCard, Mail, MapPin, Phone } from "lucide-react";
 
+import JoinCommunityButton from "@/components/JoinCommunityButton";
 import PartnerMarquee from "@/components/PartnerMarquee";
 import SupportPhones from "@/components/SupportPhones";
 import TrustStrip from "@/components/TrustStrip";
@@ -40,6 +42,15 @@ const SOCIAL_LINKS: { label: string; href: string; path: string }[] = [
   { label: "Facebook", href: "https://www.facebook.com/", path: FACEBOOK },
   { label: "YouTube", href: "https://www.youtube.com/", path: YOUTUBE },
   { label: "LinkedIn", href: "https://www.linkedin.com/", path: LINKEDIN },
+];
+
+/* Other platforms that list CompareMyTrip. Fill in `href` with the
+   client's listing page on each; until then the logo shows unlinked.
+   The BookMyShow file is a red card with wide margins, so it is cropped
+   to fill its tile; Swiggy Scenes sits on white and is contained. */
+const LISTED_ON: { label: string; src: string; width: number; height: number; href: string; fit: "cover" | "contain" }[] = [
+  { label: "BookMyShow", src: "/footerClientServicesLogo/logo2.jpeg", width: 640, height: 312, href: "", fit: "cover" },
+  { label: "Swiggy Scenes", src: "/footerClientServicesLogo/logo1.jpeg", width: 400, height: 125, href: "", fit: "contain" },
 ];
 
 type FooterLink = { label: string; href: string };
@@ -124,7 +135,7 @@ export default function Footer({
         <div className="mx-auto w-full max-w-[1440px]">
           <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:gap-10 lg:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,1fr))] lg:gap-x-10 lg:gap-y-10 xl:gap-x-14">
             {/* Brand */}
-            <div className="col-span-2 lg:col-span-1">
+            <div className="col-span-2 lg:col-span-1 lg:row-span-2">
               <Link href="/" className="inline-flex">
                 <BrandLogo className="w-[235px] max-w-full" />
               </Link>
@@ -181,6 +192,12 @@ export default function Footer({
                   ))}
                 </ul>
               ) : null}
+
+              {/* Below the logo, with the brand. The platform tiles moved to
+                  the right-hand side of the footer. */}
+              <div className="mt-6">
+                <JoinCommunityButton />
+              </div>
             </div>
 
             <div className="col-span-2 pb-7 md:pb-0 lg:order-last lg:col-span-5 lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center lg:gap-7 lg:rounded-cmt-md lg:border lg:border-cmt-neutral-200 lg:bg-white lg:p-6 xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-8 xl:px-8">
@@ -235,6 +252,50 @@ export default function Footer({
               </nav>
               </Fragment>
             ))}
+
+            {/* Other platforms that list us, on the right: it fills the space
+                under the link columns, level with the foot of the brand column. */}
+            <div className="col-span-2 lg:col-span-4 lg:col-start-2 lg:row-start-2 lg:self-end lg:text-right">
+              <p className="text-sm leading-6 text-cmt-neutral-600">
+                Also find us on BookMyShow and Swiggy Scenes
+              </p>
+              <ul className="mt-3 flex flex-wrap items-center gap-2.5 lg:justify-end">
+                {LISTED_ON.map((platform) => {
+                  const tileClass = `relative block h-11 w-[120px] overflow-hidden rounded-cmt-sm border border-cmt-neutral-200 bg-white ${
+                    platform.fit === "contain" ? "px-2" : ""
+                  }`;
+                  const logo = (
+                    <Image
+                      src={platform.src}
+                      alt={platform.label}
+                      width={platform.width}
+                      height={platform.height}
+                      sizes="120px"
+                      className={`h-full w-full ${
+                        platform.fit === "cover" ? "object-cover" : "object-contain"
+                      }`}
+                    />
+                  );
+                  return (
+                    <li key={platform.label}>
+                      {platform.href ? (
+                        <a
+                          href={platform.href}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          aria-label={`CompareMyTrip on ${platform.label} (opens in a new tab)`}
+                          className={`${tileClass} transition-colors duration-150 hover:border-cmt-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500`}
+                        >
+                          {logo}
+                        </a>
+                      ) : (
+                        <span className={tileClass}>{logo}</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           </div>
 
           <TrustStrip />

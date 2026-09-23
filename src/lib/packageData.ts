@@ -115,8 +115,9 @@ export type TravelPackage = {
   /** Which weekend track this trek is filed under, assigned in /admin/packages.
       Unset falls back to matching the title against the track keywords, so
       packages nobody has filed by hand keep the track they already showed on.
+      Null explicitly removes the trek from all tracks.
       Only meaningful while the package carries the Weekend Treks tag. */
-  weekendTrack?: WeekendTrackId;
+  weekendTrack?: WeekendTrackId | null;
   tags: PackageCategory[];
   region: "India" | "International";
   operator: string;

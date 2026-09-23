@@ -128,7 +128,7 @@ export default function AdminCruisesManager() {
           </div>
         </div>
 
-        <div className="text-xs font-semibold text-cmt-neutral-600">Brochure PDF <span className="font-medium text-cmt-neutral-400">— optional, hides the button when empty</span>
+        <div className="text-xs font-semibold text-cmt-neutral-600">Brochure PDF <span className="font-medium text-cmt-neutral-400">— optional, PDF up to 25 MB; hides the button when empty</span>
           <div className="mt-1.5 flex flex-wrap items-center gap-3">
             {editing.brochureUrl && <a href={editing.brochureUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-cmt-primary-900 underline underline-offset-4"><FileText className="size-3.5" />View current</a>}
             <input ref={brochureInput} hidden type="file" accept="application/pdf" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; void upload(file, "brochure"); }} />

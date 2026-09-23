@@ -53,6 +53,39 @@ export default function FooterBadgesEditor({ value, onChange }: {
         </p>
         <TrustStripPreview value={{ ...value, enabled: true }} />
       </Card>
+      <Card title="Join WhatsApp community button" description="Adds a button under the footer logo inviting visitors into your WhatsApp community. Leave the link empty to hide the button.">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="text-xs font-semibold text-cmt-neutral-600">
+            Community invite link
+            <input
+              type="url"
+              inputMode="url"
+              value={value.communityUrl ?? ""}
+              onChange={(event) => { const communityUrl = event.target.value; onChange((current) => ({ ...current, communityUrl })); }}
+              placeholder="https://chat.whatsapp.com/…"
+              className="mt-1.5 h-11 w-full rounded-xl border border-cmt-neutral-200 bg-white px-3 text-sm outline-none focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]"
+            />
+          </label>
+          <label className="text-xs font-semibold text-cmt-neutral-600">
+            Button text <span className="font-medium text-cmt-neutral-400">— optional</span>
+            <input
+              value={value.communityLabel ?? ""}
+              onChange={(event) => { const communityLabel = event.target.value.slice(0, 40); onChange((current) => ({ ...current, communityLabel })); }}
+              placeholder="Join WhatsApp community"
+              maxLength={40}
+              className="mt-1.5 h-11 w-full rounded-xl border border-cmt-neutral-200 bg-white px-3 text-sm outline-none focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]"
+            />
+          </label>
+        </div>
+        {/* Saved links are checked again when the site reads them, so an
+            address that is not http(s) simply hides the button. Saying so
+            here stops that looking like the save silently failed. */}
+        {(value.communityUrl ?? "").trim() !== "" && !/^https?:\/\/[^\s]+$/i.test((value.communityUrl ?? "").trim()) && (
+          <p role="alert" className="mt-3 text-xs text-cmt-error-700">
+            Enter a full link starting with https:// — open your community in WhatsApp, choose Invite via link, and paste it here.
+          </p>
+        )}
+      </Card>
       <Card title="Scrolling footer logos" description="Show the original tourism logos in a continuous scrolling strip above the footer. Publish changes to apply this setting.">
         <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={value.tourismLogosEnabled !== false} onChange={(event) => { const tourismLogosEnabled = event.target.checked; onChange((current) => ({ ...current, tourismLogosEnabled })); }} /> Show scrolling logos</label>
       </Card>

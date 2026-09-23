@@ -18,7 +18,7 @@ not immediately jump across scenes. Restored scroll positions initialize directl
 correct frame. Where supported, the controller waits for `requestVideoFrameCallback`
 before issuing another seek, allowing the decoded frame to reach the compositor. A 100ms
 fallback after seek completion handles omitted callbacks on paused/offscreen video.
-Desktop headlines follow completed frames rather than running ahead of the video while it decodes.
+Headlines on both desktop and phones follow completed frames rather than running ahead of the video while it decodes.
 Frame callbacks and both timeouts are cancelled on teardown, failure, or tab suspension.
 
 Metadata, loaded-frame, can-play and seek-completion events all retry synchronization.
@@ -26,21 +26,26 @@ Touch devices attempt a muted play/pause to prime decoding; a real touchend/clic
 if browser autoplay policy refused that attempt. A stalled load or seek times out after
 12 foreground seconds, removes the video source, reveals the poster and releases the
 sticky scroll distance. The timeout restarts when returning from a hidden tab. Reduced
-motion, reduced data, Save-Data and slow connections use the still hero and normal flow.
+motion, reduced data, Save-Data and 2G connections use the still hero and normal flow.
+The hero attempts video on estimated 3G connections; the existing load/seek timeout
+returns to the poster if the actual request stalls.
 Content changes and connection-preference changes are handled without per-scroll React renders.
 
-On phones, the video occupies its own unobstructed 320–390px panel. The first headline,
-supporting copy and trust row appear below it on a light background, followed by the
-two-column search and the same admin-configured Top Picks shelf used on desktop.
-The phone panel stays pinned at the top for one small viewport height (`100svh`) of scroll,
-giving the full clip roughly twice the scroll distance it had when mapped to the video
-height alone. The final 13% holds the last frame before the whole panel releases, so the
-search and Top Picks remain reachable. The stage's measured content height keeps the
-release point correct when its package shelf or copy changes. Static/reduced-motion
-heroes stay in normal flow.
+On phones, the pinned stage fills the small viewport above the fixed 64px bottom
+navigation (including its safe-area inset), with a 16px gap below the rounded video.
+On first load, the stage also subtracts the measured header space above it; that
+reservation shrinks to zero as the hero reaches the top. The video scroll distance
+stays fixed during this opening resize.
+Rotating headlines and descriptions sit
+above the video; the video fills the remaining height. All copy blocks share a grid
+cell so their transitions do not shift the video. Copy follows decoded frames in both
+scroll directions, with a `220svh` scroll runway and a final 13% hold.
+Search and Top Picks render once, outside the phone scroll wrapper, so they only enter
+view after the sequence releases. Reduced-motion/data-saving and failed-video fallbacks
+stay in normal flow with the first message. Desktop retains its full-screen sticky
+video, overlaid copy and booking controls.
 Picks swipe horizontally, and date, traveller and budget panels open above the bottom
-navigation. These layout and copy changes apply only below 768px; desktop keeps its
-full-screen sticky video, overlaid copy and synchronized headline transitions.
+navigation.
 
 The original source and unused legacy exports are preserved locally under
 `media-source/prelaunch/2026-09-13/`, which is ignored by Git. They are not deployed.

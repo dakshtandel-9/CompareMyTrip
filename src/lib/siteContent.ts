@@ -224,6 +224,16 @@ export const BANNER_SLOTS: BannerSlot[] = [
   })),
 ];
 
+/** Whether a link pasted in the CRM is one we will put in an href.
+    A site path ("/packages?destination=Goa") or a full http(s) address, and
+    nothing else: the value goes straight into an anchor, so a javascript: or
+    data: link would run on the page, and a protocol-relative "//host" one
+    would quietly send visitors off-site. Exported so the CRM warns with the
+    same rule that decides what is saved. */
+export function isPastedLink(value: string): boolean {
+  return /^(https?:\/\/[^\s]+|\/(?!\/)[^\s]*)$/i.test(value.trim());
+}
+
 /** The banner for a slot, falling back to what shipped — so a page always
     has a masthead, even against a document written before the slot existed. */
 export function bannerFor(banners: BannersContent, id: string): BannerContent {
@@ -744,6 +754,11 @@ export type FooterBadgesContent = {
   verifiedAccreditations?: string[];
   tourismPartnersVerified?: boolean;
   tourismLogosEnabled?: boolean;
+  /** The footer's "Join community" invite. An empty URL hides the button, so
+      the link is never live before someone has pasted a real invite. */
+  communityUrl?: string;
+  /** Overrides the button wording; empty keeps "Join community". */
+  communityLabel?: string;
 };
 
 export type SiteContent = {
@@ -816,6 +831,8 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     verifiedAccreditations: [],
     tourismPartnersVerified: false,
     tourismLogosEnabled: true,
+    communityUrl: "",
+    communityLabel: "",
   },
   comingSoon: DEFAULT_COMING_SOON,
   addOn: {
@@ -2123,8 +2140,14 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     label: str(item.label, "Untitled"),
     description: str(item.description, ""),
     alt: str(item.alt, ""),
-    link: str(item.link, "").trim() ||
-      base.domestic.items.find((panel) => panel.id === item.id)?.link || "",
+    /* Absent means the panel predates the link field, so it keeps the one it
+       shipped with. An empty string means it was cleared on purpose, and the
+       photo simply does not open anything. Anything unsafe is dropped. */
+    link: (() => {
+      const shipped = base.domestic.items.find((panel) => panel.id === item.id)?.link || "";
+      const pasted = item.link === undefined || item.link === null ? shipped : str(item.link, "").trim();
+      return isPastedLink(pasted) ? pasted : "";
+    })(),
   }));
 
   const normalizedHeaderItems = list(headerRaw.items, base.header.items, (item, index) => ({
@@ -2263,6 +2286,12 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
       verifiedAccreditations: strings(footerBadgesRaw.verifiedAccreditations, []).filter((id) => ["google", "iata", "iso", "pci", "secure"].includes(id)),
       paymentImages: badgeImages(footerBadgesRaw.paymentImages, base.footerBadges.paymentImages),
       accreditationImages: badgeImages(footerBadgesRaw.accreditationImages, base.footerBadges.accreditationImages),
+      /* http(s) only. The CRM writes straight into an href, so a javascript:
+         or data: invite pasted here would otherwise run on every page. */
+      communityUrl: /^https?:\/\/[^\s]+$/i.test(str(footerBadgesRaw.communityUrl, "").trim())
+        ? str(footerBadgesRaw.communityUrl, "").trim()
+        : "",
+      communityLabel: str(footerBadgesRaw.communityLabel, "").trim().slice(0, 40),
     },
     addOn: {
       enabled: bool(addOnRaw.enabled, base.addOn.enabled),
@@ -2510,7 +2539,13 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
         flightHours: str(item.flightHours, ""),
         price: int(item.price, 0, 0, 10_000_000),
         currency: str(item.currency, ""),
-        href: str(item.href, "/packages?region=international"),
+        /* Pasted in the CRM and rendered straight into the card's anchor, so
+           it is held to the same rule as the India panels. Anything unsafe
+           becomes empty, which falls back to matching the country. */
+        href: (() => {
+          const link = str(item.href, "/packages?region=international").trim();
+          return link === "" || isPastedLink(link) ? link : "";
+        })(),
       })),
     },
 
