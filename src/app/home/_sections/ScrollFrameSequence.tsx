@@ -1,7 +1,7 @@
 "use client";
 
 import { shouldLoadVideo } from "@/lib/videoSource";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import ContentImage from "../_components/ContentImage";
 import HeroSearch from "../_components/HeroSearch";
 import { startScrollVideo } from "@/lib/scrollVideo";
@@ -45,6 +45,7 @@ const serverPhone = () => false;
 
 export default function ScrollFrameSequence() {
   const phoneLayout = useSyncExternalStore(subscribePhone, isPhone, serverPhone);
+  const [phonePicksTarget, setPhonePicksTarget] = useState<HTMLDivElement | null>(null);
   const { hero } = useSiteContent();
   const heroCopy = hero.copy;
 
@@ -314,11 +315,12 @@ export default function ScrollFrameSequence() {
             )}
           </div>
         </div>
+        {phoneLayout && <div ref={setPhonePicksTarget} className="cmt-hero-phone-picks" />}
       </div>
     </div>
     {phoneLayout && (
       <div className="cmt-hero-mobile-booking">
-        <HeroSearch />
+        <HeroSearch picksTarget={phonePicksTarget} />
       </div>
     )}
     </>

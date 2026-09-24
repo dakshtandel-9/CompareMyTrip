@@ -175,7 +175,7 @@ export default function PackagePageSections({ value, area = "all" }: { value: Pa
       {(area === "all" || area === "reviews") && (editor || reviews.length > 0) && (
         <Section id="package-reviews" title="Traveller reviews">
           {reviews.length > 0 && <div className="cmt-review-summary"><span className="cmt-review-score">{averageRating.toFixed(1)}<small>/ 5</small></span><div><div className="flex gap-1 text-cmt-primary-600" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <Star key={index} className={`size-4 ${index < Math.round(averageRating) ? "fill-current" : "text-cmt-neutral-200"}`} />)}</div><p>Based on {reviews.length} traveller review{reviews.length === 1 ? "" : "s"}</p></div></div>}
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="cmt-review-grid grid gap-4 sm:grid-cols-2">
             {reviews.map((review) => (
               <article key={review.id} className="min-w-0 rounded-cmt-md border border-cmt-neutral-200 p-5">
                 <div className="flex gap-1 text-cmt-primary-600" role="img" aria-label={`${review.rating} out of 5 stars`}>

@@ -358,7 +358,16 @@
   .page :global(.cmt-package-content) section[data-placement="carry"] :global(.cmt-package-prose) ul,
   .page :global(.cmt-package-content) section[data-placement="guidelines"] :global(.cmt-package-prose) ul { grid-template-columns: minmax(0, 1fr); }
   .page :global(.cmt-review-score) { font-size: 42px; }
-  .page :global(.cmt-similar-grid) { grid-template-columns: minmax(0, 340px); }
+  /* Reviews and similar packages scroll sideways on phones, with the next
+     card peeking in, instead of stacking into a long column. */
+  .page :global(.cmt-similar-grid),
+  .page :global(#package-reviews) :global(.cmt-review-grid) {
+    grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: min(86%, 320px);
+    gap: 14px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory;
+    padding: 2px 2px 14px; scrollbar-width: thin; scrollbar-color: #facc15 #f1f5f9;
+  }
+  .page :global(.cmt-similar-grid) > *,
+  .page :global(#package-reviews) :global(.cmt-review-grid) > * { min-width: 0; scroll-snap-align: start; }
 }
 @media (prefers-reduced-motion: reduce) {
   .page *, .page *::before, .page *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

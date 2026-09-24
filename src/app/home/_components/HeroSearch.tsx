@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -131,7 +132,7 @@ function PickCard({ pkg }: { pkg: TravelPackage }) {
   );
 }
 
-export default function HeroSearch() {
+export default function HeroSearch({ picksTarget }: { picksTarget?: HTMLElement | null }) {
   const router = useRouter();
   const packages = usePackages();
   const { hero } = useSiteContent();
@@ -206,6 +207,63 @@ export default function HeroSearch() {
     return mode === "manual" ? shuffled : shuffled.slice(0, limit);
   }, [tripType, packages, mode, packageIds, limit, pickSeed]);
 
+  useEffect(() => {
+    const rail = scrollerRef.current;
+    // Only the phone shelf opts into automatic motion. Desktop stays manual.
+    if (!picksTarget || !rail || !hero.topPicks.enabled || topPicks.length < 2) return;
+    const motion = window.matchMedia("(max-width: 767px) and (prefers-reduced-motion: no-preference)");
+    let visible = false;
+    let touching = false;
+    let hovering = false;
+    let direction = 1;
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const sync = () => {
+      clearInterval(timer);
+      timer = undefined;
+      if (!visible || document.hidden || !motion.matches || touching || hovering || rail.matches(":focus-within")) return;
+      timer = setInterval(() => {
+        const max = rail.scrollWidth - rail.clientWidth;
+        if (max <= 0) return;
+        if (rail.scrollLeft >= max - 2) direction = -1;
+        else if (rail.scrollLeft <= 2) direction = 1;
+        const step = (rail.firstElementChild?.getBoundingClientRect().width ?? 280)
+          + (parseFloat(getComputedStyle(rail).columnGap) || 0);
+        rail.scrollTo({ left: Math.max(0, Math.min(max, rail.scrollLeft + step * direction)), behavior: "smooth" });
+      }, 4000);
+    };
+    const down = () => { touching = true; sync(); };
+    const up = () => { if (touching) { touching = false; sync(); } };
+    const enter = (event: PointerEvent) => { if (event.pointerType === "mouse") { hovering = true; sync(); } };
+    const leave = () => { hovering = false; sync(); };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = Boolean(entry?.isIntersecting && entry.intersectionRatio >= 0.5);
+      sync();
+    }, { threshold: 0.5 });
+    observer.observe(rail);
+    rail.addEventListener("pointerdown", down);
+    rail.addEventListener("pointerenter", enter);
+    rail.addEventListener("pointerleave", leave);
+    rail.addEventListener("focusin", sync);
+    rail.addEventListener("focusout", sync);
+    document.addEventListener("pointerup", up);
+    document.addEventListener("pointercancel", up);
+    document.addEventListener("visibilitychange", sync);
+    motion.addEventListener("change", sync);
+    return () => {
+      clearInterval(timer);
+      observer.disconnect();
+      rail.removeEventListener("pointerdown", down);
+      rail.removeEventListener("pointerenter", enter);
+      rail.removeEventListener("pointerleave", leave);
+      rail.removeEventListener("focusin", sync);
+      rail.removeEventListener("focusout", sync);
+      document.removeEventListener("pointerup", up);
+      document.removeEventListener("pointercancel", up);
+      document.removeEventListener("visibilitychange", sync);
+      motion.removeEventListener("change", sync);
+    };
+  }, [picksTarget, hero.topPicks.enabled, topPicks.length]);
+
   const scrollPicks = (direction: "previous" | "next") => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
@@ -237,6 +295,47 @@ export default function HeroSearch() {
 
     router.push(`/packages?${params.toString()}`);
   };
+
+  const picks = hero.topPicks.enabled && topPicks.length > 0 ? (
+      <div role="region" aria-label={hero.topPicks.title} className="cmt-hero-picks mt-3 hidden items-center gap-4 md:flex lg:mt-4">
+        <div className="cmt-hero-picks-heading hidden w-[186px] shrink-0 lg:block">
+          <h2 className="inline-flex items-center gap-2 font-display text-lg font-semibold text-white">
+            <Sparkles className="size-5 text-cmt-primary-500" strokeWidth={2} />
+            {hero.topPicks.title}
+          </h2>
+          <p className="mt-1 font-body text-xs text-white/60">
+            {hero.topPicks.subtitle}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => scrollPicks("previous")}
+          aria-label="Show previous picks"
+          className="cmt-hero-picks-prev grid size-10 shrink-0 place-items-center rounded-cmt-full border border-white/20 bg-slate-900/70 text-white transition-colors hover:bg-slate-800/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+        >
+          <ChevronLeft className="size-5" strokeWidth={2} aria-hidden="true" />
+        </button>
+
+        <div
+          ref={scrollerRef}
+          className="cmt-hero-picks-rail flex min-w-0 flex-1 gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {topPicks.map((pkg) => (
+            <PickCard key={pkg.id} pkg={pkg} />
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => scrollPicks("next")}
+          aria-label="Show more picks"
+          className="cmt-hero-picks-next grid size-10 shrink-0 place-items-center rounded-cmt-full border border-white/20 bg-slate-900/70 text-white transition-colors hover:bg-slate-800/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+        >
+          <ChevronRight className="size-5" strokeWidth={2} aria-hidden="true" />
+        </button>
+      </div>
+  ) : null;
 
   return (
     <div ref={rootRef} className="cmt-hero-booking w-full">
@@ -421,47 +520,7 @@ export default function HeroSearch() {
         </div>
       </form>
 
-      {/* The same curated shelf is available at every screen size. */}
-      {hero.topPicks.enabled && topPicks.length > 0 && (
-      <div role="region" aria-label={hero.topPicks.title} className="cmt-hero-picks mt-3 hidden items-center gap-4 md:flex lg:mt-4">
-        <div className="cmt-hero-picks-heading hidden w-[186px] shrink-0 lg:block">
-          <h2 className="inline-flex items-center gap-2 font-display text-lg font-semibold text-white">
-            <Sparkles className="size-5 text-cmt-primary-500" strokeWidth={2} />
-            {hero.topPicks.title}
-          </h2>
-          <p className="mt-1 font-body text-xs text-white/60">
-            {hero.topPicks.subtitle}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => scrollPicks("previous")}
-          aria-label="Show previous picks"
-          className="cmt-hero-picks-prev grid size-10 shrink-0 place-items-center rounded-cmt-full border border-white/20 bg-slate-900/70 text-white transition-colors hover:bg-slate-800/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
-        >
-          <ChevronLeft className="size-5" strokeWidth={2} aria-hidden="true" />
-        </button>
-
-        <div
-          ref={scrollerRef}
-          className="cmt-hero-picks-rail flex min-w-0 flex-1 gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {topPicks.map((pkg) => (
-            <PickCard key={pkg.id} pkg={pkg} />
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => scrollPicks("next")}
-          aria-label="Show more picks"
-          className="cmt-hero-picks-next grid size-10 shrink-0 place-items-center rounded-cmt-full border border-white/20 bg-slate-900/70 text-white transition-colors hover:bg-slate-800/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
-        >
-          <ChevronRight className="size-5" strokeWidth={2} aria-hidden="true" />
-        </button>
-      </div>
-      )}
+      {picksTarget ? createPortal(picks, picksTarget) : picks}
     </div>
   );
 }

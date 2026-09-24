@@ -31,21 +31,25 @@ The hero attempts video on estimated 3G connections; the existing load/seek time
 returns to the poster if the actual request stalls.
 Content changes and connection-preference changes are handled without per-scroll React renders.
 
-On phones, the pinned stage fills the small viewport above the fixed 64px bottom
-navigation (including its safe-area inset), with a 16px gap below the rounded video.
+On phones, the pinned stage fills the space above the fixed 64px bottom navigation
+(including its safe-area inset). Its last 120px hold a compact, swipeable Top Picks
+shelf, with 20px above its heading and 8px between the heading and cards. The rounded video card keeps equal 16px outer padding.
 On first load, the stage also subtracts the measured header space above it; that
 reservation shrinks to zero as the hero reaches the top. The video scroll distance
 stays fixed during this opening resize.
-Rotating headlines and descriptions sit
-above the video; the video fills the remaining height. All copy blocks share a grid
+Rotating white headlines and descriptions overlay the bottom of the video card,
+with a dark gradient for contrast. The video fills the card. All copy blocks share a grid
 cell so their transitions do not shift the video. Copy follows decoded frames in both
 scroll directions, with a `220svh` scroll runway and a final 13% hold.
-Search and Top Picks render once, outside the phone scroll wrapper, so they only enter
-view after the sequence releases. Reduced-motion/data-saving and failed-video fallbacks
+Search stays below the phone scroll wrapper and enters view after the sequence
+releases. Top Picks render once via a portal into the pinned shelf on phones; desktop
+keeps the original shelf below search. Both placements share the same package selection. Reduced-motion/data-saving and failed-video fallbacks
 stay in normal flow with the first message. Desktop retains its full-screen sticky
 video, overlaid copy and booking controls.
-Picks swipe horizontally, and date, traveller and budget panels open above the bottom
-navigation.
+Phone picks gently advance one card every four seconds, reversing at the ends.
+Automatic motion pauses offscreen, in background tabs, during pointer/keyboard interaction,
+and for reduced motion; manual swiping remains available. Desktop picks stay manual.
+Date, traveller and budget panels open above the bottom navigation.
 
 The original source and unused legacy exports are preserved locally under
 `media-source/prelaunch/2026-09-13/`, which is ignored by Git. They are not deployed.

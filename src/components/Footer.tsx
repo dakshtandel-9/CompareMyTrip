@@ -257,7 +257,7 @@ export default function Footer({
                 under the link columns, level with the foot of the brand column. */}
             <div className="col-span-2 lg:col-span-4 lg:col-start-2 lg:row-start-2 lg:self-end lg:text-right">
               <p className="text-sm leading-6 text-cmt-neutral-600">
-                Also find us on BookMyShow and Swiggy Scenes
+                Find us on
               </p>
               <ul className="mt-3 flex flex-wrap items-center gap-2.5 lg:justify-end">
                 {LISTED_ON.map((platform) => {

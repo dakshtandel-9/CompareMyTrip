@@ -213,8 +213,8 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
             <p className="mt-0.5 flex items-baseline gap-1.5"><span className="font-display text-lg font-bold">{formatINR(pkg.price)}</span>{discount > 0 && <span className="rounded-cmt-full bg-cmt-success-100 px-2 py-0.5 text-xs font-semibold text-cmt-success-700">{discount}% off</span>}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Link href={`/checkout?pkg=${encodeURIComponent(pkg.id)}&travellers=${travellers}${travelDate ? `&date=${travelDate}` : ""}`} className="flex h-11 items-center rounded-cmt-control border border-cmt-neutral-300 px-4 text-sm font-semibold">Book</Link>
-            <button type="button" onClick={requestQuote} className="flex h-11 items-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold"><span className="sm:hidden">Get quote</span><span className="hidden sm:inline">Get customized quote</span></button>
+            <Link href={`/checkout?pkg=${encodeURIComponent(pkg.id)}&travellers=${travellers}${travelDate ? `&date=${travelDate}` : ""}`} className="flex h-11 items-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:bg-cmt-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-700">Book</Link>
+            <button type="button" onClick={requestQuote} className="flex h-11 items-center rounded-cmt-control bg-cmt-neutral-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-cmt-secondary-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"><span className="sm:hidden">Get quote</span><span className="hidden sm:inline">Get customized quote</span></button>
           </div>
         </div>
       </div>
