@@ -278,7 +278,7 @@ export default function TripPlanPromptDialog() {
                 Planning a holiday? Let us help.
               </h2>
               <p className="mt-2 text-pretty text-[14px] leading-[1.55] text-cmt-neutral-300">
-                Share your trip and we&rsquo;ll call with quotes from verified operators.
+                Share your trip and our travel experts will call you with a personalised quote.
               </p>
             </header>
 

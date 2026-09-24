@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 import { usePackages } from "@/lib/usePackages";
 import { useSiteContent } from "@/lib/useSiteContent";
@@ -13,12 +13,27 @@ import SectionHeader from "../_components/SectionHeader";
 /* their place on the homepage (design.md §15.3 tab row + §8.3 cards).   */
 /* ------------------------------------------------------------------ */
 
+/* A stable pseudo-random rank per package for one seed, so the order holds
+   while the visitor switches tabs or the catalogue refreshes underneath. */
+function rank(seed: number, id: string) {
+  let hash = seed;
+  for (let index = 0; index < id.length; index++) hash = Math.imul(hash ^ id.charCodeAt(index), 2654435761);
+  return (hash ^ (hash >>> 15)) >>> 0;
+}
+
+/* One seed per page load. The server has none (0 keeps the catalogue order),
+   and React swaps in the browser's seed right after hydration, so the random
+   order never causes a server/client mismatch. */
+const pageSeed = typeof window === "undefined" ? 0 : Math.floor(Math.random() * 2 ** 31) + 1;
+const noSubscription = () => () => {};
+
 export default function FeaturedPackages() {
   const { featured } = useSiteContent();
   const packages = usePackages();
   /* null until the visitor picks one, so the first tab stays selected even
      when the CRM reorders or renames the row underneath them. */
   const [chosenTab, setChosenTab] = useState<string | null>(null);
+  const seed = useSyncExternalStore(noSubscription, () => pageSeed, () => 0);
 
   const tabs = featured.tabs;
   const activeTab = chosenTab && tabs.includes(chosenTab) ? chosenTab : (tabs[0] ?? "");
@@ -31,7 +46,9 @@ export default function FeaturedPackages() {
        and the fallback below shows the unfiltered set rather than a gap. */
     return (pkg.tags as string[]).includes(activeTab);
   });
-  const visible = (filtered.length > 0 ? filtered : packages).slice(0, featured.maxCards);
+  const pool = filtered.length > 0 ? filtered : packages;
+  const shuffled = seed ? [...pool].sort((a, b) => rank(seed, a.id) - rank(seed, b.id)) : pool;
+  const visible = shuffled.slice(0, featured.maxCards);
 
   if (!featured.enabled) return null;
 
