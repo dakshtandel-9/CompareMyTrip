@@ -14,6 +14,7 @@ import PackagePageSectionsEditor from "./PackagePageSectionsEditor";
 import PackageContentField from "./PackageContentField";
 import PackageDestinationSelect from "./PackageDestinationSelect";
 import StayPhotoField from "./StayPhotoField";
+import ActivityPhotosField from "./ActivityPhotosField";
 import styles from "./AdminPackageBuilder.module.css";
 
 export const PACKAGE_EDITOR_AREAS = [
@@ -107,6 +108,7 @@ export default function PackageDetailEditor({ lockedCategory, form, pkg, section
                 <h3>Activity {activityIndex + 1}</h3>
                 <div className={styles.fieldGrid}><TextField label={`Day ${day.day}, activity ${activityIndex + 1}: time`} value={activity.time} onChange={value => change(["details", "itinerary", index, "activities", activityIndex, "time"], value)} /><TextField label={`Day ${day.day}, activity ${activityIndex + 1}: title`} value={activity.title} onChange={value => change(["details", "itinerary", index, "activities", activityIndex, "title"], value)} /></div>
                 <PackageContentField disabled={disabled} label={`Day ${day.day}, activity ${activityIndex + 1}: description`} value={activity.description} onChange={value => change(["details", "itinerary", index, "activities", activityIndex, "description"], value)} />
+                <ActivityPhotosField label={`Day ${day.day}, activity ${activityIndex + 1}: photo`} value={activity.images ?? []} disabled={disabled} onUploadImages={onUploadImages} onChange={value => change(["details", "itinerary", index, "activities", activityIndex, "images"], value)} />
                 <div className={styles.rowActions}><button type="button" className={button} disabled={activityIndex === 0} aria-label={`Move activity ${activityIndex + 1} up in Day ${day.day}`} onClick={() => change(["details", "itinerary", index, "activities"], move(day.activities!, activityIndex, -1))}><ArrowUp size={14} /></button><button type="button" className={button} disabled={activityIndex === day.activities!.length - 1} aria-label={`Move activity ${activityIndex + 1} down in Day ${day.day}`} onClick={() => change(["details", "itinerary", index, "activities"], move(day.activities!, activityIndex, 1))}><ArrowDown size={14} /></button><button type="button" className={button} onClick={() => change(["details", "itinerary", index, "activities"], day.activities!.filter((_, i) => i !== activityIndex))}><Trash2 size={14} />Remove activity {activityIndex + 1}</button></div>
               </div>)}
               <div className={styles.rowActions}><button type="button" className={button} onClick={() => change(["details", "itinerary", index, "activities"], [...(day.activities ?? []), { time: "", title: "", description: "" }])}><Plus size={14} />Add timed activity</button><button type="button" className={button} onClick={() => change(["details", "itinerary"], form.itinerary.filter((_, i) => i !== index))}><Trash2 size={14} />Remove Day {day.day}</button></div>

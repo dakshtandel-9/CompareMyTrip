@@ -13,9 +13,9 @@ export default function ItineraryDownloadButton({ pkg }: { pkg: TravelPackage })
     setError("");
     try {
       // Load the PDF library only when a traveller asks for a download.
-      const { createPackageItineraryPdf, itineraryFilename } = await import("@/lib/packageItineraryPdf");
+      const { createPackageItineraryPdf, itineraryFilename, loadItineraryPdfAssets } = await import("@/lib/packageItineraryPdf");
       const url = new URL(window.location.pathname, window.location.origin).href;
-      const pdf = createPackageItineraryPdf(pkg, url);
+      const pdf = createPackageItineraryPdf(pkg, url, await loadItineraryPdfAssets(pkg));
       await pdf.save(itineraryFilename(pkg.title), { returnPromise: true });
     } catch {
       setError("Could not download the itinerary. Please try again.");

@@ -22,7 +22,8 @@ export type PackageItineraryDay = {
   route: string;
   description: string;
   meals: string;
-  activities?: { time: string; title: string; description: string }[];
+  /** Photos are optional; up to three print under the activity in the itinerary PDF. */
+  activities?: { time: string; title: string; description: string; images?: string[] }[];
 };
 
 export type PackageStay = {

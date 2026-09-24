@@ -4,6 +4,7 @@ import AccordionGallery from "@/components/AccordionGallery";
 import { buildDestinations, destinationHref, destinationSlug, findDestinationBySlug } from "@/lib/destinations";
 import { toIndiaState } from "@/lib/indiaStates";
 import { usePackages } from "@/lib/usePackages";
+import { isPastedLink } from "@/lib/siteContent";
 import { useSiteContent } from "@/lib/useSiteContent";
 import SectionHeader from "../_components/SectionHeader";
 
@@ -31,8 +32,12 @@ export default function DomesticHolidays() {
         : toIndiaState(label);
     const destination = findDestinationBySlug(destinations, destinationSlug(name));
 
-    // Resolve from the place shown, including saved cards with old package
-    // links. Destinations without published packages have no detail page yet.
+    // The link typed in the CRM wins. Older saved cards may still point at a
+    // retired package page, so those fall back to the place shown instead.
+    const typed = item.link.trim();
+    const packageId = /^\/packages\/([^/?#]+)$/.exec(typed)?.[1];
+    const retiredPackage = packageId !== undefined && !packages.some((pkg) => pkg.id === packageId || pkg.href === typed);
+    if (isPastedLink(typed) && !retiredPackage) return { ...item, link: typed };
     return { ...item, link: destination ? destinationHref(destination.name) : "/destinations" };
   });
 
