@@ -5,7 +5,6 @@ import { lockPageScroll } from "@/lib/lockPageScroll";
 import { useEffect, useRef, useState, useCallback } from "react";
 import BrandLogo from "@/components/BrandLogo";
 import Link from "next/link";
-import { signOut } from "firebase/auth";
 import {
   Menu,
   X,
@@ -19,7 +18,6 @@ import {
   Phone,
   TicketPercent,
 } from "lucide-react";
-import { getFirebaseAuth } from "@/lib/firebase/client";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
 import { useSiteContent } from "@/lib/useSiteContent";
 import { whatsAppHref } from "@/lib/whatsapp";
@@ -199,6 +197,9 @@ export default function Header() {
   async function handleLogout() {
     closeDropdown();
     setIsMobileMenuOpen(false);
+    const [{ signOut }, { getFirebaseAuth }] = await Promise.all([
+      import("firebase/auth"), import("@/lib/firebase/client"),
+    ]);
     await signOut(getFirebaseAuth());
   }
 

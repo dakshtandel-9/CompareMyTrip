@@ -1,5 +1,7 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import { useAuthUser } from "@/lib/firebase/useAuthUser";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { bypassComingSoon } from "@/lib/comingSoon";
@@ -9,10 +11,12 @@ import { getAuthDestination } from "@/lib/firebase/authDestination";
 import ComingSoonScreen from "./ComingSoonScreen";
 import FloatingActions from "./FloatingActions";
 import MobileNavigation from "./MobileNavigation";
-import ProfileCompletionGate from "./ProfileCompletionGate";
 import TripPlanPromptDialog from "./TripPlanPromptDialog";
 
+const ProfileCompletionGate = dynamic(() => import("./ProfileCompletionGate"), { ssr: false });
+
 export default function SiteExperience({ children }: { children: React.ReactNode }) {
+  const user = useAuthUser();
   const pathname = usePathname();
   const router = useRouter();
   const { content, loading } = useSiteContentState();
@@ -46,7 +50,8 @@ export default function SiteExperience({ children }: { children: React.ReactNode
   if (/^\/(admin|login|signup|forgot-password)(\/|$)/.test(pathname)) return children;
 
   return <>
-    {customPayment || preview === "authorized" ? children : <ProfileCompletionGate>{children}</ProfileCompletionGate>}
+    {children}
+    {user && !customPayment && preview !== "authorized" && <ProfileCompletionGate>{null}</ProfileCompletionGate>}
     {!customPayment && preview !== "authorized" && <TripPlanPromptDialog />}
     <FloatingActions />
     <MobileNavigation />

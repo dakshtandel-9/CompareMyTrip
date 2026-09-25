@@ -22,7 +22,7 @@ function load(file, dependencies = {}) {
   return exports;
 }
 
-const data = load('src/lib/packageData.ts');
+const data = { ...load('src/lib/packageData.ts'), ...load('src/lib/packageSeed.ts') };
 const { defaultPackageFacts, getPackageFacts } = load('src/lib/packageFacts.ts', { '@/lib/packageData': data });
 const original = data.DUMMY_PACKAGES.find((pkg) => pkg.title.includes('Discover the Best of Goa'));
 const roundTrip = (pkg) => JSON.parse(JSON.stringify(pkg));

@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
 import BlogArticle from "./BlogArticle";
 import { blogPostImage } from "@/lib/blogData";
-import { absoluteUrl, createPageMetadata } from "@/lib/seo";
+import { absoluteUrl, createPageMetadata, SITE_NAME } from "@/lib/seo";
 import { getPublishedBlogPost, getPublishedBlogPosts } from "@/lib/serverContent";
 
 export const revalidate = 3600;
@@ -67,7 +67,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             headline: post.title,
             description,
             datePublished: post.publishedAt,
-            author: { "@type": "Person", name: post.author },
+            author: post.author.trim().toLowerCase() === SITE_NAME.toLowerCase()
+              ? { "@type": "Organization", "@id": absoluteUrl("/#organization"), name: SITE_NAME }
+              : post.author.trim()
+                ? { "@type": "Person", name: post.author }
+                : undefined,
             image: cover ? absoluteUrl(cover) : undefined,
             mainEntityOfPage: articleUrl,
             publisher: { "@id": absoluteUrl("/#organization") },

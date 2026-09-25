@@ -3,7 +3,7 @@ const base = process.env.SMOKE_BASE_URL || 'http://localhost:3100';
 const maintenance = process.argv.includes('--maintenance');
 const catalogue = ['/packages', '/destinations'];
 const missingPages = ['/packages/missing-audit-resource', '/destinations/missing-audit-resource', '/blog/missing-audit-resource', '/home1', '/home2', '/home3', '/home4'];
-const publicPages = ['/compare', '/blog', '/contact', '/add-on', '/packages/tadiandamol-trek'];
+const publicPages = ['/compare', '/blog', '/contact', '/add-on'];
 let count = 0;
 async function request(path, status = 200, init = {}) {
   const res = await fetch(new URL(path, base), { ...init, redirect: 'manual', signal: AbortSignal.timeout(30_000) });
@@ -66,6 +66,12 @@ assert.doesNotMatch(sitemap, /<loc>[^<]*\/(terms|privacy|refund-policy)<\/loc>/)
 if (!maintenance) {
   for (const path of missingPages) await get(path,404);
   for (const path of publicPages) await get(path);
+  // CMS slugs change; verify a real published package rather than a retired seed.
+  const contentResponse = await request('/api/content');
+  assert.match(contentResponse.headers.get('cache-control') || '', /s-maxage=300/);
+  const content = await contentResponse.json();
+  assert.ok(content.packages.length, 'the CMS has published packages');
+  await get(`/packages/${encodeURIComponent(content.packages[0].id)}`);
 }
 await get('/api/cron/quote-cleanup',401);
 await get('/api/cron/pending-payments',401);

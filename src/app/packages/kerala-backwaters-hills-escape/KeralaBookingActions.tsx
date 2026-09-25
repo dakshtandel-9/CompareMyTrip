@@ -1,10 +1,12 @@
 "use client";
 
+import { DUMMY_PACKAGES } from "@/lib/packageSeed";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowRight, CalendarDays, ChevronDown, Users } from "lucide-react";
-import { DUMMY_PACKAGES } from "@/lib/packageData";
+
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
 import QuoteModal from "../[packageId]/QuoteModal";
 

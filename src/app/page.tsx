@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 
+import { getPublishedBlogPosts, getPublishedPackages } from "@/lib/serverContent";
+import { getPublishedSiteContent } from "@/lib/serverSiteContent";
+import HomeContentProvider from "./home/HomeContentProvider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { createPageMetadata } from "@/lib/seo";
@@ -25,13 +28,18 @@ import TrustAndNewsletter from "./home/_sections/TrustAndNewsletter";
 export const metadata: Metadata = createPageMetadata({
   title: "Compare Travel Packages Before You Book | CompareMyTrip",
   description:
-    "Compare curated travel packages side by side — full itineraries, inclusions and cancellation terms published up front, from trusted operators across India and beyond.",
+    "Explore CompareMyTrip travel plans in India and abroad. Compare itineraries, prices and inclusions, and enquire directly with our travel team.",
   path: "/",
 });
 
-export default function HomePage() {
+export const revalidate = 300;
+
+export default async function HomePage() {
+  const [packages, posts, site] = await Promise.all([
+    getPublishedPackages(), getPublishedBlogPosts(), getPublishedSiteContent(),
+  ]);
   return (
-    <>
+    <HomeContentProvider packages={packages} posts={posts} site={site}>
       <Header />
 
       <main className="cmt-home w-full bg-white font-body text-cmt-neutral-900">
@@ -54,6 +62,6 @@ export default function HomePage() {
       </main>
 
       <Footer />
-    </>
+    </HomeContentProvider>
   );
 }

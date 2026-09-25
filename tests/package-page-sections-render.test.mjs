@@ -215,7 +215,7 @@ test('enabled reviews show complete visible testimonials without a public writin
   assert.doesNotMatch(html, /Hidden author|Draft author|Invalid author|Fractional author|<form|<textarea|<input|Write reviews/);
 });
 
-const data = load('src/lib/packageData.ts');
+const data = { ...load('src/lib/packageData.ts'), ...load('src/lib/packageSeed.ts') };
 const { getSimilarPackages } = load('src/lib/similarPackages.ts');
 const original = data.DUMMY_PACKAGES.find((pkg) => pkg.details?.itinerary?.length && pkg.details?.inclusions?.length && pkg.details?.exclusions?.length && pkg.details?.stays?.length && pkg.details?.highlights?.length);
 let activePackage;

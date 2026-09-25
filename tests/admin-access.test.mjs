@@ -293,7 +293,8 @@ test('admin and sign-in routes never mount customer profile completion', () => {
       './ComingSoonScreen': { __esModule: true, default: chrome[0] },
       './FloatingActions': { __esModule: true, default: chrome[1] },
       './MobileNavigation': { __esModule: true, default: chrome[2] },
-      './ProfileCompletionGate': { __esModule: true, default: ProfileCompletionGate },
+      'next/dynamic': { __esModule: true, default: () => ProfileCompletionGate },
+      '@/lib/firebase/useAuthUser': { useAuthUser: () => ({ uid: 'customer' }) },
       './TripPlanPromptDialog': { __esModule: true, default: chrome[3] },
     });
     const tree = view.mount(SiteExperience, { children: protectedChild });
@@ -321,7 +322,8 @@ test('only verified admins see the website during coming-soon mode, including ca
     './ComingSoonScreen': { __esModule: true, default: 'coming-soon-screen' },
     './FloatingActions': { __esModule: true, default: 'floating-actions' },
     './MobileNavigation': { __esModule: true, default: 'mobile-navigation' },
-    './ProfileCompletionGate': { __esModule: true, default: 'profile-completion' },
+    'next/dynamic': { __esModule: true, default: () => 'profile-completion' },
+    '@/lib/firebase/useAuthUser': { useAuthUser: () => ({ uid: 'customer' }) },
     './TripPlanPromptDialog': { __esModule: true, default: 'trip-prompt' },
   }, { window: { location: { pathname: path, search: '?date=2026-10-01', hash: '#itinerary', origin: 'https://example.com' } } });
   view.mount(SiteExperience, { children: protectedChild });
@@ -379,7 +381,8 @@ test('admin preview session waits for verification and serializes sign-out behin
   requests[1].resolve({ ok: true });
   await view.settle();
   user = admin;
-  tokenChanged(admin);
+  view.render();
+  await view.settle();
   await view.settle();
   requests[2].resolve({ ok: true, json: async () => ({ authorized: true }) });
   await view.settle();

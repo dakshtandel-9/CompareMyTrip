@@ -114,7 +114,7 @@ export default function Faq() {
                   </span>
                 </summary>
 
-                <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+                <div data-nosnippet="" className="px-5 pb-5 sm:px-6 sm:pb-6">
                   <p className="max-w-[65ch] text-sm leading-relaxed text-cmt-neutral-700 sm:pl-12 sm:text-base">
                     {item.answer}
                   </p>

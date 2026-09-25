@@ -1,14 +1,25 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { createContext, useContext, useSyncExternalStore } from "react";
 import type { TravelPackage } from "@/lib/packageData";
 import type { BlogPost } from "@/lib/blogData";
 
-type State = { packages: TravelPackage[]; posts: BlogPost[]; loading: boolean; error: string };
-const INITIAL: State = { packages: [], posts: [], loading: true, error: "" };
+export type PublicContentState = { packages: TravelPackage[]; posts: BlogPost[]; loading: boolean; error: string };
+const INITIAL: PublicContentState = { packages: [], posts: [], loading: true, error: "" };
+export const PublicContentContext = createContext<PublicContentState | null>(null);
+const noSubscription = () => () => {};
 let current = INITIAL;
+let refreshedAt = 0;
+const FRESH_MS = 300_000;
 const listeners = new Set<() => void>();
 let stop: (() => void) | undefined;
+
+/** Called after hydration; never mutate the shared browser store during SSR. */
+export function seedPublicContent(state: PublicContentState) {
+  current = state;
+  refreshedAt = Date.now();
+  listeners.forEach((notify) => notify());
+}
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
@@ -17,14 +28,17 @@ function subscribe(listener: () => void) {
     let pending = false;
     const controller = new AbortController();
     const refresh = async () => {
-      if (pending || document.visibilityState === "hidden") return;
+      if (pending || document.visibilityState === "hidden" || Date.now() - refreshedAt < FRESH_MS) return;
       pending = true;
       try {
-        const response = await fetch("/api/content", { cache: "no-store", signal: controller.signal });
+        const response = await fetch("/api/content", { signal: controller.signal });
         if (!response.ok) throw new Error("Travel content could not be refreshed. Please try again.");
         const data = await response.json();
         if (!Array.isArray(data.packages) || !Array.isArray(data.posts)) throw new Error("Invalid content response.");
-        if (active) current = { packages: data.packages, posts: data.posts, loading: false, error: "" };
+        if (active) {
+          current = { packages: data.packages, posts: data.posts, loading: false, error: "" };
+          refreshedAt = Date.now();
+        }
       } catch (error) {
         if (active) current = { ...current, loading: false, error: error instanceof Error ? error.message : "Content unavailable." };
       } finally {
@@ -32,13 +46,11 @@ function subscribe(listener: () => void) {
         if (active) listeners.forEach((notify) => notify());
       }
     };
-    void refresh();
-    const timer = window.setInterval(refresh, 30000);
+    queueMicrotask(() => { if (active) void refresh(); });
     document.addEventListener("visibilitychange", refresh);
     stop = () => {
       active = false;
       controller.abort();
-      window.clearInterval(timer);
       document.removeEventListener("visibilitychange", refresh);
     };
   }
@@ -48,7 +60,8 @@ function subscribe(listener: () => void) {
   };
 }
 
-/** Saved publication changes appear in open tabs within 30 seconds. */
+/** Fetch on entry or stale tab activation; no idle polling. Server seeds need no duplicate request. */
 export function usePublicContent() {
-  return useSyncExternalStore(subscribe, () => current, () => INITIAL);
+  const initial = useContext(PublicContentContext);
+  return useSyncExternalStore(initial ? noSubscription : subscribe, () => initial ?? current, () => initial ?? INITIAL);
 }

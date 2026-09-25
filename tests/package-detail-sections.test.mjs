@@ -23,7 +23,8 @@ const {
   packagePageSectionsIssue,
   packagePageSectionImages,
 } = load('src/lib/packageDetailSections.ts');
-const { DUMMY_PACKAGES, getPackageDetails } = load('src/lib/packageData.ts');
+const { getPackageDetails } = load('src/lib/packageData.ts');
+const { DUMMY_PACKAGES } = load('src/lib/packageSeed.ts');
 const plain = (value) => JSON.parse(JSON.stringify(value));
 const reopen = (pageSections) => getPackagePageSections(plain({ pageSections }));
 

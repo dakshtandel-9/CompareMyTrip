@@ -1,0 +1,107 @@
+{
+  "checkedAt": "2026-09-25T06:39:31.789Z",
+  "databaseReadComplete": true,
+  "documents": 115,
+  "files": [
+    {
+      "file": "visaLogo/visa1.png",
+      "bytes": 1578869,
+      "references": []
+    },
+    {
+      "file": "visaLogo/visa10.png",
+      "bytes": 1574791,
+      "references": []
+    },
+    {
+      "file": "visaLogo/visa2.png",
+      "bytes": 1425803,
+      "references": []
+    },
+    {
+      "file": "visaLogo/visa3.png",
+      "bytes": 1490282,
+      "references": []
+    },
+    {
+      "file": "visaLogo/visa4.png",
+      "bytes": 1499387,
+      "references": []
+    },
+    {
+      "file": "visaLogo/visa5.png",
+      "bytes": 1541883,
+      "references": []
+    },
+    {
+      "file": "visaLogo/visa6.png",
+      "bytes": 1456585,
+      "references": []
+    },
+    {
+      "file": "visaLogo/visa7.png",
+      "bytes": 1363119,
+      "references": []
+    },
+    {
+      "file": "visaLogo/visa8.png",
+      "bytes": 1529118,
+      "references": []
+    },
+    {
+      "file": "visaLogo/visa9.png",
+      "bytes": 1437917,
+      "references": []
+    },
+    {
+      "file": "hotelLogo/hotel11.png",
+      "bytes": 790584,
+      "references": []
+    },
+    {
+      "file": "hotelLogo/hotel110.png",
+      "bytes": 779885,
+      "references": []
+    },
+    {
+      "file": "hotelLogo/hotel12.png",
+      "bytes": 843676,
+      "references": []
+    },
+    {
+      "file": "hotelLogo/hotel13.png",
+      "bytes": 829145,
+      "references": []
+    },
+    {
+      "file": "hotelLogo/hotel14.png",
+      "bytes": 717071,
+      "references": []
+    },
+    {
+      "file": "hotelLogo/hotel15.png",
+      "bytes": 805807,
+      "references": []
+    },
+    {
+      "file": "hotelLogo/hotel16.png",
+      "bytes": 815030,
+      "references": []
+    },
+    {
+      "file": "hotelLogo/hotel17.png",
+      "bytes": 902775,
+      "references": []
+    },
+    {
+      "file": "hotelLogo/hotel18.png",
+      "bytes": 778215,
+      "references": []
+    },
+    {
+      "file": "hotelLogo/hotel19.png",
+      "bytes": 807797,
+      "references": []
+    }
+  ]
+}

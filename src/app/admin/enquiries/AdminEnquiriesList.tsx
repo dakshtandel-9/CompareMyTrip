@@ -11,7 +11,7 @@ import {
   type EnquiryStatus,
 } from "@/lib/firebase/enquiries";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
-import { useAllPackages } from "@/lib/usePackages";
+import { useAllPackages } from "@/lib/useAdminPackages";
 
 const dateFormatter = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" });
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;

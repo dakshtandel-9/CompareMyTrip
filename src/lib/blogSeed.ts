@@ -251,7 +251,7 @@ const SEED_POSTS: SeedPost[] = [
       {
         heading: "Where the extra nights belong",
         body: "Two nights in Jaipur is enough for Amber, the city palace and Hawa Mahal without rushing. Two in Jodhpur, because Mehrangarh deserves most of a day and the old city below it deserves the rest.\n\nUdaipur is where people wish they had stayed longer. Give it three. It is the one city on the loop that rewards doing nothing in particular — a morning on the lake, an afternoon in the bazaar behind Jagdish Temple.",
-        image: "/popular-destinations/newdelhi.png",
+        image: "/popular-destinations/newdelhi.webp",
         imageAlt: "Mughal-era architecture in northern India",
         imageCaption: "Most Rajasthan trips arrive through Delhi — it is worth a night either side.",
       },

@@ -16,7 +16,7 @@ function load(file, dependencies = {}) {
   return exports;
 }
 
-const data = load('src/lib/packageData.ts');
+const data = { ...load('src/lib/packageData.ts'), ...load('src/lib/packageSeed.ts') };
 const { internationalCardTarget: target } = load('src/lib/internationalPackages.ts', {
   '@/lib/packageData': data,
 });

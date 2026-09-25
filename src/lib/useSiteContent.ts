@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { createContext, useContext, useSyncExternalStore } from "react";
 
 import { subscribeToHomepageContent } from "@/lib/firebase/homepageContent";
 import { DEFAULT_SITE_CONTENT, type SiteContent } from "@/lib/siteContent";
@@ -18,6 +18,8 @@ const SERVER_STATE: SiteContentState = {
   error: "",
   exists: false,
 };
+
+export const SiteContentContext = createContext<SiteContentState | null>(null);
 
 let currentState = SERVER_STATE;
 let stopFirestoreListener: (() => void) | undefined;
@@ -60,7 +62,10 @@ const getSnapshot = () => currentState;
 const getServerSnapshot = () => SERVER_STATE;
 
 export function useSiteContentState(): SiteContentState {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const initial = useContext(SiteContentContext);
+  return useSyncExternalStore(subscribe,
+    () => currentState.loading && initial ? initial : getSnapshot(),
+    () => initial ?? getServerSnapshot());
 }
 
 export function useSiteContent(): SiteContent {

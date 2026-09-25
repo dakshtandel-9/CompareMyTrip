@@ -16,7 +16,7 @@ import { toIndiaState } from "@/lib/indiaStates";
 import { deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
 import { useDestinationCoversState } from "@/lib/useDestinationCovers";
-import { useAllPackagesState } from "@/lib/usePackages";
+import { useAllPackagesState } from "@/lib/useAdminPackages";
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 

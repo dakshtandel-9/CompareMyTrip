@@ -1,5 +1,5 @@
 /**
- * Regenerates the imported half of src/lib/packageData.ts from
+ * Regenerates the imported half of src/lib/packageSeed.ts from
  * tourbazaar.in/api/packages.
  *
  *   node scripts/import-packages.mjs > /tmp/packages.txt

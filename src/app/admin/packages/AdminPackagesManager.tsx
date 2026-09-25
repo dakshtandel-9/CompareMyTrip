@@ -1,17 +1,19 @@
 "use client";
 
+import { DUMMY_PACKAGES } from "@/lib/packageSeed";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Database, Edit3, ExternalLink, PackagePlus, Search, Trash2 } from "lucide-react";
 import { assignWeekendTrack, deletePackages, seedPackages } from "@/lib/firebase/packages";
-import { DUMMY_PACKAGES, isPublishedPackage, type TravelPackage } from "@/lib/packageData";
+import { isPublishedPackage, type TravelPackage } from "@/lib/packageData";
 import { packageImages } from "@/lib/packageImages";
 import { cleanupAbandonedPackageImages, deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
 import { INDIA_STATES, toIndiaState } from "@/lib/indiaStates";
 import { useDestinationCoversState } from "@/lib/useDestinationCovers";
-import { useAllPackagesState } from "@/lib/usePackages";
+import { useAllPackagesState } from "@/lib/useAdminPackages";
 import { trackForTrek, WEEKEND_TRACKS } from "@/lib/weekendTracks";
 import AdminPackageBuilder from "./AdminPackageBuilder";
 import DeletePackageDialog from "./DeletePackageDialog";

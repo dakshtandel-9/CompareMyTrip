@@ -48,7 +48,9 @@ test('the enquiry writer rejects fractional quote counts before any database wri
 
 test('maintenance cold outage, recovery, disabled mode and repeated outage keep deliberate decisions', async () => {
   let result = 'timeout';
+  let now = 0;
   const settings = load('src/lib/comingSoonServer.ts', {}, {
+    Date: { now: () => now },
     process: { env: { NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'test-project' } },
     fetch: async () => {
       if (result === 'timeout') throw new Error('timeout');
@@ -59,8 +61,10 @@ test('maintenance cold outage, recovery, disabled mode and repeated outage keep 
   assert.equal(await settings.readComingSoonEnabled(), true, 'cold workers do not unexpectedly open a paused website');
   result = true; assert.equal(await settings.readComingSoonEnabled(), true);
   result = 'service-error'; assert.equal(await settings.readComingSoonEnabled(), true);
-  result = false; assert.equal(await settings.readComingSoonEnabled(), false, 'explicit disable takes effect immediately');
+  now += 60000;
+  result = false; assert.equal(await settings.readComingSoonEnabled(), false, 'explicit disable takes effect when the one-minute cache expires');
   result = 'timeout'; assert.equal(await settings.readComingSoonEnabled(), false);
+  now += 60000;
   result = true; assert.equal(await settings.readComingSoonEnabled(), true);
 });
 
@@ -89,6 +93,7 @@ function content(db) {
     '@/lib/blogSeed': { BLOG_SEED_POSTS: [{ id: 'seed', status: 'published' }] },
     '@/lib/blogData': { normalizeBlogPost: (id, data) => ({ id, ...data }), sortBlogPosts: posts => posts },
     '@/lib/firebase/admin': { getAdminDb: () => db }, '@/lib/packageData': packages,
+    '@/lib/packageSeed': { DUMMY_PACKAGES: [] },
     '@/lib/cruiseListings': { isPublishedCruise: (cruise) => (cruise.status ?? 'published') === 'published' },
   });
 }

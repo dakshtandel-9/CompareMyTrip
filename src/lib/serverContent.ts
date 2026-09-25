@@ -1,3 +1,4 @@
+import { DUMMY_PACKAGES } from "@/lib/packageSeed";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 
@@ -10,7 +11,6 @@ import {
 import { getAdminDb } from "@/lib/firebase/admin";
 import { isPublishedCruise, type CruiseListing } from "@/lib/cruiseListings";
 import {
-  DUMMY_PACKAGES,
   publishedPackages,
   type TravelPackage,
 } from "@/lib/packageData";
@@ -95,7 +95,7 @@ const readCachedCatalogue = unstable_cache(async () => {
     packages: catalogue.packages,
     updatedAt: Array.from(catalogue.updatedAt, ([id, date]) => [id, date.toISOString()]),
   };
-}, ["published-catalogue-v3"], { revalidate: 3600, tags: ["public-content"] });
+}, ["published-catalogue-v3"], { revalidate: 300, tags: ["public-content"] });
 const loadPackageCatalogue = cache(async (): Promise<PackageCatalogue> => {
   const catalogue = await readCachedCatalogue();
   return {
@@ -139,7 +139,7 @@ export const getPublishedBlogPosts = cache(unstable_cache(async (): Promise<Blog
     console.error("Unable to load blog posts for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return seedBlogPosts();
   }
-}, ["published-blog-v2"], { revalidate: 3600, tags: ["public-content"] }));
+}, ["published-blog-v2"], { revalidate: 300, tags: ["public-content"] }));
 
 export const getPublishedBlogPost = cache(async (slug: string) => {
   const posts = await getPublishedBlogPosts();
@@ -179,7 +179,7 @@ export const getPublishedCruises = cache(unstable_cache(async (): Promise<Cruise
     console.error("Unable to load cruises for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return [];
   }
-}, ["published-cruises-v1"], { revalidate: 3600, tags: ["public-content"] }));
+}, ["published-cruises-v1"], { revalidate: 300, tags: ["public-content"] }));
 
 export const getDestinationCovers = cache(unstable_cache(async (): Promise<Record<string, string>> => {
   const db = getAdminDb();
@@ -199,4 +199,4 @@ export const getDestinationCovers = cache(unstable_cache(async (): Promise<Recor
     console.error("Unable to load destination covers for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return {};
   }
-}, ["destination-covers-v1"], { revalidate: 3600, tags: ["public-content"] }));
+}, ["destination-covers-v1"], { revalidate: 300, tags: ["public-content"] }));

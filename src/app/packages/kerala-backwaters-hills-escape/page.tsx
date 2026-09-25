@@ -1,10 +1,11 @@
+import { DUMMY_PACKAGES } from "@/lib/packageSeed";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
-import { DUMMY_PACKAGES, type TravelPackage } from "@/lib/packageData";
+import { type TravelPackage } from "@/lib/packageData";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import PackageGallery from "../_components/PackageGallery";
 import PackageShareButton from "../_components/PackageShareButton";

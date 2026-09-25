@@ -1,3 +1,4 @@
+import { DUMMY_PACKAGES } from "@/lib/packageSeed";
 /* ------------------------------------------------------------------ */
 /* PayU (India) server helpers.                                         */
 /*                                                                      */
@@ -12,7 +13,7 @@ import { LEGAL_POLICIES_APPROVED } from "@/lib/legalPolicies";
 
 import { createHash, randomUUID } from "node:crypto";
 
-import { DUMMY_PACKAGES, type TravelPackage } from "@/lib/packageData";
+import { type TravelPackage } from "@/lib/packageData";
 
 const ENDPOINTS = {
   test: "https://test.payu.in/_payment",

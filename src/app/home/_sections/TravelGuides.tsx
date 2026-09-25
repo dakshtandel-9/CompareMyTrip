@@ -68,7 +68,7 @@ export default function TravelGuides() {
                       src={guide.image}
                       alt={guide.alt}
                       fill
-                      sizes="(max-width: 768px) 100vw, 33vw"
+                      sizes="(max-width: 639px) min(86vw, 320px), (max-width: 767px) calc(100vw - 32px), (max-width: 1487px) calc((100vw - 96px) / 3), 464px"
                       className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                     />
 

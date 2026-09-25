@@ -1,4 +1,5 @@
 import path from "node:path";
+import legacyImagePaths from "./src/lib/legacyImagePaths.json";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -36,6 +37,10 @@ const nextConfig: NextConfig = {
   },
   trailingSlash: false,
   images: {
+    // Match the actual card/hero widths with fewer transform variants.
+    deviceSizes: [640, 768, 1080, 1440, 1920, 3840],
+    imageSizes: [32, 64, 128, 256, 384],
+    qualities: [75],
     /* Package photography imported from tourbazaar.in is served from the
        operators' Supabase storage bucket, so next/image has to be told the
        host is allowed before it will optimise those files. */
@@ -61,6 +66,11 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+  },
+
+  async rewrites() {
+    // CMS content can retain a legacy PNG URL; serve the same lossless image.
+    return { beforeFiles: Object.entries(legacyImagePaths).map(([source, destination]) => ({ source, destination })) };
   },
 
   async redirects() {

@@ -13,7 +13,7 @@ export default function BrandLogo({
   return (
     <span className={`relative block aspect-[2172/300] shrink-0 overflow-hidden ${className}`}>
       <Image
-        src="/comparemytrip-logo.png"
+        src="/comparemytrip-logo.webp"
         alt="CompareMyTrip"
         width={2172}
         height={724}

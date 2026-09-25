@@ -10,7 +10,7 @@ import { blogPostImage, blogPostImages, formatBlogDate, readingMinutes, type Blo
 import { BLOG_SEED_POSTS } from "@/lib/blogSeed";
 import { deleteBlogPost, saveBlogPost, seedBlogPosts } from "@/lib/firebase/blog";
 import { cleanupAbandonedBlogImages, deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
-import { useBlogState } from "@/lib/useBlog";
+import { useBlogState } from "@/lib/useAdminBlog";
 import AdminBlogEditor from "./AdminBlogEditor";
 
 const PAGE_SIZE = 10;

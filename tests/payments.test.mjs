@@ -15,7 +15,7 @@ function load(file, mocks = {}, env = {}) {
   return exports;
 }
 const seo = load('src/lib/seo.ts', {}, { NODE_ENV: 'production', NEXT_PUBLIC_SITE_URL: 'http://localhost:3000' });
-const payuMocks = { '@/lib/packageData': { DUMMY_PACKAGES: [] }, '@/lib/seo': seo, '@/lib/legalPolicies': { LEGAL_POLICIES_APPROVED: false } };
+const payuMocks = { '@/lib/packageSeed': { DUMMY_PACKAGES: [] }, '@/lib/seo': seo, '@/lib/legalPolicies': { LEGAL_POLICIES_APPROVED: false } };
 const payu = load('src/lib/payu.ts', payuMocks);
 const input = { key: 'merchant', salt: 'secret', txnid: 'CMT123', amount: '5498.00', productinfo: 'Trek', firstname: 'Test', email: 'test@example.com', udf: ['p1','2','','',''] };
 const digest = value => createHash('sha512').update(value).digest('hex');

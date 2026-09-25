@@ -31,7 +31,7 @@ const BADGE_TONES = {
 export default function PackageCard({
   pkg,
   badge,
-  sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw",
+  sizes = "(max-width: 639px) min(86vw, 320px), (max-width: 1023px) calc((100vw - 72px) / 2), (max-width: 1487px) calc((100vw - 120px) / 4), 342px",
   className = "",
 }: PackageCardProps) {
   /* Imported operator listings publish no pre-discount price, so the pill is

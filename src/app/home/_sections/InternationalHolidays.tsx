@@ -68,7 +68,7 @@ export default function InternationalHolidays() {
                     src={country.image}
                     alt={country.alt}
                     fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    sizes="(max-width: 639px) min(86vw, 320px), (max-width: 1023px) calc((100vw - 72px) / 2), (max-width: 1487px) calc((100vw - 96px) / 3), 464px"
                     className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
                 </div>

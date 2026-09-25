@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, CalendarDays, Check, ChevronRight, CircleHelp, ClipboardList, Globe2, MessageSquareText, MessagesSquare, PackagePlus, PackageSearch, PanelsTopLeft, Plane, ShieldAlert, Sparkles, type LucideIcon } from "lucide-react";
 import { isPublishedPackage } from "@/lib/packageData";
-import { useAllPackagesState } from "@/lib/usePackages";
+import { useAllPackagesState } from "@/lib/useAdminPackages";
 import { useSiteContentState } from "@/lib/useSiteContent";
 import { useAdminOverview } from "./_components/useAdminOverview";
 import { ADMIN_NAV_GROUPS } from "./_components/adminNavigation";

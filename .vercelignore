@@ -1,0 +1,22 @@
+# Local outputs, archived originals and review material are not build inputs.
+.git/
+.next/
+.open-next/
+.wrangler/
+node_modules/
+media-source/
+public/hero-frames*/
+public/train-banner/
+tmp/
+output/
+coverage/
+docs/
+clogo/
+tests/
+*.pdf
+to-do list.html
+*.tsbuildinfo
+.DS_Store
+.env*
+.dev.vars*
+# Keep src, content and scripts: prebuild validates assets and CMS content.

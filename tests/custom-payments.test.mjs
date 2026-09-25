@@ -15,7 +15,7 @@ function load(file, mocks = {}, env = {}) {
 }
 const custom = load('src/lib/customPayment.ts');
 const payu = load('src/lib/payu.ts', {
-  '@/lib/packageData': { DUMMY_PACKAGES: [] }, '@/lib/seo': { getSiteUrl: () => new URL('https://comparemytrip.in') },
+  '@/lib/packageSeed': { DUMMY_PACKAGES: [] }, '@/lib/seo': { getSiteUrl: () => new URL('https://comparemytrip.in') },
   '@/lib/legalPolicies': { LEGAL_POLICIES_APPROVED: false },
 }, { PAYU_MERCHANT_KEY: 'test-key', PAYU_SALT: 'test-secret', NODE_ENV: 'development' });
 const id = 'CMTTEST123456789';

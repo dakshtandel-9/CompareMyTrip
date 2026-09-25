@@ -66,7 +66,7 @@ export default function WeekendTreks() {
                   src={trek.image}
                   alt={`View from the ${trek.name} trek`}
                   fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  sizes="(max-width: 639px) min(86vw, 320px), (max-width: 1023px) calc((100vw - 72px) / 2), (max-width: 1487px) calc((100vw - 120px) / 4), 342px"
                   className="object-cover transition-transform duration-500 group-hover:scale-[1.035]"
                 />
 

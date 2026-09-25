@@ -81,24 +81,38 @@ test('turning mode off restores public requests immediately; POST actions are no
   assert.equal((await middleware(new NextRequest('https://example.com/checkout', { method: 'POST' }))).headers.get('x-middleware-next'), '1');
 });
 
-test('settings read is uncached, requests only the switch, and tolerates unavailable settings', async () => {
+test('settings cache expires in one minute, coalesces reads and retains the last decision on failure', async () => {
   let fetchCalls = 0;
+  let now = 1000;
+  let enabled = true;
   let available = true;
   const { readComingSoonEnabled } = load('src/lib/comingSoonServer.ts', {}, {
+    Date: { now: () => now },
     process: { env: { NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'test-project' } },
     fetch: async (url, options) => {
       fetchCalls++;
       assert.equal(url.pathname, '/api/content/status');
       assert.equal(options.cache, 'no-store');
       if (!available) throw new Error('offline');
-      return { ok: true, json: async () => ({ enabled: true }) };
+      return { ok: true, json: async () => ({ enabled }) };
     },
   });
+  assert.deepEqual(await Promise.all([readComingSoonEnabled(), readComingSoonEnabled()]), [true, true]);
+  assert.equal(fetchCalls, 1);
+  enabled = false;
+  now += 59999;
   assert.equal(await readComingSoonEnabled(), true);
-  assert.equal(await readComingSoonEnabled(), true);
+  assert.equal(fetchCalls, 1);
+  now++;
+  assert.equal(await readComingSoonEnabled(), false);
   assert.equal(fetchCalls, 2);
   available = false;
-  assert.equal(await readComingSoonEnabled(), true, "outage retains last verified mode");
+  now += 60000;
+  assert.equal(await readComingSoonEnabled(), false, 'outage retains last verified mode');
+  assert.equal(await readComingSoonEnabled('https://preview.example'), true, 'cold origin fails closed');
+  available = true;
+  enabled = true;
+  assert.equal(await readComingSoonEnabled(), true, 'failed reads do not extend the cache');
 });
 
 test('coming-soon page renders only while enabled and becomes not-found again after switching off', async () => {

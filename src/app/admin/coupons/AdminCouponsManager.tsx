@@ -24,7 +24,7 @@ import {
 import { deleteCoupon, saveCoupon, subscribeToCoupons } from "@/lib/firebase/coupons";
 import { subscribeToTrips, type Trip } from "@/lib/firebase/trips";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
-import { useAllPackagesState } from "@/lib/usePackages";
+import { useAllPackagesState } from "@/lib/useAdminPackages";
 import { InboxFilters, InboxSearch, InboxState, OperationsHeader, WorkflowGuide } from "../enquiries/OperationsUI";
 import { NumberField } from "../_components/EditorParts";
 import {
