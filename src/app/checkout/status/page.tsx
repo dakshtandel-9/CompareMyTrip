@@ -61,7 +61,7 @@ export default async function PaymentStatusPage({
         : "We could not start that payment.";
 
   const body = success
-    ? "Your booking is with the operator. A confirmation is on its way to the email you gave us."
+    ? "Your booking is with CompareMyTrip. A confirmation is on its way to the email you gave us."
     : pending
       ? "We are waiting for the payment result. Open My trips to check its status or report a payment that was deducted."
       : failed

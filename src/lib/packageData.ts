@@ -143,6 +143,8 @@ export type TravelPackage = {
       before this field existed behaves and why it is optional: adding it
       cannot accidentally close a running package's calendar. */
   departureDays?: number[];
+  /** Explicit departure city; blank falls back to published pickup/route details. */
+  departureCity?: string;
   details?: PackageDetails;
 };
 
@@ -325,6 +327,12 @@ export function discountToPrice(originalPrice: number, discount: number): number
   if (originalPrice <= 0) return 0;
   const percent = Math.min(Math.max(discount, 0), 90);
   return Math.round(originalPrice * (1 - percent / 100));
+}
+
+/** False for day treks and other plans with no stay, so cards can leave the
+    accommodation out rather than print "No accommodation". */
+export function hasPackageAccommodation(pkg: TravelPackage): boolean {
+  return pkg.hotelStars > 0 || (pkg.details?.stays ?? []).length > 0;
 }
 
 /** Unrated dormitories and day treks must not be advertised as zero-star hotels. */

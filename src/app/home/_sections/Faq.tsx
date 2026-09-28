@@ -1,5 +1,6 @@
 "use client";
 
+import { BENGALURU_FAQS } from "@/lib/bengaluruCollections";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowRight, ChevronDown } from "lucide-react";
@@ -31,7 +32,9 @@ export default function Faq() {
 
   if (!faq.enabled) return null;
 
-  const { header, items, help } = faq;
+  const { header, help } = faq;
+  const localQuestions = BENGALURU_FAQS.map((item, index) => ({ ...item, id: `bengaluru-faq-${index}` }));
+  const items = [...localQuestions, ...faq.items.filter(item => !localQuestions.some(local => local.question === item.question))];
 
   /* The escape hatch is "still not answered? talk to the team", and it ships
      pointing at /contact — where this same section is also rendered. Offering

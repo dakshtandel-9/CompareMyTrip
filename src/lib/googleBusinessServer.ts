@@ -38,6 +38,7 @@ type StoredIntegration = {
   refreshToken: string;
   account: string;
   locations: GoogleLocation[];
+  selectedLocation: string;
   lastSyncedAt: string;
   lastSyncCount: number;
   error: string;
@@ -53,6 +54,7 @@ const BLANK: StoredIntegration = {
   refreshToken: "",
   account: "",
   locations: [],
+  selectedLocation: "",
   lastSyncedAt: "",
   lastSyncCount: 0,
   error: "",
@@ -69,6 +71,8 @@ const BLANK: StoredIntegration = {
  * fails, so the CRM shows this string for copying rather than describing it.
  */
 export function redirectUri(): string {
+  const override = process.env.GOOGLE_BUSINESS_REDIRECT_URI?.trim();
+  if (override) return override;
   const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
   if (!base) return "";
   return `${base}/api/integrations/google-business/callback`;
@@ -101,10 +105,10 @@ export async function clearIntegration(): Promise<void> {
   const db = getAdminDb();
   if (!db) throw new Error("Firebase Admin is not configured on the server.");
 
-  await db
-    .collection(GOOGLE_INTEGRATION_DOC.collection)
-    .doc(GOOGLE_INTEGRATION_DOC.id)
-    .set(BLANK);
+  const batch = db.batch();
+  batch.set(db.collection(GOOGLE_INTEGRATION_DOC.collection).doc(GOOGLE_INTEGRATION_DOC.id), BLANK);
+  batch.delete(db.collection(GOOGLE_REVIEWS_DOC.collection).doc(GOOGLE_REVIEWS_DOC.id));
+  await batch.commit();
 }
 
 /* ---------------------------- OAuth ------------------------------- */
@@ -181,9 +185,7 @@ async function accessToken(integration: StoredIntegration): Promise<string> {
 
 /* --------------------------- API calls ---------------------------- */
 
-/** Raised when Google authenticates the caller but refuses the data —
-    the shape an unapproved project takes. Carried as its own class so the
-    CRM can tell "waiting on Google" apart from "wired up wrong". */
+/** Raised only when Google explicitly reports zero quota. */
 export class NotApprovedError extends Error {}
 
 async function googleGet<T>(url: string, token: string): Promise<T> {
@@ -192,32 +194,57 @@ async function googleGet<T>(url: string, token: string): Promise<T> {
     cache: "no-store",
   });
 
-  if (response.status === 403 || response.status === 429) {
-    throw new NotApprovedError(
-      "Google accepted the sign-in but refused the data. This is what an unapproved project looks like: quota sits at 0 until Google grants API access.",
-    );
-  }
-
   if (!response.ok) {
     const body = (await response.json().catch(() => ({}))) as {
-      error?: { message?: string };
+      error?: { message?: string; details?: Array<{ metadata?: { quota_limit_value?: string | number } }> };
     };
-    throw new Error(body.error?.message || `Google returned ${response.status}.`);
+    const detail = body.error?.message || "";
+    // 403 also means missing permissions/disabled APIs; 429 can be a temporary
+    // rate limit. Only an explicit zero quota indicates approval is missing.
+    const zeroQuota = body.error?.details?.some(item =>
+      item.metadata?.quota_limit_value === "0" || item.metadata?.quota_limit_value === 0,
+    );
+    if ((response.status === 403 || response.status === 429) && (zeroQuota || /(?:quota|limit)[\s\S]*?(?:value[:=]?\s*0\b|\b0\s*(?:per|requests|queries|qpm))/i.test(detail))) {
+      throw new NotApprovedError("Google reports zero API quota. Check Basic API Access approval for this Cloud project.");
+    }
+    if (response.status === 429) throw new Error("Google's request quota was exceeded. Retry later; if quota is 0 in Cloud Console, request Basic API Access.");
+    if (response.status === 403) throw new Error(`Google denied access. Check the three Business Profile APIs are enabled, project approval, and this account's location permissions. ${detail}`);
+    throw new Error(detail || `Google returned ${response.status}.`);
   }
 
   return (await response.json()) as T;
 }
 
-/** The first account the authorised user manages. */
-async function firstAccount(token: string): Promise<string> {
-  const data = await googleGet<{ accounts?: Array<{ name?: string }> }>(
-    `${ACCOUNTS_API}/accounts`,
-    token,
-  );
+/** Follow account pagination; the business may belong to a business group. */
+async function listAccounts(token: string): Promise<string[]> {
+  const accounts: string[] = [];
+  let pageToken = "";
+  do {
+    const params = new URLSearchParams({ pageSize: "20" });
+    if (pageToken) params.set("pageToken", pageToken);
+    const data = await googleGet<{ accounts?: Array<{ name?: string }>; nextPageToken?: string }>(`${ACCOUNTS_API}/accounts?${params}`, token);
+    for (const account of data.accounts ?? []) if (account.name) accounts.push(account.name);
+    pageToken = data.nextPageToken ?? "";
+  } while (pageToken);
+  if (!accounts.length) throw new Error("That Google account manages no Business Profile.");
+  return accounts;
+}
 
-  const name = data.accounts?.[0]?.name;
-  if (!name) throw new Error("That Google account manages no Business Profile.");
-  return name;
+export async function discoverGoogleLocations(): Promise<GoogleLocation[]> {
+  const integration = await loadIntegration();
+  if (!integration.refreshToken) throw new Error("Connect your Google account first.");
+  const token = await accessToken(integration);
+  const locations: GoogleLocation[] = [];
+  for (const account of await listAccounts(token)) locations.push(...await listLocations(account, token));
+  const seen = new Set<string>();
+  const unique = locations.filter(location => {
+    const id = location.name.split("/locations/")[1];
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+  await saveIntegration({ locations: unique, error: "", awaitingApproval: false });
+  return unique;
 }
 
 /* readMask is required on this endpoint; omitting it is a 400, not a
@@ -283,7 +310,7 @@ async function listReviews(
   let totalReviewCount = 0;
 
   do {
-    const params = new URLSearchParams({ pageSize: "50" });
+    const params = new URLSearchParams({ pageSize: "50", orderBy: "updateTime desc" });
     if (pageToken) params.set("pageToken", pageToken);
 
     const data = await googleGet<{
@@ -298,11 +325,12 @@ async function listReviews(
 
     for (const raw of data.reviews ?? []) {
       const mapped = toReview(raw, location.title);
-      if (mapped) reviews.push(mapped);
+      if (mapped && !reviews.some(item => item.id === mapped.id)) reviews.push(mapped);
+      if (reviews.length >= 100) break;
     }
 
     pageToken = data.nextPageToken ?? "";
-  } while (pageToken);
+  } while (pageToken && reviews.length < 100);
 
   return { reviews, averageRating, totalReviewCount };
 }
@@ -310,49 +338,54 @@ async function listReviews(
 /* ----------------------------- Sync ------------------------------- */
 
 /**
- * Pull every location and its reviews, publish them, and record what
+ * Pull the selected location’s reviews, publish them, and record what
  * happened on the integration document for the CRM to read back.
  *
  * The published document is separate from siteContent/homepage on purpose:
  * a sync must never be able to overwrite what the travel desk wrote by
  * hand, and the homepage merges the two at render time instead.
  */
-export async function syncGoogleReviews(): Promise<{ count: number; locations: GoogleLocation[] }> {
+export async function syncGoogleReviews(selected?: string): Promise<{ count: number; locations: GoogleLocation[] }> {
   const db = getAdminDb();
   if (!db) throw new Error("Firebase Admin is not configured on the server.");
-
   const integration = await loadIntegration();
   if (!integration.refreshToken) throw new Error("No Google account is connected yet.");
-
+  const name = selected ?? integration.selectedLocation;
+  // Accept only a location discovered via this connection, never an arbitrary
+  // resource supplied by the browser or every business the account manages.
+  const location = integration.locations.find(item => item.name === name);
+  if (!location) throw new Error("Load your businesses and select CompareMyTrip before syncing.");
   const token = await accessToken(integration);
-  const account = integration.account || (await firstAccount(token));
-  const locations = await listLocations(account, token);
-
-  const collected: Review[] = [];
-  for (const location of locations) {
-    const result = await listReviews(location, token);
-    location.averageRating = result.averageRating;
-    location.totalReviewCount = result.totalReviewCount;
-    collected.push(...result.reviews);
-  }
-
-  /* Newest first, so the rail opens on the most recent word about the
-     business rather than whatever Google happened to return first. */
-  collected.sort((a, b) => b.travelled.localeCompare(a.travelled));
-
-  await db
-    .collection(GOOGLE_REVIEWS_DOC.collection)
-    .doc(GOOGLE_REVIEWS_DOC.id)
-    .set({ items: collected, syncedAt: new Date().toISOString() });
-
-  await saveIntegration({
-    account,
-    locations,
-    lastSyncedAt: new Date().toISOString(),
-    lastSyncCount: collected.length,
-    error: "",
-    awaitingApproval: false,
+  const result = await listReviews(location, token);
+  const updated = { ...location, averageRating: result.averageRating, totalReviewCount: result.totalReviewCount };
+  const locations = integration.locations.map(item => item.name === name ? updated : item);
+  const now = new Date();
+  // A limited display cache, refreshed daily. The cleanup job removes it
+  // before Google's 30-day storage limit even if authorization later fails.
+  const expiresAt = new Date(now.getTime() + 29 * 24 * 60 * 60 * 1000).toISOString();
+  const items = result.reviews.slice(0, 100);
+  const batch = db.batch();
+  batch.set(db.collection(GOOGLE_REVIEWS_DOC.collection).doc(GOOGLE_REVIEWS_DOC.id), {
+    items, syncedAt: now.toISOString(), expiresAt,
   });
+  batch.set(db.collection(GOOGLE_INTEGRATION_DOC.collection).doc(GOOGLE_INTEGRATION_DOC.id), {
+    account: name.split("/locations/")[0], selectedLocation: name, locations,
+    lastSyncedAt: now.toISOString(), lastSyncCount: items.length,
+    error: "", awaitingApproval: false,
+  }, { merge: true });
+  await batch.commit();
+  return { count: items.length, locations };
+}
 
-  return { count: collected.length, locations };
+/** Runs before scheduled sync so repeated Google failures cannot retain old reviews. */
+export async function removeExpiredGoogleReviews(): Promise<void> {
+  const db = getAdminDb();
+  if (!db) throw new Error("Firebase Admin is not configured on the server.");
+  const ref = db.collection(GOOGLE_REVIEWS_DOC.collection).doc(GOOGLE_REVIEWS_DOC.id);
+  await db.runTransaction(async tx => {
+    const snapshot = await tx.get(ref);
+    if (!snapshot.exists) return;
+    const expiry = Date.parse(snapshot.data()?.expiresAt ?? "");
+    if (!Number.isFinite(expiry) || expiry <= Date.now()) tx.delete(ref);
+  });
 }

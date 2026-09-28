@@ -20,6 +20,7 @@ export type PackageForm = {
   /** Weekdays the trip departs on. All seven selected means no restriction,
       which is what a package that runs daily should have. */
   departureDays: number[];
+  departureCity: string;
 };
 
 export type EditorIssue = { message: string; step: number };

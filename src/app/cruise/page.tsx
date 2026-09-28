@@ -9,9 +9,9 @@ import { createPageMetadata } from "@/lib/seo";
 export const revalidate = 3600;
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Cruise Holidays",
+  title: "Cruise Holidays & Booking Assistance",
   description:
-    "Compare cruise lines sailing from India and worldwide. Request a quote or download a brochure for the cruise you like.",
+    "Explore cruise holidays with CompareMyTrip. Ask about sailing dates, cabin options, itineraries and booking assistance for your next trip.",
   path: "/cruise",
   index: true,
   follow: true,

@@ -44,9 +44,10 @@ export type GoogleBusinessStatus = {
   /** Client id is stored, but nobody has finished the consent screen yet. */
   credentialsSaved: boolean;
   clientId: string;
-  /** The Google account that granted consent. */
+  /** Business account resource containing the selected location. */
   account: string;
   locations: GoogleLocation[];
+  selectedLocation: string;
   /** ISO timestamp of the last successful sync, "" if never. */
   lastSyncedAt: string;
   /** How many reviews the last sync published. */
@@ -54,9 +55,7 @@ export type GoogleBusinessStatus = {
   /** Whatever went wrong last, in words an admin can act on. */
   error: string;
   /**
-   * True when Google answered but refused the reviews scope — the signature
-   * of an unapproved project, which is a waiting problem rather than a
-   * wiring problem and needs different advice in the UI.
+   * True only when Google explicitly reports zero API quota.
    */
   awaitingApproval: boolean;
   /** Whether the server has a redirect URI configured to complete OAuth. */
@@ -69,6 +68,7 @@ export const EMPTY_GOOGLE_STATUS: GoogleBusinessStatus = {
   clientId: "",
   account: "",
   locations: [],
+  selectedLocation: "",
   lastSyncedAt: "",
   lastSyncCount: 0,
   error: "",
@@ -112,7 +112,7 @@ export function initialsFrom(name: string): string {
 export function reviewedLabel(iso: string): string {
   const date = new Date(iso);
   if (!iso || Number.isNaN(date.getTime())) return "";
-  return `Reviewed ${date.toLocaleString("en-GB", { month: "long", year: "numeric" })}`;
+  return `Reviewed ${date.toLocaleString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}`;
 }
 
 /**
@@ -130,9 +130,9 @@ export function toReview(
   review: GoogleReview,
   locationTitle: string,
 ): Review | null {
-  const quote = (review.comment ?? "").trim();
+  const quote = review.comment ?? "";
   const rating = STAR_VALUES[review.starRating ?? ""] ?? 0;
-  if (!quote || !rating) return null;
+  if (!quote.trim() || !rating) return null;
 
   const anonymous = review.reviewer?.isAnonymous === true;
   const name = anonymous ? "A Google reviewer" : (review.reviewer?.displayName ?? "").trim();
@@ -146,7 +146,7 @@ export function toReview(
     name,
     initials: initialsFrom(name),
     avatar: anonymous ? "" : (review.reviewer?.profilePhotoUrl ?? ""),
-    trip: locationTitle,
+    trip: `Google review · ${locationTitle}`,
     travelled: reviewedLabel(review.updateTime || review.createTime || ""),
     rating,
   };
@@ -160,5 +160,9 @@ export function toReview(
  */
 export function mergeReviews(curated: Review[], google: Review[]): Review[] {
   const taken = new Set(curated.map((review) => review.id));
-  return [...curated, ...google.filter((review) => !taken.has(review.id))];
+  return [...curated, ...google.filter((review) => {
+    if (taken.has(review.id)) return false;
+    taken.add(review.id);
+    return true;
+  })];
 }

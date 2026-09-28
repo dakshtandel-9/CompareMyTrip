@@ -9,9 +9,9 @@ import { createPageMetadata } from "@/lib/seo";
    says lives in ContactBody, which reads the CRM's content. */
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Contact the Travel Desk",
+  title: "Plan Your Next Trip",
   description:
-    "Send an enquiry and our travel desk will come back with package options that match the trip you have in mind.",
+    "Contact CompareMyTrip for treks, weekend getaways and holiday planning. Share your destination, dates and budget with our travel team.",
   path: "/contact",
 });
 

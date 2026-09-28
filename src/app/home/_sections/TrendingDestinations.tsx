@@ -2,9 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { MoveRight, Plane, TrendingUp } from "lucide-react";
+import { MoveRight, Plane } from "lucide-react";
 
 import { useSiteContent } from "@/lib/useSiteContent";
+import { usePackages } from "@/lib/usePackages";
+import { buildDestinations, destinationHref } from "@/lib/destinations";
+import { destinationForPlace } from "@/lib/destinationContent";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 import type { SiteContent } from "@/lib/siteContent";
 import ContentImage from "../_components/ContentImage";
@@ -28,10 +31,13 @@ const MOBILE_DRIFT_PX_PER_SECOND = 24;
 /** How long after a wheel/drag before the drift picks back up. */
 const RESUME_DELAY_MS = 2000;
 
-type TrendingItem = SiteContent["trending"]["items"][number];
+type TrendingItem = SiteContent["trending"]["items"][number] & {
+  priceLabel: string;
+};
 
 export default function TrendingDestinations() {
   const { trending } = useSiteContent();
+  const destinations = buildDestinations(usePackages());
 
   const scrollerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -165,7 +171,21 @@ export default function TrendingDestinations() {
 
   if (!enabled) return null;
 
-  const { header, items } = trending;
+  const { header } = trending;
+  // Preserve the editorial cards and their order. Display catalogue facts,
+  // rather than the sample package counts, prices and search-growth claims.
+  const items: TrendingItem[] = trending.items.map((item) => {
+    const destination = destinationForPlace(destinations, item.name);
+    const automaticLink = !item.href || item.href === "/packages";
+    return {
+      ...item,
+      href: automaticLink ? (destination ? destinationHref(destination.name) : "/destinations") : item.href,
+      subtitle: destination && destination.name !== item.name ? destination.name : item.subtitle,
+      priceLabel: destination && destination.fromPrice > 0
+        ? `Starting from ₹${destination.fromPrice.toLocaleString("en-IN")}`
+        : "View travel plans",
+    };
+  });
 
   return (
     <section
@@ -199,11 +219,10 @@ export default function TrendingDestinations() {
               className="flex gap-5 sm:gap-6"
               aria-hidden={copy > 0 ? "true" : undefined}
             >
-              {items.map((dest, index) => (
+              {items.map((dest) => (
                 <TrendingCard
                   key={dest.id}
                   dest={dest}
-                  rank={index + 1}
                   inert={copy > 0}
                 />
               ))}
@@ -219,11 +238,9 @@ export default function TrendingDestinations() {
 
 function TrendingCard({
   dest,
-  rank,
   inert,
 }: {
   dest: TrendingItem;
-  rank: number;
   inert: boolean;
 }) {
   return (
@@ -236,20 +253,26 @@ function TrendingCard({
         src={dest.image}
         alt={dest.name}
         fill
-        sizes="(max-width: 640px) 240px, 280px"
+        /* The photos are landscape and object-cover crops them to fill a 3:4
+           card, so they render wider than the card: about 16/9 of its
+           height. Size for that width, or the browser picks a file too
+           small and stretches it. */
+        sizes="(max-width: 640px) 570px, 660px"
+        quality={90}
         className="object-cover transition-transform duration-500 group-hover:scale-105"
       />
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
 
-      {/* The one marker this card carries beyond its price pill: why
-          it ranks where it does. Text, not colour alone (§17.5). */}
-      <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-cmt-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-cmt-neutral-900 backdrop-blur-sm">
-        <TrendingUp className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />
-        <span className="tabular-nums">#{rank}</span>
-        <span className="text-cmt-neutral-500">·</span>
-        <span className="tabular-nums">+{dest.rise}%</span>
-      </div>
+      {/* Optional badge at the top left, editable per card in the admin. */}
+      {dest.badge && (
+        <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-cmt-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-cmt-neutral-900 backdrop-blur-sm">
+          {dest.badge.icon && (
+            <span className="h-3.5 w-3.5 text-cmt-primary-600">{dest.badge.icon}</span>
+          )}
+          <span>{dest.badge.label}</span>
+        </div>
+      )}
 
       <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5">
         <div>
@@ -257,13 +280,13 @@ function TrendingCard({
             {dest.name}
           </h3>
           <p className="mt-0.5 text-[13px] font-medium text-white/75">
-            {dest.subtitle} · <span className="tabular-nums">{dest.packages}</span> packages
+            {dest.subtitle}
           </p>
         </div>
 
         <div className="inline-flex w-fit items-center gap-1.5 rounded-cmt-full bg-cmt-primary-500 py-1.5 pl-2.5 pr-3 text-[12px] font-semibold text-cmt-neutral-900 shadow-cmt-primary">
           <Plane className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />
-          <span className="tabular-nums">Starting from ₹{dest.price}</span>
+          <span className="tabular-nums">{dest.priceLabel}</span>
         </div>
       </div>
 

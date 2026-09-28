@@ -192,7 +192,7 @@ export default function CompareBar() {
 
         <span className="min-w-0">
           <span className="block truncate font-display text-sm font-semibold text-cmt-neutral-900 sm:text-base">
-            Compare packages
+            Compare our plans
           </span>
           <span className="mt-0.5 block truncate text-xs text-cmt-neutral-500">
             {shortlist.length > 0

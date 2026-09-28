@@ -26,9 +26,9 @@ import Faq from "./home/_sections/Faq";
 import TrustAndNewsletter from "./home/_sections/TrustAndNewsletter";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Compare Travel Packages Before You Book | CompareMyTrip",
+  title: "Treks, Getaways & Holiday Packages | CompareMyTrip",
   description:
-    "Explore CompareMyTrip travel plans in India and abroad. Compare itineraries, prices and inclusions, and enquire directly with our travel team.",
+    "Explore curated treks, weekend getaways and holidays in India and abroad. Compare CompareMyTrip plans by itinerary, inclusions and price.",
   path: "/",
 });
 

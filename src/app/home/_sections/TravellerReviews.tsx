@@ -2,13 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowLeft, ArrowRight, Quote } from "lucide-react";
+import { ArrowLeft, ArrowRight, MessageSquareQuote, Quote } from "lucide-react";
 
 import { useSiteContent } from "@/lib/useSiteContent";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 import { getReviewScrollTarget } from "@/lib/reviewRail";
-import { useGoogleReviews } from "@/lib/useGoogleReviews";
-import { mergeReviews } from "@/lib/googleBusiness";
 import type { Review } from "@/lib/siteContent";
 import RailButton from "../_components/RailButton";
 import Rating from "../_components/Rating";
@@ -43,6 +41,14 @@ import SectionHeader from "../_components/SectionHeader";
 /* Brisk automatic scrolling; hover or focus pauses the rail for reading. */
 const DRIFT_PX_PER_SECOND = 60;
 
+// Keep the rail visible before the first manual review is published.
+// These are labelled placeholders, never customer quotes or ratings.
+const REVIEW_PLACEHOLDERS: Review[] = [
+  { id: "review-placeholder-treks", name: "Weekend adventures", quote: "Traveller stories from trails, treks and short getaways will appear here.", trip: "Traveller review coming soon", travelled: "", initials: "", avatar: "", rating: 0 },
+  { id: "review-placeholder-holidays", name: "Holiday memories", quote: "Traveller stories from holidays across India and abroad will appear here.", trip: "Traveller review coming soon", travelled: "", initials: "", avatar: "", rating: 0 },
+  { id: "review-placeholder-together", name: "Trips together", quote: "Traveller stories from journeys with friends and family will appear here.", trip: "Traveller review coming soon", travelled: "", initials: "", avatar: "", rating: 0 },
+];
+
 /* How long a deliberate move (arrow, swipe) owns the rail before the
    drift picks it back up. Long enough to finish reading the card you
    just brought into view. */
@@ -50,10 +56,7 @@ const RESUME_DELAY_MS = 2500;
 
 /* The traveller's photo, falling back to their initials.
  *
- * The fallback fires on a failed load as well as on an empty field, which
- * matters for Google reviewers: their photos are hotlinked from Google's
- * CDN and those URLs do expire. Without the onError the card would show a
- * browser's broken-image glyph rather than the initials disc it has. */
+ * Failed or missing photos use the same initials fallback. */
 function ReviewAvatar({ review }: { review: Review }) {
   const [failed, setFailed] = useState(false);
 
@@ -85,20 +88,16 @@ function ReviewAvatar({ review }: { review: Review }) {
 
 export default function TravellerReviews() {
   const { reviews } = useSiteContent();
-  /* Empty until a Google Business Profile is connected and synced in the
-     CRM, so this changes nothing for a site that has not connected one. */
-  const googleReviews = useGoogleReviews();
   const railRef = useRef<HTMLUListElement>(null);
   const periodRef = useRef(0);
   const [copies, setCopies] = useState(2);
 
-  /* Hand-written reviews lead; Google's follow. The travel desk chose what
-     opens the rail and a sync must not be able to displace that.
+  const publishedReviews = reviews.items.filter(
+    (review) => review.verified === true && review.name.trim() && review.quote.trim(),
+  );
 
-     Computed up here with the hooks rather than after the `enabled` early
-     return, because the drift effect below measures the track and has to
-     re-run when a sync changes how many cards are on it. */
-  const items = mergeReviews(reviews.items.filter((review) => review.verified === true), googleReviews);
+  const showingPlaceholders = publishedReviews.length === 0;
+  const items = showingPlaceholders ? REVIEW_PLACEHOLDERS : publishedReviews;
 
   /* The pause reasons are refs, not state: the animation frame reads them
      every frame and nothing in the tree renders differently for them, so
@@ -155,13 +154,13 @@ export default function TravellerReviews() {
       /* Sub-pixel per frame, so it is accumulated rather than rounded away
          — scrollLeft keeps the fraction, an integer step would not. */
       rail.scrollLeft += (DRIFT_PX_PER_SECOND * elapsed) / 1000;
-    });
+    }, { allowMobile: true });
     return () => {
       stopDrift();
       observer.disconnect();
       rail.removeEventListener("scroll", wrap);
     };
-  }, [items.length, reviews.enabled]);
+  }, [items.length, reviews.enabled, showingPlaceholders]);
 
   const scrollRail = (direction: 1 | -1) => {
     const rail = railRef.current;
@@ -185,7 +184,7 @@ export default function TravellerReviews() {
   };
 
   /* After the drift effect, never before. */
-  if (!reviews.enabled || !items.length) return null;
+  if (!reviews.enabled) return null;
 
   const { header } = reviews;
 
@@ -193,110 +192,123 @@ export default function TravellerReviews() {
     <section
       id="traveller-reviews"
       aria-labelledby="traveller-reviews-title"
-      className="w-full border-t border-cmt-neutral-100 bg-cmt-neutral-50 py-12 sm:py-16 lg:py-20"
+      className="w-full scroll-mt-32 border-t border-cmt-neutral-100 bg-cmt-neutral-50 py-12 sm:scroll-mt-40 sm:py-16 lg:py-20"
     >
       <div className="mx-auto w-full max-w-[1440px] px-3 sm:px-4 md:px-6">
         <SectionHeader
           eyebrow={header.eyebrow}
           title={<span id="traveller-reviews-title">{header.title}</span>}
           description={header.description}
-          action={
-            <div className="hidden shrink-0 items-center gap-3 sm:flex">
-              {/* Neither arrow is ever disabled: the rail loops, so there
-                  is no start to be at and no end to reach. */}
-              <RailButton
-                label="Show previous reviews"
-                icon={ArrowLeft}
-                disabled={false}
-                onClick={() => scrollRail(-1)}
-              />
-              <RailButton
-                label="Show more reviews"
-                icon={ArrowRight}
-                disabled={false}
-                onClick={() => scrollRail(1)}
-              />
+          action={(
+            <div className="flex shrink-0 flex-wrap items-center gap-3">
+              <div className="flex items-center gap-3">
+                {/* Neither arrow is ever disabled: the rail loops, so there
+                    is no start to be at and no end to reach. */}
+                <RailButton
+                  label="Show previous reviews"
+                  icon={ArrowLeft}
+                  disabled={false}
+                  onClick={() => scrollRail(-1)}
+                />
+                <RailButton
+                  label="Show more reviews"
+                  icon={ArrowRight}
+                  disabled={false}
+                  onClick={() => scrollRail(1)}
+                />
+              </div>
             </div>
-          }
+          )}
         />
       </div>
 
-      <ul
-        ref={railRef}
-        onPointerEnter={() => {
-          pointerInsideRef.current = true;
-        }}
-        onPointerLeave={() => {
-          pointerInsideRef.current = false;
-        }}
-        /* A touch drag is a pointer that leaves without ever entering, so
-           the drift is held on the gesture itself as well. */
-        onTouchStart={holdDrift}
-        onTouchMove={holdDrift}
-        onWheel={holdDrift}
-        onFocusCapture={() => {
-          focusInsideRef.current = true;
-        }}
-        onBlurCapture={() => {
-          focusInsideRef.current = false;
-        }}
-        className="mt-8 flex w-full gap-6 overflow-x-auto px-3 pb-4 pt-1 sm:mt-10 sm:px-4 md:px-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {/* Repeat enough copies to fill even a wide screen with a short list.
-            All copies have to
-            stay identical for the join to hold, which is why this maps the
-            same items rather than writing a second row out. The duplicate
-            is hidden from screen readers so the reviews are not read out
-            twice; it is the first copy that carries the content. */}
-        {Array.from({ length: copies }, (_, copy) => (
-          <li
-            key={copy}
-            aria-hidden={copy > 0 ? "true" : undefined}
-            className="contents"
-          >
-            <ul className="contents">
-              {items.map((review) => (
-                <li
-                  key={review.id}
-                  data-review-copy={copy}
-                  className="w-[min(300px,calc(100vw-2rem))] shrink-0 sm:w-[360px]"
-                >
-                  <figure className="flex h-full flex-col rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm">
-                    <div className="flex items-center justify-between gap-3">
-                      <Rating value={review.rating} />
-                      <Quote
-                        className="h-5 w-5 shrink-0 text-cmt-primary-400"
-                        strokeWidth={2}
-                        aria-hidden="true"
-                      />
-                    </div>
+        <ul
+          ref={railRef}
+          aria-label={showingPlaceholders ? "Upcoming traveller reviews" : "Traveller reviews"}
+          onPointerEnter={() => {
+            pointerInsideRef.current = true;
+          }}
+          onPointerLeave={() => {
+            pointerInsideRef.current = false;
+          }}
+          /* A touch drag is a pointer that leaves without ever entering, so
+             the drift is held on the gesture itself as well. */
+          onTouchStart={holdDrift}
+          onTouchMove={holdDrift}
+          onWheel={holdDrift}
+          onFocusCapture={() => {
+            focusInsideRef.current = true;
+          }}
+          onBlurCapture={() => {
+            focusInsideRef.current = false;
+          }}
+          className="mt-8 flex w-full gap-6 overflow-x-auto px-3 pb-4 pt-1 sm:mt-10 sm:px-4 md:px-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {/* Repeat enough copies to fill even a wide screen with a short list.
+              All copies have to
+              stay identical for the join to hold, which is why this maps the
+              same items rather than writing a second row out. The duplicate
+              is hidden from screen readers so the reviews are not read out
+              twice; it is the first copy that carries the content. */}
+          {Array.from({ length: copies }, (_, copy) => (
+            <li
+              key={copy}
+              aria-hidden={copy > 0 ? "true" : undefined}
+              className="contents"
+            >
+              <ul className="contents">
+                {items.map((review) => (
+                  <li
+                    key={review.id}
+                    data-review-copy={copy}
+                    className="w-[min(300px,calc(100vw-2rem))] shrink-0 sm:w-[360px]"
+                  >
+                    <figure className="flex h-full flex-col rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm">
+                      <div className="flex items-center justify-between gap-3">
+                        {showingPlaceholders ? (
+                          <span className="rounded-cmt-full bg-cmt-primary-100 px-3 py-1 text-xs font-semibold text-cmt-primary-900">
+                            Review coming soon
+                          </span>
+                        ) : <Rating value={review.rating} />}
+                        <Quote
+                          className="h-5 w-5 shrink-0 text-cmt-primary-400"
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        />
+                      </div>
 
-                    <blockquote className="mt-4 flex-1 text-pretty text-base leading-relaxed text-cmt-neutral-700">
-                      {review.quote}
-                    </blockquote>
+                      {showingPlaceholders ? (
+                        <p className="mt-4 flex-1 text-pretty text-base leading-relaxed text-cmt-neutral-700">{review.quote}</p>
+                      ) : (
+                        <blockquote className="mt-4 flex-1 text-pretty text-base leading-relaxed text-cmt-neutral-700">{review.quote}</blockquote>
+                      )}
 
-                    <figcaption className="mt-6 flex items-center gap-3 border-t border-cmt-neutral-100 pt-5">
-                      <ReviewAvatar review={review} />
+                      <figcaption className="mt-6 flex items-center gap-3 border-t border-cmt-neutral-100 pt-5">
+                        {showingPlaceholders ? (
+                          <span className="grid size-10 shrink-0 place-items-center rounded-cmt-full bg-cmt-primary-100 text-cmt-primary-900">
+                            <MessageSquareQuote className="size-5" aria-hidden="true" />
+                          </span>
+                        ) : <ReviewAvatar review={review} />}
 
-                      <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-cmt-neutral-900">
-                          {review.name}
+                        <span className="min-w-0">
+                          <span className="block text-sm font-semibold text-cmt-neutral-900">
+                            {review.name}
+                          </span>
+                          <span className="block truncate text-xs text-cmt-neutral-500">
+                            {review.trip}
+                          </span>
+                          <span className="block text-xs text-cmt-neutral-400">
+                            {review.travelled}
+                          </span>
                         </span>
-                        <span className="block truncate text-xs text-cmt-neutral-500">
-                          {review.trip}
-                        </span>
-                        <span className="block text-xs text-cmt-neutral-400">
-                          {review.travelled}
-                        </span>
-                      </span>
-                    </figcaption>
-                  </figure>
-                </li>
-              ))}
-            </ul>
-          </li>
-        ))}
-      </ul>
+                      </figcaption>
+                    </figure>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
     </section>
   );
 }

@@ -46,7 +46,8 @@ const TRIP_TABS: { label: string; value: TripType; icon: typeof Briefcase }[] = 
 // hero search lands on the catalog with the same range pre-applied.
 const BUDGET_BANDS: { label: string; min: number | null; max: number }[] = [
   { label: "Any budget", min: null, max: 150000 },
-  { label: "Under ₹15,000", min: 5000, max: 15000 },
+  { label: "Under ₹5,000", min: 0, max: 5000 },
+  { label: "Under ₹15,000", min: 0, max: 15000 },
   { label: "₹15,000 – ₹30,000", min: 15000, max: 30000 },
   { label: "₹30,000 – ₹60,000", min: 30000, max: 60000 },
   { label: "₹60,000+", min: 60000, max: 150000 },
@@ -178,7 +179,7 @@ export default function HeroSearch({ picksTarget }: { picksTarget?: HTMLElement 
     startDate && endDate
       ? `${formatDay(startDate)} – ${formatDay(endDate)}`
       : startDate
-        ? `${formatDay(startDate)} – add return`
+        ? `${formatDay(startDate)} – choose latest`
         : "Add dates";
 
   // Choose a seed after hydration, then keep the order stable while filling the form.
@@ -383,7 +384,7 @@ export default function HeroSearch({ picksTarget }: { picksTarget?: HTMLElement 
               </div>
             </Field>
 
-            <Field label="Travel dates" className="flex">
+            <Field label="Departure window" className="flex">
               <div className="relative">
                 <button
                   type="button"
@@ -400,7 +401,7 @@ export default function HeroSearch({ picksTarget }: { picksTarget?: HTMLElement 
                 {openField === "dates" && (
                   <div className={`${POPOVER} left-0`}>
                     <label className="block text-xs font-medium text-cmt-neutral-600">
-                      Departure
+                      Earliest departure
                       <input
                         type="date"
                         value={startDate}
@@ -412,10 +413,11 @@ export default function HeroSearch({ picksTarget }: { picksTarget?: HTMLElement 
                       />
                     </label>
                     <label className="mt-3 block text-xs font-medium text-cmt-neutral-600">
-                      Return
+                      Latest departure
                       <input
                         type="date"
                         value={endDate}
+                        disabled={!startDate}
                         min={startDate || undefined}
                         onChange={(event) => setEndDate(event.target.value)}
                         className="mt-1 w-full rounded-cmt-sm border border-cmt-neutral-200 px-2.5 py-2 text-sm text-cmt-neutral-900 outline-none focus:border-cmt-primary-500"
@@ -510,7 +512,7 @@ export default function HeroSearch({ picksTarget }: { picksTarget?: HTMLElement 
                 type="submit"
                 className="group flex h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-cmt-control bg-cmt-primary-500 px-3 font-body text-sm font-semibold text-cmt-neutral-900 shadow-cmt-primary transition-[background-color,box-shadow,transform] hover:bg-cmt-primary-600 hover:shadow-cmt-xl active:scale-[0.99] xl:h-auto xl:gap-2.5 xl:px-6"
               >
-                Find Smart Packages
+                Find Trips
                 <span className="flex size-7 shrink-0 items-center justify-center rounded-cmt-full bg-cmt-secondary-900 text-white transition-transform duration-200 group-hover:translate-x-0.5">
                   <ArrowRight className="size-4 stroke-[2.5]" />
                 </span>

@@ -6,11 +6,21 @@ const countryAliases: Record<string, string> = {
   dubai: "united arab emirates",
   "abu dhabi": "united arab emirates",
   uae: "united arab emirates",
+  srilanka: "sri lanka",
 };
 
 function countryKey(name: string) {
   const key = name.trim().toLowerCase();
   return countryAliases[key] ?? key;
+}
+
+/** Use published inventory for country-level prices, never sample card values. */
+export function internationalFromPrice(country: string, packages: TravelPackage[]): number | undefined {
+  const prices = publishedPackages(packages)
+    .filter((pkg) => pkg.region === "International" && countryKey(pkg.destination) === countryKey(country))
+    .map((pkg) => pkg.price)
+    .filter((price) => Number.isFinite(price) && price > 0);
+  return prices.length ? Math.min(...prices) : undefined;
 }
 
 /** One of our own package pages, as opposed to a catalogue or another page. */

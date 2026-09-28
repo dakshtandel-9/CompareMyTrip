@@ -65,7 +65,6 @@ import {
   SelectField,
 } from "../_components/EditorParts";
 import { Button, Card, FieldLabel, TextArea, TextField, Toggle } from "../_components/ui";
-import GoogleBusinessPanel from "./GoogleBusinessPanel";
 
 /* ------------------------------------------------------------------ */
 /* One editor per homepage section.                                    */
@@ -1008,6 +1007,30 @@ export function TrendingEditor({
                 onChange={(href) => patch({ href })}
                 placeholder="/packages"
               />
+
+              <div className="rounded-cmt-sm border border-cmt-neutral-200 bg-cmt-neutral-50 p-4">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-cmt-neutral-700">
+                  Optional badge (top left of card)
+                </h4>
+                <div className="mt-3 space-y-3">
+                  <IconPicker
+                    label="Badge icon"
+                    value={item.badge?.icon ?? ""}
+                    onChange={(icon) =>
+                      patch({ badge: { icon, label: item.badge?.label ?? "" } })
+                    }
+                  />
+                  {/* Either half can stand alone; publishing drops the badge once both are empty. */}
+                  <TextField
+                    label="Badge label"
+                    value={item.badge?.label ?? ""}
+                    onChange={(label) =>
+                      patch({ badge: { icon: item.badge?.icon ?? "", label } })
+                    }
+                    placeholder="Best seller"
+                  />
+                </div>
+              </div>
             </div>
           )}
         </ListEditor>
@@ -1041,7 +1064,7 @@ export function CompareEditor({
 
 /* ---------------------- Featured packages ------------------------- */
 
-const FEATURED_TAB_OPTIONS = ["India", "International", ...PACKAGE_CATEGORIES];
+const FEATURED_TAB_OPTIONS = ["All", "India", "International", ...PACKAGE_CATEGORIES];
 
 export function FeaturedEditor({
   value,
@@ -1896,18 +1919,19 @@ export function ReviewsEditor({
       <Card
         icon={<Star className="size-5" />}
         title={`Reviews (${value.items.length})`}
-        description="They run as one horizontal rail, so add as many as you like — the row scrolls rather than wrapping onto a second line."
+        description="Add the traveller’s review, rating and optional photo. Turn on Show this review, then Publish changes to display it on the homepage."
       >
         <ListEditor
           items={value.items}
           onChange={(items) => onChange({ ...value, items })}
           idPrefix="rev"
           addLabel="Add review"
-          summary={(item) => `${item.name} — ${item.trip}`}
+          summary={(item) => `${item.name || "New review"}${item.trip ? ` — ${item.trip}` : ""} · ${item.verified ? "Ready to publish" : "Hidden"}`}
           blank={{
             quote: "",
-            name: "New traveller",
-            initials: "NT",
+            name: "",
+            initials: "",
+            verified: false,
             avatar: "",
             trip: "",
             travelled: "",
@@ -1916,7 +1940,7 @@ export function ReviewsEditor({
         >
           {(item, patch) => (
             <div className="space-y-4">
-              <Toggle label="Verified traveller review" description="Publish only a real review with permission to display it. Sample reviews must remain unverified." checked={item.verified === true} onChange={(verified) => patch({ verified })} />
+              <Toggle label="Show this review" description="Enable after checking the review is genuine and ready to publish. A name and quote are required to display it." checked={item.verified === true} onChange={(verified) => patch({ verified })} />
               <TextArea
                 label="Quote"
                 value={item.quote}
@@ -1926,8 +1950,8 @@ export function ReviewsEditor({
                 <TextField
                   label="Name"
                   value={item.name}
-                  onChange={(name) => patch({ name })}
-                  placeholder="Ananya R."
+                  onChange={(name) => patch({ name, initials: name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() })}
+                  placeholder="Traveller’s name"
                 />
                 <NumberField
                   label="Rating (1–5)"
@@ -1960,12 +1984,6 @@ export function ReviewsEditor({
           )}
         </ListEditor>
       </Card>
-
-      {/* Google's reviews are pulled in, not edited here, so the panel sits
-          below the hand-written ones — the same order they appear in on the
-          page. It saves through its own endpoints rather than this editor's
-          draft, because credentials must not travel with homepage content. */}
-      <GoogleBusinessPanel />
     </div>
   );
 }

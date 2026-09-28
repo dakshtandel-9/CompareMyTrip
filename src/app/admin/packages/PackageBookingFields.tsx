@@ -57,6 +57,7 @@ export default function PackageBookingFields({ pkg, change, disabled, pricing }:
         <p className={hint}>Customize the card heading below. Change its photo in Images.</p>
       </div>
 
+      <div><label className={label}>Departure city<input className={field} disabled={disabled} value={pkg.departureCity ?? ""} onChange={event => change(["departureCity"], event.target.value)} placeholder="e.g. Bengaluru or Kochi" /></label><p className={hint}>The actual starting city, not the destination. Leave blank to use published pickup and route details.</p></div>
       <fieldset className="space-y-4">
         <legend className="mb-3 text-base font-semibold">Card header</legend>
         <div>

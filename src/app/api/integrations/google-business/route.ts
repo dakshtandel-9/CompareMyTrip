@@ -32,6 +32,7 @@ export async function GET(request: Request) {
     clientId: integration.clientId,
     account: integration.account,
     locations: integration.locations,
+    selectedLocation: integration.selectedLocation,
     lastSyncedAt: integration.lastSyncedAt,
     lastSyncCount: integration.lastSyncCount,
     error: integration.error,
@@ -67,7 +68,7 @@ export async function PUT(request: Request) {
     /* Changing the client invalidates any token minted by the old one, so
        the refresh token is dropped rather than left to fail confusingly on
        the next sync. */
-    await saveIntegration({ clientId, clientSecret, refreshToken: "", account: "", error: "" });
+    await saveIntegration({ clientId, clientSecret, refreshToken: "", account: "", selectedLocation: "", locations: [], lastSyncedAt: "", lastSyncCount: 0, oauthState: "", oauthStateExpiresAt: 0, awaitingApproval: false, error: "" });
   } catch (error) {
     return Response.json({ error: (error as Error).message }, { status: 500 });
   }

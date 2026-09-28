@@ -10,9 +10,9 @@ import { createPageMetadata } from "@/lib/seo";
    shared tray on the client. */
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Compare Holiday Packages Side by Side",
+  title: "Compare Our Travel Plans",
   description:
-    "Put up to three shortlisted packages side by side — duration, price, accommodation, meals, flights and cancellation terms in one table.",
+    "Explore and compare CompareMyTrip travel plans by price, duration, destinations, hotels, inclusions, activities, transport, itinerary and dates.",
   path: "/compare",
 });
 
@@ -22,7 +22,7 @@ export default function ComparePage() {
       <Header />
 
       <main className="cmt-compare w-full bg-white font-body text-cmt-neutral-900">
-        <h1 className="sr-only">Compare holiday packages side by side</h1>
+        <h1 className="sr-only">Compare our travel plans</h1>
         <CompareSection />
       </main>
 

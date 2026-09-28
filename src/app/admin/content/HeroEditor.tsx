@@ -97,13 +97,13 @@ function CopyBlockRow({
           label="Title — line 1"
           value={block.titleLine1}
           onChange={(value) => onChange({ titleLine1: value })}
-          placeholder="Smart travel packages."
+          placeholder="Compare travel plans."
         />
         <TextField
           label="Title — line 2"
           value={block.titleLine2}
           onChange={(value) => onChange({ titleLine2: value })}
-          placeholder="Better choices."
+          placeholder="Find the right trip for you."
           hint="Leave blank for a single-line headline."
         />
       </div>

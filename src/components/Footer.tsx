@@ -36,13 +36,9 @@ export const YOUTUBE =
 export const LINKEDIN =
   "M6.94 8.5H3.56V21h3.38V8.5ZM5.25 3a1.96 1.96 0 1 0 0 3.92 1.96 1.96 0 0 0 0-3.92ZM20.44 21v-6.86c0-3.36-1.79-4.92-4.19-4.92a3.6 3.6 0 0 0-3.27 1.8h-.05V8.5H9.68V21h3.38v-6.19c0-1.63.31-3.21 2.33-3.21 1.99 0 2.02 1.86 2.02 3.31V21h3.03Z";
 
-// Placeholder destinations; replace with the business profile URLs when ready.
-const SOCIAL_LINKS: { label: string; href: string; path: string }[] = [
-  { label: "Instagram", href: "https://www.instagram.com/", path: INSTAGRAM },
-  { label: "Facebook", href: "https://www.facebook.com/", path: FACEBOOK },
-  { label: "YouTube", href: "https://www.youtube.com/", path: YOUTUBE },
-  { label: "LinkedIn", href: "https://www.linkedin.com/", path: LINKEDIN },
-];
+// Only verified business profiles belong here; never link to platform homepages.
+const SOCIAL_LINKS: { label: string; href: string; path: string }[] = [];
+
 
 /* Other platforms that list CompareMyTrip. Fill in `href` with the
    client's listing page on each; until then the logo shows unlinked.
@@ -59,16 +55,18 @@ const linkColumns: { heading: string; links: FooterLink[] }[] = [
   {
     heading: "Explore",
     links: [
+      { label: "Trips from Bengaluru", href: "/bengaluru" },
       { label: "All Packages", href: "/packages" },
       { label: "Weekend Treks", href: "/packages?category=weekend-treks" },
       { label: "Domestic", href: "/packages?region=india" },
       { label: "International", href: "/packages?region=international" },
-      { label: "Compare Packages", href: "/compare" },
+      { label: "Compare Our Plans", href: "/compare" },
     ],
   },
   {
     heading: "Company",
     links: [
+      { label: "Corporate & Group Trips", href: "/corporate-group-trips" },
       { label: "Contact", href: "/contact" },
       { label: "FAQs", href: "/#faq" },
       { label: "Travel Guide", href: "/blog" },
@@ -141,8 +139,7 @@ export default function Footer({
               </Link>
 
               <p className="mt-5 max-w-[38ch] text-pretty text-sm leading-[1.6] text-cmt-neutral-600">
-                Compare curated travel packages side by side — full itinerary,
-                inclusions and final pricing before you book.
+                Explore curated treks, weekend getaways and holidays with CompareMyTrip. Compare our plans and speak with our team about your next trip.
               </p>
 
               {contactRows.length > 0 ? (
@@ -305,7 +302,7 @@ export default function Footer({
               &copy; {new Date().getFullYear()} CompareMyTrip. All rights
               reserved.
             </p>
-            <p>Every package listed comes from a trusted operator.</p>
+            <p>Our travel plans. Your choice of journey.</p>
           </div>
         </div>
       </div>

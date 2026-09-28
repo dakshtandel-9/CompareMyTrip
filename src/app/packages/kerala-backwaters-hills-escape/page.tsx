@@ -59,7 +59,7 @@ const highlights = [
   "Spend a night aboard a private Alleppey backwater houseboat",
   "Travel comfortably throughout in a private air-conditioned cab",
   "Choose relaxed sightseeing with room for personal recommendations",
-  "Book with a trusted operator and transparent inclusions",
+  "Choose a CompareMyTrip plan with clear inclusions",
 ];
 
 const itinerary = [
@@ -137,7 +137,7 @@ const downloadPackage: TravelPackage = {
     meals: "Daily breakfast and all houseboat meals",
     transfers: "Private cab included",
     flights: "Not included",
-    cancellationPolicy: "Cancel up to 15 days before departure for a full package refund.\n\nFlexible dates: Move your dates once without a change fee, subject to availability.\n\nVerified operator: Operator credentials have been checked before listing.\n\nConfirmation within 24 hours.",
+    cancellationPolicy: "Cancel up to 15 days before departure for a full package refund.\n\nFlexible dates: Move your dates once without a change fee, subject to availability.\n\nCompareMyTrip travel support: Contact our team for help with your plan.\n\nConfirmation within 24 hours.",
   },
 };
 
@@ -339,7 +339,7 @@ export default function KeralaPackagePage() {
                 <div className="mt-6 grid gap-4 sm:grid-cols-3">
                   <div className="rounded-cmt-control bg-cmt-neutral-50 p-4"><RotateCcw className="size-5 text-cmt-primary-700" /><h3 className="mt-3 text-sm font-semibold">Free cancellation</h3><p className="mt-1 text-xs leading-5 text-cmt-neutral-500">Cancel up to 15 days before departure for a full package refund.</p></div>
                   <div className="rounded-cmt-control bg-cmt-neutral-50 p-4"><CalendarDays className="size-5 text-cmt-primary-700" /><h3 className="mt-3 text-sm font-semibold">Flexible dates</h3><p className="mt-1 text-xs leading-5 text-cmt-neutral-500">Move your dates once without a change fee, subject to availability.</p></div>
-                  <div className="rounded-cmt-control bg-cmt-neutral-50 p-4"><ShieldCheck className="size-5 text-cmt-primary-700" /><h3 className="mt-3 text-sm font-semibold">Verified operator</h3><p className="mt-1 text-xs leading-5 text-cmt-neutral-500">Operator credentials have been checked before listing.</p></div>
+                  <div className="rounded-cmt-control bg-cmt-neutral-50 p-4"><ShieldCheck className="size-5 text-cmt-primary-700" /><h3 className="mt-3 text-sm font-semibold">CompareMyTrip travel support</h3><p className="mt-1 text-xs leading-5 text-cmt-neutral-500">Contact our team for help with your travel plan.</p></div>
                 </div>
               </section>
 

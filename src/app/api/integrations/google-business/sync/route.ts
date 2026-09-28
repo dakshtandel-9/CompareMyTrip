@@ -19,7 +19,9 @@ export async function POST(request: Request) {
   if (!(await isFirebaseAdmin(request))) return notFound();
 
   try {
-    const { count, locations } = await syncGoogleReviews();
+    const body = await request.json().catch(() => ({}));
+    const selected = typeof body.location === "string" ? body.location : undefined;
+    const { count, locations } = await syncGoogleReviews(selected);
     return Response.json({ ok: true, count, locations });
   } catch (error) {
     const awaitingApproval = error instanceof NotApprovedError;

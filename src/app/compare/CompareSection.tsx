@@ -1,6 +1,6 @@
 "use client";
 
-import { plainPackageText } from "@/lib/packageRichText";
+import { getPlanComparison as attributesFor, hasTravellerRating, type ComparedAttributes } from "@/lib/planComparison";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
@@ -9,13 +9,13 @@ import {
   ArrowLeftRight,
   ArrowRight,
   Check,
-  ChevronDown,
   Clock,
   Plus,
   X,
 } from "lucide-react";
 
-import { getPackageAccommodationLabel, getPackageDetails, type TravelPackage } from "@/lib/packageData";
+import ComparisonText from "@/components/ComparisonText";
+import type { TravelPackage } from "@/lib/packageData";
 import { usePackages } from "@/lib/usePackages";
 import { useCompare } from "@/lib/useCompare";
 import { useSiteContent } from "@/lib/useSiteContent";
@@ -52,66 +52,8 @@ import SectionHeader from "@/app/home/_components/SectionHeader";
 /* too. A slot emptied from either place stays visibly empty until        */
 /* something is chosen for it.                                            */
 /*                                                                       */
-/* Identity, duration, price and rating are read off the real package    */
-/* records, so this band can never drift from the catalogue. Curated     */
-/* attributes exist for the three default packages; any package swapped  */
-/* in falls back to its own generated detail record.                     */
+/* Attributes come from the saved plan details on both comparison views. */
 /* ------------------------------------------------------------------ */
-
-type ComparedAttributes = {
-  accommodation: string;
-  meals: string;
-  transfers: string;
-  bestFor: string;
-  flightsIncluded: boolean;
-  freeCancellation: boolean;
-};
-
-/* Hand-written detail for the three packages the table opens on. */
-const CURATED: Record<string, ComparedAttributes> = {
-  "dummy-kerala-backwaters": {
-    accommodation: "3★ hotels + 1 night houseboat",
-    meals: "Breakfast + dinner",
-    transfers: "Private cab throughout",
-    bestFor: "First-timers and families",
-    flightsIncluded: false,
-    freeCancellation: true,
-  },
-  "dummy-dharamshala-break": {
-    accommodation: "3★ hotels + 1 night mountain stay",
-    meals: "Breakfast only",
-    transfers: "Shared coach + local cabs",
-    bestFor: "Slow travel and monasteries",
-    flightsIncluded: false,
-    freeCancellation: true,
-  },
-  "dummy-goa-island-cruise": {
-    accommodation: "4★ beach resort",
-    meals: "Breakfast + one cruise dinner",
-    transfers: "Airport pickup + scooter rental",
-    bestFor: "Couples and small groups",
-    flightsIncluded: true,
-    freeCancellation: false,
-  },
-};
-
-/* Anything swapped in from the catalogue reads its own detail record,
-   so the table stays truthful for packages we have not written copy for. */
-function attributesFor(pkg: TravelPackage): ComparedAttributes {
-  const curated = CURATED[pkg.id];
-  if (curated) return curated;
-
-  const details = getPackageDetails(pkg);
-
-  return {
-    accommodation: `${getPackageAccommodationLabel(pkg)}`,
-    meals: details.meals,
-    transfers: plainPackageText(details.transfers),
-    bestFor: pkg.tags.length > 0 ? pkg.tags.join(" · ") : "All travellers",
-    flightsIncluded: !/not included/i.test(details.flights),
-    freeCancellation: /free cancellation/i.test(plainPackageText(details.cancellationPolicy)),
-  };
-}
 
 /* ------------------------------------------------------------------ */
 /* Superlatives                                                         */
@@ -176,49 +118,13 @@ function badgesFor(columns: TravelPackage[]) {
 
 type Row = {
   label: string;
-  /** Shown before the reader expands the rest (§17.4 scanability). */
-  primary?: boolean;
+  /** Left out of the table when this says no for the plans on screen. */
+  visible?: (columns: TravelPackage[]) => boolean;
   render: (pkg: TravelPackage, attrs: ComparedAttributes) => React.ReactNode;
   /** Which column wins this row, if any one of them does outright. */
   best?: (columns: TravelPackage[]) => number;
   bestLabel?: string;
 };
-
-/* Never colour alone (§18.1): the tick and the cross always carry a
-   text label, the pill only adds emphasis on top of it. */
-function YesNo({
-  value,
-  yes,
-  no,
-}: {
-  value: boolean;
-  yes: string;
-  no: string;
-}) {
-  if (value) {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-cmt-full bg-cmt-success-100 px-2.5 py-1 text-[13px] font-semibold text-cmt-success-700">
-        <Check
-          className="h-3.5 w-3.5 shrink-0"
-          strokeWidth={3}
-          aria-hidden="true"
-        />
-        {yes}
-      </span>
-    );
-  }
-
-  return (
-    <span className="inline-flex items-center gap-1.5 px-0.5 text-[13px] text-cmt-neutral-500">
-      <X
-        className="h-3.5 w-3.5 shrink-0 text-cmt-neutral-300"
-        strokeWidth={3}
-        aria-hidden="true"
-      />
-      {no}
-    </span>
-  );
-}
 
 /* The winning cell in a row worth winning. */
 function BestTag({ label }: { label: string }) {
@@ -229,10 +135,11 @@ function BestTag({ label }: { label: string }) {
   );
 }
 
+/* The comparison is exactly these rows, in this order — no expander and
+   nothing held back behind one. */
 const ROWS: Row[] = [
   {
-    label: "Duration",
-    primary: true,
+    label: "Trip duration",
     render: (pkg) => (
       <span className="tabular-nums">
         {pkg.nights} nights / {pkg.days} days
@@ -247,16 +154,8 @@ const ROWS: Row[] = [
   },
   {
     label: "Price per person",
-    primary: true,
-    render: (pkg) => (
-      <Price
-        price={pkg.price}
-        originalPrice={pkg.originalPrice}
-        qualifier=""
-        size="sm"
-        showSaving
-      />
-    ),
+    /* No struck-through original here — the saving has its own row. */
+    render: (pkg) => <Price price={pkg.price} qualifier="" size="sm" />,
     best: (columns) =>
       strictBestIndex(
         columns.map((pkg) => pkg.price),
@@ -265,9 +164,21 @@ const ROWS: Row[] = [
     bestLabel: "Lowest",
   },
   {
+    label: "Savings",
+    /* Only a real published original price counts; imported plans have
+       none, and a saving is never worked out from nothing. */
+    render: (pkg) =>
+      typeof pkg.originalPrice === "number" && pkg.originalPrice > pkg.price ? (
+        <span className="font-semibold tabular-nums text-cmt-success-700">
+          Save ₹{(pkg.originalPrice - pkg.price).toLocaleString("en-IN")}
+        </span>
+      ) : (
+        <span className="text-cmt-neutral-500">—</span>
+      ),
+  },
+  {
     label: "Accommodation",
-    primary: true,
-    render: (_pkg, attrs) => attrs.accommodation,
+    render: (pkg, attrs) => <ComparisonText key={attrs.accommodation} text={attrs.accommodation} label={`Accommodation for ${pkg.title}`} />,
     best: (columns) =>
       strictBestIndex(
         columns.map((pkg) => pkg.hotelStars),
@@ -275,45 +186,36 @@ const ROWS: Row[] = [
       ),
     bestLabel: "Top stay",
   },
-  { label: "Meals", primary: true, render: (_pkg, attrs) => attrs.meals },
+  { label: "Meals", render: (pkg, attrs) => <ComparisonText key={attrs.meals} text={attrs.meals} label={`Meals for ${pkg.title}`} /> },
+  { label: "Flights", render: (pkg, attrs) => <ComparisonText key={attrs.flights} text={attrs.flights} label={`Flights for ${pkg.title}`} /> },
+  { label: "Transfers", render: (pkg, attrs) => <ComparisonText key={attrs.transfers} text={attrs.transfers} label={`Transfers for ${pkg.title}`} /> },
+  { label: "Key inclusions", render: (pkg, attrs) => <ComparisonText key={attrs.inclusions} text={attrs.inclusions} label={`Key inclusions for ${pkg.title}`} /> },
   {
-    label: "Flights",
-    primary: true,
-    render: (_pkg, attrs) => (
-      <YesNo
-        value={attrs.flightsIncluded}
-        yes="Included"
-        no="Booked separately"
-      />
-    ),
+    /* The route, place to place, rather than the day-by-day. */
+    label: "Itinerary",
+    render: (pkg, attrs) => {
+      const route = attrs.destinations.split("\n").filter(Boolean).join(" · ");
+      return <ComparisonText key={route} text={route} label={`Itinerary for ${pkg.title}`} />;
+    },
   },
-  {
-    label: "Free cancellation",
-    primary: true,
-    render: (_pkg, attrs) => (
-      <YesNo
-        value={attrs.freeCancellation}
-        yes="Up to 15 days before"
-        no="Not available"
-      />
-    ),
-  },
-  { label: "Transfers", render: (_pkg, attrs) => attrs.transfers },
+  { label: "Cancellation", render: (pkg, attrs) => <ComparisonText key={attrs.cancellation} text={attrs.cancellation} label={`Cancellation for ${pkg.title}`} /> },
+  { label: "Ideal for", render: (pkg, attrs) => <ComparisonText key={attrs.bestFor} text={attrs.bestFor} label={`Ideal for ${pkg.title}`} /> },
   {
     label: "Traveller rating",
-    render: (pkg) => <Rating value={pkg.rating} reviews={pkg.reviews} />,
-    best: (columns) =>
-      strictBestIndex(
-        columns.map((pkg) => pkg.rating),
-        "max",
-      ),
+    /* No row at all until at least one plan has real reviews. */
+    visible: (columns) => columns.some(hasTravellerRating),
+    render: (pkg) => hasTravellerRating(pkg)
+      ? <Rating value={pkg.rating} reviews={pkg.reviews} />
+      : <span className="text-cmt-neutral-500">No reviews yet</span>,
+    best: (columns) => columns.filter(hasTravellerRating).length < 2
+      ? -1
+      : strictBestIndex(
+          columns.map((pkg) => hasTravellerRating(pkg) ? pkg.rating : -1),
+          "max",
+        ),
     bestLabel: "Top rated",
   },
-  { label: "Best suited for", render: (_pkg, attrs) => attrs.bestFor },
 ];
-
-const PRIMARY_ROWS = ROWS.filter((row) => row.primary);
-const EXTRA_ROW_COUNT = ROWS.length - PRIMARY_ROWS.length;
 
 export default function CompareSection() {
   const { compare } = useSiteContent();
@@ -321,7 +223,6 @@ export default function CompareSection() {
   const { slots, setSlot } = useCompare();
   /* Which slot's picker is open, or null when the dialog is closed. */
   const [pickerColumn, setPickerColumn] = useState<number | null>(null);
-  const [expanded, setExpanded] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   /* One entry per slot, null where the slot is empty or its package has
@@ -341,6 +242,8 @@ export default function CompareSection() {
     [columns],
   );
 
+  const rows = ROWS.filter((row) => !row.visible || row.visible(filled));
+
   const { badgeById, promotedId } = useMemo(() => {
     const { badges, promotedIndex } = badgesFor(filled);
 
@@ -350,8 +253,6 @@ export default function CompareSection() {
         promotedIndex === -1 ? null : (filled[promotedIndex]?.id ?? null),
     };
   }, [filled]);
-
-  const visibleRows = expanded ? ROWS : PRIMARY_ROWS;
 
   /* Native <dialog> so modal focus trapping, Escape and the backdrop are
      the browser's job rather than ours. */
@@ -419,7 +320,7 @@ export default function CompareSection() {
                       Slot {index + 1} is empty
                     </p>
                     <p className="max-w-56 text-xs leading-relaxed text-cmt-neutral-500">
-                      Pick a package here, or hit Compare on any package in the
+                      Choose one of our plans here, or select Add to compare in the
                       catalogue.
                     </p>
 
@@ -542,14 +443,14 @@ export default function CompareSection() {
             own is not a comparison, so the table waits for a second. */}
         {filled.length < 2 ? (
           <p className="mt-4 rounded-cmt-lg border border-dashed border-cmt-neutral-300 bg-white p-6 text-center text-sm text-cmt-neutral-600 sm:mt-5">
-            Pick at least two packages to see them side by side.
+            Choose at least two of our travel plans to compare them side by side.
           </p>
         ) : (
           <div className="relative mt-4 rounded-cmt-lg border border-cmt-neutral-200 bg-white sm:mt-5">
             {/* Phones show labelled values in rows; larger screens keep the
                 comparison table, with horizontal scrolling on tablets. */}
             <div className="divide-y divide-cmt-neutral-200 md:hidden">
-              {visibleRows.map((row) => {
+              {rows.map((row) => {
                 const bestIndex = row.best ? row.best(filled) : -1;
                 return (
                   <section key={row.label} className="p-4">
@@ -569,13 +470,14 @@ export default function CompareSection() {
                 );
               })}
             </div>
-            <div className="hidden overflow-x-auto rounded-t-cmt-lg md:block lg:overflow-visible [scrollbar-width:thin]">
+            <div className="hidden overflow-x-auto rounded-cmt-lg md:block lg:overflow-visible [scrollbar-width:thin]">
               <table className="w-full min-w-[860px] table-fixed border-separate border-spacing-0 text-left lg:min-w-0">
                 <caption className="sr-only">
-                  Side-by-side comparison of the shortlisted packages across
-                  duration, price, accommodation, meals, flights, cancellation,
-                  transfers, rating and who each one suits. Each package can be
-                  swapped from its card above.
+                  Side-by-side comparison of our shortlisted travel plans across
+                  duration, price, savings, accommodation, meals, flights,
+                  transfers, inclusions, itinerary, cancellation, suitability
+                  and traveller rating. Each plan can be swapped from its card
+                  above.
                 </caption>
 
                 <thead>
@@ -610,16 +512,16 @@ export default function CompareSection() {
                 </thead>
 
                 <tbody>
-                  {visibleRows.map((row, rowIndex) => {
-                    const isLast = rowIndex === visibleRows.length - 1;
+                  {rows.map((row, rowIndex) => {
+                    const isLast = rowIndex === rows.length - 1;
                     const bestIndex = row.best ? row.best(filled) : -1;
 
                     return (
                       <tr key={row.label}>
                         <th
                           scope="row"
-                          className={`sticky left-0 z-10 h-16 bg-cmt-neutral-50 p-4 align-middle text-sm font-semibold text-cmt-neutral-700 shadow-[1px_0_0_0_var(--cmt-color-neutral-200)] ${
-                            isLast ? "" : "border-b border-cmt-neutral-100"
+                          className={`sticky left-0 z-10 h-14 bg-cmt-neutral-50 px-4 py-3 align-top text-sm font-semibold text-cmt-neutral-700 shadow-[1px_0_0_0_var(--cmt-color-neutral-200)] ${
+                            isLast ? "rounded-bl-cmt-lg" : "border-b border-cmt-neutral-100"
                           }`}
                         >
                           {row.label}
@@ -631,13 +533,13 @@ export default function CompareSection() {
                           return (
                             <td
                               key={pkg.id}
-                              className={`h-16 p-4 align-middle text-sm text-cmt-neutral-700 ${
+                              className={`h-14 px-4 py-3 align-top text-sm text-cmt-neutral-700 ${
                                 isBest
                                   ? "bg-cmt-primary-50"
                                   : rowIndex % 2 === 1
                                     ? "bg-cmt-neutral-50"
                                     : "bg-white"
-                              } ${isLast ? "" : "border-b border-cmt-neutral-100"}`}
+                              } ${isLast ? (index === filled.length - 1 ? "rounded-br-cmt-lg" : "") : "border-b border-cmt-neutral-100"}`}
                             >
                               <span
                                 className={`flex flex-wrap items-center gap-x-2 gap-y-1 ${
@@ -659,24 +561,6 @@ export default function CompareSection() {
                   })}
                 </tbody>
               </table>
-            </div>
-
-            <div className="rounded-b-cmt-lg border-t border-cmt-neutral-200">
-              <button
-                type="button"
-                aria-expanded={expanded}
-                onClick={() => setExpanded((open) => !open)}
-                className="flex h-14 w-full items-center justify-center gap-1.5 rounded-b-cmt-lg text-sm font-semibold text-cmt-neutral-900 transition-colors hover:bg-cmt-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
-              >
-                {expanded
-                  ? "Show fewer details"
-                  : `View all details (${EXTRA_ROW_COUNT} more rows)`}
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
-                  strokeWidth={2.5}
-                  aria-hidden="true"
-                />
-              </button>
             </div>
           </div>
         )}

@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BedDouble, Clock, MapPin, Users } from "lucide-react";
 
-import { getPackageAccommodationLabel, getDiscountPercent, type TravelPackage } from "@/lib/packageData";
+import { getPackageAccommodationLabel, getDiscountPercent, hasPackageAccommodation, type TravelPackage } from "@/lib/packageData";
 import TrekGradeBadge from "@/components/TrekGradeBadge";
 import Price from "./Price";
 import Rating from "./Rating";
@@ -90,10 +90,12 @@ export default function PackageCard({
             <Users className="h-3.5 w-3.5" strokeWidth={2} />
             {pkg.pax}
           </span>
-          <span className="inline-flex items-center gap-1">
-            <BedDouble className="h-3.5 w-3.5" strokeWidth={2} />
-            {getPackageAccommodationLabel(pkg)}
-          </span>
+          {hasPackageAccommodation(pkg) && (
+            <span className="inline-flex items-center gap-1">
+              <BedDouble className="h-3.5 w-3.5" strokeWidth={2} />
+              {getPackageAccommodationLabel(pkg)}
+            </span>
+          )}
         </div>
 
         <div className="mb-4 mt-3 flex flex-wrap gap-1.5">

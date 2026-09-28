@@ -104,6 +104,8 @@ export type TrendingDestination = {
   /** Month-on-month rise in searches — the reason it is on this list. */
   rise: number;
   href: string;
+  /** Optional badge shown at the top of the card with an icon and label. */
+  badge?: { icon: string; label: string };
 };
 
 export type TrendingContent = {
@@ -160,7 +162,7 @@ export const BANNER_SLOTS: BannerSlot[] = [
       eyebrow: "Destinations",
       title: "Every place we cover.",
       description:
-        "Pick a destination and we\u2019ll open the catalogue with it already filtered — every package under it, from trusted operators.",
+        "Pick a destination to explore CompareMyTrip travel plans, with itineraries, inclusions and prices ready to compare.",
       image: "/images/destinations-header-banner.jpg",
     },
   },
@@ -173,7 +175,7 @@ export const BANNER_SLOTS: BannerSlot[] = [
       eyebrow: "Explore India",
       title: "India Holiday Packages",
       description:
-        "From Himalayan escapes to Kerala backwaters, compare curated stays and itineraries across India.",
+        "From Himalayan escapes to Kerala backwaters, explore and compare our travel plans across India.",
       image: "/destinations/kerala.jpg",
     },
   },
@@ -186,7 +188,7 @@ export const BANNER_SLOTS: BannerSlot[] = [
       eyebrow: "Explore the world",
       title: "International Holiday Packages",
       description:
-        "Cross borders with confidence. Compare curated international holidays, transparent inclusions, and trusted operators.",
+        "Cross borders with confidence. Compare our international travel plans by itinerary, hotels, price and inclusions.",
       image: "/categories/international.jpg",
     },
   },
@@ -205,7 +207,7 @@ export const BANNER_SLOTS: BannerSlot[] = [
   },
   {
     id: "packages-cruise", name: "Cruise packages", where: "/cruise",
-    banner: { id: "packages-cruise", eyebrow: "Cruise holidays", title: "A new horizon every day.", description: "Discover coastal escapes and island voyages. Compare cruise packages and find your next adventure at sea.", image: "/catalogue/cruise.jpg" },
+    banner: { id: "packages-cruise", eyebrow: "Cruise holidays", title: "Cruise Holidays Made Simple", description: "Discover coastal escapes and island voyages. Compare cruise packages and find your next adventure at sea.", image: "/catalogue/cruise.jpg" },
   },
 
   /* One per weekend-trek track, built from the tracks themselves so a new
@@ -309,7 +311,7 @@ export type TrainBadge = {
 export type TrainBannerContent = {
   enabled: boolean;
   eyebrow: string;
-  /** "Handpicked Packages." / "Unforgettable" (gold) / "Journeys." */
+  /** "Curated Travel Plans." / "Thoughtful" (gold) / "Journeys." */
   titleLine1: string;
   titleHighlight: string;
   titleLine2: string;
@@ -342,6 +344,7 @@ export type DomesticContent = {
 /* --------------------- International holidays --------------------- */
 
 export const VISA_TYPES = [
+  "Check requirements",
   "Visa free",
   "Visa on arrival",
   "e-Visa",
@@ -866,7 +869,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         eyebrow: "Bring Your Quote",
         title: "Have a travel quote? Let’s compare it.",
         description:
-          "Share your existing itinerary and quote. We’ll compare the price and inclusions, explain the differences and look for a better offer for the trip you have in mind.",
+          "Share your existing itinerary and quote. Our team will suggest a CompareMyTrip plan and explain how its price and inclusions compare.",
       },
     },
   },
@@ -874,9 +877,9 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   contact: {
     enabled: true,
     eyebrow: "Contact",
-    title: "Tell us about the trip.",
+    title: "Plan Your Next Trip With CompareMyTrip",
     description:
-      "Send one enquiry and our travel desk comes back with packages that match your dates, your pace and your budget — no obligation to book.",
+      "Tell us your destination, travel dates and preferences. Our travel team will help you explore suitable CompareMyTrip plans and supporting services.",
     formTitle: "Send an enquiry",
     formDescription: "The more you tell us, the closer the first set of options will be.",
     sidebarTitle: "What happens next",
@@ -890,7 +893,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         id: "contact-step-2",
         title: "We come back with matching packages",
         description:
-          "We shortlist suitable options, with inclusions and final pricing spelled out.",
+          "We shortlist suitable CompareMyTrip plans, with inclusions and final pricing spelled out.",
       },
       {
         id: "contact-step-3",
@@ -931,12 +934,12 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       titleHighlight: "save more.",
       loginSubtitle:
         "Log in to save packages, compare side by side and pick up where you left off.",
-      signupSubtitle: "Create a free account for member-only prices and faster checkout.",
+      signupSubtitle: "Create a free account to save travel plans and manage your bookings.",
       dismissLabel: "Keep browsing",
       trust: [
         { id: "prompt-trust-1", icon: "ShieldCheck", label: "Secure payments", description: "" },
-        { id: "prompt-trust-2", icon: "BadgePercent", label: "Member-only deals", description: "" },
-        { id: "prompt-trust-3", icon: "Headset", label: "24/7 support", description: "" },
+        { id: "prompt-trust-2", icon: "BadgePercent", label: "Travel plans to compare", description: "" },
+        { id: "prompt-trust-3", icon: "Headset", label: "Travel team support", description: "" },
       ],
     },
     login: {
@@ -949,25 +952,25 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       headlineLead: "Travel Smarter,",
       headlineHighlight: "Save More.",
       imageSubcopy:
-        "Compare flights, hotels and holiday packages from 500+ partners and get the best deals instantly.",
+        "Explore CompareMyTrip travel plans, compare the details and choose the trip that suits you.",
       trust: [
         {
           id: "login-trust-1",
           icon: "ShieldCheck",
           label: "Secure Payments",
-          description: "Your data is protected with 256-bit encryption.",
+          description: "Pay through our payment provider during checkout.",
         },
         {
           id: "login-trust-2",
           icon: "BadgeCheck",
-          label: "Best Price Guarantee",
-          description: "Find the best deals or we make it right.",
+          label: "Compare Your Options",
+          description: "Review the details and choose the plan that suits you.",
         },
         {
           id: "login-trust-3",
           icon: "Headset",
-          label: "24/7 Support",
-          description: "We're here to help you anytime.",
+          label: "Travel Team Support",
+          description: "Get help with your travel plans and booking questions.",
         },
       ],
     },
@@ -981,25 +984,25 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       headlineLead: "Your Next Adventure",
       headlineHighlight: "Awaits.",
       imageSubcopy:
-        "Create your free account and unlock member-only prices on flights, stays and holiday packages.",
+        "Create your free account to save travel plans, compare your options and manage your bookings.",
       features: [
         {
           id: "signup-feature-1",
           icon: "BadgePercent",
-          title: "Exclusive Deals",
-          description: "Access special member only offers.",
+          title: "Explore Travel Plans",
+          description: "Discover treks, getaways and holiday packages.",
         },
         {
           id: "signup-feature-2",
           icon: "Wallet",
           title: "Easy Bookings",
-          description: "Book flights, hotels and holidays in minutes.",
+          description: "Choose a travel plan and review your booking options.",
         },
         {
           id: "signup-feature-3",
           icon: "UserCheck",
           title: "Personalized Experience",
-          description: "Get recommendations tailored just for you.",
+          description: "Save your travel preferences in your profile.",
         },
       ],
     },
@@ -1008,10 +1011,10 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     enabled: true,
     topBar: {
       enabled: true,
-      offerText: "Flat 12% off on every monsoon package",
+      offerText: "Ask our team about offers on selected travel plans",
       couponCode: "MONSOON12",
       offerHref: "/packages?deals=1",
-      phoneNumber: "+91 80 4718 2200",
+      phoneNumber: "+91 80 6927 7012",
       phoneLabel: "Talk to a travel expert",
       tripsLabel: "My Trips",
       tripsHref: "/account",
@@ -1076,27 +1079,27 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     copy: [
       {
         id: "hero-1",
-        titleLine1: "Smart travel packages.",
+        titleLine1: "Smart travel plans.",
         titleLine2: "Better choices.",
-        body: "Compare curated travel packages side by side and book the trip that's actually right for you.",
+        body: "Explore curated treks, weekend getaways and holidays in India and abroad. Compare our travel plans and book with CompareMyTrip.",
       },
       {
         id: "hero-2",
-        titleLine1: "No hidden costs.",
-        titleLine2: "No surprises.",
-        body: "Full itinerary, inclusions and exclusions — all of it in front of you before you pay, not after.",
+        titleLine1: "Clear trip details.",
+        titleLine2: "Confident choices.",
+        body: "Review the itinerary, inclusions, exclusions and booking terms. Confirm your dates and final price with our travel team.",
       },
       {
         id: "hero-3",
-        titleLine1: "Line them up.",
-        titleLine2: "Then decide.",
-        body: "Put two or three packages next to each other and see exactly what changes between them.",
+        titleLine1: "Compare our plans.",
+        titleLine2: "Find your fit.",
+        body: "Compare up to three CompareMyTrip plans by price, duration, stays and itinerary to choose the trip that suits you.",
       },
       {
         id: "hero-4",
-        titleLine1: "Book it now.",
-        titleLine2: "Pay for it later.",
-        body: "Hold your trip with a deposit, pay the balance closer to the date, and keep every booking in one account.",
+        titleLine1: "Your next trip.",
+        titleLine2: "Planned together.",
+        body: "Share your dates, budget and travel preferences. Our team will help you choose a plan and explain the booking options.",
       },
     ],
     trust: {
@@ -1124,9 +1127,9 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   categories: {
     enabled: true,
     eyebrow: "Browse By Travel Style",
-    title: "What kind of trip are you after?",
+    title: "What kind of trip are you planning?",
     description:
-      "Pick a style that matches your next getaway and explore curated travel packages.",
+      "Explore our treks, weekend getaways and holidays by the way you like to travel.",
     cards: [
       {
         id: "cat-honeymoon",
@@ -1215,10 +1218,10 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   trending: {
     enabled: true,
     header: {
-      eyebrow: "Trending This Month",
-      title: "Where everyone is going",
+      eyebrow: "Find Your Next Getaway",
+      title: "Explore Popular Destinations",
       description:
-        "Ranked by how much traveller interest each destination has picked up over the last thirty days.",
+        "Explore destinations for your next break. Check available CompareMyTrip plans, itineraries and inclusions before choosing.",
       actionLabel: "See all destinations",
       actionHref: "/destinations",
     },
@@ -1232,6 +1235,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         packages: 836,
         rise: 38,
         href: "/packages",
+        badge: { icon: "🔥", label: "Trending" },
       },
       {
         id: "trend-dharamshala",
@@ -1290,10 +1294,10 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     enabled: true,
     header: {
       eyebrow: "Compare Before You Book",
-      title: "Three packages. One honest comparison.",
+      title: "Compare our travel plans",
       description:
-        "The whole point of CompareMyTrip: put the shortlist side by side and see exactly what changes between them — before any money moves.",
-      actionLabel: "Compare all packages",
+        "Compare up to three CompareMyTrip plans by price, duration, itinerary, stays and inclusions before choosing your trip.",
+      actionLabel: "Explore our plans",
       actionHref: "/packages",
     },
   },
@@ -1301,24 +1305,24 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   featured: {
     enabled: true,
     header: {
-      eyebrow: "Handpicked This Week",
-      title: "Featured packages",
+      eyebrow: "Curated Travel Plans",
+      title: "Explore Our Travel Plans",
       description:
-        "Every package here comes from a trusted operator, with the full itinerary, inclusions and exclusions published before you enquire.",
-      actionLabel: "Browse all packages",
+        "Explore our travel plans with itineraries, inclusions and exclusions to help you choose before you enquire.",
+      actionLabel: "Explore our plans",
       actionHref: "/packages",
     },
-    tabs: ["India", "International", "Honeymoon", "Family", "Beaches", "Mountains"],
+    tabs: ["All", "India", "International", "Honeymoon", "Family", "Beaches", "Mountains"],
     maxCards: 8,
   },
 
   weekendTreks: {
     enabled: true,
     header: {
-      eyebrow: "Leave Friday, Back Monday",
+      eyebrow: "Make Time for a Trail",
       title: "Weekend treks",
       description:
-        "Short, honest climbs within driving distance of the city — graded on distance and elevation gain, not on marketing copy.",
+        "Explore short treks and check the published pickup points, difficulty and departure schedule before choosing your trail.",
       actionLabel: "All weekend treks",
       actionHref: "/packages?category=Treks",
     },
@@ -1421,35 +1425,35 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   trainBanner: {
     enabled: true,
     eyebrow: "Crafted For Every Explorer",
-    titleLine1: "Handpicked Packages.",
-    titleHighlight: "Unforgettable",
+    titleLine1: "Curated Travel Plans.",
+    titleHighlight: "Thoughtful",
     titleLine2: "Journeys.",
     description:
-      "From scenic escapes to once-in-a-lifetime adventures — we curate journeys you'll cherish forever.",
+      "From weekend treks to longer holidays, explore our plans and get help choosing a trip that fits your dates and budget.",
     badges: [
       {
         id: "train-1",
         icon: "Users",
-        title: "Trusted by Thousands",
-        description: "Join a growing community of happy travelers.",
+        title: "Personalized Assistance",
+        description: "Discuss your dates and preferences with our travel team.",
       },
       {
         id: "train-2",
         icon: "HeartHandshake",
-        title: "500+ Travel Partners",
-        description: "Handpicked partners for the best experiences.",
+        title: "Compare Our Plans",
+        description: "Review our itineraries, prices and inclusions before choosing.",
       },
       {
         id: "train-3",
         icon: "ShieldCheck",
-        title: "Secure & Easy Booking",
-        description: "Book with confidence in just a few clicks.",
+        title: "Booking Assistance",
+        description: "Check availability and booking options with our team.",
       },
       {
         id: "train-4",
         icon: "Tag",
-        title: "No Hidden Charges",
-        description: "Transparent pricing with no surprises.",
+        title: "Clear Trip Details",
+        description: "Review inclusions, exclusions and the final quote.",
       },
     ],
   },
@@ -1458,7 +1462,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     enabled: true,
     header: {
       eyebrow: "Domestic Holidays",
-      title: "Seven places worth the trip",
+      title: "Explore India With CompareMyTrip",
       description:
         "India, without the shortlist fatigue. Open a panel to see what each one is actually like.",
       actionLabel: "All domestic packages",
@@ -1529,14 +1533,14 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     enabled: true,
     header: {
       eyebrow: "International Holidays",
-      title: "Passport out, paperwork sorted",
+      title: "Explore Our International Holidays",
       description:
-        "Visa route, best season and flight time up front — the three things that decide an overseas trip, before you get as far as the itinerary.",
+        "Compare destinations and travel plans for your next holiday abroad. Confirm current entry requirements, routes and availability before booking.",
       actionLabel: "All international packages",
       actionHref: "/packages?region=international",
     },
     footnote:
-      "Visa rules and flight times are indicative for Indian passport holders and change without notice. We confirm the current requirement in writing before any booking.",
+      "Entry rules depend on your passport, route and travel dates. Check official requirements and confirm your trip details before booking.",
     items: [
       {
         id: "intl-thailand",
@@ -1545,10 +1549,10 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         hook: "Bangkok's street food, then the Andaman islands.",
         image: "",
         alt: "",
-        visa: "Visa free",
-        visaNote: "Up to 60 days for Indian passports",
+        visa: "Check requirements",
+        visaNote: "Confirm current entry rules for your passport and travel dates.",
         bestMonths: "Nov – Mar",
-        flightHours: "4h 15m",
+        flightHours: "Depends on your route",
         price: 59999,
         currency: "Thai baht (THB)",
         href: "/packages?region=international",
@@ -1560,10 +1564,10 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         hook: "Ubud's rice terraces and the Bukit cliffs.",
         image: "",
         alt: "",
-        visa: "Visa on arrival",
-        visaNote: "30 days, extendable once",
+        visa: "Check requirements",
+        visaNote: "Confirm current entry rules for your passport and travel dates.",
         bestMonths: "Apr – Oct",
-        flightHours: "6h 30m",
+        flightHours: "Depends on your route",
         price: 62999,
         currency: "Indonesian rupiah (IDR)",
         href: "/packages?region=international",
@@ -1575,10 +1579,10 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         hook: "Hạ Long's limestone bay and Da Nang's coast.",
         image: "",
         alt: "",
-        visa: "e-Visa",
-        visaNote: "Applied online before travel",
+        visa: "Check requirements",
+        visaNote: "Confirm current entry rules for your passport and travel dates.",
         bestMonths: "Feb – Apr",
-        flightHours: "5h 20m",
+        flightHours: "Depends on your route",
         price: 71999,
         currency: "Vietnamese dong (VND)",
         href: "/packages?region=international",
@@ -1590,10 +1594,10 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         hook: "Kandy's hill country by rail, Bentota by sea.",
         image: "",
         alt: "",
-        visa: "e-Visa",
-        visaNote: "Free ETA for Indian passports",
+        visa: "Check requirements",
+        visaNote: "Confirm current entry rules for your passport and travel dates.",
         bestMonths: "Dec – Mar",
-        flightHours: "1h 30m",
+        flightHours: "Depends on your route",
         price: 57999,
         currency: "Sri Lankan rupee (LKR)",
         href: "/packages?region=international",
@@ -1605,10 +1609,10 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         hook: "Dubai's skyline and the Liwa desert beyond it.",
         image: "",
         alt: "",
-        visa: "e-Visa",
-        visaNote: "14, 30 or 60-day tourist visa",
+        visa: "Check requirements",
+        visaNote: "Confirm current entry rules for your passport and travel dates.",
         bestMonths: "Nov – Mar",
-        flightHours: "3h 30m",
+        flightHours: "Depends on your route",
         price: 60999,
         currency: "UAE dirham (AED)",
         href: "/packages?region=international",
@@ -1620,10 +1624,10 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         hook: "One island, one resort, nothing else to decide.",
         image: "",
         alt: "",
-        visa: "Visa on arrival",
-        visaNote: "30 days, free on landing",
+        visa: "Check requirements",
+        visaNote: "Confirm current entry rules for your passport and travel dates.",
         bestMonths: "Nov – Apr",
-        flightHours: "1h 45m",
+        flightHours: "Depends on your route",
         price: 92999,
         currency: "US dollar (USD) widely used",
         href: "/packages?region=international",
@@ -1641,16 +1645,16 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     points: [
       {
         id: "why-1",
-        value: "500+",
-        label: "Curated trips",
+        value: "Curated",
+        label: "Travel plans",
         description:
-          "Handpicked routes across India and beyond, reviewed for quality and value.",
+          "Explore treks, getaways and holiday itineraries across India and abroad.",
       },
       {
         id: "why-2",
-        value: "24/7",
+        value: "Personal",
         label: "Traveller support",
-        description: "Real help before departure, during your trip and all the way home.",
+        description: "Speak with our travel team about your dates, preferences and booking questions.",
       },
       {
         id: "why-3",
@@ -1661,9 +1665,9 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       },
       {
         id: "why-4",
-        value: "Verified",
-        label: "Local partners",
-        description: "Trusted operators with checked credentials and destination expertise.",
+        value: "Your choice",
+        label: "Plans to compare",
+        description: "Compare our plans by itinerary, stays, transport and inclusions to find the right fit.",
       },
     ],
     ctaLabel: "Explore packages",
@@ -1678,24 +1682,24 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     enabled: true,
     header: {
       eyebrow: "Latest Deals",
-      title: "Live offers, with the clock showing",
+      title: "Explore Current Trip Offers",
       description:
-        "Package deals currently running across the catalogue. When the timer ends, so does the price — no rolling countdowns that quietly reset.",
+        "Browse listed package offers and compare what is included. Confirm the final price, availability and offer terms for your dates.",
       actionLabel: "All deals",
       actionHref: "/deals",
     },
     promo: {
-      badge: "Limited time offer",
+      badge: "Travel offers",
       titlePrefix: "Up to",
       titleSuffix: "this month's packages",
       bodyPrefix: "Apply code",
       code: "MONSOON25",
       bodySuffix:
-        "at enquiry. Stacks with the operator discount already shown on each package.",
+        "at enquiry. Our team will confirm how it applies to your chosen travel plan.",
       ctaLabel: "View all offers",
       ctaHref: "/deals",
-      countdownLabel: "Offer ends in",
-      countdownNote: "Ends at midnight on the last day of the month.",
+      countdownLabel: "Time left this month",
+      countdownNote: "Offer eligibility and expiry vary by plan. Confirm the terms with our team.",
     },
     maxCards: 4,
   },
@@ -1723,138 +1727,25 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     enabled: true,
     header: {
       eyebrow: "Traveller Reviews",
-      title: "What people said afterwards",
+      title: "What Travellers Say About Their Trips",
       description:
-        "Collected after the trip, published as written. We keep the critical ones up — they are the reason the good ones mean anything.",
+        "Stories and feedback from travellers who explored with CompareMyTrip.",
       /* The rail is the whole section: there is no /reviews page to send
          anyone to, so the header carries the arrows instead of a link. */
       actionLabel: "",
       actionHref: "",
     },
-    /* Placeholder faces until real traveller photos are uploaded over them
-       in /admin → Homepage → Reviews. Every one of these is replaceable
-       from that screen, avatar included. */
-    items: [
-      {
-        id: "rev-1",
-        quote:
-          "The comparison table did the thing I always end up doing in a spreadsheet. Two packages looked identical until I saw one had airport transfers and the other did not.",
-        name: "Ananya R.",
-        initials: "AR",
-        avatar: "https://i.pravatar.cc/160?img=47",
-        trip: "Kerala Backwaters & Hills Escape",
-        travelled: "Travelled July 2026",
-        rating: 5,
-      },
-      {
-        id: "rev-2",
-        quote:
-          "Booked Dharamshala for five nights. The itinerary matched what actually happened, which sounds like a low bar until you have had it go the other way.",
-        name: "Vikram S.",
-        initials: "VS",
-        avatar: "https://i.pravatar.cc/160?img=12",
-        trip: "Dharamshala Mountain & Monastery Break",
-        travelled: "Travelled June 2026",
-        rating: 5,
-      },
-      {
-        id: "rev-3",
-        quote:
-          "One thing I would flag: the Goa resort was further from the main beach than I expected. Support moved us to a closer property the same evening, no argument about it.",
-        name: "Meera K.",
-        initials: "MK",
-        avatar: "https://i.pravatar.cc/160?img=32",
-        trip: "Goa Beach Getaway with Island Cruise",
-        travelled: "Travelled May 2026",
-        rating: 4,
-      },
-      {
-        id: "rev-4",
-        quote:
-          "Kumara Parvatha is a hard trek and the listing said so before I paid, which I appreciated. The group size was the eleven people they promised, not twenty.",
-        name: "Rohit N.",
-        initials: "RN",
-        avatar: "https://i.pravatar.cc/160?img=59",
-        trip: "Kumara Parvatha Weekend Trek",
-        travelled: "Travelled April 2026",
-        rating: 5,
-      },
-      {
-        id: "rev-5",
-        quote:
-          "The Volvo left Delhi forty minutes late and nobody told us why. Everything after that was fine — Solang Valley, the hotel, the driver — but the start was scrappy.",
-        name: "Sneha P.",
-        initials: "SP",
-        avatar: "https://i.pravatar.cc/160?img=45",
-        trip: "Manali Volvo Tour Package – 4 Nights / 5 Days",
-        travelled: "Travelled March 2026",
-        rating: 3,
-      },
-      {
-        id: "rev-6",
-        quote:
-          "Booked Kashmir for my parents, who are in their sixties. I asked about the walking on each day and got a straight answer per day rather than a brochure line.",
-        name: "Imran Q.",
-        initials: "IQ",
-        avatar: "https://i.pravatar.cc/160?img=68",
-        trip: "Magnificent Kashmir",
-        travelled: "Travelled March 2026",
-        rating: 5,
-      },
-      {
-        id: "rev-7",
-        quote:
-          "Skandagiri at 3am with a group I had never met could have gone badly. The trek lead had done it enough times to keep everyone together, and we made the sunrise.",
-        name: "Divya B.",
-        initials: "DB",
-        avatar: "https://i.pravatar.cc/160?img=26",
-        trip: "Skandagiri Sunrise Trek",
-        travelled: "Travelled February 2026",
-        rating: 5,
-      },
-      {
-        id: "rev-8",
-        quote:
-          "Jibhi was quieter than the photos suggested, which is a compliment. The Serolsar Lake walk was the day I would go back for. Wifi at the stay is basically decorative.",
-        name: "Karan M.",
-        initials: "KM",
-        avatar: "https://i.pravatar.cc/160?img=14",
-        trip: "Jibhi Jalori Pass Tour Package",
-        travelled: "Travelled February 2026",
-        rating: 4,
-      },
-      {
-        id: "rev-9",
-        quote:
-          "Priced three operators for the same Kasol dates. This one was not the cheapest, but it was the only one that put the inclusions in writing before payment.",
-        name: "Nikita J.",
-        initials: "NJ",
-        avatar: "https://i.pravatar.cc/160?img=20",
-        trip: "Manali Kasol Tour Package from Delhi",
-        travelled: "Travelled January 2026",
-        rating: 5,
-      },
-      {
-        id: "rev-10",
-        quote:
-          "A day trek is an easy thing to get wrong by overselling it. Tadiandamol was described accurately, started on time, and I was home by evening as advertised.",
-        name: "Arjun V.",
-        initials: "AV",
-        avatar: "https://i.pravatar.cc/160?img=51",
-        trip: "Tadiandamol Weekend Trek",
-        travelled: "Travelled January 2026",
-        rating: 4,
-      },
-    ],
+    // Reviews are added and approved by the team in the admin editor.
+    items: [],
   },
 
   guides: {
     enabled: true,
     header: {
       eyebrow: "Travel Guides",
-      title: "Read the place before you book it",
+      title: "Travel Guides & Trip Planning Advice",
       description:
-        "Written by people who went. Practical, specific, and happy to tell you when something is not worth your two days.",
+        "Explore destination guides, itinerary ideas and practical advice to help plan your next trip.",
       actionLabel: "All travel guides",
       actionHref: "/blog",
     },
@@ -1900,7 +1791,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     header: {
       eyebrow: "Questions",
       title: "Before you enquire",
-      description: "The six things people ask us most often, answered without the hedging.",
+      description: "Practical answers about departures, group trips and booking your next break.",
       actionLabel: "",
       actionHref: "",
     },
@@ -1915,39 +1806,39 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     items: [
       {
         id: "faq-1",
-        question: "Do you sell the packages yourself?",
+        question: "What am I comparing on CompareMyTrip?",
         answer:
-          "CompareMyTrip is a comparison platform. Every package is delivered by a tour operator that we check before it is listed. We put the packages side by side, publish the full inclusions and exclusions, and confirm who will be operating your trip once you book.",
+          "You’re comparing CompareMyTrip’s own travel plans and services. Compare itineraries, accommodation, transportation, activities, inclusions and prices to choose the right plan, then enquire directly with our travel team.",
       },
       {
         id: "faq-2",
         question: "Is the price on the card the price I pay?",
         answer:
-          "The price shown is per person on twin sharing, and it is the price the operator has quoted us. Taxes are included. Anything not covered — flights on domestic packages, visa fees, personal expenses — is listed under exclusions on the package detail page before you enquire, never after.",
+          "Check your chosen plan for its price basis, inclusions and exclusions. Your travel dates, group size and accommodation choices can affect the total. Our team will confirm availability, taxes and the final price before you book.",
       },
       {
         id: "faq-3",
         question: "How do I compare two packages properly?",
         answer:
-          "Open any two packages and use Compare. You get one table with duration, price per person, accommodation, meals, transfers, flights, cancellation terms and rating lined up row by row, so the differences are the only thing you have to read.",
+          "Select Add to compare on two or three of our plans, then open Compare. You can compare price, duration, destinations, hotels, inclusions, activities, transportation, itinerary and departure options side by side. Confirm your preferred dates with our team.",
       },
       {
         id: "faq-4",
         question: "What happens after I send an enquiry?",
         answer:
-          "The enquiry goes to our team and to the operator running that package. You get a written confirmation of the itinerary, the final price and the cancellation terms before any payment is requested. Nothing is charged at the enquiry stage.",
+          "Your enquiry goes directly to the CompareMyTrip travel team. We help you choose or customise one of our plans and confirm the itinerary, availability, final price and cancellation terms before you book. Nothing is charged at the enquiry stage.",
       },
       {
         id: "faq-5",
         question: "Can I change or cancel after booking?",
         answer:
-          "That depends on the package, which is why the cancellation policy is printed on every detail page rather than buried in terms. Most packages marked Free cancellation can be cancelled up to 15 days before departure at no cost. Anything with a stricter policy says so on the card itself.",
+          "Cancellation and change terms vary by trip. Review your chosen package and booking confirmation, or contact our team before booking.",
       },
       {
         id: "faq-6",
         question: "Are the reviews real?",
         answer:
-          "They are collected from travellers after they return, and published as written. We do not remove critical reviews — you will find three and four-star reviews on the site, including on packages we recommend.",
+          "We publish customer feedback that our team has reviewed. Review details relate to each traveller’s own experience.",
       },
     ],
   },
@@ -1958,31 +1849,31 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       {
         id: "trust-1",
         icon: "price-seal",
-        title: "Best Price Guarantee",
-        description: "Find it cheaper elsewhere and we'll match the price.",
+        title: "Compare Your Options",
+        description: "Compare our plans by price, itinerary and inclusions.",
       },
       {
         id: "trust-2",
         icon: "headset",
-        title: "24/7 Support",
-        description: "Real people on hand, whatever the time zone.",
+        title: "Travel Team Support",
+        description: "Contact our team with your planning and booking questions.",
       },
       {
         id: "trust-3",
         icon: "shield-lock",
         title: "Secure Payments",
-        description: "Every transaction encrypted end to end.",
+        description: "Complete your payment through our payment provider.",
       },
       {
         id: "trust-4",
         icon: "booking-check",
         title: "Easy Booking",
-        description: "Confirm in a few taps and manage it from one account.",
+        description: "View your trip details and bookings in your account.",
       },
     ],
     titleLine1: "Your next trip",
     titleLine2: "starts here.",
-    description: "Get handpicked destinations and exclusive travel deals.",
+    description: "Get trip ideas, destination inspiration and offers from CompareMyTrip.",
     backgroundImage: "/images/destinations-header-banner.jpg",
     placeholder: "Enter your email address",
     ctaLabel: "Subscribe",
@@ -1996,8 +1887,163 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const str = (value: unknown, fallback: string) =>
-  typeof value === "string" ? value : fallback;
+/* Upgrade exact retired marketing copy when reading older CMS documents.
+   Custom text, cleared fields, package records and traveller reviews stay intact. */
+const LEGACY_COUNTRY_FACTS: Record<string, { visa: string; visaNote: string; flightHours: string }> = {
+  "intl-thailand": {
+    "visa": "Visa free",
+    "visaNote": "Up to 60 days for Indian passports",
+    "flightHours": "4h 15m"
+  },
+  "intl-indonesia": {
+    "visa": "Visa on arrival",
+    "visaNote": "30 days, extendable once",
+    "flightHours": "6h 30m"
+  },
+  "intl-vietnam": {
+    "visa": "e-Visa",
+    "visaNote": "Applied online before travel",
+    "flightHours": "5h 20m"
+  },
+  "intl-srilanka": {
+    "visa": "e-Visa",
+    "visaNote": "Free ETA for Indian passports",
+    "flightHours": "1h 30m"
+  },
+  "intl-uae": {
+    "visa": "e-Visa",
+    "visaNote": "14, 30 or 60-day tourist visa",
+    "flightHours": "3h 30m"
+  },
+  "intl-maldives": {
+    "visa": "Visa on arrival",
+    "visaNote": "30 days, free on landing",
+    "flightHours": "1h 45m"
+  }
+};
+
+const LEGACY_PLAN_COPY = new Map<string, string>([
+  ['Read traveller experiences on Google and share the story of your own trip.', 'Stories and feedback from travellers who explored with CompareMyTrip.'],
+  ['We publish customer feedback that our team has verified, along with reviews from our connected Google Business Profile when available. Review details relate to each traveller’s own experience.', 'We publish customer feedback that our team has reviewed. Review details relate to each traveller’s own experience.'],
+  ["Collected after the trip, published as written. We keep the critical ones up — they are the reason the good ones mean anything.", "Stories and feedback from travellers who explored with CompareMyTrip."],
+  ["Where Will You Go Next?", DEFAULT_SITE_CONTENT.contact.title],
+  ["Tell us a little about your trip, and we'll help you find the right one.", DEFAULT_SITE_CONTENT.contact.description],
+  ["Curated trips", "Travel plans"],
+  ["Visa rules and flight times are indicative for Indian passport holders and change without notice. We confirm the current requirement in writing before any booking.", "Entry rules depend on your passport, route and travel dates. Check official requirements and confirm your trip details before booking."],
+  ["+91 80 4718 2200", "+91 80 6927 7012"],
+  ["A new horizon every day.", "Cruise Holidays Made Simple"],
+  ["The six things people ask us most often, answered without the hedging.", "Practical answers about departures, group trips and booking your next break."],
+  ["Short, honest climbs within driving distance of the city — graded on distance and elevation gain, not on marketing copy.", DEFAULT_SITE_CONTENT.weekendTreks.header.description],
+
+  ["Every package here comes from a GST-verified operator, with the full itinerary, inclusions and exclusions published before you enquire.", DEFAULT_SITE_CONTENT.featured.header.description],
+  ["CompareMyTrip is a comparison platform. Every package is delivered by a GST-verified tour operator that we check before it is listed. We put the packages side by side, publish the full inclusions and exclusions, and confirm who will be operating your trip once you book.", DEFAULT_SITE_CONTENT.faq.items[0].answer],
+  ["500+ Travel Partners", "Compare our travel plans"],
+  ["Handpicked partners for the best experiences.", "Explore our itineraries and choose the trip that suits you."],
+  ["Pick a destination and we’ll open the catalogue with it already filtered — every package under it, from trusted operators.", "Pick a destination to explore CompareMyTrip travel plans, with itineraries, inclusions and prices ready to compare."],
+  ["From Himalayan escapes to Kerala backwaters, compare curated stays and itineraries across India.", "From Himalayan escapes to Kerala backwaters, explore and compare our travel plans across India."],
+  ["Cross borders with confidence. Compare curated international holidays, transparent inclusions, and trusted operators.", "Cross borders with confidence. Compare our international travel plans by itinerary, hotels, price and inclusions."],
+  ["Compare flights, hotels and holiday packages from 500+ partners and get the best deals instantly.", "Explore CompareMyTrip travel plans, compare the details and choose the trip that suits you."],
+  ["Three packages. One honest comparison.", "Compare our travel plans"],
+  ["The whole point of CompareMyTrip: put the shortlist side by side and see exactly what changes between them — before any money moves.", "Choose up to three CompareMyTrip plans and compare prices, duration, destinations, hotels, inclusions, activities, transportation, itineraries and dates."],
+  ["Compare all packages", "Explore our plans"],
+  ["Featured packages", "Featured CompareMyTrip plans"],
+  ["Every package here comes from a trusted operator, with the full itinerary, inclusions and exclusions published before you enquire.", "Explore our travel plans with itineraries, inclusions and exclusions to help you choose before you enquire."],
+  ["Browse all packages", "Explore our plans"],
+  ["Trusted operators with checked credentials and destination expertise.", "Compare our plans by itinerary, stays, transport and inclusions to find the right fit."],
+  ["Local partners", "Plans to compare"],
+  ["at enquiry. Stacks with the operator discount already shown on each package.", "at enquiry. Our team will confirm how it applies to your chosen travel plan."],
+  ["Do you sell the packages yourself?", "What am I comparing on CompareMyTrip?"],
+  ["CompareMyTrip is a comparison platform. Every package is delivered by a tour operator that we check before it is listed. We put the packages side by side, publish the full inclusions and exclusions, and confirm who will be operating your trip once you book.", "You’re comparing CompareMyTrip’s own travel plans and services. Compare itineraries, accommodation, transportation, activities, inclusions and prices to choose the right plan, then enquire directly with our travel team."],
+  ["The price shown is per person on twin sharing, and it is the price the operator has quoted us. Taxes are included. Anything not covered — flights on domestic packages, visa fees, personal expenses — is listed under exclusions on the package detail page before you enquire, never after.", "Check your chosen plan for its price basis, inclusions and exclusions. Your travel dates, group size and accommodation choices can affect the total. Our team will confirm availability, taxes and the final price before you book."],
+  ["Open any two packages and use Compare. You get one table with duration, price per person, accommodation, meals, transfers, flights, cancellation terms and rating lined up row by row, so the differences are the only thing you have to read.", "Select Add to compare on two or three of our plans, then open Compare. You can compare price, duration, destinations, hotels, inclusions, activities, transportation, itinerary and departure options side by side. Confirm your preferred dates with our team."],
+  ["The enquiry goes to our team and to the operator running that package. You get a written confirmation of the itinerary, the final price and the cancellation terms before any payment is requested. Nothing is charged at the enquiry stage.", "Your enquiry goes directly to the CompareMyTrip travel team. We help you choose or customise one of our plans and confirm the itinerary, availability, final price and cancellation terms before you book. Nothing is charged at the enquiry stage."],
+  ["We shortlist suitable options, with inclusions and final pricing spelled out.", "We shortlist suitable CompareMyTrip plans, with inclusions and final pricing spelled out."],
+  ["Share your existing itinerary and quote. We’ll compare the price and inclusions, explain the differences and look for a better offer for the trip you have in mind.", "Share your existing itinerary and quote. Our team will suggest a CompareMyTrip plan and explain how its price and inclusions compare."],
+  // Content-only refresh for previously published default wording.
+  ["Smart travel packages.", "Smart travel plans."],
+  ["Compare curated travel packages side by side and book the trip that's actually right for you.", "Explore curated treks, weekend getaways and holidays in India and abroad. Compare our travel plans and book with CompareMyTrip."],
+  ["No hidden costs.", "Clear trip details."],
+  ["No surprises.", "Confident choices."],
+  ["Full itinerary, inclusions and exclusions — all of it in front of you before you pay, not after.", "Review the itinerary, inclusions, exclusions and booking terms. Confirm your dates and final price with our travel team."],
+  ["Line them up.", "Compare our plans."],
+  ["Then decide.", "Find your fit."],
+  ["Put two or three packages next to each other and see exactly what changes between them.", "Compare up to three CompareMyTrip plans by price, duration, stays and itinerary to choose the trip that suits you."],
+  ["Book it now.", "Your next trip."],
+  ["Pay for it later.", "Planned together."],
+  ["Hold your trip with a deposit, pay the balance closer to the date, and keep every booking in one account.", "Share your dates, budget and travel preferences. Our team will help you choose a plan and explain the booking options."],
+  ["What kind of trip are you after?", "What kind of trip are you planning?"],
+  ["Pick a style that matches your next getaway and explore curated travel packages.", "Explore our treks, weekend getaways and holidays by the way you like to travel."],
+  ["Trending This Month", "Find Your Next Getaway"],
+  ["Where everyone is going", "Explore Popular Destinations"],
+  ["Ranked by how much traveller interest each destination has picked up over the last thirty days.", "Explore destinations for your next break. Check available CompareMyTrip plans, itineraries and inclusions before choosing."],
+  ["Handpicked This Week", "Curated Travel Plans"],
+  ["Featured CompareMyTrip plans", "Explore Our Travel Plans"],
+  ["Choose up to three CompareMyTrip plans and compare prices, duration, destinations, hotels, inclusions, activities, transportation, itineraries and dates.", "Compare up to three CompareMyTrip plans by price, duration, itinerary, stays and inclusions before choosing your trip."],
+  ["Leave Friday, Back Monday", "Make Time for a Trail"],
+  ["Handpicked Packages.", "Curated Travel Plans."],
+  ["Unforgettable", "Thoughtful"],
+  ["From scenic escapes to once-in-a-lifetime adventures — we curate journeys you'll cherish forever.", "From weekend treks to longer holidays, explore our plans and get help choosing a trip that fits your dates and budget."],
+  ["Trusted by Thousands", "Personalized Assistance"],
+  ["Join a growing community of happy travelers.", "Discuss your dates and preferences with our travel team."],
+  ["500+ Travel Partners", "Compare Our Plans"],
+  ["Handpicked partners for the best experiences.", "Review our itineraries, prices and inclusions before choosing."],
+  ["Secure & Easy Booking", "Booking Assistance"],
+  ["Book with confidence in just a few clicks.", "Check availability and booking options with our team."],
+  ["No Hidden Charges", "Clear Trip Details"],
+  ["Transparent pricing with no surprises.", "Review inclusions, exclusions and the final quote."],
+  ["Seven places worth the trip", "Explore India With CompareMyTrip"],
+  ["Passport out, paperwork sorted", "Explore Our International Holidays"],
+  ["Visa route, best season and flight time up front — the three things that decide an overseas trip, before you get as far as the itinerary.", "Compare destinations and travel plans for your next holiday abroad. Confirm current entry requirements, routes and availability before booking."],
+  ["500+", "Curated"],
+  ["24/7", "Personal"],
+  ["Handpicked routes across India and beyond, reviewed for quality and value.", "Explore treks, getaways and holiday itineraries across India and abroad."],
+  ["Real help before departure, during your trip and all the way home.", "Speak with our travel team about your dates, preferences and booking questions."],
+  ["Live offers, with the clock showing", "Explore Current Trip Offers"],
+  ["Package deals currently running across the catalogue. When the timer ends, so does the price — no rolling countdowns that quietly reset.", "Browse listed package offers and compare what is included. Confirm the final price, availability and offer terms for your dates."],
+  ["Limited time offer", "Travel offers"],
+  ["Offer ends in", "Time left this month"],
+  ["Ends at midnight on the last day of the month.", "Offer eligibility and expiry vary by plan. Confirm the terms with our team."],
+  ["Flat 12% off on every monsoon package", "Ask our team about offers on selected travel plans"],
+  ["What people said afterwards", "What Travellers Say About Their Trips"],
+  ["Read the place before you book it", "Travel Guides & Trip Planning Advice"],
+  ["Written by people who went. Practical, specific, and happy to tell you when something is not worth your two days.", "Explore destination guides, itinerary ideas and practical advice to help plan your next trip."],
+  ["That depends on the package, which is why the cancellation policy is printed on every detail page rather than buried in terms. Most packages marked Free cancellation can be cancelled up to 15 days before departure at no cost. Anything with a stricter policy says so on the card itself.", "Cancellation and change terms vary by trip. Review your chosen package and booking confirmation, or contact our team before booking."],
+  ["They are collected from travellers after they return, and published as written. We do not remove critical reviews — you will find three and four-star reviews on the site, including on packages we recommend.", "We publish customer feedback that our team has reviewed. Review details relate to each traveller’s own experience."],
+  ["Best Price Guarantee", "Compare Your Options"],
+  ["Find it cheaper elsewhere and we'll match the price.", "Compare our plans by price, itinerary and inclusions."],
+  ["Find the best deals or we make it right.", "Review the details and choose the plan that suits you."],
+  ["24/7 Support", "Travel Team Support"],
+  ["24/7 support", "Travel team support"],
+  ["Real people on hand, whatever the time zone.", "Contact our team with your planning and booking questions."],
+  ["We're here to help you anytime.", "Get help with your travel plans and booking questions."],
+  ["Every transaction encrypted end to end.", "Complete your payment through our payment provider."],
+  ["Your data is protected with 256-bit encryption.", "Pay through our payment provider during checkout."],
+  ["Confirm in a few taps and manage it from one account.", "View your trip details and bookings in your account."],
+  ["Get handpicked destinations and exclusive travel deals.", "Get trip ideas, destination inspiration and offers from CompareMyTrip."],
+  ["Tell us about the trip.", "Plan Your Next Trip With CompareMyTrip"],
+  ["Send one enquiry and our travel desk comes back with packages that match your dates, your pace and your budget — no obligation to book.", "Tell us your destination, travel dates and preferences. Our travel team will help you explore suitable CompareMyTrip plans and supporting services."],
+  ["Create a free account for member-only prices and faster checkout.", "Create a free account to save travel plans and manage your bookings."],
+  ["Member-only deals", "Travel plans to compare"],
+  ["Create your free account and unlock member-only prices on flights, stays and holiday packages.", "Create your free account to save travel plans, compare your options and manage your bookings."],
+  ["Exclusive Deals", "Explore Travel Plans"],
+  ["Access special member only offers.", "Discover treks, getaways and holiday packages."],
+  ["Book flights, hotels and holidays in minutes.", "Choose a travel plan and review your booking options."],
+  ["Get recommendations tailored just for you.", "Save your travel preferences in your profile."],
+
+]);
+
+const str = (value: unknown, fallback: string): string => {
+  if (typeof value !== "string") return fallback;
+  // Older copy can have passed through more than one editorial refresh.
+  // Resolve it fully on the first render; never rewrite custom strings.
+  let current = value;
+  const visited = new Set<string>();
+  while (LEGACY_PLAN_COPY.has(current) && !visited.has(current)) {
+    visited.add(current);
+    current = LEGACY_PLAN_COPY.get(current)!;
+  }
+  return current;
+};
 
 const bool = (value: unknown, fallback: boolean) =>
   typeof value === "boolean" ? value : fallback;
@@ -2447,16 +2493,22 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     trending: {
       enabled: bool(trendingRaw.enabled, base.trending.enabled),
       header: header(trendingRaw.header, base.trending.header),
-      items: list(trendingRaw.items, base.trending.items, (item, index) => ({
-        id: str(item.id, `trend-${index + 1}`),
-        name: str(item.name, "Untitled"),
-        subtitle: str(item.subtitle, ""),
-        image: str(item.image, ""),
-        price: str(item.price, "0"),
-        packages: int(item.packages, 0, 0, 999999),
-        rise: int(item.rise, 0, 0, 999),
-        href: str(item.href, "/packages"),
-      })),
+      items: list(trendingRaw.items, base.trending.items, (item, index) => {
+        const badgeRaw = section(item.badge);
+        const badge = { icon: str(badgeRaw.icon, ""), label: str(badgeRaw.label, "") };
+        return {
+          id: str(item.id, `trend-${index + 1}`),
+          name: str(item.name, "Untitled"),
+          subtitle: str(item.subtitle, ""),
+          image: str(item.image, ""),
+          price: str(item.price, "0"),
+          packages: int(item.packages, 0, 0, 999999),
+          rise: int(item.rise, 0, 0, 999),
+          href: str(item.href, "/packages"),
+          /* Left out entirely when empty: Firestore rejects an undefined field. */
+          ...(badge.icon.trim() || badge.label.trim() ? { badge } : {}),
+        };
+      }),
     },
 
     compare: {
@@ -2469,7 +2521,12 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
       header: header(featuredRaw.header, base.featured.header),
       tabs: (() => {
         const tabs = strings(featuredRaw.tabs, base.featured.tabs);
-        return tabs.length > 0 ? tabs : base.featured.tabs;
+        const result = tabs.length > 0 ? tabs : base.featured.tabs;
+        /* Ensure "All" is the first tab for showing every package. */
+        if (!result.includes("All")) {
+          return ["All", ...result];
+        }
+        return result.includes("All") && result[0] === "All" ? result : ["All", ...result.filter(t => t !== "All")];
       })(),
       maxCards: int(featuredRaw.maxCards, base.featured.maxCards, 1, 24),
     },
@@ -2531,12 +2588,20 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
         hook: str(item.hook, ""),
         image: str(item.image, ""),
         alt: str(item.alt, ""),
-        visa: (VISA_TYPES as readonly string[]).includes(str(item.visa, ""))
-          ? (item.visa as VisaType)
-          : "e-Visa",
-        visaNote: str(item.visaNote, ""),
+        visa: LEGACY_COUNTRY_FACTS[String(item.id)]?.visa === item.visa &&
+          LEGACY_COUNTRY_FACTS[String(item.id)]?.visaNote === item.visaNote
+          ? "Check requirements"
+          : (VISA_TYPES as readonly string[]).includes(str(item.visa, ""))
+            ? (item.visa as VisaType)
+            : "Check requirements",
+        visaNote: LEGACY_COUNTRY_FACTS[String(item.id)]?.visa === item.visa &&
+          LEGACY_COUNTRY_FACTS[String(item.id)]?.visaNote === item.visaNote
+          ? "Confirm current entry rules for your passport and travel dates."
+          : str(item.visaNote, ""),
         bestMonths: str(item.bestMonths, ""),
-        flightHours: str(item.flightHours, ""),
+        flightHours: LEGACY_COUNTRY_FACTS[String(item.id)]?.flightHours === item.flightHours
+          ? "Depends on your route"
+          : str(item.flightHours, ""),
         price: int(item.price, 0, 0, 10_000_000),
         currency: str(item.currency, ""),
         /* Pasted in the CRM and rendered straight into the card's anchor, so
@@ -2557,7 +2622,8 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
       description: str(whyRaw.description, base.whyUs.description),
       points: list(whyRaw.points, base.whyUs.points, (point, index) => ({
         id: str(point.id, `why-${index + 1}`),
-        value: str(point.value, ""),
+        value: point.id === "why-4" && point.label === "Local partners" && point.value === "Verified"
+          ? "Your choice" : str(point.value, ""),
         label: str(point.label, "Untitled"),
         description: str(point.description, ""),
       })),
@@ -2609,7 +2675,7 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
       items: list(reviewsRaw.items, base.reviews.items, (item, index) => ({
         id: str(item.id, `rev-${index + 1}`),
         verified: item.verified === true,
-        quote: str(item.quote, ""),
+        quote: typeof item.quote === "string" ? item.quote : "",
         name: str(item.name, "Anonymous"),
         initials: str(item.initials, "").slice(0, 3),
         avatar: str(item.avatar, ""),

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 
+import { TRAVELLER_TYPES } from "@/lib/bengaluruTravel";
+import { enquiryPlanningMessage } from "@/lib/enquiryPlanning";
 import PhoneNumberField from "@/components/PhoneNumberField";
 import { saveContactEnquiry } from "@/lib/firebase/enquiries";
 import { useUserProfile } from "@/lib/firebase/useUserProfile";
@@ -16,6 +18,11 @@ import { useUserProfile } from "@/lib/firebase/useUserProfile";
 /* ------------------------------------------------------------------ */
 
 type FieldName =
+  | "departureCity"
+  | "audience"
+  | "budget"
+  | "company"
+  | "transport"
   | "name"
   | "email"
   | "phone"
@@ -28,6 +35,11 @@ type Values = Record<FieldName, string>;
 type Errors = Partial<Record<FieldName | "consent", string>>;
 
 const EMPTY: Values = {
+  departureCity: "Bengaluru",
+  audience: "",
+  budget: "",
+  company: "",
+  transport: "",
   name: "",
   email: "",
   phone: "+91",
@@ -58,6 +70,8 @@ function validate(values: Values): Errors {
   if (!values.message.trim()) {
     errors.message = "Tell us a little about the trip you have in mind.";
   }
+  if (values.travellers && (!/^\d+$/.test(values.travellers) || Number(values.travellers) < 1 || Number(values.travellers) > 10000)) errors.travellers = "Enter a whole group size between 1 and 10,000.";
+  if (enquiryPlanningMessage(values).length > 5000) errors.message = "Please shorten your trip requirements.";
   return errors;
 }
 
@@ -87,8 +101,9 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-export default function EnquiryForm() {
-  const [values, setValues] = useState<Values>(EMPTY);
+export default function EnquiryForm({ initialAudience = "" }: { initialAudience?: string } = {}) {
+  const initial = { ...EMPTY, audience: initialAudience };
+  const [values, setValues] = useState<Values>(initial);
   const [errors, setErrors] = useState<Errors>({});
   const [sent, setSent] = useState(false);
   const [consent, setConsent] = useState(false);
@@ -146,10 +161,10 @@ export default function EnquiryForm() {
 
     try {
       setSubmitting(true);
-      await saveContactEnquiry(values);
+      await saveContactEnquiry({ ...values, message: enquiryPlanningMessage(values) });
       setSent(true);
       // Reset the form, but keep the signed-in user's details filled in for the next enquiry.
-      setValues(applyPrefill(EMPTY));
+      setValues(applyPrefill(initial));
       setConsent(false);
     } catch (cause) {
       setSubmissionError(cause instanceof Error ? cause.message : "Your enquiry could not be sent. Please try again.");
@@ -187,6 +202,11 @@ export default function EnquiryForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="grid gap-5 sm:grid-cols-2">
+      <div><label htmlFor="enquiry-departureCity" className={LABEL}>Starting from</label><input id="enquiry-departureCity" value={values.departureCity} onChange={update("departureCity")} maxLength={120} className={`${fieldClass(false)} mt-1.5 h-12 px-3.5`} /></div>
+      <div><label htmlFor="enquiry-audience" className={LABEL}>Who is travelling?</label><select id="enquiry-audience" value={values.audience} onChange={update("audience")} className={`${fieldClass(false)} mt-1.5 h-12 px-3.5`}><option value="">Choose a traveller type</option>{TRAVELLER_TYPES.map(type => <option key={type.value} value={type.value}>{type.label}</option>)}<option value="solo">Solo traveller</option></select></div>
+      <div><label htmlFor="enquiry-budget" className={LABEL}>Budget per person</label><select id="enquiry-budget" value={values.budget} onChange={update("budget")} className={`${fieldClass(false)} mt-1.5 h-12 px-3.5`}><option value="">Please advise</option>{["Under ₹5,000", "₹5,000–₹15,000", "₹15,000–₹30,000", "₹30,000–₹60,000", "₹60,000+"].map(value => <option key={value}>{value}</option>)}</select></div>
+      <div><label htmlFor="enquiry-transport" className={LABEL}>Transport preference</label><select id="enquiry-transport" value={values.transport} onChange={update("transport")} className={`${fieldClass(false)} mt-1.5 h-12 px-3.5`}><option value="">Please advise</option><option>Shared group transport</option><option>Private vehicle</option><option>Flights and transfers</option><option>Arranging my own transport</option></select></div>
+      {values.audience === "corporate" && <div className="sm:col-span-2"><label htmlFor="enquiry-company" className={LABEL}>Company name (optional)</label><input id="enquiry-company" value={values.company} onChange={update("company")} maxLength={160} className={`${fieldClass(false)} mt-1.5 h-12 px-3.5`} /></div>}
       <div>
         <label htmlFor="enquiry-name" className={LABEL}>
           Full name <span className="text-cmt-error-500">*</span>
@@ -280,24 +300,7 @@ export default function EnquiryForm() {
         <label htmlFor="enquiry-travellers" className={LABEL}>
           Travellers <span className="font-normal text-cmt-neutral-500">(optional)</span>
         </label>
-        <select
-          id="enquiry-travellers"
-          name="travellers"
-          value={values.travellers}
-          onChange={update("travellers")}
-          className={`mt-2 h-12 appearance-none bg-[length:16px] bg-[right_1rem_center] bg-no-repeat px-4 pr-11 ${fieldClass(false)}`}
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
-          }}
-        >
-          <option value="">Select a group size</option>
-          <option value="1">Just me</option>
-          <option value="2">2 travellers</option>
-          <option value="3-4">3–4 travellers</option>
-          <option value="5-8">5–8 travellers</option>
-          <option value="9+">9 or more</option>
-        </select>
+        <input id="enquiry-travellers" type="number" min="1" max="10000" step="1" inputMode="numeric" value={values.travellers} onChange={update("travellers")} placeholder="Exact group size" aria-invalid={Boolean(errors.travellers)} aria-describedby={errors.travellers ? "enquiry-travellers-error" : undefined} className={`${fieldClass(Boolean(errors.travellers))} mt-1.5 h-12 px-3.5`} /><FieldError id="enquiry-travellers-error" message={errors.travellers} />
       </div>
 
       <div className="sm:col-span-2">
@@ -309,7 +312,7 @@ export default function EnquiryForm() {
           name="message"
           aria-required="true"
           rows={5}
-          placeholder="Dates you have in mind, the kind of pace you want, anything the trip has to include."
+          placeholder="Dates, pickup area, room preferences, children’s ages, accessibility needs or anything your trip must include."
           value={values.message}
           onChange={update("message")}
           aria-invalid={Boolean(errors.message)}

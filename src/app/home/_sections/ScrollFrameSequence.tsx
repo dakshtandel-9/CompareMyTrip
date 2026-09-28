@@ -142,7 +142,7 @@ export default function ScrollFrameSequence() {
       openingInset = 0;
       copyDirtyRef.current = true;
       wrapper.classList.toggle("cmt-hero-static", !enabled);
-      if (phone.matches) {
+      {
         let start = 0;
         let frame = 0;
         const fit = () => {

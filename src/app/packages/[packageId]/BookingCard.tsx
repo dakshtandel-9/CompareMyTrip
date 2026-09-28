@@ -40,8 +40,8 @@ export default function BookingCard({ bookingUnavailableReason, pkg, details, tr
      action asks for a quote instead of a custom plan. */
   const customPlanLabel = "Get a Custom Quote";
 
-  const availabilityNote = details.availabilityNote ?? "Availability confirmed with your quote";
-  const quoteNote = bookingUnavailableReason ? "" : details.quoteNote ?? "🔒 Secure payment · Instant booking confirmation";
+  const availabilityNote = details.availabilityNote === "Availability confirmed after booking" || !details.availabilityNote ? "Confirm your preferred departure with our team before payment." : details.availabilityNote;
+  const quoteNote = bookingUnavailableReason ? "" : !details.quoteNote || /instant booking confirmation/i.test(details.quoteNote) ? "Secure payment · Your payment receipt does not confirm departure availability." : details.quoteNote;
 
   const step = (delta: number) => onTravellersChange(Math.min(Math.max(travellers + delta, 1), 20));
 

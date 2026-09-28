@@ -92,6 +92,7 @@ export default function GoogleBusinessPanel() {
   const [status, setStatus] = useState<GoogleBusinessStatus>(EMPTY_GOOGLE_STATUS);
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
   const [busy, setBusy] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -104,7 +105,7 @@ export default function GoogleBusinessPanel() {
     const params = new URLSearchParams(window.location.search);
     const outcome = params.get("google");
     if (outcome === "connected") {
-      return { note: "Google account connected. Sync to pull the reviews in.", problem: "" };
+      return { note: "Google account connected. Load businesses, select CompareMyTrip, then sync.", problem: "" };
     }
     if (outcome) {
       return {
@@ -124,6 +125,7 @@ export default function GoogleBusinessPanel() {
     try {
       const next = await fetchStatus();
       setStatus(next);
+      setSelectedLocation(next.selectedLocation);
       setClientId((current) => current || next.clientId);
     } catch (error) {
       setProblem((error as Error).message);
@@ -137,6 +139,7 @@ export default function GoogleBusinessPanel() {
       .then((next) => {
         if (!active) return;
         setStatus(next);
+        setSelectedLocation(next.selectedLocation);
         setClientId((current) => current || next.clientId);
       })
       .catch((error: Error) => {
@@ -167,6 +170,7 @@ export default function GoogleBusinessPanel() {
     try {
       await task();
     } catch (error) {
+      await refresh();
       setProblem((error as Error).message);
     } finally {
       setBusy("");
@@ -199,9 +203,18 @@ export default function GoogleBusinessPanel() {
       window.location.href = result.url;
     });
 
+  const loadBusinesses = () =>
+    run("locations", async () => {
+      const response = await fetch(`${API}/locations`, { method: "POST", headers: await authHeaders() });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not load businesses.");
+      await refresh();
+      setNote(result.locations.length ? "Choose CompareMyTrip by its name and address, then sync." : "No businesses found. Check which Google account you connected.");
+    });
+
   const sync = () =>
     run("sync", async () => {
-      const response = await fetch(`${API}/sync`, { method: "POST", headers: await authHeaders() });
+      const response = await fetch(`${API}/sync`, { method: "POST", headers: await authHeaders(), body: JSON.stringify({ location: selectedLocation }) });
       const result = (await response.json()) as { count?: number; error?: string };
       if (!response.ok) throw new Error(result.error || "The sync failed.");
       setNote(`Pulled ${result.count ?? 0} reviews from Google.`);
@@ -212,7 +225,7 @@ export default function GoogleBusinessPanel() {
     run("disconnect", async () => {
       const response = await fetch(API, { method: "DELETE", headers: await authHeaders() });
       if (!response.ok) throw new Error("Could not disconnect.");
-      setNote("Disconnected. Reviews already pulled in stay on the site until you sync again.");
+      setNote("Disconnected. Imported Google reviews have been removed from the website.");
       setClientId("");
       await refresh();
     });
@@ -228,7 +241,7 @@ export default function GoogleBusinessPanel() {
       <Card
         icon={<Link2 className="size-5" />}
         title="Google Business Profile"
-        description="Pull your locations and their Google reviews into the rail above."
+        description="Connect Google, choose CompareMyTrip, and import its reviews into your existing website cards."
         action={
           status.connected ? (
             <span className="inline-flex items-center gap-1.5 rounded-cmt-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
@@ -256,10 +269,8 @@ export default function GoogleBusinessPanel() {
               <div className="text-xs leading-5 text-amber-900">
                 <p className="text-sm font-semibold">Waiting on Google&apos;s approval</p>
                 <p className="mt-1">
-                  The sign-in worked, so the wiring is right. Google is refusing the review data
-                  itself, which is what an unapproved project looks like — quota stays at zero until
-                  they grant access. Nothing more to change here; re-run the sync once their
-                  approval email arrives.
+                  Google reported zero API quota. Check Basic API Access approval and quota
+                  in the same Cloud project as your OAuth client, then retry loading businesses.
                 </p>
               </div>
             </div>
@@ -275,23 +286,18 @@ export default function GoogleBusinessPanel() {
                   Google requires the Business Profile to be verified and active for at least 60
                   days, with a website listed on it.
                 </Step>
-                <Step number={2} title="Enable the APIs">
-                  In{" "}
-                  <Link href="https://console.cloud.google.com/apis/library">
-                    Google Cloud Console
-                  </Link>{" "}
-                  enable <em>Google My Business API</em>,{" "}
-                  <em>My Business Account Management API</em> and{" "}
-                  <em>My Business Business Information API</em>. Note the project number.
+                <Step number={2} title="Choose a Cloud project and request API access">
+                  Open <Link href="https://console.cloud.google.com/">Google Cloud Console</Link>,
+                  select your business project and note its project number. Use the{" "}
+                  <Link href="https://developers.google.com/my-business/content/prereqs">Basic API Access application</Link>{" "}
+                  with the Google account that manages CompareMyTrip. Being a profile admin does
+                  not automatically grant the project API access.
                 </Step>
-                <Step number={3} title="Apply for access — this is the slow one">
-                  Submit the{" "}
-                  <Link href="https://developers.google.com/my-business/content/prereqs">
-                    Basic API Access form
-                  </Link>{" "}
-                  from an email that owns or manages the profile. Google reviews it by hand. Until
-                  they approve it your quota is 0 and no reviews can be fetched, however correct
-                  everything below is.
+                <Step number={3} title="After approval, enable the APIs">
+                  In the same project, enable <em>Google My Business API</em>,{" "}
+                  <em>My Business Account Management API</em> and{" "}
+                  <em>My Business Business Information API</em>. Check their quotas: zero quota
+                  means API access is still pending. The My Business API may only appear after approval.
                 </Step>
                 <Step number={4} title="Create an OAuth client">
                   Under <em>APIs &amp; Services → Credentials</em>, create an OAuth client ID of
@@ -318,7 +324,10 @@ export default function GoogleBusinessPanel() {
                 </Step>
                 <Step number={5} title="Paste the credentials below">
                   Copy the client ID and secret from that OAuth client into the two fields below,
-                  save, then press Connect.
+                  save, then press Connect. Configure the OAuth consent screen with the business.manage scope.
+                  If the app is in Testing, add your managing Google account as a test user;
+                  testing refresh tokens usually expire after seven days. Complete Google’s
+                  publishing requirements for a lasting connection.
                 </Step>
               </ol>
             </div>
@@ -348,6 +357,19 @@ export default function GoogleBusinessPanel() {
             </div>
           </div>
 
+          {status.connected && (
+            <div>
+              <label htmlFor="google-business-location" className="mb-2 block text-sm font-semibold">Business to display</label>
+              <select id="google-business-location" className={inputClass} value={selectedLocation}
+                onChange={event => setSelectedLocation(event.target.value)} disabled={busy !== ""}>
+                <option value="">Select CompareMyTrip after loading businesses</option>
+                {status.locations.map(location => (
+                  <option key={location.name} value={location.name}>{location.title} — {location.address || location.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-3">
             <Button
               onClick={saveCredentials}
@@ -368,7 +390,10 @@ export default function GoogleBusinessPanel() {
 
             {status.connected && (
               <>
-                <Button onClick={sync} disabled={busy !== ""} variant="ghost">
+                <Button onClick={loadBusinesses} disabled={busy !== ""} variant="ghost">
+                  {busy === "locations" ? "Loading businesses…" : "Load businesses"}
+                </Button>
+                <Button onClick={sync} disabled={!selectedLocation || busy !== ""} variant="ghost">
                   <RefreshCw className="size-4" aria-hidden="true" />
                   {busy === "sync" ? "Syncing…" : "Sync now"}
                 </Button>
@@ -385,8 +410,9 @@ export default function GoogleBusinessPanel() {
               {status.lastSyncedAt
                 ? `Last synced ${new Date(status.lastSyncedAt).toLocaleString("en-GB")} — ${status.lastSyncCount} reviews.`
                 : "Not synced yet."}{" "}
-              Google reviews appear after the ones written above, so your own picks still open the
-              rail.
+              Up to 100 recent reviews with written comments appear after your verified testimonials.
+              Star-only ratings still count in Google’s total. Daily refresh requires the
+              deployed scheduler and CRON_SECRET; expired imports are hidden.
             </p>
           )}
         </div>
@@ -396,7 +422,7 @@ export default function GoogleBusinessPanel() {
         <Card
           icon={<MapPin className="size-5" />}
           title={`Locations (${status.locations.length})`}
-          description="Every location on the connected profile, with the rating Google holds for it."
+          description="Choose the correct business above. Ratings are filled after that business is synced."
         >
           <ul className="divide-y divide-cmt-neutral-100">
             {status.locations.map((location) => (

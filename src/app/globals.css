@@ -696,3 +696,12 @@ body {
 @media (max-width: 639px) {
   .cmt-header-row > div:first-child a > span { width: 200px; }
 }
+
+/* Desktop: the pinned hero stage starts below the header, so its centred copy
+   used to sit lower at the top of the page and jump up once pinned. Shrink the
+   stage by the header space still in view and pad the copy by the same amount,
+   so the copy holds one viewport position throughout. */
+@media (min-width: 768px) {
+  .cmt-hero .cmt-hero-stage { height: calc(100vh - var(--cmt-phone-opening-inset, 0px)); }
+  .cmt-hero .cmt-hero-intro { padding-bottom: var(--cmt-phone-opening-inset, 0px); }
+}

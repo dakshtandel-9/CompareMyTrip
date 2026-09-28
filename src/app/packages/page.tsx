@@ -9,9 +9,9 @@ import { createPageMetadata } from "@/lib/seo";
 export const revalidate = 3600;
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Holiday Packages with Itineraries and Prices",
+  title: "Explore Our Travel Plans",
   description:
-    "Browse holiday packages with day-by-day itineraries, inclusions, exclusions and prices, then compare your shortlist side by side.",
+    "Explore CompareMyTrip travel plans with day-by-day itineraries, hotels, inclusions and prices. Compare our plans side by side and choose your next trip.",
   path: "/packages",
   index: true,
   follow: true,

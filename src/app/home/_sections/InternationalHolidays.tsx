@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Clock, Plane, Sun, Wallet } from "lucide-react";
+import { Clock, Plane, Sun, Wallet } from "lucide-react";
 
 import type { VisaType } from "@/lib/siteContent";
 import { useSiteContent } from "@/lib/useSiteContent";
 import { usePackages } from "@/lib/usePackages";
-import { internationalCardTarget } from "@/lib/internationalPackages";
+import { internationalCardTarget, internationalFromPrice } from "@/lib/internationalPackages";
 import ContentImage from "../_components/ContentImage";
 import Price from "../_components/Price";
 import SectionHeader from "../_components/SectionHeader";
@@ -26,6 +26,7 @@ import SectionHeader from "../_components/SectionHeader";
 
 /* Visa status carries a word, never a colour on its own (§17.5). */
 const VISA_TONES: Record<VisaType, string> = {
+  "Check requirements": "border-cmt-neutral-300 bg-cmt-neutral-100 text-cmt-neutral-700",
   "Visa free": "border-cmt-success-500/30 bg-cmt-success-100 text-cmt-success-700",
   "Visa on arrival": "border-cmt-success-500/30 bg-cmt-success-100 text-cmt-success-700",
   "e-Visa": "border-cmt-warning-500/30 bg-cmt-warning-100 text-cmt-warning-700",
@@ -57,6 +58,7 @@ export default function InternationalHolidays() {
         <div className="cmt-mobile-rail mt-8 grid grid-cols-1 gap-6 sm:mt-10 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((country) => {
             const { pkg: attachedPackage, href } = internationalCardTarget(country, packages);
+            const price = attachedPackage?.price || internationalFromPrice(country.country, packages);
             return (
             <article
               key={country.id}
@@ -68,6 +70,7 @@ export default function InternationalHolidays() {
                     src={country.image}
                     alt={country.alt}
                     fill
+                    quality={90}
                     sizes="(max-width: 639px) min(86vw, 320px), (max-width: 1023px) calc((100vw - 72px) / 2), (max-width: 1487px) calc((100vw - 96px) / 3), 464px"
                     className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
@@ -112,10 +115,10 @@ export default function InternationalHolidays() {
                   <div className="flex items-start gap-2">
                     <dt className="flex w-[84px] sm:w-[104px] shrink-0 items-center gap-1.5 text-xs font-medium text-cmt-neutral-500">
                       <Clock className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
-                      Flight time
+                      Flight duration
                     </dt>
                     <dd className="text-sm tabular-nums text-cmt-neutral-700">
-                      {country.flightHours} direct
+                      {country.flightHours}
                     </dd>
                   </div>
 
@@ -129,22 +132,20 @@ export default function InternationalHolidays() {
                 </dl>
 
                 <div className="mt-auto flex flex-wrap items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">
-                  <Price price={attachedPackage?.price ?? country.price} qualifier="/person" />
+                  {price ? <Price price={price} qualifier="/person" /> : <p className="font-display text-lg font-bold text-cmt-neutral-900 sm:text-xl">Ask for a quote</p>}
 
                   <Link
                     href={href}
                     aria-label={attachedPackage ? `View package: ${attachedPackage.title}` : `Browse international packages for ${country.country}`}
-                    className="group/cta inline-flex h-11 shrink-0 sm:h-9 items-center gap-1.5 rounded-cmt-control after:absolute after:inset-0 after:content-[''] px-2 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:text-cmt-primary-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                    className="relative z-10 inline-flex h-11 shrink-0 sm:h-9 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                   >
-                    {attachedPackage ? "View package" : "See packages"}
-                    <ArrowRight
-                      className="h-4 w-4 transition-transform group-hover/cta:translate-x-1"
-                      strokeWidth={2.5}
-                      aria-hidden="true"
-                    />
+                    View Package
                   </Link>
                 </div>
                 </div>
+              {/* Whole card opens the package. Separate from the button because the
+                  button lifts on hover, which would collapse an ::after overlay. */}
+              <Link href={href} aria-hidden="true" tabIndex={-1} className="absolute inset-0" />
             </article>
             );
           })}

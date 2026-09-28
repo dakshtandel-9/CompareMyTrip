@@ -39,6 +39,9 @@ export default function FeaturedPackages() {
   const activeTab = chosenTab && tabs.includes(chosenTab) ? chosenTab : (tabs[0] ?? "");
 
   const filtered = packages.filter((pkg) => {
+    if (activeTab === "All") {
+      return true;
+    }
     if (activeTab === "India" || activeTab === "International") {
       return pkg.region === activeTab;
     }

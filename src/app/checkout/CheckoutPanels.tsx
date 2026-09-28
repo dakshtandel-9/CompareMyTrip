@@ -143,7 +143,7 @@ export default function CheckoutPanels({
         <div className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm sm:p-8">
           <h2 className="font-display text-xl font-semibold sm:text-2xl">Who is travelling?</h2>
           <p className="mt-2 max-w-[52ch] text-sm leading-[1.6] text-cmt-neutral-600">
-            The booking confirmation and operator contact go to these details.
+            Your booking confirmation and travel support details go to these contact details.
           </p>
 
           {!configured ? (

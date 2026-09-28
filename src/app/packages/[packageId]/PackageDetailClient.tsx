@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import PackageLogistics from "@/components/PackageLogistics";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, BedDouble, CalendarDays, Check, ChevronDown, Hotel, MapPin, Moon, ShieldCheck, Star, Utensils, X } from "lucide-react";
@@ -130,6 +131,7 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
           <div className="cmt-package-content min-w-0 space-y-6">
         <EditableGallery images={details.gallery} />
         {!legacyPreview && packageMetadata}
+        <PackageLogistics pkg={pkg} />
         <div className="cmt-package-intro mt-6 space-y-4">
           {(editor || pageSections.tagline?.trim()) && <p className="max-w-3xl whitespace-pre-wrap break-words text-lg leading-7 text-cmt-neutral-600"><InlineText value={pageSections.tagline ?? ""} path={["details", "pageSections", "tagline"]} label="Tagline" multiline /></p>}{legacyPreview && packageMetadata}
           {(editor || pageSections.introduction?.trim()) && <p className="max-w-4xl whitespace-pre-wrap break-words text-sm leading-7 text-cmt-neutral-600"><InlineText value={pageSections.introduction ?? ""} path={["details", "pageSections", "introduction"]} label="Introduction" multiline /></p>}

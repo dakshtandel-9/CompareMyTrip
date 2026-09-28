@@ -9,4 +9,4 @@ export const getPublishedSiteContent = cache(unstable_cache(async () => {
   if (!db) return { content: DEFAULT_SITE_CONTENT, exists: false };
   const snapshot = await db.collection("siteContent").doc("homepage").get();
   return { content: normalizeSiteContent(snapshot.data()?.content), exists: snapshot.exists };
-}, ["public-site-content-v1"], { revalidate: 300, tags: ["public-content"] }));
+}, ["public-site-content-v6-content-seo"], { revalidate: 300, tags: ["public-content"] }));

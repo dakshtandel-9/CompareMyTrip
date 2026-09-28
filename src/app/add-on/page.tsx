@@ -23,7 +23,7 @@ export async function generateMetadata({
   const service = findService(toServiceId(params.service));
 
   return createPageMetadata({
-    title: "Flights, Hotels, Visa & Transport",
+    title: "Flights, Hotels, Visa & Transport Assistance",
     description:
       "Ask our travel desk for flights, hotels, visas, outstation cabs, airport transfers or hourly rentals, or use Bring Your Quote to compare your itinerary and price.",
     path: "/add-on",

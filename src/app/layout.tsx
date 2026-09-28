@@ -34,7 +34,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
   title: {
-    default: "Compare Travel Packages | CompareMyTrip",
+    default: "Treks, Getaways & Holiday Packages | CompareMyTrip",
     template: "%s | CompareMyTrip",
   },
   description: DEFAULT_DESCRIPTION,
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_IN",
     siteName: SITE_NAME,
-    title: "Compare Travel Packages | CompareMyTrip",
+    title: "Treks, Getaways & Holiday Packages | CompareMyTrip",
     description: DEFAULT_DESCRIPTION,
     url: absoluteUrl("/"),
     images: [
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Compare Travel Packages | CompareMyTrip",
+    title: "Treks, Getaways & Holiday Packages | CompareMyTrip",
     description: DEFAULT_DESCRIPTION,
     images: ["/images/destinations-header-banner.jpg"],
   },
@@ -97,6 +97,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 name: SITE_NAME,
                 url: absoluteUrl("/"),
                 logo: absoluteUrl("/comparemytrip-logo.png"),
+                description: DEFAULT_DESCRIPTION,
               },
               {
                 "@type": "WebSite",

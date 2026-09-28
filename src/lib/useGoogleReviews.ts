@@ -38,7 +38,7 @@ function normalize(raw: unknown[]): Review[] {
     const quote = typeof item.quote === "string" ? item.quote : "";
     const name = typeof item.name === "string" ? item.name : "";
     const rating = typeof item.rating === "number" ? item.rating : 0;
-    if (!quote || !name || rating < 1 || rating > 5) continue;
+    if (!quote || !name || !Number.isFinite(rating) || rating < 1 || rating > 5) continue;
 
     reviews.push({
       id: typeof item.id === "string" && item.id ? item.id : `google-${reviews.length}`,
@@ -57,6 +57,7 @@ function normalize(raw: unknown[]): Review[] {
 
 let current: Review[] = EMPTY;
 let stop: (() => void) | undefined;
+let expiresTimer: ReturnType<typeof setTimeout> | undefined;
 const listeners = new Set<() => void>();
 
 function emit(next: Review[]) {
@@ -70,10 +71,20 @@ function start() {
   stop = onSnapshot(
     doc(getFirebaseDb(), GOOGLE_REVIEWS_DOC.collection, GOOGLE_REVIEWS_DOC.id),
     (snapshot) => {
-      const stored = snapshot.data() as { items?: unknown } | undefined;
+      if (expiresTimer) clearTimeout(expiresTimer);
+      const stored = snapshot.data() as { items?: unknown; expiresAt?: string } | undefined;
+      const remaining = Date.parse(stored?.expiresAt ?? "") - Date.now();
+      if (!Number.isFinite(remaining) || remaining <= 0) return emit(EMPTY);
       if (!snapshot.exists() || !Array.isArray(stored?.items)) return emit(EMPTY);
 
       emit(normalize(stored.items));
+      // Timers have a 32-bit delay limit. Recheck long-lived tabs in daily chunks.
+      const expire = () => {
+        const delay = Date.parse(stored.expiresAt ?? "") - Date.now();
+        if (delay <= 0) return emit(EMPTY);
+        expiresTimer = setTimeout(expire, Math.min(delay, 86_400_000));
+      };
+      expire();
     },
     (error) => {
       console.error("Unable to load Google reviews from Firestore", error);
@@ -89,7 +100,9 @@ function subscribe(listener: () => void) {
   return () => {
     listeners.delete(listener);
     if (listeners.size === 0) {
+      if (expiresTimer) clearTimeout(expiresTimer);
       stop?.();
+      current = EMPTY;
       stop = undefined;
     }
   };

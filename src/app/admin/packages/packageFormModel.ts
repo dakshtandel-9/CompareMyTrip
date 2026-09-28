@@ -26,6 +26,7 @@ const initialForm: PackageForm = {
   dayZeroEnabled: false, itinerary: makeDays(3), stays: [],
   // Every day, until somebody narrows it.
   departureDays: [0, 1, 2, 3, 4, 5, 6],
+  departureCity: "",
   /* New packages start as drafts: nothing reaches the website or the sitemap
      until somebody has read it back and chosen to publish. */
   status: "draft",
@@ -53,6 +54,7 @@ export function formFromPackage(pkg?: TravelPackage): PackageForm {
     /* An empty list on the package means "no restriction", which shows here
        as every day ticked — the form is the editable view of the rule, not a
        copy of how it is stored. */
+    departureCity: pkg.departureCity ?? "",
     departureDays: departureDays(pkg).length ? departureDays(pkg) : [0, 1, 2, 3, 4, 5, 6],
   };
 }
@@ -75,6 +77,7 @@ export function packageFromForm(form: PackageForm, initialPackage?: TravelPackag
       rating: Number(form.rating ?? initialPackage?.rating ?? 0), reviews: Number(form.reviews ?? initialPackage?.reviews ?? 0), discount: Number(form.discount), originalPrice: Number(form.originalPrice), price: Number(form.price), deal: form.deal, status: form.status,
       /* Stored empty when every day is ticked: "departs any day" is the
          absence of a rule, not a list of seven. */
+      departureCity: text(form.departureCity ?? ""),
       departureDays: form.departureDays.length === 7 ? [] : [...form.departureDays].sort((a, b) => a - b),
       details: { facts: form.facts.map((fact) => ({ ...fact, label: text(fact.label), ...(fact.value !== undefined ? { value: text(fact.value) } : {}) })), factsHidden: form.factsHidden, gallery: form.gallery, summary: text(form.summary), places, highlights: list(form.highlights),
         ...(form.bookingBadges !== undefined ? { bookingBadges: form.bookingBadges.map(badge => ({ ...badge, text: text(badge.text) })) } : {}),

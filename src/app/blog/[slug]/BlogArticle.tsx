@@ -23,9 +23,11 @@ import { usePublishedBlogPosts } from "@/lib/useBlog";
 export default function BlogArticle({
   initialPost,
   initialPosts,
+  destinationLink,
 }: {
   initialPost: BlogPost;
   initialPosts: BlogPost[];
+  destinationLink?: { name: string; href: string };
 }) {
   const live = usePublishedBlogPosts();
   const posts = live.loading || live.error ? initialPosts : live.posts;
@@ -108,7 +110,7 @@ export default function BlogArticle({
               </span>
               {post.destination && (
                 <Link
-                  href={`/packages?destination=${encodeURIComponent(post.destination)}`}
+                  href={post.destination === initialPost.destination && destinationLink ? destinationLink.href : `/packages?destination=${encodeURIComponent(post.destination)}`}
                   className="inline-flex items-center gap-1.5 font-semibold text-cmt-neutral-900 hover:text-cmt-primary-900"
                 >
                   <MapPin className="size-3.5" aria-hidden="true" /> {post.destination} packages
@@ -199,11 +201,11 @@ export default function BlogArticle({
                 {post.destination ? `Ready to travel to ${post.destination}?` : "Ready to plan the trip?"}
               </h2>
               <p className="mt-2 max-w-prose text-sm leading-relaxed text-cmt-neutral-300">
-                Compare packages side by side — full itineraries, inclusions
+                Compare our travel plans side by side — full itineraries, inclusions
                 and exclusions before you pay.
               </p>
               <Link
-                href={post.destination ? `/packages?destination=${encodeURIComponent(post.destination)}` : "/packages"}
+                href={post.destination ? `/packages?destination=${encodeURIComponent(post.destination === initialPost.destination && destinationLink ? destinationLink.name : post.destination)}` : "/packages"}
                 className="mt-5 inline-flex h-11 items-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold text-cmt-neutral-900 transition-colors hover:bg-cmt-primary-600"
               >
                 See packages <ArrowRight className="size-4" aria-hidden="true" />

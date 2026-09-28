@@ -13,7 +13,7 @@ import { exchangeCode, loadIntegration, saveIntegration } from "@/lib/googleBusi
 
 export const runtime = "nodejs";
 
-const CRM_PATH = "/admin/content?tab=reviews";
+const CRM_PATH = "/admin/content?section=reviews";
 
 function backToCrm(request: Request, params: Record<string, string>) {
   const url = new URL(CRM_PATH, new URL(request.url).origin);
@@ -46,6 +46,11 @@ export async function GET(request: Request) {
     const refreshToken = await exchangeCode(code, integration.clientId, integration.clientSecret);
     await saveIntegration({
       refreshToken,
+      selectedLocation: "",
+      account: "",
+      locations: [],
+      lastSyncedAt: "",
+      lastSyncCount: 0,
       oauthState: "",
       oauthStateExpiresAt: 0,
       error: "",

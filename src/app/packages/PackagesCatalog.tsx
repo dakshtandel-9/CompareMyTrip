@@ -1,12 +1,14 @@
 "use client";
 
+import { BENGALURU, startsInBengaluru, transportIncluded, matchesTraveller, matchesDepartureWindow, weekendWindow, TRAVELLER_TYPES } from "@/lib/bengaluruTravel";
 import { lockPageScroll } from "@/lib/lockPageScroll";
 
 import Image from "next/image";
 import Link from "next/link";
+import PackageLogistics from "@/components/PackageLogistics";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getPackageAccommodationLabel, PACKAGE_CATEGORIES,
+import { getPackageAccommodationLabel, hasPackageAccommodation, PACKAGE_CATEGORIES,
   getDiscountPercent,
   type PackageCategory,
   type TravelPackage,
@@ -96,6 +98,8 @@ function destinationKey(pkg: TravelPackage) {
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
 const durationOptions = [
+  { label: "One-day trips", value: "1", matches: (days: number) => days === 1 },
+  { label: "Two-day getaways", value: "2", matches: (days: number) => days === 2 },
   { label: "3–4 days", value: "3-4", matches: (days: number) => days >= 3 && days <= 4 },
   { label: "5–6 days", value: "5-6", matches: (days: number) => days >= 5 && days <= 6 },
   { label: "7–9 days", value: "7-9", matches: (days: number) => days >= 7 && days <= 9 },
@@ -303,7 +307,7 @@ function PackageCard({
             ) : (
               <ArrowLeftRight className="size-3.5" strokeWidth={2.5} aria-hidden="true" />
             )}
-            {isCompared ? "Added to compare" : "Compare"}
+            {isCompared ? "Added to compare" : "Add to compare"}
           </button>
         </div>
         <div className="absolute inset-x-3 bottom-3 flex flex-wrap items-center gap-1.5">
@@ -351,11 +355,14 @@ function PackageCard({
             <Users className="size-3.5" />
             {pkg.pax}
           </span>
-          <span className="inline-flex items-center gap-1">
-            <BedDouble className="size-3.5" />
-            {getPackageAccommodationLabel(pkg)}
-          </span>
+          {hasPackageAccommodation(pkg) && (
+            <span className="inline-flex items-center gap-1">
+              <BedDouble className="size-3.5" />
+              {getPackageAccommodationLabel(pkg)}
+            </span>
+          )}
         </div>
+        <PackageLogistics pkg={pkg} />
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           {pkg.tags.slice(0, 3).map((tag) => (
@@ -503,7 +510,13 @@ export function CatalogContent({
       .map(toIndiaState),
   );
   const [destinationQuery, setDestinationQuery] = useState("");
-  const [durations, setDurations] = useState<string[]>([]);
+  const [durations, setDurations] = useState<string[]>(searchParams.getAll("duration").filter(value => durationOptions.some(option => option.value === value)));
+  const [origin, setOrigin] = useState(searchParams.get("from") || "");
+  const [audience, setAudience] = useState(searchParams.get("audience") || "");
+  const [departureStart, setDepartureStart] = useState(searchParams.get("start") || "");
+  const [departureEnd, setDepartureEnd] = useState(searchParams.get("end") || "");
+  const [includedTransport, setIncludedTransport] = useState(false);
+  const [difficulty, setDifficulty] = useState("");
   const [hotelCategories, setHotelCategories] = useState<number[]>([]);
   const [minimumRating, setMinimumRating] = useState<number | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -581,6 +594,12 @@ export function CatalogContent({
   /* Search and package type moved into this panel, so "Clear all" has to reset
      them too — otherwise a stale query keeps the grid empty after a clear. */
   const clearFilters = () => {
+    setOrigin("");
+    setAudience("");
+    setDepartureStart("");
+    setDepartureEnd("");
+    setIncludedTransport(false);
+    setDifficulty("");
     setQuery("");
     setCategory("All packages");
     setDealsOnly(false);
@@ -591,15 +610,6 @@ export function CatalogContent({
     setHotelCategories([]);
     setMinimumRating(null);
   };
-
-  /* With the tab row gone the masthead carries the region, so a visitor who
-     arrived on ?region=international can still see what they are looking at. */
-  const regionHeading = (
-    region === "India"
-      ? "India holiday packages"
-      : region === "International"
-        ? "International holiday packages"
-        : "Holiday packages");
 
   /* Reflect the choice in the URL so the state survives a refresh and stays
      shareable. router.replace keeps it out of the back stack while still going
@@ -673,6 +683,11 @@ export function CatalogContent({
         minimumRating === null || pkg.rating >= minimumRating;
 
       return (
+        (!origin || (BENGALURU.test(origin) ? startsInBengaluru(pkg) : pkg.departureCity?.trim().toLowerCase() === origin.trim().toLowerCase())) &&
+        matchesTraveller(pkg, audience) &&
+        (!departureStart || matchesDepartureWindow(pkg, departureStart, departureEnd || departureStart)) &&
+        (!includedTransport || transportIncluded(pkg)) &&
+        (!difficulty || pkg.trekGrade === Number(difficulty)) &&
         matchesTrack &&
         matchesRegion &&
         matchesDeal &&
@@ -692,9 +707,10 @@ export function CatalogContent({
       if (sort === "rating") return b.rating - a.rating;
       return b.reviews + b.rating * 10 - (a.reviews + a.rating * 10);
     });
-  }, [budget, category, dealsOnly, destinations, durations, hotelCategories, minimumRating, packages, query, region, sort, trackIds]);
+  }, [origin, audience, departureStart, departureEnd, includedTransport, difficulty, budget, category, dealsOnly, destinations, durations, hotelCategories, minimumRating, packages, query, region, sort, trackIds]);
 
   const activeFilterCount =
+    Number(Boolean(origin)) + Number(Boolean(audience)) + Number(Boolean(departureStart)) + Number(includedTransport) + Number(Boolean(difficulty)) +
     durations.length +
     hotelCategories.length +
     (minimumRating === null ? 0 : 1) +
@@ -709,6 +725,26 @@ export function CatalogContent({
       {/* An on/off switch rather than a checkbox: it narrows the whole grid to
           the editorially picked deals, so it reads as a mode, not one more
           box to tick. */}
+      <FilterGroup title="Starting point">
+        <label className="block text-sm">Departure city<input aria-label="Departure city" className="mt-2 min-h-11 w-full rounded-lg border border-cmt-neutral-300 px-3" placeholder="Any starting point" value={origin} onChange={event => setOrigin(event.target.value)} /></label>
+        <button type="button" onClick={() => setOrigin("Bengaluru")} className="mt-2 min-h-11 text-sm font-semibold underline">From Bengaluru</button>
+        <p className="mt-2 text-xs leading-5 text-cmt-neutral-500">Only plans with a published starting point match. Flights from your city may need a separate quote.</p>
+      </FilterGroup>
+      <FilterGroup title="Who is travelling?">
+        <select aria-label="Traveller type" className="min-h-11 w-full rounded-lg border border-cmt-neutral-300 px-3 text-sm" value={audience} onChange={event => setAudience(event.target.value)}><option value="">All travellers</option>{TRAVELLER_TYPES.filter(type => type.value !== "corporate").map(type => <option key={type.value} value={type.value}>{type.label}</option>)}</select>
+        {audience && <p className="mt-2 text-xs leading-5 text-cmt-neutral-500">{TRAVELLER_TYPES.find(type => type.value === audience)?.description}. Confirm suitability and inclusions with our team.</p>}
+        <Link href="/corporate-group-trips" className="mt-3 inline-block text-sm font-semibold underline">Corporate & private group enquiry</Link>
+      </FilterGroup>
+      <FilterGroup title="Departure window">
+        <div className="flex flex-wrap gap-2">{[false, true].map(next => <button key={String(next)} type="button" onClick={() => { const [start, end] = weekendWindow(next); setDepartureStart(start); setDepartureEnd(end); }} className="min-h-11 rounded-lg border border-cmt-neutral-300 px-3 text-xs font-semibold">{next ? "Next weekend" : "This weekend"}</button>)}</div>
+        <label className="mt-3 block text-sm">Earliest departure<input aria-label="Earliest departure" type="date" value={departureStart} onChange={event => { setDepartureStart(event.target.value); if (departureEnd < event.target.value) setDepartureEnd(""); }} className="mt-1 min-h-11 w-full min-w-0 rounded-lg border border-cmt-neutral-300 px-2" /></label>
+        <label className="mt-3 block text-sm">Latest departure<input aria-label="Latest departure" type="date" min={departureStart || undefined} disabled={!departureStart} value={departureEnd} onChange={event => setDepartureEnd(event.target.value)} className="mt-1 min-h-11 w-full min-w-0 rounded-lg border border-cmt-neutral-300 px-2 disabled:opacity-50" /></label>
+        <p className="mt-2 text-xs leading-5 text-cmt-neutral-500">Matches published weekday schedules, not live seat availability. Confirm your chosen date before payment.</p>
+      </FilterGroup>
+      <FilterGroup title="Transport & difficulty">
+        <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={includedTransport} onChange={event => setIncludedTransport(event.target.checked)} /> Transport included</label>
+        <select aria-label="Trek difficulty" value={difficulty} onChange={event => setDifficulty(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-cmt-neutral-300 px-3 text-sm"><option value="">Any difficulty</option><option value="1">Easy</option><option value="2">Moderate</option><option value="3">Difficult</option></select>
+      </FilterGroup>
       <FilterGroup title="Best deals">
         <button
           type="button"
@@ -940,13 +976,15 @@ export function CatalogContent({
           weekend-trek, and deals views add their photography masthead above. */}
       <section className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {!activeTrackConfig && region === "All" && !dealsOnly && (
-          <h1 className="sr-only">{regionHeading}</h1>
+          <h1 className="mb-2 font-display text-2xl font-semibold sm:text-3xl">{origin ? `Trips starting from ${BENGALURU.test(origin) ? "Bengaluru" : origin}` : "Explore CompareMyTrip Travel Plans"}</h1>
         )}
+
+        <p className="mb-6 text-sm leading-relaxed text-cmt-neutral-600">Compare our travel plans by itinerary, stays, inclusions and price. Add up to three plans to your shortlist.</p>
 
         <div className="cmt-catalog-toolbar mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-cmt-neutral-900">
-              {visiblePackages.length} holiday packages
+              {visiblePackages.length} packages
               {/* The region arrives from the header link, so without this the
                   narrowed set would have no on-page way back out. */}
               {region !== "All" && (

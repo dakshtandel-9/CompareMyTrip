@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const SITE_NAME = "CompareMyTrip";
 export const DEFAULT_DESCRIPTION =
-  "Compare curated travel packages side by side, including itineraries, inclusions, prices and cancellation terms.";
+  "Explore CompareMyTrip treks, weekend getaways and holidays in India and abroad. Compare our travel plans and get personalized planning assistance.";
 
 const LOCAL_URL = "http://localhost:3000";
 const PRODUCTION_URL = "https://comparemytrip.in";

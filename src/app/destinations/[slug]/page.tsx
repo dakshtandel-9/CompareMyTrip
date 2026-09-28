@@ -18,6 +18,7 @@ import {
   type DestinationSummary,
 } from "@/lib/destinations";
 import { isIndexablePackage } from "@/lib/packageData";
+import { destinationForPlace, destinationIntroduction } from "@/lib/destinationContent";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import {
   getDestinationCovers,
@@ -33,7 +34,7 @@ import {
 /* route gives "Kerala tour packages" somewhere to land — server         */
 /* rendered, with the packages actually filed under that destination.    */
 /*                                                                      */
-/* Nothing here is authored per destination. The page is built from the  */
+/* Introductory copy is destination-specific; listings come from the    */
 /* catalogue, so a place gets its page the moment a package is filed     */
 /* under it and loses it when the last one goes — the same rule the      */
 /* /destinations grid follows.                                          */
@@ -84,7 +85,7 @@ export async function generateMetadata({ params }: DestinationPageProps): Promis
 
   const { destination, packages } = found;
   return createPageMetadata({
-    title: `${destination.name} Tour Packages`,
+    title: `${destination.name} Holiday Packages`,
     description: describe(destination),
     path: destinationHref(destination.name),
     image: destination.image || undefined,
@@ -114,7 +115,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
   /* Guides already written about this place. Real internal links, not a
      "related" rail padded out with whatever is newest. */
   const guides = (await getPublishedBlogPosts())
-    .filter((post) => post.destination && destinationSlug(post.destination) === destinationSlug(destination.name))
+    .filter((post) => post.destination && destinationForPlace([destination], post.destination))
     .slice(0, 3);
 
   const facts = [
@@ -188,10 +189,10 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
               </nav>
 
               <h1 className="mt-5 font-display text-3xl font-bold tracking-tight [text-shadow:0_3px_18px_rgba(0,0,0,0.35)] sm:text-5xl">
-                {destination.name} Tour Packages
+                {destination.name} Holiday Packages
               </h1>
               <p className="mt-4 max-w-2xl text-pretty text-sm leading-6 text-white/85 [text-shadow:0_2px_12px_rgba(0,0,0,0.35)] sm:text-base">
-                {describe(destination)}
+                {destinationIntroduction(destination.name)}
               </p>
 
               <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-4">

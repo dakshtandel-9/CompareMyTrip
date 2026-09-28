@@ -81,26 +81,26 @@ const POINTS: { id: string; icon: (props: IconProps) => React.JSX.Element; title
   {
     id: "quotes",
     icon: FastQuoteTwoTone,
-    title: "Fast quotes",
-    body: "Get quotes across all 6 lines in one request.",
+    title: "Cruise options",
+    body: "Explore available cruise lines, routes and sailing dates.",
   },
   {
     id: "commissions",
     icon: CommissionTwoTone,
-    title: "Industry-best commissions",
-    body: "Higher margins than booking direct with the cruise line.",
+    title: "Cabin guidance",
+    body: "Ask about cabin types and occupancy for your group.",
   },
   {
     id: "specialists",
     icon: HeadsetTwoTone,
-    title: "Dedicated specialists",
-    body: "Named experts on your account — not a generic support queue.",
+    title: "Booking assistance",
+    body: "Get help understanding the itinerary and booking requirements.",
   },
   {
     id: "onestop",
     icon: OneStopTwoTone,
-    title: "One stop solution",
-    body: "From cruise bookings to Singapore and Malaysia land arrangements — one partner for the full trip.",
+    title: "Trip support",
+    body: "Discuss transfers and additional travel arrangements with our team.",
   },
 ];
 
@@ -136,8 +136,8 @@ export default function CruiseWhyBook() {
               Why book <span className="text-cmt-primary-500">with us</span>
             </h2>
             <p className="mt-4 max-w-md text-base leading-7 text-white/85">
-              From your first quote to your final port, our cruise specialists
-              bring every part of your trip together.
+              Explore cruise holidays with our team. Your final quote depends on
+              the sailing date, cabin, occupancy and inclusions.
             </p>
           </div>
 

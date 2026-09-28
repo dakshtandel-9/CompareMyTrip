@@ -6,7 +6,9 @@ import JsonLd from "@/components/JsonLd";
 import BlogArticle from "./BlogArticle";
 import { blogPostImage } from "@/lib/blogData";
 import { absoluteUrl, createPageMetadata, SITE_NAME } from "@/lib/seo";
-import { getPublishedBlogPost, getPublishedBlogPosts } from "@/lib/serverContent";
+import { getPublishedBlogPost, getPublishedBlogPosts, getPublishedPackages } from "@/lib/serverContent";
+import { buildDestinations, destinationHref } from "@/lib/destinations";
+import { destinationForPlace } from "@/lib/destinationContent";
 
 export const revalidate = 3600;
 
@@ -46,6 +48,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const description = post.seoDescription || post.excerpt;
   const cover = blogPostImage(post);
   const articleUrl = absoluteUrl(`/blog/${post.id}`);
+  const destination = post.destination
+    ? destinationForPlace(buildDestinations(await getPublishedPackages()), post.destination)
+    : undefined;
 
   return (
     <>
@@ -79,7 +84,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           },
         ]}
       />
-      <BlogArticle initialPost={post} initialPosts={posts} />
+      <BlogArticle initialPost={post} initialPosts={posts} destinationLink={destination ? { name: destination.name, href: destinationHref(destination.name) } : undefined} />
       <Footer />
     </>
   );
