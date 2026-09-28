@@ -9,7 +9,7 @@ const SUPPORT_PHONES = [
 
 export default function SupportPhones({ compact = false, footerRow = false }: { compact?: boolean; footerRow?: boolean }) {
   return (
-    <ul className={footerRow ? "grid gap-4 lg:grid-cols-2 lg:gap-5 xl:grid-cols-4" : compact ? "mt-6 space-y-4" : "mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"}>
+    <ul className={footerRow ? "grid gap-4 lg:flex lg:flex-wrap lg:gap-x-8 lg:gap-y-4" : compact ? "mt-6 space-y-4" : "mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"}>
       {SUPPORT_PHONES.map((phone) => (
         <li key={phone.href}>
           <a
@@ -21,7 +21,7 @@ export default function SupportPhones({ compact = false, footerRow = false }: { 
               : <Phone className="mt-1 h-4 w-4 shrink-0 text-cmt-primary-700" aria-hidden="true" />}
             <span className={footerRow ? "min-w-0" : undefined}>
               <span className="block text-xs font-semibold text-cmt-neutral-500">{phone.label}</span>
-              <span className={`mt-1 block text-sm ${compact ? "font-semibold" : "font-medium"} ${footerRow ? (phone.href.startsWith("mailto:") ? "break-all xl:text-base" : "whitespace-nowrap xl:text-base") : phone.href.startsWith("mailto:") ? "break-all" : ""}`}>{phone.number}</span>
+              <span className={`mt-1 block text-sm ${compact ? "font-semibold" : "font-medium"} ${footerRow ? "whitespace-nowrap xl:text-base" : phone.href.startsWith("mailto:") ? "break-all" : ""}`}>{phone.number}</span>
             </span>
           </a>
         </li>
