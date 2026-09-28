@@ -27,7 +27,11 @@ function requireUser() {
 }
 
 export function subscribeToDestinationCovers(
-  onCovers: (covers: Record<string, string>, destinations: DestinationRecord[]) => void,
+  onCovers: (
+    covers: Record<string, string>,
+    destinations: DestinationRecord[],
+    descriptions: Record<string, string>,
+  ) => void,
   onError: (message: string) => void,
 ) {
   return onSnapshot(
@@ -35,16 +39,19 @@ export function subscribeToDestinationCovers(
     (snapshot) => {
       const covers: Record<string, string> = {};
       const destinations: DestinationRecord[] = [];
+      const descriptions: Record<string, string> = {};
       for (const coverDocument of snapshot.docs) {
-        const data = coverDocument.data() as { name?: unknown; image?: unknown; region?: unknown };
+        const data = coverDocument.data() as { name?: unknown; image?: unknown; region?: unknown; description?: unknown };
         /* The name is stored alongside the image so reading never depends on
            decoding the document id. */
         const name = typeof data.name === "string" ? data.name.trim() : "";
         const image = typeof data.image === "string" ? data.image.trim() : "";
         if (name && image) covers[name] = image;
+        const description = typeof data.description === "string" ? data.description.trim() : "";
+        if (name && description) descriptions[name] = description;
         if (name && (data.region === "India" || data.region === "International")) destinations.push({ name, region: data.region });
       }
-      onCovers(covers, destinations);
+      onCovers(covers, destinations, descriptions);
     },
     (error) =>
       onError(
@@ -62,6 +69,26 @@ export async function saveDestinationCover(name: string, image: string) {
   await setDoc(doc(getFirebaseDb(), COLLECTION, coverId(destination)), {
     name: destination,
     image: image.trim(),
+    updatedAt: serverTimestamp(),
+    updatedByUid: user.uid,
+  }, { merge: true });
+  await revalidatePublicContent();
+}
+
+export const MAX_DESTINATION_DESCRIPTION = 600;
+
+/** The paragraph under a destination page's title. Empty restores the default. */
+export async function saveDestinationDescription(name: string, description: string) {
+  const user = requireUser();
+  const destination = name.trim();
+  if (!destination) throw new Error("A destination name is required.");
+  const text = description.trim();
+  if (text.length > MAX_DESTINATION_DESCRIPTION) {
+    throw new Error(`Keep the description to ${MAX_DESTINATION_DESCRIPTION} characters or fewer.`);
+  }
+  await setDoc(doc(getFirebaseDb(), COLLECTION, coverId(destination)), {
+    name: destination,
+    description: text,
     updatedAt: serverTimestamp(),
     updatedByUid: user.uid,
   }, { merge: true });

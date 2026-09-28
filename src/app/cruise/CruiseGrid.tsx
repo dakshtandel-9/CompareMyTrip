@@ -69,7 +69,9 @@ export default function CruiseGrid({ initialCruises }: { initialCruises: CruiseL
             key={cruise.id}
             className="cmt-catalog-card group relative flex min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md"
           >
-            <div className="relative aspect-[4/3] overflow-hidden bg-cmt-neutral-100">
+            {/* 16:9 rather than 4:3: ship photos are wide, and a squarer frame crops
+                the bow and stern off. The phone layout already used 16:9. */}
+            <div className="relative aspect-[16/9] overflow-hidden bg-cmt-neutral-100">
               {cruise.image && (
                 <Image
                   src={cruise.image}

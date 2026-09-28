@@ -22,6 +22,7 @@ import { destinationForPlace, destinationIntroduction } from "@/lib/destinationC
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import {
   getDestinationCovers,
+  getDestinationDescriptions,
   getPublishedBlogPosts,
   getPublishedPackages,
 } from "@/lib/serverContent";
@@ -47,13 +48,19 @@ type DestinationPageProps = { params: Promise<{ slug: string }> };
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
 async function loadDestination(slug: string) {
-  const [packages, covers] = await Promise.all([
+  const [packages, covers, descriptions] = await Promise.all([
     getPublishedPackages(),
     getDestinationCovers(),
+    getDestinationDescriptions(),
   ]);
   const destination = findDestinationBySlug(buildDestinations(packages, covers), slug);
   if (!destination) return null;
-  return { destination, packages: packagesForDestination(packages, destination.name) };
+  return {
+    destination,
+    packages: packagesForDestination(packages, destination.name),
+    /* Written in the CRM; the stock introduction stands in until then. */
+    introduction: descriptions[destination.name] || destinationIntroduction(destination.name),
+  };
 }
 
 /* Every destination that has at least one package. Prerendering them means a
@@ -101,7 +108,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
   const found = await loadDestination(slug);
   if (!found) notFound();
 
-  const { destination, packages } = found;
+  const { destination, packages, introduction } = found;
   /* The lookup slugifies whatever it is given, so /destinations/Kerala and
      /destinations/kerala both resolve. Only one of them is the page: send the
      rest on rather than serving the same content at several URLs. */
@@ -192,7 +199,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
                 {destination.name} Holiday Packages
               </h1>
               <p className="mt-4 max-w-2xl text-pretty text-sm leading-6 text-white/85 [text-shadow:0_2px_12px_rgba(0,0,0,0.35)] sm:text-base">
-                {destinationIntroduction(destination.name)}
+                {introduction}
               </p>
 
               <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-4">

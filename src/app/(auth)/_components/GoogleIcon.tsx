@@ -1,6 +1,6 @@
-export default function GoogleIcon() {
+export default function GoogleIcon({ size = 20 }: { size?: number }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden="true">
       <path
         fill="#4285F4"
         d="M19.6 10.23c0-.68-.06-1.36-.18-2H10v3.79h5.4a4.62 4.62 0 0 1-2 3.03v2.5h3.23c1.9-1.75 2.97-4.32 2.97-7.32Z"

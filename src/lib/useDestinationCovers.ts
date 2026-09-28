@@ -7,9 +7,15 @@ import { subscribeToDestinationCovers, type DestinationRecord } from "@/lib/fire
    mirroring usePackages. Covers are public content, so this starts empty and
    fills in — a destination simply shows its package photo until then. */
 
-type CoverState = { destinations: DestinationRecord[]; covers: Record<string, string>; loading: boolean; error: string };
+type CoverState = {
+  destinations: DestinationRecord[];
+  covers: Record<string, string>;
+  descriptions: Record<string, string>;
+  loading: boolean;
+  error: string;
+};
 
-let current: CoverState = { destinations: [], covers: {}, loading: true, error: "" };
+let current: CoverState = { destinations: [], covers: {}, descriptions: {}, loading: true, error: "" };
 const listeners = new Set<(state: CoverState) => void>();
 let unsubscribe: (() => void) | undefined;
 
@@ -21,7 +27,7 @@ function emit(next: CoverState) {
 function start() {
   if (unsubscribe) return;
   unsubscribe = subscribeToDestinationCovers(
-    (covers, destinations) => emit({ covers, destinations, loading: false, error: "" }),
+    (covers, destinations, descriptions) => emit({ covers, destinations, descriptions, loading: false, error: "" }),
     (error) => emit({ ...current, loading: false, error }),
   );
 }

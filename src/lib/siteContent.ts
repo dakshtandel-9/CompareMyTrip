@@ -452,6 +452,8 @@ export type GalleryContent = {
 export type Review = {
   id: string;
   verified?: boolean;
+  /* True only when the review was posted on Google; shows the Google logo. */
+  fromGoogle?: boolean;
   quote: string;
   name: string;
   initials: string;
@@ -2675,6 +2677,8 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
       items: list(reviewsRaw.items, base.reviews.items, (item, index) => ({
         id: str(item.id, `rev-${index + 1}`),
         verified: item.verified === true,
+        /* Left out unless on, so unmarked reviews stay byte-identical. */
+        ...(item.fromGoogle === true ? { fromGoogle: true } : {}),
         quote: typeof item.quote === "string" ? item.quote : "",
         name: str(item.name, "Anonymous"),
         initials: str(item.initials, "").slice(0, 3),

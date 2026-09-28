@@ -8,6 +8,7 @@ import { useSiteContent } from "@/lib/useSiteContent";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 import { getReviewScrollTarget } from "@/lib/reviewRail";
 import type { Review } from "@/lib/siteContent";
+import GoogleIcon from "@/app/(auth)/_components/GoogleIcon";
 import RailButton from "../_components/RailButton";
 import Rating from "../_components/Rating";
 import SectionHeader from "../_components/SectionHeader";
@@ -269,7 +270,16 @@ export default function TravellerReviews() {
                           <span className="rounded-cmt-full bg-cmt-primary-100 px-3 py-1 text-xs font-semibold text-cmt-primary-900">
                             Review coming soon
                           </span>
-                        ) : <Rating value={review.rating} />}
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            {review.fromGoogle === true && (
+                              <span role="img" aria-label="Google review" className="grid shrink-0 place-items-center">
+                                <GoogleIcon size={16} />
+                              </span>
+                            )}
+                            <Rating value={review.rating} />
+                          </div>
+                        )}
                         <Quote
                           className="h-5 w-5 shrink-0 text-cmt-primary-400"
                           strokeWidth={2}

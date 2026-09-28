@@ -1941,6 +1941,7 @@ export function ReviewsEditor({
           {(item, patch) => (
             <div className="space-y-4">
               <Toggle label="Show this review" description="Enable after checking the review is genuine and ready to publish. A name and quote are required to display it." checked={item.verified === true} onChange={(verified) => patch({ verified })} />
+              <Toggle label="Posted on Google" description="Turn on only if this review was posted on Google. The Google logo then appears before its stars." checked={item.fromGoogle === true} onChange={(fromGoogle) => patch({ fromGoogle })} />
               <TextArea
                 label="Quote"
                 value={item.quote}

@@ -200,3 +200,25 @@ export const getDestinationCovers = cache(unstable_cache(async (): Promise<Recor
     return {};
   }
 }, ["destination-covers-v1"], { revalidate: 300, tags: ["public-content"] }));
+
+/* Editor-written paragraphs for destination pages, keyed by destination name.
+   A separate loader from the covers so those callers keep their shape. */
+export const getDestinationDescriptions = cache(unstable_cache(async (): Promise<Record<string, string>> => {
+  const db = getAdminDb();
+  if (!db) return {};
+
+  try {
+    const snapshot = await db.collection("destinationCovers").get();
+    const descriptions: Record<string, string> = {};
+    for (const item of snapshot.docs) {
+      const data = item.data();
+      const name = typeof data.name === "string" ? data.name.trim() : "";
+      const description = typeof data.description === "string" ? data.description.trim() : "";
+      if (name && description) descriptions[name] = description;
+    }
+    return descriptions;
+  } catch (error) {
+    console.error("Unable to load destination descriptions for server rendering:", error instanceof Error ? error.message : "Unknown database error");
+    return {};
+  }
+}, ["destination-descriptions-v1"], { revalidate: 300, tags: ["public-content"] }));

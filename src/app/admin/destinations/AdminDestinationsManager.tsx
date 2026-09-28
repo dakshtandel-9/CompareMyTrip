@@ -3,15 +3,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
-import { ArrowRight, Compass, ImageIcon, ImagePlus, MapPin, Plus, Search, Trash2 } from "lucide-react";
+import { ArrowRight, Compass, ImageIcon, ImagePlus, MapPin, PencilLine, Plus, Search, Trash2 } from "lucide-react";
 
 import { buildAdminDestinations, destinationPackageCreateHref, durationLabel } from "@/lib/destinations";
 import {
   clearDestinationCover,
   createDestination,
+  MAX_DESTINATION_DESCRIPTION,
   saveDestinationCover,
+  saveDestinationDescription,
   uploadDestinationImage,
 } from "@/lib/firebase/destinations";
+import { destinationIntroduction } from "@/lib/destinationContent";
 import { toIndiaState } from "@/lib/indiaStates";
 import { deleteImageFromCloudflare } from "@/lib/cloudflareUpload";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
@@ -23,7 +26,7 @@ const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 export default function AdminDestinationsManager() {
   const authUser = useAuthUser();
   const { packages, loading: packagesLoading, error: packagesError } = useAllPackagesState();
-  const { covers, destinations: records, loading: coversLoading, error: coversError } = useDestinationCoversState();
+  const { covers, destinations: records, descriptions, loading: coversLoading, error: coversError } = useDestinationCoversState();
 
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
@@ -87,6 +90,14 @@ export default function AdminDestinationsManager() {
     } finally {
       setBusyName("");
     }
+  };
+
+  /* Throws on failure so the row's editor stays open with the text intact. */
+  const handleSaveDescription = async (name: string, text: string) => {
+    setError("");
+    setMessage("");
+    await saveDestinationDescription(name, text);
+    setMessage(text.trim() ? `${name} description published.` : `${name} description reset to the standard introduction.`);
   };
 
   const handleClear = async (name: string, cover: string) => {
@@ -189,7 +200,7 @@ export default function AdminDestinationsManager() {
 
         <div className="flex flex-wrap gap-2 border-b border-cmt-neutral-100 px-5 py-3" aria-label="Filter destination photos">
           {[{ value: "all", label: "All destinations" }, { value: "custom", label: "Custom cover set" }, { value: "automatic", label: "Using a package photo" }].map((item) => <button type="button" key={item.value} aria-pressed={coverFilter === item.value} onClick={() => setCoverFilter(item.value)} className={`rounded-lg px-3 py-2 text-xs font-semibold ${coverFilter === item.value ? "bg-cmt-primary-50 text-cmt-primary-900" : "text-cmt-neutral-500 hover:bg-cmt-neutral-50"}`}>{item.label}</button>)}
-          <p className="ml-auto self-center text-xs text-cmt-neutral-500">Photo changes save automatically</p>
+          <p className="ml-auto self-center text-xs text-cmt-neutral-500">Photo changes save automatically · descriptions save when you press Save</p>
         </div>
         <div className="divide-y divide-cmt-neutral-200">
           {visible.map((destination) => (
@@ -202,6 +213,8 @@ export default function AdminDestinationsManager() {
               fromPrice={destination.fromPrice}
               cover={destination.cover}
               image={destination.image}
+              description={descriptions[destination.name] ?? ""}
+              onSaveDescription={(text) => handleSaveDescription(destination.name, text)}
               busy={busyName === destination.name}
               disabled={!authUser || isLoading || Boolean(busyName)}
               onUpload={(files) => void handleUpload(destination.name, destination.cover, files)}
@@ -236,6 +249,8 @@ function DestinationRow({
   fromPrice,
   cover,
   image,
+  description,
+  onSaveDescription,
   busy,
   disabled,
   onUpload,
@@ -248,12 +263,18 @@ function DestinationRow({
   fromPrice: number;
   cover: string;
   image: string;
+  description: string;
+  onSaveDescription: (text: string) => Promise<void>;
   busy: boolean;
   disabled: boolean;
   onUpload: (files: FileList | null) => void;
   onClear: () => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   /* Uploads land on R2 and imported photography on Supabase; both are remote,
      so the optimiser is bypassed exactly as the CRM's other pickers do. */
   const remote = /^https?:\/\//i.test(image);
@@ -316,6 +337,16 @@ function DestinationRow({
           <ImagePlus className="size-3.5" aria-hidden="true" />
           {busy ? "Saving…" : cover ? "Change photo" : "Upload cover photo"}
         </button>
+        <button
+          type="button"
+          onClick={() => { setDraft(description); setSaveError(""); setEditing((open) => !open); }}
+          disabled={disabled}
+          aria-expanded={editing}
+          className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 text-xs font-semibold text-cmt-neutral-700 transition-colors hover:bg-cmt-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <PencilLine className="size-3.5" aria-hidden="true" />
+          Edit description
+        </button>
 
         {cover ? (
           <button
@@ -340,6 +371,50 @@ function DestinationRow({
           }}
         />
       </div>
+
+      {editing ? (
+        <form
+          className="w-full rounded-cmt-sm border border-cmt-neutral-200 bg-cmt-neutral-50 p-4"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            setSaving(true);
+            setSaveError("");
+            try {
+              await onSaveDescription(draft);
+              setEditing(false);
+            } catch (cause) {
+              setSaveError(cause instanceof Error ? cause.message : "The description could not be saved.");
+            } finally {
+              setSaving(false);
+            }
+          }}
+        >
+          <label className="block text-sm font-medium text-cmt-neutral-900">
+            Description under the {name} page title
+            <textarea
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              maxLength={MAX_DESTINATION_DESCRIPTION}
+              rows={4}
+              disabled={saving}
+              placeholder={destinationIntroduction(name)}
+              className="mt-2 block w-full rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 py-2 text-sm leading-6 outline-none focus:border-cmt-primary-500 focus:ring-2 focus:ring-cmt-primary-500/20 disabled:opacity-60"
+            />
+          </label>
+          <p className="mt-1 text-xs text-cmt-neutral-500">
+            {draft.length}/{MAX_DESTINATION_DESCRIPTION} · Leave empty to use the standard introduction. The page title and tags are not editable here.
+          </p>
+          {saveError ? <p role="alert" className="mt-2 text-xs text-cmt-error-700">{saveError}</p> : null}
+          <div className="mt-3 flex gap-2">
+            <button type="submit" disabled={saving} className="inline-flex h-9 items-center rounded-cmt-control bg-cmt-primary-500 px-4 text-xs font-semibold disabled:opacity-50">
+              {saving ? "Publishing…" : "Save description"}
+            </button>
+            <button type="button" disabled={saving} onClick={() => setEditing(false)} className="h-9 px-3 text-xs font-semibold text-cmt-neutral-600">
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : null}
     </article>
   );
 }
