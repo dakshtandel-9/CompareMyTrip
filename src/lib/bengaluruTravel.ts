@@ -77,7 +77,7 @@ export function weekendWindow(next = false, today = indiaToday()): [string, stri
   return [start, date.toISOString().slice(0, 10)];
 }
 export function packageLogistics(pkg: TravelPackage): string[] {
-  const result = [startsInBengaluru(pkg) ? "Starts in Bengaluru" : pkg.departureCity?.trim() ? `Starts in ${pkg.departureCity.trim()}` : "Confirm starting point"];
+  const result: string[] = [];
   if (transportIncluded(pkg)) result.push("Transport included");
   const schedule = departureDaysLabel(pkg);
   if (schedule) result.push(`Departures: ${schedule}`);

@@ -1,6 +1,6 @@
 "use client";
 
-import { BENGALURU, startsInBengaluru, transportIncluded, matchesTraveller, matchesDepartureWindow, weekendWindow, TRAVELLER_TYPES } from "@/lib/bengaluruTravel";
+import { BENGALURU, startsInBengaluru, matchesTraveller, matchesDepartureWindow } from "@/lib/bengaluruTravel";
 import { lockPageScroll } from "@/lib/lockPageScroll";
 
 import Image from "next/image";
@@ -511,14 +511,15 @@ export function CatalogContent({
   );
   const [destinationQuery, setDestinationQuery] = useState("");
   const [durations, setDurations] = useState<string[]>(searchParams.getAll("duration").filter(value => durationOptions.some(option => option.value === value)));
-  const [origin, setOrigin] = useState(searchParams.get("from") || "");
-  const [audience, setAudience] = useState(searchParams.get("audience") || "");
-  const [departureStart, setDepartureStart] = useState(searchParams.get("start") || "");
-  const [departureEnd, setDepartureEnd] = useState(searchParams.get("end") || "");
-  const [includedTransport, setIncludedTransport] = useState(false);
-  const [difficulty, setDifficulty] = useState("");
-  const [hotelCategories, setHotelCategories] = useState<number[]>([]);
-  const [minimumRating, setMinimumRating] = useState<number | null>(null);
+  /* The starting point, traveller, and departure-window controls were taken out
+     of the filter panel, but the params survive as read-only entry points:
+     /bengaluru links in with ?from=, the homepage traveller cards with
+     ?audience=, and the hero search with ?start=/?end=. Filtering still honours
+     them, there is just no longer a control in the panel to change them. */
+  const [origin] = useState(searchParams.get("from") || "");
+  const [audience] = useState(searchParams.get("audience") || "");
+  const [departureStart] = useState(searchParams.get("start") || "");
+  const [departureEnd] = useState(searchParams.get("end") || "");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const filterDialog = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -583,23 +584,9 @@ export function CatalogContent({
     );
   };
 
-  const toggleHotelCategory = (value: number) => {
-    setHotelCategories((current) =>
-      current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [...current, value],
-    );
-  };
-
   /* Search and package type moved into this panel, so "Clear all" has to reset
      them too — otherwise a stale query keeps the grid empty after a clear. */
   const clearFilters = () => {
-    setOrigin("");
-    setAudience("");
-    setDepartureStart("");
-    setDepartureEnd("");
-    setIncludedTransport(false);
-    setDifficulty("");
     setQuery("");
     setCategory("All packages");
     setDealsOnly(false);
@@ -607,8 +594,6 @@ export function CatalogContent({
     setDestinationQuery("");
     setBudget(null);
     setDurations([]);
-    setHotelCategories([]);
-    setMinimumRating(null);
   };
 
   /* Reflect the choice in the URL so the state survives a refresh and stays
@@ -677,17 +662,11 @@ export function CatalogContent({
         durationOptions.some(
           (option) => durations.includes(option.value) && option.matches(pkg.days),
         );
-      const matchesHotel =
-        hotelCategories.length === 0 || hotelCategories.includes(pkg.hotelStars);
-      const matchesRating =
-        minimumRating === null || pkg.rating >= minimumRating;
 
       return (
         (!origin || (BENGALURU.test(origin) ? startsInBengaluru(pkg) : pkg.departureCity?.trim().toLowerCase() === origin.trim().toLowerCase())) &&
         matchesTraveller(pkg, audience) &&
         (!departureStart || matchesDepartureWindow(pkg, departureStart, departureEnd || departureStart)) &&
-        (!includedTransport || transportIncluded(pkg)) &&
-        (!difficulty || pkg.trekGrade === Number(difficulty)) &&
         matchesTrack &&
         matchesRegion &&
         matchesDeal &&
@@ -695,9 +674,7 @@ export function CatalogContent({
         matchesCategory &&
         matchesQuery &&
         matchesBudget &&
-        matchesDuration &&
-        matchesHotel &&
-        matchesRating
+        matchesDuration
       );
     });
 
@@ -707,13 +684,12 @@ export function CatalogContent({
       if (sort === "rating") return b.rating - a.rating;
       return b.reviews + b.rating * 10 - (a.reviews + a.rating * 10);
     });
-  }, [origin, audience, departureStart, departureEnd, includedTransport, difficulty, budget, category, dealsOnly, destinations, durations, hotelCategories, minimumRating, packages, query, region, sort, trackIds]);
+  }, [origin, audience, departureStart, departureEnd, budget, category, dealsOnly, destinations, durations, packages, query, region, sort, trackIds]);
 
+  /* The URL-seeded filters are deliberately left out: "Clear all" can no longer
+     reset them, so counting them would show a badge the user cannot clear. */
   const activeFilterCount =
-    Number(Boolean(origin)) + Number(Boolean(audience)) + Number(Boolean(departureStart)) + Number(includedTransport) + Number(Boolean(difficulty)) +
     durations.length +
-    hotelCategories.length +
-    (minimumRating === null ? 0 : 1) +
     (budget === null ? 0 : 1) +
     (dealsOnly ? 1 : 0) +
     (category === "All packages" ? 0 : 1) +
@@ -725,26 +701,6 @@ export function CatalogContent({
       {/* An on/off switch rather than a checkbox: it narrows the whole grid to
           the editorially picked deals, so it reads as a mode, not one more
           box to tick. */}
-      <FilterGroup title="Starting point">
-        <label className="block text-sm">Departure city<input aria-label="Departure city" className="mt-2 min-h-11 w-full rounded-lg border border-cmt-neutral-300 px-3" placeholder="Any starting point" value={origin} onChange={event => setOrigin(event.target.value)} /></label>
-        <button type="button" onClick={() => setOrigin("Bengaluru")} className="mt-2 min-h-11 text-sm font-semibold underline">From Bengaluru</button>
-        <p className="mt-2 text-xs leading-5 text-cmt-neutral-500">Only plans with a published starting point match. Flights from your city may need a separate quote.</p>
-      </FilterGroup>
-      <FilterGroup title="Who is travelling?">
-        <select aria-label="Traveller type" className="min-h-11 w-full rounded-lg border border-cmt-neutral-300 px-3 text-sm" value={audience} onChange={event => setAudience(event.target.value)}><option value="">All travellers</option>{TRAVELLER_TYPES.filter(type => type.value !== "corporate").map(type => <option key={type.value} value={type.value}>{type.label}</option>)}</select>
-        {audience && <p className="mt-2 text-xs leading-5 text-cmt-neutral-500">{TRAVELLER_TYPES.find(type => type.value === audience)?.description}. Confirm suitability and inclusions with our team.</p>}
-        <Link href="/corporate-group-trips" className="mt-3 inline-block text-sm font-semibold underline">Corporate & private group enquiry</Link>
-      </FilterGroup>
-      <FilterGroup title="Departure window">
-        <div className="flex flex-wrap gap-2">{[false, true].map(next => <button key={String(next)} type="button" onClick={() => { const [start, end] = weekendWindow(next); setDepartureStart(start); setDepartureEnd(end); }} className="min-h-11 rounded-lg border border-cmt-neutral-300 px-3 text-xs font-semibold">{next ? "Next weekend" : "This weekend"}</button>)}</div>
-        <label className="mt-3 block text-sm">Earliest departure<input aria-label="Earliest departure" type="date" value={departureStart} onChange={event => { setDepartureStart(event.target.value); if (departureEnd < event.target.value) setDepartureEnd(""); }} className="mt-1 min-h-11 w-full min-w-0 rounded-lg border border-cmt-neutral-300 px-2" /></label>
-        <label className="mt-3 block text-sm">Latest departure<input aria-label="Latest departure" type="date" min={departureStart || undefined} disabled={!departureStart} value={departureEnd} onChange={event => setDepartureEnd(event.target.value)} className="mt-1 min-h-11 w-full min-w-0 rounded-lg border border-cmt-neutral-300 px-2 disabled:opacity-50" /></label>
-        <p className="mt-2 text-xs leading-5 text-cmt-neutral-500">Matches published weekday schedules, not live seat availability. Confirm your chosen date before payment.</p>
-      </FilterGroup>
-      <FilterGroup title="Transport & difficulty">
-        <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={includedTransport} onChange={event => setIncludedTransport(event.target.checked)} /> Transport included</label>
-        <select aria-label="Trek difficulty" value={difficulty} onChange={event => setDifficulty(event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-cmt-neutral-300 px-3 text-sm"><option value="">Any difficulty</option><option value="1">Easy</option><option value="2">Moderate</option><option value="3">Difficult</option></select>
-      </FilterGroup>
       <FilterGroup title="Best deals">
         <button
           type="button"
@@ -918,39 +874,6 @@ export function CatalogContent({
         ))}
       </FilterGroup>
 
-      <FilterGroup title="Hotel category">
-        {[3, 4, 5].map((stars) => (
-          <label key={stars} className="mb-3 flex min-h-11 cursor-pointer items-center justify-between text-sm last:mb-0">
-            <span className="flex items-center gap-2.5 text-cmt-neutral-700">
-              <input
-                type="checkbox"
-                checked={hotelCategories.includes(stars)}
-                onChange={() => toggleHotelCategory(stars)}
-                className="size-4 accent-[var(--cmt-color-primary-500)]"
-              />
-              {stars} star
-            </span>
-            <span className="text-xs text-cmt-neutral-400">
-              {regionPackages.filter((pkg) => pkg.hotelStars === stars).length}
-            </span>
-          </label>
-        ))}
-      </FilterGroup>
-
-      <FilterGroup title="Traveller rating">
-        {[4.5, 4].map((rating) => (
-          <label key={rating} className="mb-3 flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-cmt-neutral-700 last:mb-0">
-            <input
-              name="rating"
-              type="radio"
-              checked={minimumRating === rating}
-              onChange={() => setMinimumRating(rating)}
-              className="size-4 accent-[var(--cmt-color-primary-500)]"
-            />
-            {rating.toFixed(1)} &amp; above
-          </label>
-        ))}
-      </FilterGroup>
     </>
   );
 
