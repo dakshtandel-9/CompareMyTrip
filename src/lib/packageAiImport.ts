@@ -52,7 +52,7 @@ Object.assign(productSchema.properties!, {
 
 export const PACKAGE_IMPORT_SCHEMA = object({ kind: choice(["comparemytrip.product"]), version: { type: "integer", enum: [1] }, product: productSchema });
 
-type Replaced = "image" | "gallery" | "operator" | "deal" | "status" | "permitHidden" | "rating" | "reviews" | "nights" | "days" | "hotelStars" | "price" | "originalPrice" | "discount" | "places" | "highlights" | "inclusions" | "exclusions" | "pageSections";
+type Replaced = "image" | "gallery" | "operator" | "deal" | "status" | "permitHidden" | "rating" | "reviews" | "nights" | "days" | "hotelStars" | "price" | "originalPrice" | "discount" | "places" | "highlights" | "inclusions" | "exclusions" | "pageSections" | "departureCity";
 export type ImportedProduct = Omit<PackageForm, Replaced> & {
   nights: number; days: number; hotelStars: number; price: number; originalPrice: number;
   places: string[]; highlights: string[]; inclusions: string[]; exclusions: string[];
