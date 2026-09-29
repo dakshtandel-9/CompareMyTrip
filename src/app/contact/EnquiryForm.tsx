@@ -107,6 +107,7 @@ export default function EnquiryForm({ initialAudience = "" }: { initialAudience?
   const [errors, setErrors] = useState<Errors>({});
   const [sent, setSent] = useState(false);
   const [consent, setConsent] = useState(false);
+  const [messagingConsent, setMessagingConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
 
@@ -161,11 +162,14 @@ export default function EnquiryForm({ initialAudience = "" }: { initialAudience?
 
     try {
       setSubmitting(true);
-      await saveContactEnquiry({ ...values, message: enquiryPlanningMessage(values) });
+      // The enquiry record has no separate field for this, so the choice travels with the message.
+      const message = enquiryPlanningMessage(values) + (messagingConsent ? "\n\nConsent to receive communication via RCS/WhatsApp/Email: Yes" : "");
+      await saveContactEnquiry({ ...values, message });
       setSent(true);
       // Reset the form, but keep the signed-in user's details filled in for the next enquiry.
       setValues(applyPrefill(initial));
       setConsent(false);
+      setMessagingConsent(false);
     } catch (cause) {
       setSubmissionError(cause instanceof Error ? cause.message : "Your enquiry could not be sent. Please try again.");
     } finally {
@@ -348,6 +352,20 @@ export default function EnquiryForm({ initialAudience = "" }: { initialAudience?
           </label>
         </div>
         <FieldError id="enquiry-consent-error" message={errors.consent} />
+        <div className="mt-3 flex items-start gap-2.5 text-xs leading-5 text-cmt-neutral-600">
+          <input
+            id="enquiry-messaging-consent"
+            name="messagingConsent"
+            type="checkbox"
+            checked={messagingConsent}
+            disabled={submitting}
+            onChange={(event) => setMessagingConsent(event.target.checked)}
+            className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-cmt-neutral-300 accent-cmt-primary-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+          />
+          <label htmlFor="enquiry-messaging-consent" className="cursor-pointer">
+            I agree to receive messages for communication via RCS/WhatsApp/Email etc.
+          </label>
+        </div>
       </div>
 
       <div className="sm:col-span-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-6">
