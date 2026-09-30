@@ -9,10 +9,11 @@ import { useEffect, useState } from "react";
    a hard load or refresh — never client-side navigation.
 
    It lifts when the document has loaded and nothing holds it (the homepage
-   hero holds it until its video can scrub), or after MAX_WAIT_MS regardless:
-   a slow network gets the poster frame, never an endless spinner. */
+   hero holds it until its whole video has downloaded), or MAX_WAIT_MS after
+   navigation began regardless: a slow network gets the poster frame, never
+   an endless spinner. */
 
-const MAX_WAIT_MS = 8000;
+const MAX_WAIT_MS = 10000;
 /* Matches the opacity/visibility transition on .cmt-site-loader--leaving. */
 const LEAVE_MS = 300;
 
@@ -30,7 +31,9 @@ export default function WebsiteLoader() {
       });
     };
 
-    const cap = window.setTimeout(markSiteReady, MAX_WAIT_MS);
+    /* Measured from navigation start, not hydration, so time spent fetching
+       the page's own scripts counts towards the visitor's wait. */
+    const cap = window.setTimeout(markSiteReady, Math.max(0, MAX_WAIT_MS - performance.now()));
     const stopReleased = onSiteLoaderReleased(settle);
     if (document.readyState === "complete") settle();
     else window.addEventListener("load", settle, { once: true });

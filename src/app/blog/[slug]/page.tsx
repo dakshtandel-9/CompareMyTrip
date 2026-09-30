@@ -10,7 +10,7 @@ import { getPublishedBlogPost, getPublishedBlogPosts, getPublishedPackages } fro
 import { buildDestinations, destinationHref } from "@/lib/destinations";
 import { destinationForPlace } from "@/lib/destinationContent";
 
-export const revalidate = 3600;
+export const revalidate = 86400; // 24 hours
 
 type BlogPostPageProps = { params: Promise<{ slug: string }> };
 

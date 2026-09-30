@@ -41,7 +41,7 @@ import {
 /* /destinations grid follows.                                          */
 /* ------------------------------------------------------------------ */
 
-export const revalidate = 3600;
+export const revalidate = 86400; // 24 hours
 
 type DestinationPageProps = { params: Promise<{ slug: string }> };
 

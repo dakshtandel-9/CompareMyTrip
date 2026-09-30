@@ -73,7 +73,7 @@ body {
     #ffffff;
   opacity: 1;
   transition: opacity 300ms ease, visibility 300ms ease;
-  /* Failsafe well past WebsiteLoader's 8s cap: if the script that lifts the
+  /* Failsafe past WebsiteLoader's 10s cap: if the script that lifts the
      screen never runs, the page underneath still becomes reachable. */
   animation: cmt-loader-failsafe 0s 15s forwards;
 }

@@ -11,7 +11,7 @@ import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import { getPublishedPackage, getPublishedPackages } from "@/lib/serverContent";
 import { getSimilarPackages } from "@/lib/similarPackages";
 
-export const revalidate = 3600;
+export const revalidate = 86400; // 24 hours
 
 type PackagePageProps = { params: Promise<{ packageId: string }> };
 

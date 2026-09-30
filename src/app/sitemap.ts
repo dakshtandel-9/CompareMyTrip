@@ -10,7 +10,7 @@ import {
   getPublishedPackages,
 } from "@/lib/serverContent";
 
-export const revalidate = 3600;
+export const revalidate = 86400; // 24 hours
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [packages, posts, packageUpdatedAt] = await Promise.all([

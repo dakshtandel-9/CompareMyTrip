@@ -6,7 +6,7 @@ import DestinationsIndex, { DestinationsContent } from "./DestinationsIndex";
 import { getDestinationCovers, getPublishedPackages } from "@/lib/serverContent";
 import { createPageMetadata } from "@/lib/seo";
 
-export const revalidate = 3600;
+export const revalidate = 86400; // 24 hours
 
 export const metadata: Metadata = createPageMetadata({
   title: "Travel Destinations in India and Abroad",

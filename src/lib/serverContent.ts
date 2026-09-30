@@ -89,13 +89,16 @@ const readPackageCatalogue = async (): Promise<PackageCatalogue> => {
 
 // The existing OpenNext incremental cache persists JSON. Encode Map/Date explicitly.
 // Keep Cache Components off: the routes use ISR and must return real HTTP 404s.
+// A cache's revalidate also caps every page that reads it, so a short value
+// here makes the whole site regenerate that often. Publishing from the CRM
+// clears the "public-content" tag immediately; the day is only a backstop.
 const readCachedCatalogue = unstable_cache(async () => {
   const catalogue = await readPackageCatalogue();
   return {
     packages: catalogue.packages,
     updatedAt: Array.from(catalogue.updatedAt, ([id, date]) => [id, date.toISOString()]),
   };
-}, ["published-catalogue-v3"], { revalidate: 300, tags: ["public-content"] });
+}, ["published-catalogue-v3"], { revalidate: 86400, tags: ["public-content"] });
 const loadPackageCatalogue = cache(async (): Promise<PackageCatalogue> => {
   const catalogue = await readCachedCatalogue();
   return {
@@ -139,7 +142,7 @@ export const getPublishedBlogPosts = cache(unstable_cache(async (): Promise<Blog
     console.error("Unable to load blog posts for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return seedBlogPosts();
   }
-}, ["published-blog-v2"], { revalidate: 300, tags: ["public-content"] }));
+}, ["published-blog-v2"], { revalidate: 86400, tags: ["public-content"] }));
 
 export const getPublishedBlogPost = cache(async (slug: string) => {
   const posts = await getPublishedBlogPosts();
@@ -179,7 +182,7 @@ export const getPublishedCruises = cache(unstable_cache(async (): Promise<Cruise
     console.error("Unable to load cruises for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return [];
   }
-}, ["published-cruises-v1"], { revalidate: 300, tags: ["public-content"] }));
+}, ["published-cruises-v1"], { revalidate: 86400, tags: ["public-content"] }));
 
 export const getDestinationCovers = cache(unstable_cache(async (): Promise<Record<string, string>> => {
   const db = getAdminDb();
@@ -199,7 +202,7 @@ export const getDestinationCovers = cache(unstable_cache(async (): Promise<Recor
     console.error("Unable to load destination covers for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return {};
   }
-}, ["destination-covers-v1"], { revalidate: 300, tags: ["public-content"] }));
+}, ["destination-covers-v1"], { revalidate: 86400, tags: ["public-content"] }));
 
 /* Editor-written paragraphs for destination pages, keyed by destination name.
    A separate loader from the covers so those callers keep their shape. */
@@ -221,4 +224,4 @@ export const getDestinationDescriptions = cache(unstable_cache(async (): Promise
     console.error("Unable to load destination descriptions for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return {};
   }
-}, ["destination-descriptions-v1"], { revalidate: 300, tags: ["public-content"] }));
+}, ["destination-descriptions-v1"], { revalidate: 86400, tags: ["public-content"] }));

@@ -6,7 +6,7 @@ import PackagesCatalog, { CatalogContent } from "./PackagesCatalog";
 import { getPublishedPackages } from "@/lib/serverContent";
 import { createPageMetadata } from "@/lib/seo";
 
-export const revalidate = 3600;
+export const revalidate = 86400; // 24 hours
 
 export const metadata: Metadata = createPageMetadata({
   title: "Explore Our Travel Plans",

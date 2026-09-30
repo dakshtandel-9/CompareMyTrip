@@ -24,9 +24,12 @@ Headlines on both desktop and phones follow completed frames rather than running
 Frame callbacks and both timeouts are cancelled on teardown, failure, or tab suspension.
 
 On a hard load the branded first-load screen (`WebsiteLoader`, via `src/lib/siteReady.ts`)
-stays up until the document has loaded and the hero releases its hold: at `canplaythrough`
-on desktop, at `loadedmetadata` on touch devices (which may not fetch frames before a
-gesture), or on video failure. The screen lifts after 8 seconds regardless, and a CSS
+stays up until the document has loaded and the hero releases its hold. The hero downloads
+the whole rendition with `fetch` and scrubs it from a `blob:` URL: a paused `<video>` only
+buffers at about playback speed, so scrolling ahead of it stalled on range requests. The
+hold releases at `loadeddata` from that blob (`loadedmetadata` on touch devices, which may
+decode nothing before a gesture), or on failure; a failed download falls back to streaming
+the same URL. The screen lifts 10 seconds after navigation start regardless, and a CSS
 failsafe hides it at 15 seconds if its script never runs.
 
 Metadata, loaded-frame, can-play and seek-completion events all retry synchronization.

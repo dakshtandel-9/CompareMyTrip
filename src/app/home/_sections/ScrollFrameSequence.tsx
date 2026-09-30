@@ -127,6 +127,7 @@ export default function ScrollFrameSequence() {
     let stopSequence: (() => void) | undefined;
     let stopPhoneLayout: (() => void) | undefined;
     let releaseLoader: (() => void) | undefined;
+    let stopDownload: (() => void) | undefined;
     let openingInset = 0;
     let activeLayout: string | undefined;
     const syncLayout = () => {
@@ -138,9 +139,11 @@ export default function ScrollFrameSequence() {
       if (activeLayout === nextLayout) return;
       activeLayout = nextLayout;
       stopSequence?.();
+      stopDownload?.();
       stopPhoneLayout?.();
       releaseLoader?.();
       stopSequence = undefined;
+      stopDownload = undefined;
       stopPhoneLayout = undefined;
       releaseLoader = undefined;
       openingInset = 0;
@@ -182,35 +185,64 @@ export default function ScrollFrameSequence() {
       }
       if (!enabled) { drawCopy(0); return; }
 
-      // Hold the first-load screen until the clip can scrub without stalling:
-      // enough buffered to play through. Touch browsers may refuse to fetch
-      // frames before a gesture, so metadata is all they can promise. A failed
-      // load releases it too, and the loader has its own cap.
-      const readyEvent = window.matchMedia("(pointer: coarse)").matches ? "loadedmetadata" : "canplaythrough";
+      // The first-load screen stays up until the hero can show its first
+      // frame from a fully downloaded clip. Touch browsers may decode nothing
+      // before a gesture, so metadata is all they can promise. A failed load
+      // releases it too, and the loader has its own cap.
+      const readyEvent = window.matchMedia("(pointer: coarse)").matches ? "loadedmetadata" : "loadeddata";
       const hold = holdSiteLoader();
       const release = () => {
         video.removeEventListener(readyEvent, release);
         hold();
       };
-      video.addEventListener(readyEvent, release);
       releaseLoader = release;
 
-      stopSequence = startScrollVideo({
-        wrapper,
-        video,
-        src: phone.matches ? MOBILE_VIDEO_SRC : DESKTOP_VIDEO_SRC,
-        tailHold: TAIL_HOLD,
-        scrubDuration: phone.matches ? 0.18 : 0.1,
-        // Both layouts follow the decoded frame, including reverse scrolling.
-        onFrame: drawCopy,
-        onError: () => {
-          wrapper.classList.add("cmt-hero-static");
-          drawCopy(0);
-          release();
-        },
-        // Keep the video timeline independent of the opening resize.
-        scrollDistance: () => wrapper.offsetHeight - stage.offsetHeight - openingInset,
-      });
+      const networkSrc = phone.matches ? MOBILE_VIDEO_SRC : DESKTOP_VIDEO_SRC;
+      const start = (src: string) => {
+        video.addEventListener(readyEvent, release);
+        stopSequence = startScrollVideo({
+          wrapper,
+          video,
+          src,
+          tailHold: TAIL_HOLD,
+          scrubDuration: phone.matches ? 0.18 : 0.1,
+          // Both layouts follow the decoded frame, including reverse scrolling.
+          onFrame: drawCopy,
+          onError: () => {
+            wrapper.classList.add("cmt-hero-static");
+            drawCopy(0);
+            release();
+          },
+          // Keep the video timeline independent of the opening resize.
+          scrollDistance: () => wrapper.offsetHeight - stage.offsetHeight - openingInset,
+        });
+      };
+
+      // Download the whole clip at full network speed, then scrub it from
+      // memory. Left to itself, a paused video only buffers at about playback
+      // speed, so scrolling ahead of that stalls on range requests. The file
+      // is immutable, so a repeat visit reads it straight from the HTTP cache.
+      // If the download fails, stream it the ordinary way instead.
+      const download = new AbortController();
+      let objectUrl: string | undefined;
+      fetch(networkSrc, { signal: download.signal })
+        .then((response) => {
+          if (!response.ok) throw new Error(`Hero video request failed: ${response.status}`);
+          return response.blob();
+        })
+        .then((blob) => {
+          if (download.signal.aborted) return;
+          objectUrl = URL.createObjectURL(blob);
+          start(objectUrl);
+        })
+        .catch(() => {
+          if (!download.signal.aborted) start(networkSrc);
+        });
+      stopDownload = () => {
+        download.abort();
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        objectUrl = undefined;
+      };
     };
     syncLayout();
     const queries = [motion, phone, reducedData];
@@ -219,6 +251,7 @@ export default function ScrollFrameSequence() {
     return () => {
       refreshCopyRef.current = undefined;
       stopSequence?.();
+      stopDownload?.();
       stopPhoneLayout?.();
       releaseLoader?.();
       queries.forEach(query => query.removeEventListener("change", syncLayout));
