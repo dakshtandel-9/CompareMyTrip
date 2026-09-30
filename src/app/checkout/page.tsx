@@ -53,14 +53,14 @@ export default async function CheckoutPage({
   searchParams: Promise<{ pkg?: string; travellers?: string; date?: string }>;
 }) {
   const params = await searchParams;
-  const pkg = resolvePackage(params.pkg ?? "");
+  const pkg = await resolvePackage(params.pkg ?? "");
 
   if (!pkg) {
     return (
       <Shell>
         <Notice
           title="That package can't be paid for online yet"
-          body="Packages added through the admin panel are stored in your browser, so the server has no price to charge against. Send an enquiry instead and the travel desk will raise a payment link."
+          body="This package isn't published with a price we can charge online. Send an enquiry instead and the travel desk will raise a payment link."
         />
       </Shell>
     );

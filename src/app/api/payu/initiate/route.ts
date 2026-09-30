@@ -47,10 +47,9 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const read = (name: string) => String(form.get(name) ?? "").trim();
 
-  const pkg = resolvePackage(read("packageId"));
+  const pkg = await resolvePackage(read("packageId"));
   if (!pkg) {
-    // Includes admin packages, which live only in the visitor's localStorage
-    // and therefore have no price the server can stand behind.
+    // Unpublished, unknown or unpriced — nothing the server can stand behind.
     return fail(origin, "unknown-package");
   }
 

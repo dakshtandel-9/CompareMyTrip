@@ -1,4 +1,3 @@
-import { DUMMY_PACKAGES } from "@/lib/packageSeed";
 /* ------------------------------------------------------------------ */
 /* PayU (India) server helpers.                                         */
 /*                                                                      */
@@ -10,6 +9,7 @@ import { DUMMY_PACKAGES } from "@/lib/packageSeed";
 
 import { getSiteUrl } from "@/lib/seo";
 import { LEGAL_POLICIES_APPROVED } from "@/lib/legalPolicies";
+import { getPublishedPackage } from "@/lib/serverContent";
 
 import { createHash, randomUUID } from "node:crypto";
 
@@ -43,11 +43,14 @@ export function getPayuConfig(): PayuConfig | null {
   return { key, salt, mode, endpoint: ENDPOINTS[mode] };
 }
 
-/* The catalogue the server can vouch for. Admin-created packages live in
-   the visitor's own localStorage, so the server cannot price them — see
-   resolvePackage. */
-export function resolvePackage(id: string): TravelPackage | null {
-  return DUMMY_PACKAGES.find((item) => item.id === id) ?? null;
+/* The catalogue the server can vouch for: the published CRM catalogue, the
+   same one the package pages render. Drafts are excluded by
+   getPublishedPackage, and a package without a positive price is refused —
+   it would otherwise reach PayU as a ₹0 order. */
+export async function resolvePackage(id: string): Promise<TravelPackage | null> {
+  if (!id) return null;
+  const pkg = await getPublishedPackage(id);
+  return pkg && Number.isFinite(pkg.price) && pkg.price > 0 ? pkg : null;
 }
 
 export const MAX_TRAVELLERS = 20;

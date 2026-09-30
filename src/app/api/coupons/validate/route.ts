@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
   const read = (key: string) => (typeof body[key] === "string" ? (body[key] as string).trim() : "");
 
-  const pkg = resolvePackage(read("packageId"));
+  const pkg = await resolvePackage(read("packageId"));
   if (!pkg) {
     return NextResponse.json(
       { ok: false, message: "We can't price that package here." },
