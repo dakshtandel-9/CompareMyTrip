@@ -73,8 +73,8 @@ test('turning mode off restores public requests immediately; POST actions are no
   assert.equal((await middleware(new NextRequest('https://example.com/'))).headers.get('x-middleware-next'), '1');
   for (const method of ['GET', 'HEAD']) {
     const response = await middleware(new NextRequest('https://example.com/coming-soon', { method }));
-    assert.equal(response.status, 404);
-    assert.equal(response.headers.get('x-middleware-rewrite'), 'https://example.com/404');
+    assert.equal(response.status, 307);
+    assert.equal(response.headers.get('location'), 'https://example.com/');
     assert.match(response.headers.get('cache-control'), /no-store/);
   }
   enabled = true;
@@ -115,19 +115,23 @@ test('settings cache expires in one minute, coalesces reads and retains the last
   assert.equal(await readComingSoonEnabled(), true, 'failed reads do not extend the cache');
 });
 
-test('coming-soon page renders only while enabled and becomes not-found again after switching off', async () => {
+test('coming-soon page renders only while enabled and redirects home after switching off', async () => {
   let enabled = false;
-  const notFoundError = new Error('NEXT_HTTP_ERROR_FALLBACK;404');
+  const redirectError = new Error('NEXT_REDIRECT');
+  let target;
   const screen = () => null;
   const { default: page } = load('src/app/coming-soon/page.tsx', {
     'react/jsx-runtime': { jsx: (type, props) => ({ type, props }) },
-    'next/navigation': { notFound: () => { throw notFoundError; } },
+    'next/navigation': { redirect: (to) => { target = to; throw redirectError; } },
     '@/components/ComingSoonScreen': { default: screen },
     'next/headers': { headers: async () => new Headers(enabled ? { 'x-cmt-coming-soon': 'enabled' } : {}) },
   });
-  await assert.rejects(page, (error) => error === notFoundError);
+  await assert.rejects(page, (error) => error === redirectError);
+  assert.equal(target, '/');
   enabled = true;
   assert.equal((await page()).type, screen);
   enabled = false;
-  await assert.rejects(page, (error) => error === notFoundError);
+  target = undefined;
+  await assert.rejects(page, (error) => error === redirectError);
+  assert.equal(target, '/');
 });

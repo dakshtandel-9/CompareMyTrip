@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import SiteExperience from "@/components/SiteExperience";
+import WebsiteLoader from "@/components/WebsiteLoader";
 import JsonLd from "@/components/JsonLd";
 import Analytics from "@/components/Analytics";
 import {
@@ -112,6 +113,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
         <Analytics />
+        <WebsiteLoader />
         <SiteExperience>{children}</SiteExperience>
       </body>
     </html>

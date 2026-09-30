@@ -17,11 +17,10 @@ export async function middleware(request: NextRequest) {
       response.headers.set("Cache-Control", "no-store, max-age=0");
       return response;
     }
-    // Decide before Next starts streaming; a page-level notFound() alone
-    // can leave the HTTP status at 200 once the root shell has been sent.
-    const response = NextResponse.rewrite(new URL("/404", request.url), { status: 404 });
+    // Mode is off: nobody has a reason to be here, so send them to the site.
+    // Temporary and uncacheable, since the mode can be switched back on.
+    const response = NextResponse.redirect(new URL("/", request.url), 307);
     response.headers.set("Cache-Control", "no-store, max-age=0");
-    response.headers.set("X-Robots-Tag", "noindex");
     return response;
   }
   if (bypassComingSoon(request.nextUrl.pathname) || !["GET", "HEAD"].includes(request.method)) {

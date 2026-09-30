@@ -32,7 +32,7 @@ export const metadata: Metadata = createPageMetadata({
   path: "/",
 });
 
-export const revalidate = 300;
+export const revalidate = 86400; // 24 hours
 
 export default async function HomePage() {
   const [packages, posts, site] = await Promise.all([

@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
       { key: "Content-Security-Policy-Report-Only", value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google.com https://www.gstatic.com https://www.recaptcha.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https:; font-src 'self'; connect-src 'self' https:; frame-src https://*.firebaseapp.com https://www.google.com https://www.recaptcha.net; form-action 'self' https://secure.payu.in https://test.payu.in; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
     ] }, {
       // Only versioned media is immutable. Change the filename when re-encoding.
-      source: "/videos/hero-scroll-:device(desktop|mobile)-v2.mp4",
+      source: "/videos/hero-scroll-:device(desktop|mobile)-v3.mp4",
       headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
     }];
   },

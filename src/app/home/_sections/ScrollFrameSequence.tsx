@@ -5,12 +5,13 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import ContentImage from "../_components/ContentImage";
 import HeroSearch from "../_components/HeroSearch";
 import { startScrollVideo } from "@/lib/scrollVideo";
+import { holdSiteLoader } from "@/lib/siteReady";
 import { useSiteContent } from "@/lib/useSiteContent";
 
 // Versioned, fast-start encodes with a keyframe every two frames. Phones
 // download the smaller rendition; both retain the full original sequence.
-const DESKTOP_VIDEO_SRC = "/videos/hero-scroll-desktop-v2.mp4";
-const MOBILE_VIDEO_SRC = "/videos/hero-scroll-mobile-v2.mp4";
+const DESKTOP_VIDEO_SRC = "/videos/hero-scroll-desktop-v3.mp4";
+const MOBILE_VIDEO_SRC = "/videos/hero-scroll-mobile-v3.mp4";
 const POSTER_SRC = "/videos/hero-combined-poster.jpg";
 
 // The slice of the hero's scroll that comes after the clip's last frame,
@@ -125,6 +126,7 @@ export default function ScrollFrameSequence() {
 
     let stopSequence: (() => void) | undefined;
     let stopPhoneLayout: (() => void) | undefined;
+    let releaseLoader: (() => void) | undefined;
     let openingInset = 0;
     let activeLayout: string | undefined;
     const syncLayout = () => {
@@ -137,8 +139,10 @@ export default function ScrollFrameSequence() {
       activeLayout = nextLayout;
       stopSequence?.();
       stopPhoneLayout?.();
+      releaseLoader?.();
       stopSequence = undefined;
       stopPhoneLayout = undefined;
+      releaseLoader = undefined;
       openingInset = 0;
       copyDirtyRef.current = true;
       wrapper.classList.toggle("cmt-hero-static", !enabled);
@@ -177,6 +181,20 @@ export default function ScrollFrameSequence() {
         };
       }
       if (!enabled) { drawCopy(0); return; }
+
+      // Hold the first-load screen until the clip can scrub without stalling:
+      // enough buffered to play through. Touch browsers may refuse to fetch
+      // frames before a gesture, so metadata is all they can promise. A failed
+      // load releases it too, and the loader has its own cap.
+      const readyEvent = window.matchMedia("(pointer: coarse)").matches ? "loadedmetadata" : "canplaythrough";
+      const hold = holdSiteLoader();
+      const release = () => {
+        video.removeEventListener(readyEvent, release);
+        hold();
+      };
+      video.addEventListener(readyEvent, release);
+      releaseLoader = release;
+
       stopSequence = startScrollVideo({
         wrapper,
         video,
@@ -188,6 +206,7 @@ export default function ScrollFrameSequence() {
         onError: () => {
           wrapper.classList.add("cmt-hero-static");
           drawCopy(0);
+          release();
         },
         // Keep the video timeline independent of the opening resize.
         scrollDistance: () => wrapper.offsetHeight - stage.offsetHeight - openingInset,
@@ -201,6 +220,7 @@ export default function ScrollFrameSequence() {
       refreshCopyRef.current = undefined;
       stopSequence?.();
       stopPhoneLayout?.();
+      releaseLoader?.();
       queries.forEach(query => query.removeEventListener("change", syncLayout));
       connection?.removeEventListener("change", syncLayout);
     };

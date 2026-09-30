@@ -1,8 +1,10 @@
 # Homepage scroll video
 
 The hero uses a paused H.264 video whose frame follows native page scrolling. Desktop loads
-`/videos/hero-scroll-desktop-v2.mp4` (5,392,265 bytes, 1280 × 720); below 768px it selects
-`/videos/hero-scroll-mobile-v2.mp4` (2,443,288 bytes, 768 × 432). Both preserve all 372 frames
+`/videos/hero-scroll-desktop-v3.mp4` (7,222,003 bytes, 1600 × 900); below 768px it selects
+`/videos/hero-scroll-mobile-v3.mp4` (3,319,644 bytes, 960 × 540). v3 is 25% wider than v2 at
+the same CRF (28 desktop, 29 mobile); VMAF against the 1080p master, viewed at 1080p, rose from
+85.9 to 89.7 on desktop and from 67.9 to 75.9 on phones. Both preserve all 372 frames
 of the 15.5-second scene at 24fps, with a keyframe every two frames, no B-frames or audio,
 and fast-start metadata. These assets are served from the site itself, with one-year
 immutable caching in Next and Cloudflare headers.
@@ -20,6 +22,12 @@ before issuing another seek, allowing the decoded frame to reach the compositor.
 fallback after seek completion handles omitted callbacks on paused/offscreen video.
 Headlines on both desktop and phones follow completed frames rather than running ahead of the video while it decodes.
 Frame callbacks and both timeouts are cancelled on teardown, failure, or tab suspension.
+
+On a hard load the branded first-load screen (`WebsiteLoader`, via `src/lib/siteReady.ts`)
+stays up until the document has loaded and the hero releases its hold: at `canplaythrough`
+on desktop, at `loadedmetadata` on touch devices (which may not fetch frames before a
+gesture), or on video failure. The screen lifts after 8 seconds regardless, and a CSS
+failsafe hides it at 15 seconds if its script never runs.
 
 Metadata, loaded-frame, can-play and seek-completion events all retry synchronization.
 Touch devices attempt a muted play/pause to prime decoding; a real touchend/click can retry

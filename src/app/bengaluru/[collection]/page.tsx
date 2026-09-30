@@ -9,7 +9,7 @@ import { getPublishedPackages } from "@/lib/serverContent";
 import { BENGALURU_COLLECTIONS, BENGALURU_FAQS, collectionPackages } from "@/lib/bengaluruCollections";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 
-export const revalidate = 300;
+export const revalidate = 86400; // 24 hours
 type Props = { params: Promise<{ collection: string }> };
 export function generateStaticParams() { return BENGALURU_COLLECTIONS.map(item => ({ collection: item.slug })); }
 export async function generateMetadata({ params }: Props) {

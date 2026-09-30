@@ -22,6 +22,7 @@ import {
 import PhoneNumberField from "@/components/PhoneNumberField";
 import { usePackages } from "@/lib/usePackages";
 import { buildDestinations } from "@/lib/destinations";
+import { onSiteReady } from "@/lib/siteReady";
 import {
   DEPARTURE_TYPES,
   DEPARTURE_TYPE_LABELS,
@@ -39,17 +40,48 @@ import {
 /* quote history), but they live on /login and /signup; a visitor who is */
 /* only browsing should not be asked for a password to get a quote.      */
 /*                                                                      */
-/* Mounted once in the root layout, so the timer is armed by a document  */
-/* load and not by client-side navigation: it appears after the delay on */
-/* a hard load or refresh, and a dismissal lasts until the next one.     */
-/* Nothing is written to storage — that is what re-arms it each refresh. */
+/* It only ever opens by itself on the homepage, a few seconds after the */
+/* loading screen lifts, and at most once per document load: closing it  */
+/* lasts until the next refresh. A visitor who has already sent the form */
+/* is remembered in localStorage and never prompted again.               */
 /* ------------------------------------------------------------------ */
 
-const PROMPT_DELAY_MS = 1000;
+const HOME_PATH = "/";
+const PROMPT_DELAY_MS = 6000;
+/* When the timer lands while the visitor is typing or another modal is up,
+   wait this long and look again rather than interrupting them. */
+const PROMPT_RETRY_MS = 3000;
+/* Matches the exit animation in globals.css (.cmt-trip-prompt). */
+const EXIT_MS = 180;
+const SUBMITTED_KEY = "cmt:trip-prompt-submitted";
 
-/* Routes where the prompt would be in the way: the auth pages, checkout
-   (already a conversion flow) and the CRM. */
-const SUPPRESSED_PREFIXES = ["/login", "/signup", "/forgot-password", "/admin", "/checkout"];
+/* Lives for the document, not the component: SiteExperience can remount the
+   dialog, and neither that nor a trip back to the homepage should re-arm it. */
+let promptedThisLoad = false;
+
+const hasSubmitted = () => {
+  try {
+    return window.localStorage.getItem(SUBMITTED_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
+const rememberSubmitted = () => {
+  try {
+    window.localStorage.setItem(SUBMITTED_KEY, "1");
+  } catch {
+    /* Private mode or blocked storage: the lead is still sent. */
+  }
+};
+
+const visitorIsBusy = () => {
+  const active = document.activeElement;
+  return (
+    document.querySelector("dialog[open]") !== null ||
+    (active instanceof HTMLElement && active.matches("input, textarea, select, [contenteditable='true']"))
+  );
+};
 
 /* Offered when the catalogue has not loaded yet, so the picker is never
    empty on a cold first paint. The visitor can type anything regardless. */
@@ -70,11 +102,12 @@ export default function TripPlanPromptDialog() {
   const pathname = usePathname();
   const packages = usePackages();
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const closeTimerRef = useRef<number | null>(null);
 
-  const [delayElapsed, setDelayElapsed] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-  const [requested, setRequested] = useState(false);
-  const [entered, setEntered] = useState(false);
+  /* "auto" is the homepage timer; "request" is an explicit open from a
+     product action, which is allowed on any page. */
+  const [trigger, setTrigger] = useState<"auto" | "request" | null>(null);
+  const [closing, setClosing] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -100,41 +133,56 @@ export default function TripPlanPromptDialog() {
       .slice(0, 40);
   }, [packages, destinations]);
 
-  /* One timer per document load. It only marks the delay as spent — whether
-     to show is decided below. */
+  /* The timer starts once the visitor is on the homepage and the first-load
+     screen has lifted, and is dropped the moment they leave, so it can never
+     fire over another page or over the loader. */
   useEffect(() => {
-    const timer = window.setTimeout(() => setDelayElapsed(true), PROMPT_DELAY_MS);
-    return () => window.clearTimeout(timer);
-  }, []);
+    if (pathname !== HOME_PATH || promptedThisLoad || hasSubmitted()) return;
+
+    let timer = 0;
+    const attempt = () => {
+      if (promptedThisLoad || hasSubmitted()) return;
+      if (visitorIsBusy()) {
+        timer = window.setTimeout(attempt, PROMPT_RETRY_MS);
+        return;
+      }
+      promptedThisLoad = true;
+      setTrigger((current) => current ?? "auto");
+    };
+    const stopWaiting = onSiteReady(() => {
+      timer = window.setTimeout(attempt, PROMPT_DELAY_MS);
+    });
+    return () => {
+      stopWaiting();
+      window.clearTimeout(timer);
+    };
+  }, [pathname]);
 
   /* Product actions can open this same form immediately, so there is one
      enquiry experience across the site. */
   useEffect(() => {
     const handleRequest = () => {
-      setEntered(false);
-      setDismissed(false);
-      setRequested(true);
+      if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+      setClosing(false);
+      setTrigger("request");
     };
     window.addEventListener("cmt:open-trip-prompt", handleRequest);
     return () => window.removeEventListener("cmt:open-trip-prompt", handleRequest);
   }, []);
 
-  const suppressedRoute = SUPPRESSED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
-  const open = (requested || (delayElapsed && !dismissed)) && !suppressedRoute;
+  /* Leaving the homepage (e.g. the back button) takes the timed prompt with
+     it, and it does not come back on return. */
+  if (trigger === "auto" && pathname !== HOME_PATH) setTrigger(null);
+
+  const open = trigger !== null;
 
   /* showModal() is what gives the focus trap, the inert background and Esc
-     without hand-rolling any of them. The panel is painted at scale(0.98)
-     first, then the next frame flips it to its resting state so the
-     transition has two values to move between. */
+     without hand-rolling any of them. The entrance animation is plain CSS
+     on [open], so it runs on the first painted frame with nothing to race. */
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (!open || !dialog) return;
-
-    if (!dialog.open) dialog.showModal();
-    const frame = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(frame);
+    if (open && dialog && !dialog.open) dialog.showModal();
   }, [open]);
 
   /* Keep the page behind the modal completely still. The form retains its
@@ -146,11 +194,19 @@ export default function TripPlanPromptDialog() {
     return lockPageScroll({ root: true });
   }, [open]);
 
+  /* Plays the exit animation, then unmounts. The pending timer guards against
+     Esc and the button both landing during those few frames. */
   const close = () => {
-    setRequested(false);
-    setDismissed(true);
-    setEntered(false);
-    window.dispatchEvent(new Event("cmt:trip-prompt-dismissed"));
+    if (closeTimerRef.current !== null) return;
+    setClosing(true);
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    closeTimerRef.current = window.setTimeout(() => {
+      closeTimerRef.current = null;
+      setClosing(false);
+      setTrigger(null);
+      window.dispatchEvent(new Event("cmt:trip-prompt-dismissed"));
+    }, reducedMotion ? 0 : EXIT_MS);
   };
 
   const addDestination = (value: string) => {
@@ -204,6 +260,7 @@ export default function TripPlanPromptDialog() {
         budgetPerPerson: Number.isFinite(budgetvalue) ? budgetvalue : 0,
         pagePath: pathname,
       });
+      rememberSubmitted();
       setDestinations(chosen);
       setDestinationDraft("");
       setSent(true);
@@ -220,17 +277,16 @@ export default function TripPlanPromptDialog() {
     <dialog
       ref={dialogRef}
       aria-labelledby="trip-prompt-title"
+      data-closing={closing ? "" : undefined}
       onClose={close}
       onCancel={(event) => {
         event.preventDefault();
         close();
       }}
-      className="cmt-phone-dialog m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[560px] overflow-hidden rounded-cmt-lg border-0 bg-transparent p-0 backdrop:bg-[rgba(15,23,42,0.48)]"
+      className="cmt-phone-dialog cmt-trip-prompt m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[560px] overflow-hidden rounded-cmt-lg border-0 bg-transparent p-0 backdrop:bg-[rgba(15,23,42,0.48)]"
     >
       <div
-        className={`relative flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-cmt-lg bg-cmt-white font-body text-cmt-neutral-900 shadow-cmt-xl transition-[opacity,transform] duration-[400ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${
-          entered ? "scale-100 opacity-100" : "scale-[0.98] opacity-0"
-        }`}
+        className="relative flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-cmt-lg bg-cmt-white font-body text-cmt-neutral-900 shadow-cmt-xl"
       >
         <button
           type="button"
