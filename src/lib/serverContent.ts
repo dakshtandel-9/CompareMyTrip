@@ -1,4 +1,5 @@
 import { DUMMY_PACKAGES } from "@/lib/packageSeed";
+import { findPackageBySegment } from "@/lib/packageUrls";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 
@@ -119,9 +120,15 @@ export const getPackageUpdateTimes = cache(async (): Promise<Map<string, Date>> 
   return (await loadPackageCatalogue()).updatedAt;
 });
 
+/** By document id — for payments and other records that store the id. */
 export const getPublishedPackage = cache(async (id: string) => {
   const packages = await getPublishedPackages();
   return packages.find((item) => item.id === id) ?? null;
+});
+
+/** By the /packages/<segment> a visitor asked for: slug, id or former slug. */
+export const getPublishedPackageForUrl = cache(async (segment: string) => {
+  return findPackageBySegment(segment, await getPublishedPackages());
 });
 
 /** Published-only blog data; drafts must never be emitted in public HTML. */

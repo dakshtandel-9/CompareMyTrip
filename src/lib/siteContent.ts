@@ -1237,7 +1237,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         packages: 836,
         rise: 38,
         href: "/packages",
-        badge: { icon: "🔥", label: "Trending" },
+        badge: { icon: "", label: "Trending" },
       },
       {
         id: "trend-dharamshala",
@@ -2497,7 +2497,12 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
       header: header(trendingRaw.header, base.trending.header),
       items: list(trendingRaw.items, base.trending.items, (item, index) => {
         const badgeRaw = section(item.badge);
-        const badge = { icon: str(badgeRaw.icon, ""), label: str(badgeRaw.label, "") };
+        /* A badge is an icon or a text, not both: text wins, so a card saved
+           with both keeps the words an editor typed. */
+        const badgeLabel = str(badgeRaw.label, "");
+        const badge = badgeLabel.trim()
+          ? { icon: "", label: badgeLabel }
+          : { icon: str(badgeRaw.icon, ""), label: "" };
         return {
           id: str(item.id, `trend-${index + 1}`),
           name: str(item.name, "Untitled"),

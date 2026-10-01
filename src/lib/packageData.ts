@@ -98,7 +98,15 @@ export type PackageFact = {
 };
 
 export type TravelPackage = {
+  /** Firestore document key. Payments, enquiries and saved trips point at it,
+      so it never changes — and it is not what the public URL shows. */
   id: string;
+  /** The public URL segment, written by the CRM on save from the title. Older
+      packages have none until next saved; see `packageSlug`. */
+  slug?: string;
+  /** Slugs this package was published under before a rename, so links already
+      shared or indexed still find it and redirect. */
+  previousSlugs?: string[];
   href?: string;
   title: string;
   location: string;
@@ -280,12 +288,22 @@ export function setPackageDayZero(details: Pick<PackageDetails, "itinerary" | "d
   };
 }
 
+export const DEFAULT_AVAILABILITY_NOTE = "Confirm Itinerary / Availability before Booking";
+export const DEFAULT_QUOTE_NOTE = "🔒 Secure & Safe Payment";
+const LEGACY_AVAILABILITY_NOTES = /^(availability confirmed after booking|availability confirmed with your quote|confirm your preferred departure with our team before payment\.?|instant booking confirmation)$/i;
+const LEGACY_QUOTE_NOTES = /^(compare quotes from 3 verified agents · best price|need a custom plan\?)$|instant booking confirmation|payment receipt does not confirm|^confirm itinerary \/ availability before booking and/i;
+
 export function getPackageDetails(pkg: TravelPackage): PackageDetails {
-  // Upgrade the former default on saved packages while preserving custom notes.
-  if (pkg.details && ["Compare quotes from 3 verified agents · best price", "Need a custom plan?"].includes(pkg.details.quoteNote?.trim() ?? "")) {
-    return { ...pkg.details, quoteNote: "🔒 Secure payment · Instant booking confirmation" };
+  // Upgrade former defaults on saved packages while preserving custom notes.
+  if (pkg.details) {
+    const availability = pkg.details.availabilityNote?.trim() ?? "";
+    const quote = pkg.details.quoteNote?.trim() ?? "";
+    return {
+      ...pkg.details,
+      ...(LEGACY_AVAILABILITY_NOTES.test(availability) ? { availabilityNote: DEFAULT_AVAILABILITY_NOTE } : {}),
+      ...(LEGACY_QUOTE_NOTES.test(quote) ? { quoteNote: DEFAULT_QUOTE_NOTE } : {}),
+    };
   }
-  if (pkg.details) return pkg.details;
 
   const places = pkg.location.split("·").map((place) => place.trim()).filter(Boolean);
   // Never invent a schedule, inclusions, hotel, cancellation promise or

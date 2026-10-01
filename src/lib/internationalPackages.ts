@@ -1,4 +1,5 @@
 import { publishedPackages, type TravelPackage } from "@/lib/packageData";
+import { findPackageByPath, packagePath } from "@/lib/packageUrls";
 import type { CountryCard } from "@/lib/siteContent";
 
 const countryAliases: Record<string, string> = {
@@ -44,13 +45,14 @@ export function internationalCardTarget(
   const available = publishedPackages(packages).filter((pkg) => pkg.region === "International");
   const link = card.href.trim();
 
-  const attached = available.find((pkg) => `/packages/${pkg.id}` === link);
-  if (attached) return { pkg: attached, href: `/packages/${attached.id}` };
+  // Matches the title URL as well as an id or former-title URL saved earlier.
+  const attached = findPackageByPath(link, available);
+  if (attached) return { pkg: attached, href: packagePath(attached) };
 
   /* A pasted link — a filtered catalogue, a destination page — is used exactly
      as given, and the card falls back to its own "From price".
 
-     A /packages/<id> that matched nothing is deliberately not: it drops
+     A /packages/<slug> that matched nothing is deliberately not: it drops
      through to the country match below, so unpublishing or deleting an
      attached package leaves a working card rather than a dead link. */
   if (!AUTOMATIC_LINKS.has(link) && !PACKAGE_PAGE.test(link)) {
@@ -59,6 +61,6 @@ export function internationalCardTarget(
 
   const matched = available.find((pkg) => countryKey(pkg.destination) === countryKey(card.country));
   return matched
-    ? { pkg: matched, href: `/packages/${matched.id}` }
+    ? { pkg: matched, href: packagePath(matched) }
     : { pkg: undefined, href: "/packages?region=international" };
 }

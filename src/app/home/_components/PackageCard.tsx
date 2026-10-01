@@ -1,3 +1,4 @@
+import { packagePath } from "@/lib/packageUrls";
 import Link from "next/link";
 import Image from "next/image";
 import { BedDouble, Clock, MapPin, Users } from "lucide-react";
@@ -114,7 +115,7 @@ export default function PackageCard({
           <Price price={pkg.price} originalPrice={pkg.originalPrice} qualifier="/person" />
 
           <Link
-            href={pkg.href ?? `/packages/${pkg.id}`}
+            href={packagePath(pkg)}
             className="relative z-10 inline-flex h-11 shrink-0 sm:h-9 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
           >
             View
@@ -133,7 +134,7 @@ export default function PackageCard({
           Hidden from assistive tech and taken out of the tab order — the View
           link above is the real one, and this must not double it up. */}
       <Link
-        href={pkg.href ?? `/packages/${pkg.id}`}
+        href={packagePath(pkg)}
         aria-hidden="true"
         tabIndex={-1}
         className="absolute inset-0"

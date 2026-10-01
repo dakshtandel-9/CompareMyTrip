@@ -1,5 +1,6 @@
 "use client";
 
+import { packagePath } from "@/lib/packageUrls";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -214,7 +215,7 @@ export default function AccountTrips({ userId }: { userId: string }) {
             const pkg = packages.find((item) => item.id === trip.packageId);
             const hasDate = trip.paymentStatus === "successful" && trip.tripStatus !== "rejected" && trip.tripStatus !== "refunded" && Boolean(formatTripDate(trip.tripDate));
             const days = hasDate && trip.tripStatus !== "completed" ? daysUntilTrip(trip.tripDate, now) : null;
-            const href = pkg ? pkg.href ?? `/packages/${pkg.id}` : null;
+            const href = pkg ? packagePath(pkg) : null;
             return (
               <article key={trip.id} className="overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm">
                 <div className="p-4 sm:p-5">

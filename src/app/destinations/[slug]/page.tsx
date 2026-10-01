@@ -1,3 +1,4 @@
+import { packagePath } from "@/lib/packageUrls";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -156,7 +157,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
                 "@type": "ListItem",
                 position: index + 1,
                 name: pkg.title,
-                url: absoluteUrl(pkg.href || `/packages/${pkg.id}`),
+                url: absoluteUrl(packagePath(pkg)),
               })),
           },
         ]}

@@ -1,5 +1,6 @@
 "use client";
 
+import { findPackageByPath, packagePath } from "@/lib/packageUrls";
 import { useMemo } from "react";
 
 import { destinationHref } from "@/lib/destinations";
@@ -40,7 +41,7 @@ export default function LinkField({
   const { packageOptions, destinationOptions } = useMemo(() => {
     const packageOptions = packages
       .map((pkg) => ({
-        href: pkg.href || `/packages/${pkg.id}`,
+        href: packagePath(pkg),
         label: pkg.destination ? `${pkg.title} — ${pkg.destination}` : pkg.title,
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
@@ -56,10 +57,14 @@ export default function LinkField({
     return { packageOptions, destinationOptions };
   }, [packages]);
 
+  /* A link saved before packages had title URLs still names its package, so
+     it shows as that package rather than as a custom link. */
+  const linked = findPackageByPath(value, packages);
+  const current = linked ? packagePath(linked) : value;
   const known = [...packageOptions, ...destinationOptions].some(
-    (option) => option.href === value
+    (option) => option.href === current
   );
-  const selected = value === "" ? NONE : known ? value : CUSTOM;
+  const selected = value === "" ? NONE : known ? current : CUSTOM;
 
   return (
     <div className={className}>

@@ -1,3 +1,4 @@
+import { packagePath } from "@/lib/packageUrls";
 import { DUMMY_PACKAGES } from "@/lib/packageSeed";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -412,7 +413,7 @@ export default function KeralaPackagePage() {
 
                     <div className="mt-4 flex items-end justify-between gap-3 border-t border-cmt-neutral-100 pt-4">
                       <div className="min-w-0"><p className="text-xs text-cmt-neutral-400 line-through">{formatINR(pkg.originalPrice)}</p><p className="whitespace-nowrap font-display text-lg font-bold text-cmt-neutral-900">{formatINR(pkg.price)}<span className="ml-1 font-body text-xs font-normal text-cmt-neutral-500">/person</span></p></div>
-                      <Link href={`/packages/${pkg.id}`} className="inline-flex h-10 shrink-0 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-colors hover:bg-cmt-primary-600">View package</Link>
+                      <Link href={packagePath(pkg)} className="inline-flex h-10 shrink-0 items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-colors hover:bg-cmt-primary-600">View package</Link>
                     </div>
                   </div>
                 </article>

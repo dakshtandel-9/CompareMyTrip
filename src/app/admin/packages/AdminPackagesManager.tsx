@@ -1,5 +1,6 @@
 "use client";
 
+import { packagePath } from "@/lib/packageUrls";
 import { DUMMY_PACKAGES } from "@/lib/packageSeed";
 
 import Image from "next/image";
@@ -102,7 +103,7 @@ export default function AdminPackagesManager() {
 
   if (currentEditing) {
     const protectedImages = packages.filter(pkg => currentEditing === "new" || pkg.id !== currentEditing.id).flatMap(packageImages);
-    return <AdminPackageBuilder initialDestination={searchParams.get("destination") ?? ""} initialRegion={searchParams.get("region") === "International" ? "International" : "India"} initialPackage={currentEditing === "new" ? undefined : currentEditing} filedUnderOptions={filedUnderOptions} protectedImages={protectedImages} onCancel={closeEditor} onSaved={(message) => { setSuccess(message); closeEditor(); }} />;
+    return <AdminPackageBuilder existingPackages={packages} initialDestination={searchParams.get("destination") ?? ""} initialRegion={searchParams.get("region") === "International" ? "International" : "India"} initialPackage={currentEditing === "new" ? undefined : currentEditing} filedUnderOptions={filedUnderOptions} protectedImages={protectedImages} onCancel={closeEditor} onSaved={(message) => { setSuccess(message); closeEditor(); }} />;
   }
 
   const importExisting = async () => {
@@ -205,7 +206,7 @@ export default function AdminPackagesManager() {
             <option value={CLEAR_TRACK}>{trackForTrek(pkg) ? "Remove from track" : "No weekend track"}</option>
             {WEEKEND_TRACKS.map((track) => <option key={track.id} value={track.id}>{track.label}</option>)}
           </select></div><p className="mt-1 text-xs font-medium text-cmt-neutral-600">Destination: {pkg.region === "India" ? toIndiaState(pkg.destination) : pkg.destination} · {pkg.region}</p><p className="mt-1 truncate text-xs text-cmt-neutral-500">{pkg.location} · {pkg.nights} nights / {pkg.days} days · ₹{pkg.price.toLocaleString("en-IN")} per person</p></div>
-          <div className="flex flex-wrap gap-2">{isPublishedPackage(pkg) && <Link href={`/packages/${pkg.id}`} target="_blank" className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold"><ExternalLink className="size-3.5" /> View</Link>}<button disabled={!databaseInitialized} title={!databaseInitialized ? "Import the existing catalogue first" : undefined} onClick={() => setEditing(pkg)} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold disabled:opacity-40"><Edit3 className="size-3.5" /> Edit</button><button disabled={working || !databaseInitialized} onClick={() => setPendingDelete([pkg])} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-error-500/30 px-3 text-xs font-semibold text-cmt-error-700 disabled:opacity-40"><Trash2 className="size-3.5" /> Delete</button></div>
+          <div className="flex flex-wrap gap-2">{isPublishedPackage(pkg) && <Link href={packagePath(pkg)} target="_blank" className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold"><ExternalLink className="size-3.5" /> View</Link>}<button disabled={!databaseInitialized} title={!databaseInitialized ? "Import the existing catalogue first" : undefined} onClick={() => setEditing(pkg)} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 px-3 text-xs font-semibold disabled:opacity-40"><Edit3 className="size-3.5" /> Edit</button><button disabled={working || !databaseInitialized} onClick={() => setPendingDelete([pkg])} className="inline-flex h-9 items-center gap-1.5 rounded-cmt-control border border-cmt-error-500/30 px-3 text-xs font-semibold text-cmt-error-700 disabled:opacity-40"><Trash2 className="size-3.5" /> Delete</button></div>
         </article>)}
         {!loading && filteredPackages.length === 0 && <p className="p-8 text-center text-sm text-cmt-neutral-500">{search || status !== "all" || region !== "all" || destinationFilter ? "No packages match these filters. Try another search or clear the filters." : `No ${title.toLowerCase()} yet. Select Create ${itemLabel} to add your first listing.`}</p>}
       </div>

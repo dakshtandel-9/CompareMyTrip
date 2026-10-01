@@ -1,3 +1,4 @@
+import { packagePath } from "@/lib/packageUrls";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, TriangleAlert } from "lucide-react";
@@ -84,7 +85,7 @@ export default async function CheckoutPage({
         </p>
       )}
       <Link
-        href={`/packages/${pkg.id}`}
+        href={packagePath(pkg)}
         className="inline-flex items-center gap-2 text-sm font-semibold text-cmt-neutral-700 transition-colors hover:text-cmt-neutral-900"
       >
         <ArrowLeft className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />

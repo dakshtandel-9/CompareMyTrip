@@ -1,5 +1,6 @@
 "use client";
 
+import { packagePath } from "@/lib/packageUrls";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
@@ -89,7 +90,7 @@ function Field({
 function PickCard({ pkg }: { pkg: TravelPackage }) {
   return (
     <Link
-      href={pkg.href ?? `/packages/${pkg.id}`}
+      href={packagePath(pkg)}
       className="cmt-hero-pick group flex w-[290px] shrink-0 items-center gap-3 rounded-cmt-md border border-white/15 bg-slate-900/70 p-2.5 transition-colors hover:border-white/30 hover:bg-slate-800/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
     >
       <div className="cmt-hero-pick-image relative size-14 shrink-0 overflow-hidden rounded-cmt-sm bg-white/10">

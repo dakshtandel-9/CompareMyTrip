@@ -1,5 +1,6 @@
 "use client";
 
+import { packagePath } from "@/lib/packageUrls";
 import { getPlanComparison as attributesFor, hasTravellerRating, type ComparedAttributes } from "@/lib/planComparison";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -202,17 +203,15 @@ const ROWS: Row[] = [
   { label: "Ideal for", render: (pkg, attrs) => <ComparisonText key={attrs.bestFor} text={attrs.bestFor} label={`Ideal for ${pkg.title}`} /> },
   {
     label: "Traveller rating",
-    /* No row at all until at least one plan has real reviews. */
-    visible: (columns) => columns.some(hasTravellerRating),
-    render: (pkg) => hasTravellerRating(pkg)
-      ? <Rating value={pkg.rating} reviews={pkg.reviews} />
-      : <span className="text-cmt-neutral-500">No reviews yet</span>,
-    best: (columns) => columns.filter(hasTravellerRating).length < 2
-      ? -1
-      : strictBestIndex(
-          columns.map((pkg) => hasTravellerRating(pkg) ? pkg.rating : -1),
-          "max",
-        ),
+    /* Only when every plan being compared has real reviews — one plan
+       without them hides the whole row. */
+    visible: (columns) => columns.length > 0 && columns.every(hasTravellerRating),
+    render: (pkg) => <Rating value={pkg.rating} reviews={pkg.reviews} />,
+    best: (columns) =>
+      strictBestIndex(
+        columns.map((pkg) => pkg.rating),
+        "max",
+      ),
     bestLabel: "Top rated",
   },
 ];
@@ -406,7 +405,7 @@ export default function CompareSection() {
                       />
 
                       <Link
-                        href={pkg.href ?? `/packages/${pkg.id}`}
+                        href={packagePath(pkg)}
                         className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold text-cmt-neutral-900 transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                       >
                         Select package

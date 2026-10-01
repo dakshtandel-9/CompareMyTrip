@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   BadgePercent,
   BookOpen,
@@ -29,6 +30,7 @@ import {
 
 import { PACKAGE_CATEGORIES, type TravelPackage } from "@/lib/packageData";
 import { usePackages } from "@/lib/usePackages";
+import { ICON_LIBRARY } from "@/lib/adminIcons";
 import { internationalCardTarget } from "@/lib/internationalPackages";
 import {
   VISA_TYPES,
@@ -64,7 +66,7 @@ import {
   SectionHeaderFields,
   SelectField,
 } from "../_components/EditorParts";
-import { Button, Card, FieldLabel, TextArea, TextField, Toggle } from "../_components/ui";
+import { Button, Card, FieldLabel, SegmentedControl, TextArea, TextField, Toggle } from "../_components/ui";
 
 /* ------------------------------------------------------------------ */
 /* One editor per homepage section.                                    */
@@ -77,6 +79,68 @@ import { Button, Card, FieldLabel, TextArea, TextField, Toggle } from "../_compo
 
 const grid2 = "grid gap-4 sm:grid-cols-2";
 const grid3 = "grid gap-4 sm:grid-cols-3";
+
+type BadgeMode = "none" | "icon" | "text";
+
+/** The small badge at the top left of a trending card: nothing, one icon, or
+    a few words. Picking one clears the other, so the card never has to guess.
+    The choice is held here because "text" with nothing typed yet is stored the
+    same as "none". */
+function BadgeField({
+  value,
+  onChange,
+}: {
+  value: { icon: string; label: string } | undefined;
+  onChange: (badge: { icon: string; label: string }) => void;
+}) {
+  const icon = value?.icon.trim() ?? "";
+  const label = value?.label ?? "";
+  const [chosen, setChosen] = useState<BadgeMode | null>(null);
+  const mode: BadgeMode = chosen ?? (label.trim() ? "text" : icon ? "icon" : "none");
+
+  const choose = (next: BadgeMode) => {
+    setChosen(next);
+    if (next === "none") onChange({ icon: "", label: "" });
+    // Start on a real icon: a stored name that left the library would show a stand-in.
+    if (next === "icon") onChange({ icon: icon in ICON_LIBRARY ? icon : "Sparkles", label: "" });
+    if (next === "text") onChange({ icon: "", label });
+  };
+
+  return (
+    <div className="rounded-cmt-sm border border-cmt-neutral-200 bg-cmt-neutral-50 p-4">
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-cmt-neutral-700">
+        Optional badge (top left of card)
+      </h4>
+      <div className="mt-3 space-y-3">
+        <SegmentedControl
+          label="Badge shows"
+          value={mode}
+          options={[
+            { value: "none", label: "Nothing" },
+            { value: "icon", label: "An icon" },
+            { value: "text", label: "Text" },
+          ]}
+          onChange={choose}
+        />
+        {mode === "icon" && (
+          <IconPicker
+            label="Badge icon"
+            value={icon}
+            onChange={(name) => onChange({ icon: name, label: "" })}
+          />
+        )}
+        {mode === "text" && (
+          <TextField
+            label="Badge text"
+            value={label}
+            onChange={(text) => onChange({ icon: "", label: text })}
+            placeholder="Best seller"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
 
 /* ---------------------------- Contact ----------------------------- */
 
@@ -1008,29 +1072,11 @@ export function TrendingEditor({
                 placeholder="/packages"
               />
 
-              <div className="rounded-cmt-sm border border-cmt-neutral-200 bg-cmt-neutral-50 p-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-cmt-neutral-700">
-                  Optional badge (top left of card)
-                </h4>
-                <div className="mt-3 space-y-3">
-                  <IconPicker
-                    label="Badge icon"
-                    value={item.badge?.icon ?? ""}
-                    onChange={(icon) =>
-                      patch({ badge: { icon, label: item.badge?.label ?? "" } })
-                    }
-                  />
-                  {/* Either half can stand alone; publishing drops the badge once both are empty. */}
-                  <TextField
-                    label="Badge label"
-                    value={item.badge?.label ?? ""}
-                    onChange={(label) =>
-                      patch({ badge: { icon: item.badge?.icon ?? "", label } })
-                    }
-                    placeholder="Best seller"
-                  />
-                </div>
-              </div>
+              <BadgeField
+                key={item.id}
+                value={item.badge}
+                onChange={(badge) => patch({ badge })}
+              />
             </div>
           )}
         </ListEditor>

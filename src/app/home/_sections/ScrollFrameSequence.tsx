@@ -11,7 +11,7 @@ import { useSiteContent } from "@/lib/useSiteContent";
 // Versioned, fast-start encodes with a keyframe every two frames. Phones
 // download the smaller rendition; both retain the full original sequence.
 const DESKTOP_VIDEO_SRC = "/videos/hero-scroll-desktop-v3.mp4";
-const MOBILE_VIDEO_SRC = "/videos/hero-scroll-mobile-v3.mp4";
+const MOBILE_VIDEO_SRC = "/videos/hero-scroll-mobile-v4.mp4";
 const POSTER_SRC = "/videos/hero-combined-poster.jpg";
 
 // The slice of the hero's scroll that comes after the clip's last frame,
@@ -273,7 +273,9 @@ export default function ScrollFrameSequence() {
             alt=""
             fill
             preload
-            sizes="100vw"
+            /* Phones crop this 16:9 still to a tall card, filling its height,
+               so it renders about 16/9 of the viewport height wide. */
+            sizes="(max-width: 767px) 180vh, 100vw"
             className="cmt-hero-poster object-cover"
           />
           <video

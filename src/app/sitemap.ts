@@ -1,3 +1,4 @@
+import { packagePath } from "@/lib/packageUrls";
 import { BENGALURU_COLLECTIONS } from "@/lib/bengaluruCollections";
 import type { MetadataRoute } from "next";
 
@@ -32,7 +33,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   staticPages.push(
-    { url: absoluteUrl("/bengaluru"), changeFrequency: "weekly", priority: 0.9 },
     { url: absoluteUrl("/corporate-group-trips"), changeFrequency: "monthly", priority: 0.8 },
     ...BENGALURU_COLLECTIONS.map(item => ({ url: absoluteUrl(`/bengaluru/${item.slug}`), changeFrequency: "weekly" as const, priority: 0.8 })),
   );
@@ -42,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // A package can be live on the website and still be unfit to advertise —
     // see isIndexablePackage. The sitemap is the stricter of the two gates.
     if (!isIndexablePackage(pkg)) continue;
-    const path = pkg.href || `/packages/${pkg.id}`;
+    const path = packagePath(pkg);
     if (!path.startsWith("/") || path.includes("?")) continue;
     const url = absoluteUrl(path);
     if (seen.has(url)) continue;

@@ -10,6 +10,7 @@ import { buildDestinations, destinationHref } from "@/lib/destinations";
 import { destinationForPlace } from "@/lib/destinationContent";
 import { startVisibleAnimation } from "@/lib/visibleAnimation";
 import type { SiteContent } from "@/lib/siteContent";
+import { Glyph, ICON_LIBRARY } from "@/lib/adminIcons";
 import ContentImage from "../_components/ContentImage";
 import SectionHeader from "../_components/SectionHeader";
 
@@ -30,6 +31,8 @@ const DRIFT_PX_PER_SECOND = 60;
 const MOBILE_DRIFT_PX_PER_SECOND = 24;
 /** How long after a wheel/drag before the drift picks back up. */
 const RESUME_DELAY_MS = 2000;
+/** How long after the page stops scrolling before the drift picks back up. */
+const PAGE_SCROLL_HOLD_MS = 300;
 
 type TrendingItem = SiteContent["trending"]["items"][number] & {
   priceLabel: string;
@@ -93,7 +96,7 @@ export default function TrendingDestinations() {
 
     // Keep scrollLeft inside one period of the middle copy. The copies are
     // identical, so the correction is invisible.
-    const handleScroll = () => {
+    const wrap = () => {
       const period = setWidthRef.current;
       // A keyboard user focuses the accessible first copy. Wrapping that
       // scroll into a hidden duplicate would move their focused card away.
@@ -102,6 +105,18 @@ export default function TrendingDestinations() {
       if (offset >= period * 2) scroller.scrollLeft = offset - period;
       else if (offset < period) scroller.scrollLeft = offset + period;
     };
+    // Writing scrollLeft mid-swipe cancels a phone's momentum scroll and
+    // makes the rail jump, so a swipe wraps once it has come to rest. The
+    // spare copies on either side leave room for a full swipe until then.
+    let settle: ReturnType<typeof setTimeout> | undefined;
+    const handleScroll = () => {
+      clearTimeout(settle);
+      if (touchActive || performance.now() < holdUntil) settle = setTimeout(wrap, 150);
+      else wrap();
+    };
+    // Moving the rail while the page itself scrolls makes phones repaint it
+    // every frame, which reads as flicker. Hold the drift until the page rests.
+    const pageScroll = () => { holdUntil = Math.max(holdUntil, performance.now() + PAGE_SCROLL_HOLD_MS); };
 
     // Touch pointers also fire enter/leave; only a mouse can hover to pause.
     const enter = (event: PointerEvent) => {
@@ -113,7 +128,7 @@ export default function TrendingDestinations() {
     const focus = () => { focusInside = true; };
     const blur = (event: FocusEvent) => {
       focusInside = event.relatedTarget instanceof Node && scroller.contains(event.relatedTarget);
-      if (!focusInside) handleScroll();
+      if (!focusInside) wrap();
     };
     // Each reason holds independently: a swipe timeout must never restart
     // the drift while the pointer or keyboard focus is still reading a card.
@@ -130,6 +145,7 @@ export default function TrendingDestinations() {
     };
 
     scroller.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", pageScroll, { passive: true });
     scroller.addEventListener("pointerenter", enter);
     scroller.addEventListener("pointerleave", leave);
     scroller.addEventListener("focusin", focus);
@@ -155,8 +171,10 @@ export default function TrendingDestinations() {
 
     return () => {
       stopDrift();
+      clearTimeout(settle);
       resizeObserver.disconnect();
       scroller.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", pageScroll);
       scroller.removeEventListener("pointerenter", enter);
       scroller.removeEventListener("pointerleave", leave);
       scroller.removeEventListener("focusin", focus);
@@ -243,6 +261,10 @@ function TrendingCard({
   dest: TrendingItem;
   inert: boolean;
 }) {
+  const badgeText = dest.badge?.label.trim() ?? "";
+  // A name that left the icon library draws nothing rather than a stand-in.
+  const badgeIcon = dest.badge?.icon.trim() ?? "";
+  const badgeIconKnown = badgeIcon in ICON_LIBRARY ? badgeIcon : "";
   return (
     <Link
       href={dest.href}
@@ -264,15 +286,19 @@ function TrendingCard({
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
 
-      {/* Optional badge at the top left, editable per card in the admin. */}
-      {dest.badge && (
-        <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-cmt-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-cmt-neutral-900 backdrop-blur-sm">
-          {dest.badge.icon && (
-            <span className="h-3.5 w-3.5 text-cmt-primary-600">{dest.badge.icon}</span>
-          )}
-          <span>{dest.badge.label}</span>
+      {/* Optional badge at the top left, editable per card in the admin: an
+          icon or a short text, never both. The icon is stored by name, so it
+          has to be drawn — printing the name shows "TreePalm" on the card.
+          Text wins if older content carries both. */}
+      {badgeText ? (
+        <div className="absolute left-4 top-4 inline-flex items-center rounded-cmt-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-cmt-neutral-900">
+          {badgeText}
         </div>
-      )}
+      ) : badgeIconKnown ? (
+        <div className="absolute left-4 top-4 grid size-8 place-items-center rounded-cmt-full bg-white/90 text-cmt-primary-600">
+          <Glyph name={badgeIconKnown} className="size-4" />
+        </div>
+      ) : null}
 
       <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5">
         <div>
@@ -290,7 +316,9 @@ function TrendingCard({
         </div>
       </div>
 
-      <div className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-cmt-full bg-white/15 text-white opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
+      {/* Hover-only, so touch screens never pay for its backdrop blur: blurred
+          layers inside a scrolling rail flicker on phones. */}
+      <div className="absolute right-4 top-4 hidden h-9 w-9 items-center justify-center rounded-cmt-full bg-white/15 text-white opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100 [@media(hover:hover)]:flex">
         <MoveRight className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
       </div>
     </Link>

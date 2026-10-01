@@ -8,7 +8,8 @@ import JsonLd from "@/components/JsonLd";
 import PackageDetailClient from "./PackageDetailClient";
 import { isIndexablePackage } from "@/lib/packageData";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
-import { getPublishedPackage, getPublishedPackages } from "@/lib/serverContent";
+import { getPublishedPackageForUrl, getPublishedPackages } from "@/lib/serverContent";
+import { packagePath, packageSlug } from "@/lib/packageUrls";
 import { getSimilarPackages } from "@/lib/similarPackages";
 
 export const revalidate = 86400; // 24 hours
@@ -18,15 +19,16 @@ type PackagePageProps = { params: Promise<{ packageId: string }> };
 /* Same reasoning as the blog: the catalogue is known at build time, so the
    pages a crawler will ask for first are already built. A package added later
    is rendered on demand. Packages that redirect elsewhere via `href` are left
-   out — prerendering a permanent redirect gains nothing. */
+   out — prerendering a permanent redirect gains nothing. The segment is the
+   slug; old id and renamed-title URLs are served on demand as redirects. */
 export async function generateStaticParams() {
   const packages = await getPublishedPackages();
   return packages
-    .filter((pkg) => !pkg.href || pkg.href === `/packages/${pkg.id}`)
-    .map((pkg) => ({ packageId: pkg.id }));
+    .filter((pkg) => packagePath(pkg) === `/packages/${packageSlug(pkg)}`)
+    .map((pkg) => ({ packageId: packageSlug(pkg) }));
 }
 
-function packageDescription(pkg: Awaited<ReturnType<typeof getPublishedPackage>>) {
+function packageDescription(pkg: Awaited<ReturnType<typeof getPublishedPackageForUrl>>) {
   if (!pkg) return "";
   const authoredSummary = plainPackageText(pkg.details?.summary ?? "").trim();
   if (authoredSummary) return authoredSummary;
@@ -35,10 +37,10 @@ function packageDescription(pkg: Awaited<ReturnType<typeof getPublishedPackage>>
 
 export async function generateMetadata({ params }: PackagePageProps): Promise<Metadata> {
   const { packageId } = await params;
-  const pkg = await getPublishedPackage(packageId);
+  const pkg = await getPublishedPackageForUrl(packageId);
   if (!pkg) return { title: "Package Not Found", robots: { index: false, follow: false } };
 
-  const canonicalPath = pkg.href || `/packages/${pkg.id}`;
+  const canonicalPath = packagePath(pkg);
   return createPageMetadata({
     title: pkg.title,
     description: packageDescription(pkg),
@@ -53,11 +55,13 @@ export async function generateMetadata({ params }: PackagePageProps): Promise<Me
 
 export default async function PackageDetailPage({ params }: PackagePageProps) {
   const { packageId } = await params;
-  const pkg = await getPublishedPackage(packageId);
+  const pkg = await getPublishedPackageForUrl(packageId);
   if (!pkg) notFound();
-  if (pkg.href && pkg.href !== `/packages/${packageId}`) permanentRedirect(pkg.href);
+  // Old id URLs, former titles and `href` overrides all land on one address.
+  const path = packagePath(pkg);
+  if (path !== `/packages/${packageId}`) permanentRedirect(path);
 
-  const packageUrl = absoluteUrl(`/packages/${pkg.id}`);
+  const packageUrl = absoluteUrl(path);
   const schemaImages = pkg.details?.gallery?.length ? pkg.details.gallery : [pkg.image];
   const similarPackages = getSimilarPackages(pkg, await getPublishedPackages());
 

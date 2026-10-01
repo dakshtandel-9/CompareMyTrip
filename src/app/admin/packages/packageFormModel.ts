@@ -68,6 +68,8 @@ export function packageFromForm(form: PackageForm, initialPackage?: TravelPackag
       id: initialPackage?.id ?? "preview",
       ...(initialPackage?.weekendTrack !== undefined ? { weekendTrack: initialPackage.weekendTrack } : {}),
       ...(initialPackage?.href !== undefined ? { href: initialPackage.href } : {}),
+      ...(initialPackage?.slug !== undefined ? { slug: initialPackage.slug } : {}),
+      ...(initialPackage?.previousSlugs !== undefined ? { previousSlugs: initialPackage.previousSlugs } : {}),
       ...(form.trekGrade !== undefined ? { trekGrade: form.trekGrade } : {}),
       title: text(form.title), location: text(form.location), operator: text(form.operator), region: form.region,
       /* Headline destination for the catalogue's destination filter: the first

@@ -1,5 +1,6 @@
 "use client";
 
+import { packagePath } from "@/lib/packageUrls";
 import { BENGALURU, startsInBengaluru, matchesTraveller, matchesDepartureWindow } from "@/lib/bengaluruTravel";
 import { lockPageScroll } from "@/lib/lockPageScroll";
 
@@ -392,7 +393,7 @@ function PackageCard({
             </p>
           </div>
             <Link
-              href={pkg.href ?? `/packages/${pkg.id}`}
+              href={packagePath(pkg)}
               className="inline-flex h-10 shrink-0 after:absolute after:inset-0 after:content-[''] items-center justify-center rounded-cmt-control bg-cmt-primary-500 px-4 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-colors hover:bg-cmt-primary-600 focus-visible:outline-none focus-visible:shadow-[var(--cmt-focus-ring)]"
             >
               View

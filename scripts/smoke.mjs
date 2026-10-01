@@ -86,8 +86,8 @@ for (const [path, status] of [
   const res = await request(path, status, { method: 'POST' });
   await res.body?.cancel();
 }
-for (const [device, budget] of [['desktop', 8_000_000], ['mobile', 4_000_000]]) {
-  const path = `/videos/hero-scroll-${device}-v3.mp4`;
+for (const [rendition, budget] of [['desktop-v3', 8_000_000], ['mobile-v4', 4_000_000]]) {
+  const path = `/videos/hero-scroll-${rendition}.mp4`;
   const assertVideoHeaders = res => {
     assert.match(res.headers.get('content-type') || '', /^video\/mp4\b/i, `${path}: MP4 content type`);
     const cache = res.headers.get('cache-control') || '';

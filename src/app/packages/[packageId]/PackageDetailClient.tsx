@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import PackageLogistics from "@/components/PackageLogistics";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { packagePath } from "@/lib/packageUrls";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, BedDouble, CalendarDays, Check, ChevronDown, Hotel, MapPin, Moon, ShieldCheck, Star, Utensils, X } from "lucide-react";
 import { getDiscountPercent, getPackageDetails, getPackageItinerary } from "@/lib/packageData";
@@ -32,7 +32,6 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
   const editor = usePackageEditing();
   const PageRoot = preview ? "div" : "main";
   const legacyPreview = preview && !publicPreview;
-  const { packageId } = useParams<{ packageId: string }>();
   const authUser = useAuthUser();
   const packageState = usePackagesState();
   const [travellers, setTravellers] = useState(2);
@@ -42,7 +41,8 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
   const [travelDate, setTravelDate] = useState("");
   const [quoteOpen, setQuoteOpen] = useState(false);
   const router = useRouter();
-  const livePackage = packageState.packages.find((item) => item.id === packageId);
+  // By id: the URL segment is a slug, or an old id that is about to redirect.
+  const livePackage = packageState.packages.find((item) => item.id === initialPackage.id);
   const pkg = preview ? initialPackage : packageState.loading || packageState.error
     ? livePackage ?? initialPackage
     : livePackage;
@@ -97,14 +97,14 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
   const requestQuote = () => {
     if (bookingUnavailableReason) return;
     if (authUser === null) {
-      router.push(`/login?next=${encodeURIComponent(`/packages/${packageId}`)}`);
+      router.push(`/login?next=${encodeURIComponent(packagePath(pkg))}`);
       return;
     }
     if (authUser === undefined) return;
     setQuoteOpen(true);
   };
 
-  const packageMetadata = (<div className="cmt-package-metadata flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><span className="inline-flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" /><InlineText value={pkg.location} path={["location"]} label="Destination / route" /></span>{reviewCount > 0 && reviewRating > 0 ? <span className="inline-flex items-center gap-1.5"><Star className="size-4 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" /><b className="text-cmt-neutral-900">{reviewRating}</b> {reviewCount} traveller review{reviewCount === 1 ? "" : "s"}</span> : <span className="text-cmt-neutral-500">Newly listed &middot; no traveller reviews yet</span>}</div>);
+  const packageMetadata = (<div className="cmt-package-metadata flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cmt-neutral-600"><span className="inline-flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" /><InlineText value={pkg.location} path={["location"]} label="Destination / route" /></span>{reviewCount > 0 && reviewRating > 0 ? <span className="inline-flex items-center gap-1.5"><Star className="size-4 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" /><b className="text-cmt-neutral-900">{reviewRating}</b> {reviewCount} traveller review{reviewCount === 1 ? "" : "s"}</span> : null}</div>);
 
   const packageHeader = (
     <div className="cmt-package-header flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
@@ -131,7 +131,6 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
           <div className="cmt-package-content min-w-0 space-y-6">
         <EditableGallery images={details.gallery} />
         {!legacyPreview && packageMetadata}
-        <PackageLogistics pkg={pkg} />
         <div className="cmt-package-intro mt-6 space-y-4">
           {(editor || pageSections.tagline?.trim()) && <p className="max-w-3xl whitespace-pre-wrap break-words text-lg leading-7 text-cmt-neutral-600"><InlineText value={pageSections.tagline ?? ""} path={["details", "pageSections", "tagline"]} label="Tagline" multiline /></p>}{legacyPreview && packageMetadata}
           {(editor || pageSections.introduction?.trim()) && <p className="max-w-4xl whitespace-pre-wrap break-words text-sm leading-7 text-cmt-neutral-600"><InlineText value={pageSections.introduction ?? ""} path={["details", "pageSections", "introduction"]} label="Introduction" multiline /></p>}

@@ -1,5 +1,6 @@
 "use client";
 
+import { slugFieldsForSave, slugifyPackageTitle } from "@/lib/packageUrls";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Save, Undo2, Eye, Pencil } from "lucide-react";
 import { getPackageDetails, type TravelPackage } from "@/lib/packageData";
@@ -20,7 +21,7 @@ import { packageEditorSteps, packageValidationIssue, type PackageForm } from "./
 import { useUnsavedContentChanges } from "../content/useUnsavedContentChanges";
 
 const button = "inline-flex items-center gap-2 rounded-lg border border-cmt-neutral-200 bg-white px-3 py-2 text-xs font-semibold disabled:opacity-40";
-export default function AdminPackageBuilder({ initialPackage, initialDestination = "", initialRegion = "India", filedUnderOptions, protectedImages = [], onCancel, onSaved }: { initialPackage?: TravelPackage; initialDestination?: string; initialRegion?: TravelPackage["region"]; filedUnderOptions: Record<TravelPackage["region"], string[]>; protectedImages?: string[]; onCancel: () => void; onSaved: (message: string) => void }) {
+export default function AdminPackageBuilder({ initialPackage, existingPackages, initialDestination = "", initialRegion = "India", filedUnderOptions, protectedImages = [], onCancel, onSaved }: { initialPackage?: TravelPackage; existingPackages: TravelPackage[]; initialDestination?: string; initialRegion?: TravelPackage["region"]; filedUnderOptions: Record<TravelPackage["region"], string[]>; protectedImages?: string[]; onCancel: () => void; onSaved: (message: string) => void }) {
   const itemLabel = "package";
   const draftStorageKey = `${PACKAGE_DRAFT_IMAGE_KEY_PREFIX}${initialPackage?.id ?? "new-package"}`;
   const draftImagesRef = useRef<string[]>([]);
@@ -124,7 +125,10 @@ export default function AdminPackageBuilder({ initialPackage, initialDestination
       window.requestAnimationFrame(() => document.getElementById("package-save-error")?.scrollIntoView({ behavior: "smooth", block: "center" })); return;
     }
     const newPackage = packageFromForm(form, initialPackage);
-    if (!initialPackage) newPackage.id = `${form.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${Date.now().toString(36)}`;
+    // The suffix keeps two same-titled packages from sharing a document; the
+    // public URL is the slug, which drops it and is made unique on its own.
+    if (!initialPackage) newPackage.id = `${slugifyPackageTitle(form.title)}-${Date.now().toString(36)}`;
+    Object.assign(newPackage, slugFieldsForSave(newPackage, initialPackage, existingPackages));
     try {
       setSaving(true); const result = await savePackage(newPackage);
       // Retain images in hidden sections. Clean removed uploads only after the

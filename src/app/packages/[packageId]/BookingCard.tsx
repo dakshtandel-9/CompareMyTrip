@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BadgePercent, Flame, Minus, Plus, ShieldCheck } from "lucide-react";
-import { departureDays, departureDaysLabel, getDiscountPercent, getPackageBookingBadges, type PackageDetails, type TravelPackage } from "@/lib/packageData";
+import { DEFAULT_AVAILABILITY_NOTE, DEFAULT_QUOTE_NOTE, departureDays, departureDaysLabel, getDiscountPercent, getPackageBookingBadges, type PackageDetails, type TravelPackage } from "@/lib/packageData";
 import { PackageGlyph } from "@/lib/PackageGlyph";
 import DepartureDatePicker from "@/components/DepartureDatePicker";
 import TrekGradeBadge from "@/components/TrekGradeBadge";
@@ -40,8 +40,8 @@ export default function BookingCard({ bookingUnavailableReason, pkg, details, tr
      action asks for a quote instead of a custom plan. */
   const customPlanLabel = "Get a Custom Quote";
 
-  const availabilityNote = details.availabilityNote === "Availability confirmed after booking" || !details.availabilityNote ? "Confirm your preferred departure with our team before payment." : details.availabilityNote;
-  const quoteNote = bookingUnavailableReason ? "" : !details.quoteNote || /instant booking confirmation/i.test(details.quoteNote) ? "Secure payment · Your payment receipt does not confirm departure availability." : details.quoteNote;
+  const availabilityNote = details.availabilityNote?.trim() ? details.availabilityNote : DEFAULT_AVAILABILITY_NOTE;
+  const quoteNote = bookingUnavailableReason ? "" : details.quoteNote?.trim() ? details.quoteNote : DEFAULT_QUOTE_NOTE;
 
   const step = (delta: number) => onTravellersChange(Math.min(Math.max(travellers + delta, 1), 20));
 

@@ -2,6 +2,8 @@
 
 import {
   departureDays,
+  DEFAULT_AVAILABILITY_NOTE,
+  DEFAULT_QUOTE_NOTE,
   departureDaysLabel,
   getDiscountPercent,
   getPackageDetails,
@@ -177,12 +179,12 @@ export default function PackageBookingFields({ pkg, change, disabled, pricing }:
         <legend className="pr-3 text-base font-semibold">Booking card notes</legend>
         <div>
           <label htmlFor="package-booking-availability-note" className={label}>Availability note</label>
-          <textarea id="package-booking-availability-note" className={field} rows={2} value={details.availabilityNote ?? "Availability confirmed with your quote"} onChange={event => update(["details", "availabilityNote"], event.target.value)} aria-describedby="package-booking-availability-note-help" />
+          <textarea id="package-booking-availability-note" className={field} rows={2} value={details.availabilityNote ?? DEFAULT_AVAILABILITY_NOTE} onChange={event => update(["details", "availabilityNote"], event.target.value)} aria-describedby="package-booking-availability-note-help" />
           <p id="package-booking-availability-note-help" className={hint}>Appears below the price. Clear this field to hide the note.</p>
         </div>
         <div>
           <label htmlFor="package-booking-quote-note" className={label}>Quote note</label>
-          <textarea id="package-booking-quote-note" className={field} rows={2} value={details.quoteNote ?? "🔒 Secure payment · Instant booking confirmation"} onChange={event => update(["details", "quoteNote"], event.target.value)} aria-describedby="package-booking-quote-note-help" />
+          <textarea id="package-booking-quote-note" className={field} rows={2} value={details.quoteNote ?? DEFAULT_QUOTE_NOTE} onChange={event => update(["details", "quoteNote"], event.target.value)} aria-describedby="package-booking-quote-note-help" />
           <p id="package-booking-quote-note-help" className={hint}>Appears in the booking card’s action area. Clear this field to hide the note.</p>
         </div>
         <p className="text-xs leading-5 text-cmt-neutral-500">The cancellation-policy link appears when cancellation policy content is provided. Edit that content in the package’s policy section.</p>

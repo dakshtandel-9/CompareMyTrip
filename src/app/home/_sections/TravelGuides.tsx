@@ -55,7 +55,6 @@ export default function TravelGuides() {
           actionHref={header.actionHref}
         />
 
-        <Link href="/bengaluru" className="mt-5 inline-flex min-h-11 items-center font-semibold underline underline-offset-4">Bengaluru weekend, family and group planning guides</Link>
         <ul className="cmt-mobile-rail mt-8 grid grid-cols-1 gap-6 sm:mt-10 md:grid-cols-3">
           {items.map((guide) => (
             <li key={guide.id}>
