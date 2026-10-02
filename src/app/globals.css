@@ -209,6 +209,7 @@ body {
   --cmt-color-neutral-500: #64748b;
   --cmt-color-neutral-600: #475569;
   --cmt-color-neutral-700: #334155;
+  --cmt-color-neutral-800: #1e293b;
   --cmt-color-neutral-900: #0f172a;
 
   /* Secondary — dark utility surfaces (design.md §3.2) */
@@ -267,6 +268,7 @@ body {
   --color-cmt-neutral-500: var(--cmt-color-neutral-500);
   --color-cmt-neutral-600: var(--cmt-color-neutral-600);
   --color-cmt-neutral-700: var(--cmt-color-neutral-700);
+  --color-cmt-neutral-800: var(--cmt-color-neutral-800);
   --color-cmt-neutral-900: var(--cmt-color-neutral-900);
 
   --color-cmt-secondary-900: var(--cmt-color-secondary-900);
