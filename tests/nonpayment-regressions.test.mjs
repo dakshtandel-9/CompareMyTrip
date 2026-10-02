@@ -95,6 +95,7 @@ function content(db) {
     '@/lib/firebase/admin': { getAdminDb: () => db }, '@/lib/packageData': packages,
     '@/lib/packageSeed': { DUMMY_PACKAGES: [] },
     '@/lib/cruiseListings': { isPublishedCruise: (cruise) => (cruise.status ?? 'published') === 'published' },
+    '@/lib/packageUrls': load('src/lib/packageUrls.ts'),
   });
 }
 
@@ -124,7 +125,7 @@ test('CMS revalidation rejects guests and another origin, then immediately expir
   const events = [];
   const route = load('src/app/api/admin/revalidate-content/route.ts', {
     'next/cache': { revalidateTag: (...args) => events.push(['tag', ...args]), revalidatePath: (...args) => events.push(['path', ...args]) },
-    '@/lib/adminApiGuard': { isFirebaseAdmin: async () => authorized, notFound: () => new Response(null, { status: 404 }) },
+    '@/lib/serverAdminGuard': { isFirebaseAdmin: async () => authorized, notFound: () => new Response(null, { status: 404 }) },
   });
   const req = origin => new Request('https://example.com/api/admin/revalidate-content', { method: 'POST', headers: { origin } });
   assert.equal((await route.POST(req('https://example.com'))).status, 404);

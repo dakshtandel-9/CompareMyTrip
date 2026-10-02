@@ -1,6 +1,8 @@
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 
+import { isFirebaseAdmin } from "@/lib/serverAdminGuard";
+
 export const runtime = "nodejs";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -33,30 +35,6 @@ function r2Config() {
       credentials: { accessKeyId, secretAccessKey },
     }),
   };
-}
-
-async function isFirebaseAdmin(request: Request) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  if (!token || !apiKey || !projectId) return false;
-  const authResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(apiKey)}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ idToken: token }),
-    cache: "no-store",
-  });
-  if (!authResponse.ok) return false;
-
-  const authResult = await authResponse.json() as { users?: Array<{ localId?: string }> };
-  const uid = authResult.users?.[0]?.localId;
-  if (!uid) return false;
-
-  const adminResponse = await fetch(
-    `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents/admins/${encodeURIComponent(uid)}`,
-    { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
-  );
-  return adminResponse.ok;
 }
 
 export async function POST(request: Request) {

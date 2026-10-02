@@ -73,8 +73,8 @@ test('empty notes stay intentionally hidden while missing notes retain the publi
   delete pkg.details.availabilityNote;
   delete pkg.details.quoteNote;
   const legacy = setup(pkg);
-  assert.equal(legacy.get('package-booking-availability-note').props.value, 'Availability confirmed with your quote');
-  assert.equal(legacy.get('package-booking-quote-note').props.value, '🔒 Secure payment · Instant booking confirmation');
+  assert.equal(legacy.get('package-booking-availability-note').props.value, 'Confirm Itinerary / Availability before Booking');
+  assert.equal(legacy.get('package-booking-quote-note').props.value, '🔒 Secure & Safe Payment');
   pkg.details.availabilityNote = '';
   pkg.details.quoteNote = '';
   pkg.details.bookingLabel = '';

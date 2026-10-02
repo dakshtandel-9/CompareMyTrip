@@ -77,6 +77,7 @@ function harness({ saveError, refreshWarning = '', uploadFails = [], uploadBarri
     'lucide-react': Object.fromEntries(['ArrowLeft', 'Save', 'Undo2', 'Eye', 'Pencil'].map(name => [name, noop])),
     '@/lib/packageData': data, '@/lib/packageDetailSections': sections,
     '@/lib/packageImages': images,
+    '@/lib/packageUrls': load('src/lib/packageUrls.ts'),
     '@/lib/firebase/packages': {
       savePackage: async value => { calls.saved.push(clone(value)); if (saveError) throw new Error(saveError); return { refreshWarning }; },
       uploadPackageImage: async file => { calls.uploaded.push(file.name); if (uploadBarrier) await uploadBarrier; if (uploadFails.includes(file.name)) throw new Error('Upload failed'); return `https://cdn.example/${file.name}`; },
@@ -102,7 +103,7 @@ function harness({ saveError, refreshWarning = '', uploadFails = [], uploadBarri
   });
   const render = () => {
     cursor = 0; effects = [];
-    const result = Builder({ initialPackage: pkg, protectedImages, filedUnderOptions: { India: ['Karnataka'], International: [] }, onCancel: () => { calls.cancelled++; }, onSaved: message => calls.success.push(message) });
+    const result = Builder({ initialPackage: pkg, existingPackages: [pkg], protectedImages, filedUnderOptions: { India: ['Karnataka'], International: [] }, onCancel: () => { calls.cancelled++; }, onSaved: message => calls.success.push(message) });
     effects.forEach(callback => callback());
     return result;
   };

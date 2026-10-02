@@ -13,7 +13,7 @@ import {
   redirectUri,
   saveIntegration,
 } from "@/lib/googleBusinessServer";
-import { isFirebaseAdmin, notFound } from "@/lib/adminApiGuard";
+import { isFirebaseAdmin, notFound } from "@/lib/serverAdminGuard";
 
 export const runtime = "nodejs";
 

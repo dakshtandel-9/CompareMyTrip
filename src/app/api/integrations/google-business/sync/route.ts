@@ -9,7 +9,7 @@
 /* ------------------------------------------------------------------ */
 
 import { NotApprovedError, saveIntegration, syncGoogleReviews } from "@/lib/googleBusinessServer";
-import { isFirebaseAdmin, notFound } from "@/lib/adminApiGuard";
+import { isFirebaseAdmin, notFound } from "@/lib/serverAdminGuard";
 
 export const runtime = "nodejs";
 /* Pulling every review of every location runs well past the default. */

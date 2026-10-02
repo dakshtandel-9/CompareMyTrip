@@ -28,7 +28,7 @@ function harness({ integration = {}, published, fetcher = () => { throw new Erro
     }, require(name) {
       if (name === 'server-only') return {};
       if (name === '@/lib/firebase/admin') return { getAdminDb: () => db };
-      if (name === '@/lib/adminApiGuard') return { isFirebaseAdmin: async () => admin, notFound: () => new Response(null, { status: 404 }) };
+      if (name === '@/lib/serverAdminGuard') return { isFirebaseAdmin: async () => admin, notFound: () => new Response(null, { status: 404 }) };
       if (name === 'node:crypto') return { timingSafeEqual: (a, b) => a.equals(b) };
       assert.ok(name.startsWith('@/lib/'), `Unexpected import ${name}`);
       return load(`src/${name.slice(2)}.ts`);

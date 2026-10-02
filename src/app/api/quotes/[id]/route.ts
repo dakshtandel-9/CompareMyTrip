@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { FieldValue } from 'firebase-admin/firestore';
-import { isFirebaseAdmin } from '@/lib/adminApiGuard';
+import { isFirebaseAdmin } from '@/lib/serverAdminGuard';
 import { quoteStorage } from '@/lib/quoteStorage';
 import { MAX_QUOTE_BYTES } from '@/lib/quoteUpload';
 

@@ -81,7 +81,9 @@ function service(initial = { 'trips/CMT1': base() }, states = {}) {
   const databaseState = database(initial);
   const firebase = { FieldValue: { serverTimestamp: () => ({ operation: 'time' }), arrayUnion: (...values) => ({ operation: 'union', values }) }, Timestamp: { fromMillis: stamp }, FieldPath: { documentId: () => '__name__' } };
   const admin = { getAdminDb: () => databaseState.db };
-  const settle = load('src/lib/firebase/serverTrips.ts', { './admin': admin, 'firebase-admin/firestore': firebase });
+  const notifications = [];
+  const settle = load('src/lib/firebase/serverTrips.ts', { './admin': admin, 'firebase-admin/firestore': firebase,
+    '../bookingEmails': { notifyPaidBooking: async (tripId, booking) => { notifications.push({ tripId, booking }); } } });
   let nextId = 0;
   const verifications = [];
   const helpers = load('src/lib/serverPendingPayments.ts', {
@@ -93,7 +95,7 @@ function service(initial = { 'trips/CMT1': base() }, states = {}) {
       return new Map(ids.map(id => [id, { txnid: id, state: states[id] || 'not_found', amount: '8498.00', payuPaymentId: `PAYU-${id}`, paymentMode: 'UPI', failureReason: '' }]));
     } },
   });
-  return { ...databaseState, ...helpers, ...settle, verifications };
+  return { ...databaseState, ...helpers, ...settle, verifications, notifications };
 }
 
 test('pending bookings disappear at exactly 48 hours, independently of updatedAt or travel date', () => {
@@ -255,6 +257,33 @@ test('duplicate success is idempotent, and distinct paid attempts are flagged fo
   assert.deepEqual(Array.from(app.store.get('trips/CMT1').duplicatePaymentIds), ['RETRY1']);
 });
 
+test('a booking is announced once, on the move to paid, whichever path settles it', async () => {
+  const app = service({ 'trips/CMT1': base({ activePaymentId: 'RETRY1' }) });
+  await app.settleTrip(outcome({ paymentStatus: 'failed' }));
+  assert.equal(app.notifications.length, 0);
+  // Two concurrent arrivals of the same success (redirect and reconciliation).
+  await Promise.all([app.settleTrip(outcome({ txnid: 'RETRY1', tripId: 'CMT1' })), app.settleTrip(outcome({ txnid: 'RETRY1', tripId: 'CMT1' }))]);
+  // A second, distinct paid attempt is flagged for review, not announced again.
+  await app.settleTrip(outcome({ txnid: 'RETRY2', tripId: 'CMT1' }));
+  assert.equal(app.notifications.length, 1);
+  const [{ tripId, booking }] = app.notifications;
+  assert.equal(tripId, 'CMT1');
+  assert.equal(booking.email, 'test@example.com');
+  assert.equal(booking.packageTitle, 'Test trip');
+  assert.equal(booking.amount, 8498);
+  assert.equal(booking.reportedAmount, 8498);
+  assert.equal(booking.amountMismatch, false);
+  assert.equal(booking.payuPaymentId, 'PAYU1');
+});
+
+test('a mismatched amount is still announced, carrying the flag for the desk', async () => {
+  const app = service();
+  await app.settleTrip(outcome({ reportedAmount: '100.00' }));
+  assert.equal(app.notifications.length, 1);
+  assert.equal(app.notifications[0].booking.amountMismatch, true);
+  assert.equal(app.notifications[0].booking.reportedAmount, 100);
+});
+
 test('closing an admin request changes only the review, not payment status or amount', async () => {
   const app = service();
   await app.reportPendingPayment('CMT1', 'owner', 'UTR12345', '');
@@ -301,7 +330,7 @@ test('customer and admin routes reject unauthenticated requests before running a
   assert.equal(response.status, 401); assert.equal(invoked, false);
   const admin = load('src/app/api/admin/payment-reports/route.ts', {
     '@/lib/serverPendingPayments': { ...app, listPaymentReports: async () => { invoked = true; } },
-    '@/lib/paymentApi': api, '@/lib/adminApiGuard': { isFirebaseAdmin: async () => false, notFound: () => Response.json({}, { status: 404 }) },
+    '@/lib/paymentApi': api, '@/lib/serverAdminGuard': { isFirebaseAdmin: async () => false, notFound: () => Response.json({}, { status: 404 }) },
   });
   assert.equal((await admin.GET(new Request('http://localhost/api/admin/payment-reports'))).status, 404);
   assert.equal(invoked, false);

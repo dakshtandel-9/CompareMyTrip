@@ -231,6 +231,7 @@ const { default: PackageDetailClient } = load('src/app/packages/[packageId]/Pack
   'lucide-react': icons,
   '@/lib/packageData': data,
   '@/lib/similarPackages': load('src/lib/similarPackages.ts'),
+  '@/lib/packageUrls': load('src/lib/packageUrls.ts'),
   '@/app/home/_components/PackageCard': { default: ({ pkg }) => React.createElement('article', { 'data-related-package': pkg.id }, pkg.title) },
   '@/lib/packageFacts': { getPackageFacts: () => [] },
   '@/lib/packageDetailSections': model,

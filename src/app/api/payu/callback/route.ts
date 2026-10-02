@@ -90,7 +90,7 @@ export async function POST(request: Request) {
     console.error("trip could not be settled", cause);
   });
 
-  // TODO: email the traveller and the ops inbox once a mail provider exists.
+  // settleTrip emails the traveller and the travel desk on the move to paid.
   return NextResponse.redirect(status, 303);
 }
 

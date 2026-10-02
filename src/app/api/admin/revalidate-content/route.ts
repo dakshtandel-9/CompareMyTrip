@@ -1,5 +1,5 @@
 import { revalidatePath, revalidateTag } from "next/cache";
-import { isFirebaseAdmin, notFound } from "@/lib/adminApiGuard";
+import { isFirebaseAdmin, notFound } from "@/lib/serverAdminGuard";
 
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");

@@ -49,6 +49,9 @@ const productSchema = object({
 Object.assign(productSchema.properties!, {
   trekGrade: number(0, 3), bookingLabel: str(), availabilityNote: str(), quoteNote: str(),
 });
+// Hotel stars and room extras arrived after version 1, and are optional on a stay.
+const staySchema = productSchema.properties!.stays.items!;
+staySchema.required = staySchema.required!.filter(key => key !== "stars" && key !== "roomInclusion");
 
 export const PACKAGE_IMPORT_SCHEMA = object({ kind: choice(["comparemytrip.product"]), version: { type: "integer", enum: [1] }, product: productSchema });
 

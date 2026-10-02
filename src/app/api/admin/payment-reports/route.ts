@@ -1,4 +1,4 @@
-import { isFirebaseAdmin, notFound } from "@/lib/adminApiGuard";
+import { isFirebaseAdmin, notFound } from "@/lib/serverAdminGuard";
 import { checkBookingPayment, listPaymentReports, PaymentActionError, resolvePaymentReport } from "@/lib/serverPendingPayments";
 import { paymentBody, paymentError, paymentJson, paymentText } from "@/lib/paymentApi";
 

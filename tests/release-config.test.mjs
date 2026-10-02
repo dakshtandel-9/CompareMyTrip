@@ -72,8 +72,9 @@ test('normal release also blocks partially enabled live payments', () => {
 
 test('live release requires explicit enablement and complete approved policies', () => {
   assert.match(releaseProblems(env, { live: true, policies }).join('\n'), /Live PayU settings are not enabled/);
-  const liveEnv = { ...env, PAYU_MODE: 'live', PAYU_LIVE_PAYMENTS_ENABLED: 'true' };
+  const liveEnv = { ...env, PAYU_MODE: 'live', PAYU_LIVE_PAYMENTS_ENABLED: 'true', RESEND_API_KEY: 're_test' };
   assert.deepEqual(releaseProblems(liveEnv, { live: true, policies }), []);
+  assert.match(releaseProblems({ ...liveEnv, RESEND_API_KEY: '' }, { live: true, policies }).join('\n'), /RESEND_API_KEY is missing/);
   assert.match(releaseProblems(liveEnv, { policies: policies.replace('"Test Address"', '""') }).join('\n'), /Business detail address is missing/);
   assert.match(releaseProblems(liveEnv, { policies: `// ${policies}` }).join('\n'), /Business policies have not been approved/);
 });

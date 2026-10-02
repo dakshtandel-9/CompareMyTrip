@@ -40,7 +40,7 @@ function guard({ tokenValid = true, member = true, disabled = false, offline = f
 function session(verify) {
   return load('src/app/api/admin/preview-session/route.ts', {
     'next/server': { NextResponse },
-    '@/lib/adminApiGuard': { isFirebaseAdmin: verify },
+    '@/lib/serverAdminGuard': { isFirebaseAdmin: verify },
     '@/lib/adminPreview': preview,
   });
 }

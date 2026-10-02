@@ -203,6 +203,7 @@ test('admin Save uses the shared editor draft, waits for text imports, preserves
     'lucide-react': Object.fromEntries(['ArrowLeft','Save','Undo2','Eye','Pencil'].map(name => [name, noop])),
     '@/lib/packageData': data, '@/lib/packageDetailSections': sections,
     '@/lib/packageImages': load('src/lib/packageImages.ts', { '@/lib/packageData': data, '@/lib/packageDetailSections': sections }),
+    '@/lib/packageUrls': load('src/lib/packageUrls.ts'),
     '@/lib/firebase/packages': { savePackage: async pkg => saved.push(pkg), uploadPackageImage: async () => '/uploaded.jpg' },
     '@/lib/cloudflareUpload': { PACKAGE_DRAFT_IMAGE_KEY_PREFIX: 'test-', deleteImageFromCloudflare: async () => {} },
     '@/lib/packageAiImport': { applyPackageImport: () => {} },
@@ -224,7 +225,7 @@ test('admin Save uses the shared editor draft, waits for text imports, preserves
     require: name => { assert.ok(dependencies[name], name); return dependencies[name]; },
   });
   const pkg = fixture(); let tree;
-  function render() { cursor = 0; tree = exports.default({ initialPackage: pkg, filedUnderOptions: { India: [], International: [] }, onCancel() {}, onSaved: text => messages.push(text) }); }
+  function render() { cursor = 0; tree = exports.default({ initialPackage: pkg, existingPackages: [pkg], filedUnderOptions: { India: [], International: [] }, onCancel() {}, onSaved: text => messages.push(text) }); }
   function nodes(node) { if (!node || typeof node !== 'object') return []; if (Array.isArray(node)) return node.flatMap(nodes); return [node, ...nodes(node.props?.children)]; }
   const editor = () => nodes(tree).find(node => node.type === DetailEditor);
   const io = () => nodes(tree).find(node => node.type === ContentIOContext.Provider);

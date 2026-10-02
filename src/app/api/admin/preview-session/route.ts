@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isFirebaseAdmin } from "@/lib/adminApiGuard";
+import { isFirebaseAdmin } from "@/lib/serverAdminGuard";
 import { ADMIN_PREVIEW_COOKIE } from "@/lib/adminPreview";
 
 function sessionResponse(request: Request, authorized: boolean, token = "", status = 200) {

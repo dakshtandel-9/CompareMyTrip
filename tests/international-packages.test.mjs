@@ -19,6 +19,7 @@ function load(file, dependencies = {}) {
 const data = { ...load('src/lib/packageData.ts'), ...load('src/lib/packageSeed.ts') };
 const { internationalCardTarget: target } = load('src/lib/internationalPackages.ts', {
   '@/lib/packageData': data,
+  '@/lib/packageUrls': load('src/lib/packageUrls.ts'),
 });
 /** Just the package a card resolves to, which is what these first cases check. */
 const resolve = (card, packages) => target(card, packages).pkg;

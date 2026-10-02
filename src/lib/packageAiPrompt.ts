@@ -14,7 +14,7 @@ export const PACKAGE_IMPORT_EXAMPLE = {
       { day: 1, title: "Arrival and town walk", route: "Example City → Example Hills", description: "", meals: "", activities: [{ time: "", title: "Town walk", description: "Explore the town with your guide." }] },
       { day: 2, title: "Return journey", route: "Example Hills → Example City", description: "", meals: "Breakfast", activities: [{ time: "", title: "Return transfer", description: "Return to Example City after breakfast." }] },
     ],
-    stays: [{ name: "Example Lodge", nights: 1, place: "Example Hills", comfort: "Unrated", roomType: "Twin sharing", mealPlan: "Breakfast", checkIn: "Day 1", checkOut: "Day 2" }],
+    stays: [{ name: "Example Lodge", nights: 1, place: "Example Hills", comfort: "Unrated", roomType: "Twin sharing", mealPlan: "Breakfast", checkIn: "Day 1", checkOut: "Day 2", stars: 0, roomInclusion: "" }],
     inclusions: ["One night at Example Lodge", "Breakfast on Day 2", "Return transfers", "Guided town walk"], exclusions: ["Lunch and dinner"],
     meals: "Breakfast on Day 2", transfers: "Return transfers from Example City", flights: "", cancellationPolicy: "",
     pageSections: {

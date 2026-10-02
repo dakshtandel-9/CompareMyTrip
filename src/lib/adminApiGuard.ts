@@ -1,7 +1,9 @@
-/* The same admin check the uploads route uses: verify the Firebase ID
-   token, then confirm that uid is in `admins`. Kept in its own module so
-   every route under /api/integrations shares one definition of "admin"
-   rather than four drifting copies. */
+/* The admin check for the Edge middleware: verify the Firebase ID token,
+   then confirm that uid is in `admins`, over REST because the Admin SDK
+   cannot run on the Edge. Node route handlers use serverAdminGuard instead:
+   these REST lookups carry no App Check token, so once App Check is enforced
+   for Firestore this check fails closed (an admin preview while coming-soon
+   mode is on stops working; nothing is exposed). */
 
 export async function isFirebaseAdmin(request: Request, signal?: AbortSignal): Promise<boolean> {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");

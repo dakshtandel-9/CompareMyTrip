@@ -52,6 +52,7 @@ export function releaseProblems(env, { live = false, policies = '' } = {}) {
   // A normal release must also reject a half-enabled live configuration.
   if (live || env.PAYU_MODE === 'live') {
     if (env.PAYU_MODE !== 'live' || env.PAYU_LIVE_PAYMENTS_ENABLED !== 'true') problems.push('Live PayU settings are not enabled.');
+    if (!env.RESEND_API_KEY?.trim()) problems.push('RESEND_API_KEY is missing, so paid bookings would get no confirmation email.');
     if (!/^\s*export const LEGAL_POLICIES_APPROVED:\s*boolean\s*=\s*true\s*;/m.test(policies)) problems.push('Business policies have not been approved.');
     for (const field of ['legalName', 'address', 'supportEmail', 'supportPhone']) {
       if (!new RegExp(`${field}:\\s*"[^"\\s][^"]*"`).test(policies)) problems.push(`Business detail ${field} is missing.`);

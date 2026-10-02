@@ -2,6 +2,7 @@ import { FieldValue } from "firebase-admin/firestore";
 
 import { getAdminDb } from "./admin";
 import type { PaymentStatus } from "./trips";
+import { notifyPaidBooking, type PaidBooking } from "../bookingEmails";
 
 /* ------------------------------------------------------------------ */
 /* Server-side writes to `trips`. Never import into a client component. */
@@ -79,8 +80,13 @@ export async function settleTrip(input: {
   if (!/^[A-Za-z0-9_-]{1,100}$/.test(tripId)) throw new Error("Invalid booking reference.");
   const ref = db.collection("trips").doc(tripId);
   const reportRef = db.collection("paymentReports").doc(tripId);
+  // Set by the attempt that commits the move to "successful". A transaction
+  // that retries starts over, and one that finds the trip already paid
+  // leaves it unset, so each booking is announced once.
+  const outcome: { paid?: PaidBooking } = {};
 
   await db.runTransaction(async tx => {
+    outcome.paid = undefined;
     const snapshot = await tx.get(ref);
     const report = await tx.get(reportRef);
     const data = snapshot.data();
@@ -109,20 +115,29 @@ export async function settleTrip(input: {
       paidAt: input.paymentStatus === "successful" ? FieldValue.serverTimestamp() : null,
       updatedAt: FieldValue.serverTimestamp(),
     };
-    if (snapshot.exists) tx.update(ref, result);
-    else {
-      tx.set(ref, {
+    let written: Record<string, unknown>;
+    if (snapshot.exists) {
+      tx.update(ref, result);
+      written = { ...data, ...result };
+    } else {
+      written = {
         txnid: tripId, userId: "", packageId: "", packageTitle: "Unmatched PayU transaction",
         travellers: 0, perPerson: 0, subtotal: Number.isFinite(amount) ? amount : 0,
         discount: 0, couponCode: "", couponLabel: "", amount: Number.isFinite(amount) ? amount : 0,
         name: "", email: "", phone: "", tripStatus: "awaiting_confirmation", tripDate: "",
         createdAt: FieldValue.serverTimestamp(), ...input.recovery, ...backup, ...result,
         amountMismatch: mismatch || (!backup && !input.recovery?.userId),
-      });
+      };
+      tx.set(ref, written);
+    }
+    if (input.paymentStatus === "successful") {
+      outcome.paid = { ...written, ...(Number.isFinite(amount) ? { reportedAmount: amount } : {}) } as PaidBooking;
     }
     if (report.exists && input.paymentStatus === "successful" && !mismatch) {
       tx.update(reportRef, { status: "resolved", adminNote: "Payment confirmed by PayU.", updatedAt: FieldValue.serverTimestamp() });
       tx.update(ref, { paymentReportStatus: "resolved" });
     }
   });
+
+  if (outcome.paid) await notifyPaidBooking(tripId, outcome.paid);
 }

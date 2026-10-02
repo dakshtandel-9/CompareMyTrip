@@ -85,7 +85,7 @@ test('expired PDFs cannot be downloaded, even before the cleanup runs', async ()
   let signed = false;
   const route = load('src/app/api/quotes/[id]/route.ts', {
     '@/lib/quoteUpload': shared,
-    '@/lib/adminApiGuard': { isFirebaseAdmin: async () => true },
+    '@/lib/serverAdminGuard': { isFirebaseAdmin: async () => true },
     '@/lib/quoteStorage': { quoteStorage: () => ({ db: { collection: () => ({ doc: () => ({ get: async () => ({ data: () => ({ state: 'ready', expiresAt: { toMillis: () => Date.now() - 1 } }) }) }) }) }, bucket: { signDownload: async () => { signed = true; return 'url'; } } }) },
   });
   const response = await route.GET(new Request('http://localhost/api/quotes/abcdefghijklmnopqrst'), { params: Promise.resolve({ id: 'abcdefghijklmnopqrst' }) });

@@ -52,6 +52,8 @@ const { default: Editor, PACKAGE_EDITOR_AREAS } = load('src/app/admin/packages/P
   './PackagePageSectionsEditor': { default: SectionsEditor },
   './PackageContentField': { default: ContentField },
   './PackageDestinationSelect': { default: DestinationSelect },
+  './StayPhotoField': { default: noop },
+  './ActivityPhotosField': { default: noop },
   './AdminPackageBuilder.module.css': { default: new Proxy({}, { get: (_, key) => key }) },
 });
 const clone = value => JSON.parse(JSON.stringify(value));
