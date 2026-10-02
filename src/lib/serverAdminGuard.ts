@@ -3,11 +3,9 @@ import { getAdminAuth, getAdminDb } from "./firebase/admin";
 /* The admin check for Node route handlers: verify the Firebase ID token and
    look up `admins/{uid}` with the Admin SDK.
 
-   adminApiGuard asks Firestore's REST API the same question with the caller's
-   own token, which App Check enforcement rejects, because that request comes
-   from the server and carries no App Check token. The Admin SDK is exempt, so
-   this keeps the CRM working once App Check is enforced. adminApiGuard remains
-   for the Edge middleware, where the Admin SDK cannot run.
+   adminApiGuard delegates the Edge middleware check to a Node route using this
+   guard. The Admin SDK bypasses App Check enforcement, so admin preview and
+   CRM requests continue working when Firestore enforcement is enabled.
 
    checkRevoked also refuses tokens of disabled or signed-out accounts. */
 

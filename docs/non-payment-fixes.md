@@ -2,6 +2,10 @@
 
 These are local changes following **test report 2**. Payment integration remains deferred. The website and Firebase rules have not been deployed by this task. Existing package-editor and page-section changes were preserved.
 
+## App Check status — 3 October 2026
+
+The Firebase App Check API confirms that the registered web app has a reCAPTCHA Enterprise key and that it matches the current local build key. Cloud Firestore and Authentication are both still `UNENFORCED`. The Firebase Console is accessible with the intended account and shows the web app registered with Fraud Defense. Firestore's last-hour metrics showed 268 verified requests out of 269, while the seven-day total was 2.2K out of 30K; most older requests were classified as outdated clients. The service account cannot list reCAPTCHA Enterprise keys, so the key's allowed domains have not been independently checked. The Edge admin-preview check now delegates to `/api/admin/preview-check`, where the Admin SDK verifies the token and admin membership without a Firestore client request. This local change must be deployed before Firestore enforcement is enabled. Real successful form submissions and post-deployment App Check metrics remain unverified.
+
 ## Implemented
 
 - Maintenance retains the last verified setting during outages and closes a cold worker conservatively. Middleware supplies its decision to the coming-soon page, preventing a second lookup from turning a redirect into a 404. The setting is read through a same-origin server endpoint using Firebase Admin; only the public boolean is returned. Sign-in and administration remain reachable.
@@ -34,7 +38,7 @@ The public preview was a temporary source copy with only its maintenance decisio
 | Requirement | Current evidence / next step |
 | --- | --- |
 | Private quote storage | `CLOUDFLARE_R2_QUOTE_BUCKET_NAME` is missing. Current R2 credentials returned `AccessDenied` for bucket discovery. Supply a separate private bucket and appropriately scoped access, then test the real upload/download/cleanup lifecycle. |
-| App Check | No Enterprise site key is configured locally or in the registered app's returned config. Firestore and authentication currently report `UNENFORCED`. The account cannot list reCAPTCHA keys. Configure the real key/domains, validate browser and server/admin flows, and review metrics before enforcement. |
+| App Check | The local build key matches the registered Enterprise provider. Firestore and Authentication report `UNENFORCED`. The Console shows recent Firestore traffic is almost entirely verified, but key/domain details remain unavailable to the service account. Deploy the App Check-compatible admin-preview route, validate real browser/server flows, and review fresh metrics before enforcing Firestore. |
 | Google reviews | Both the Google Business integration document and synced review document are absent. Connect the intended business and authorize its review sync. Unverified sample reviews remain hidden. |
 | Business policies | Supply the legal business name, address and support email, then approve the actual terms/privacy/refund copy. The approval flag remains false. |
 | Trek content and claims | Supply the approved itinerary and verify remaining package/operator/contact claims. CRM verification controls do not themselves establish that a claim is true. |

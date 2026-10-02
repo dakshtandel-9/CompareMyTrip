@@ -22,16 +22,32 @@ const preview = load('src/lib/adminPreview.ts');
 const settings = load('src/lib/comingSoon.ts');
 
 function guard({ tokenValid = true, member = true, disabled = false, offline = false } = {}) {
+  const calls = { verified: [], read: [] };
+  const guardModule = load('src/lib/serverAdminGuard.ts', {
+    './firebase/admin': {
+      getAdminAuth: () => ({ verifyIdToken: async (token, checkRevoked) => {
+        calls.verified.push({ token, checkRevoked });
+        if (offline || !tokenValid || disabled) throw new Error('not authorized');
+        return { uid: 'verified-uid' };
+      } }),
+      getAdminDb: () => ({ collection: name => ({ doc: id => ({ get: async () => {
+        calls.read.push(`${name}/${id}`);
+        if (offline) throw new Error('offline');
+        return { exists: member };
+      } }) }) }),
+    },
+    './adminApiGuard': { notFound: () => 'not-found' },
+  });
+  return { ...guardModule, calls };
+}
+
+function edgeGuard({ authorized = true, offline = false } = {}) {
   const calls = [];
   const guardModule = load('src/lib/adminApiGuard.ts', {}, {
-    process: { env: { NEXT_PUBLIC_FIREBASE_API_KEY: 'test-key', NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'test-project' } },
     fetch: async (url, options) => {
-      calls.push({ url, options });
+      calls.push({ url: String(url), options });
       if (offline) throw new Error('offline');
-      if (url.includes('accounts:lookup')) return { ok: tokenValid, json: async () => ({ users: [{ localId: 'verified-uid', disabled }] }) };
-      assert.match(url, /\/admins\/verified-uid$/);
-      assert.equal(options.headers.Authorization, 'Bearer firebase-token');
-      return { ok: member };
+      return { ok: authorized, json: async () => ({ authorized }) };
     },
   });
   return { ...guardModule, calls };
@@ -44,9 +60,19 @@ function session(verify) {
     '@/lib/adminPreview': preview,
   });
 }
+function previewCheck(verify) {
+  return load('src/app/api/admin/preview-check/route.ts', {
+    '@/lib/serverAdminGuard': { isFirebaseAdmin: verify },
+  });
+}
 function request(method = 'POST', origin = 'https://example.com') {
   return new Request('https://example.com/api/admin/preview-session', {
     method, headers: { origin, authorization: 'Bearer firebase-token' },
+  });
+}
+function checkRequest(origin = 'https://example.com') {
+  return new Request('https://example.com/api/admin/preview-check', {
+    method: 'POST', headers: { origin, authorization: 'Bearer firebase-token' },
   });
 }
 
@@ -64,21 +90,58 @@ test('preview requires a verified Firebase identity and current admin membership
     assert.equal(cookie.secure, true);
     assert.equal(cookie.sameSite, 'lax');
     assert.match(response.headers.get('cache-control'), /private.*no-store/);
-    for (const call of verifier.calls) {
-      assert.equal(call.options.cache, 'no-store');
-      assert.ok(call.options.signal);
-    }
+    assert.deepEqual(verifier.calls.verified, [{ token: 'firebase-token', checkRevoked: true }]);
+    assert.deepEqual(verifier.calls.read, options.tokenValid === false || options.disabled
+      ? []
+      : ['admins/verified-uid']);
   }
 });
 
-test('failed verification clears existing preview access and sign-out expires its cookie', async () => {
+test('unavailable admin verification clears preview access and sign-out expires its cookie', async () => {
   const routes = session(guard({ offline: true }).isFirebaseAdmin);
   const failed = await routes.POST(request());
-  assert.equal(failed.status, 503);
+  assert.equal(failed.status, 403);
   assert.equal(failed.cookies.get(preview.ADMIN_PREVIEW_COOKIE).maxAge, 0);
   const signedOut = await routes.DELETE(request('DELETE'));
   assert.equal(signedOut.status, 200);
   assert.equal(signedOut.cookies.get(preview.ADMIN_PREVIEW_COOKIE).maxAge, 0);
+});
+
+test('Edge admin checks use the same-origin Node route, which works with Firestore App Check enforced', async () => {
+  const edge = edgeGuard();
+  const request = new Request('https://example.com/packages/bali', {
+    headers: { authorization: 'Bearer firebase-token' },
+  });
+  assert.equal(await edge.isFirebaseAdmin(request, AbortSignal.timeout(1000)), true);
+  assert.equal(edge.calls.length, 1);
+  assert.equal(edge.calls[0].url, 'https://example.com/api/admin/preview-check');
+  assert.equal(edge.calls[0].options.method, 'POST');
+  assert.equal(edge.calls[0].options.headers.authorization, 'Bearer firebase-token');
+  assert.equal(edge.calls[0].options.headers.origin, 'https://example.com');
+  assert.equal(edge.calls[0].options.cache, 'no-store');
+
+  assert.equal(await edgeGuard({ authorized: false }).isFirebaseAdmin(request), false);
+  assert.equal(await edgeGuard({ offline: true }).isFirebaseAdmin(request), false);
+  assert.equal(await edge.isFirebaseAdmin(new Request('https://example.com/'), undefined), false);
+});
+
+test('Node preview-check validates same-origin calls and returns only the authorization result', async () => {
+  const verifier = guard();
+  const route = previewCheck(verifier.isFirebaseAdmin);
+  const allowed = await route.POST(checkRequest());
+  assert.equal(allowed.status, 200);
+  assert.deepEqual(await allowed.json(), { authorized: true });
+  assert.equal(allowed.headers.get('cache-control'), 'private, no-store, max-age=0');
+
+  const denied = await previewCheck(guard({ member: false }).isFirebaseAdmin).POST(checkRequest());
+  assert.equal(denied.status, 403);
+  assert.deepEqual(await denied.json(), { authorized: false });
+
+  let checks = 0;
+  const crossOrigin = await previewCheck(async () => { checks++; return true; }).POST(checkRequest('https://attacker.example'));
+  assert.equal(crossOrigin.status, 403);
+  assert.deepEqual(await crossOrigin.json(), { authorized: false });
+  assert.equal(checks, 0);
 });
 
 test('another origin cannot establish or clear an admin preview session', async () => {

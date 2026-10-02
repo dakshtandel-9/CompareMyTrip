@@ -121,10 +121,14 @@ Reference: [Firebase Google sign-in](https://firebase.google.com/docs/auth/web/g
 Enable the reCAPTCHA Enterprise API and create a website key for the real site domains.
 Register the web app's provider in Firebase App Check. Put the site key into
 `NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY` in both the build environment and local testing
-configuration. Inspect valid requests, then enable **Cloud Firestore enforcement** and
-exercise contact, newsletter and trip-planning forms. Do not enforce before a valid client
-configuration is deployed. Monitor usage and billing; App Check does not provide per-user
-rate limiting. [Enterprise provider setup](https://firebase.google.com/docs/app-check/web/recaptcha-enterprise-provider).
+configuration. Confirm the build key matches the registered web-app key. Deploy the app
+including `/api/admin/preview-check` before enforcement: the Edge coming-soon gate uses this
+same-origin Node route to check admin membership with the Admin SDK, which bypasses App Check.
+Then inspect valid requests and test contact, newsletter, trip-planning, sign-in and admin
+preview flows. Enable **Cloud Firestore enforcement** only after those checks pass; leave
+Authentication unenforced unless it is separately configured and tested. Monitor usage and
+billing; App Check does not provide per-user rate limiting.
+[Enterprise provider setup](https://firebase.google.com/docs/app-check/web/recaptcha-enterprise-provider).
 
 ### Private quote uploads
 
