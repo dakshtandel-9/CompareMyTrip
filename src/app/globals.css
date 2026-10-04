@@ -61,101 +61,48 @@ body {
   textarea { font-size: 16px; }
 }
 
-/* Branded first-load and route-transition screen. */
-.cmt-site-loader {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: grid;
-  place-items: center;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(255, 196, 12, 0.1), transparent 30%),
-    #ffffff;
-  opacity: 1;
-  transition: opacity 300ms ease, visibility 300ms ease;
-  /* Failsafe past WebsiteLoader's 10s cap: if the script that lifts the
-     screen never runs, the page underneath still becomes reachable. */
-  animation: cmt-loader-failsafe 0s 15s forwards;
+/* The ₹ glyph alone, cut (with every weight) from Inter's and Space
+   Grotesk's Latin Extended files, both SIL Open Font License 1.1. Every
+   price uses ₹, and Google's subsets file it under Latin Extended, so
+   without these ~1 KB faces each first visit downloads that whole range
+   (~85 KB Inter, ~19 KB Space Grotesk) for one character. Listed first in
+   the font stacks below; text with other Latin Extended letters still loads
+   the full files. Rename the file when re-cutting: it is cached immutably. */
+@font-face {
+  font-family: "CMT Rupee Body";
+  src: url("/fonts/inter-rupee-v1.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+20B9;
 }
 
-@keyframes cmt-loader-failsafe {
-  to {
-    visibility: hidden;
-    opacity: 0;
-  }
+@font-face {
+  font-family: "CMT Rupee Display";
+  src: url("/fonts/space-grotesk-rupee-v1.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+  unicode-range: U+20B9;
 }
 
-.cmt-site-loader--leaving {
-  visibility: hidden;
-  opacity: 0;
+/* Bands below the first screen skip style, layout and paint until they come
+   near the viewport, and the lazy images inside them wait too, so the hero
+   and header are not competing with them on a phone. `auto` remembers each
+   band's real height once rendered, so scrolling back up does not jump. The
+   train banner opts out: its video starts buffering well ahead of view. */
+.cmt-home > section:not(.cmt-render-ahead),
+.cmt-footer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 720px;
 }
 
-.cmt-site-loader__content {
-  display: flex;
-  width: min(78vw, 290px);
-  flex-direction: column;
-  align-items: center;
-}
-
-.cmt-site-loader__logo {
-  width: 100%;
-  height: auto;
-}
-
-.cmt-site-loader__track {
-  position: relative;
-  width: min(58vw, 220px);
-  height: 3px;
-  margin-top: 30px;
-  overflow: hidden;
-  border-radius: 9999px;
-  background: #e2e8f0;
-}
-
-.cmt-site-loader__progress {
-  position: absolute;
-  inset-block: 0;
-  left: -45%;
-  width: 45%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #e8ac00, #ffc40c, #ffeda6);
-  box-shadow: 0 0 14px rgba(255, 196, 12, 0.5);
-  animation: cmt-loader-progress 1.05s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-}
-
-.cmt-site-loader__label {
-  margin-top: 15px;
-  color: #64748b;
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-}
-
-@keyframes cmt-loader-progress {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(325%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  /* The failsafe animation stays: it is not motion, it is an exit. */
-  .cmt-site-loader {
-    transition: none;
-  }
-
-  .cmt-site-loader__progress {
-    animation: none;
-    transition: none;
-  }
-
-  .cmt-site-loader__progress {
-    left: 0;
-    width: 100%;
-  }
+/* Repeated cards in long listings render as they come near the viewport,
+   so the lazy photos further down a list stop downloading alongside the
+   first screen. Only the height is estimated: widths come from the grid or
+   rail track, and the real height is remembered once a card has rendered. */
+.cmt-offscreen-card,
+.cmt-catalog-card {
+  content-visibility: auto;
+  contain-intrinsic-height: auto 440px;
 }
 
 /* FAQ accordion (§15.5 C-6) — slide the panel open over 300ms instead of
@@ -301,8 +248,8 @@ body {
   --shadow-cmt-xl: var(--cmt-shadow-xl);
   --shadow-cmt-primary: var(--cmt-shadow-primary);
 
-  --font-display: var(--font-space-grotesk), "Segoe UI", system-ui, sans-serif;
-  --font-body: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "CMT Rupee Display", var(--font-space-grotesk), "Segoe UI", system-ui, sans-serif;
+  --font-body: "CMT Rupee Body", var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 @media (prefers-reduced-motion: no-preference) {

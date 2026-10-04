@@ -24,7 +24,7 @@ Day 0 is explicit and additional to the trip's numbered days. Prices are INR per
 
 ## Icons
 
-Products use exactly 1,000 supported icon names. The prompt and picker use `src/lib/packageIconNames.json`; rendered icons use `public/package-icons.svg`. The shared picker retains its existing catalogue for other admin screens. To regenerate the product assets after intentionally changing the icon set, run:
+Products use exactly 1,000 supported icon names. The prompt and picker use `src/lib/packageIconNames.json`; rendered icons use one file per icon in `public/package-icons/`. The shared picker retains its existing catalogue for other admin screens. To regenerate the product assets after intentionally changing the icon set, run:
 
 ```sh
 node scripts/generate-package-icons.mjs

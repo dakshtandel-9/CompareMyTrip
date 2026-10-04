@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { shouldLoadVideo, videoSource } from "@/lib/videoSource";
 import { Sparkles } from "lucide-react";
@@ -52,18 +53,27 @@ export default function TrainFrameBanner() {
   if (!trainBanner.enabled) return null;
 
   return (
-    <section className="flex w-full justify-center bg-white p-3 sm:p-4 md:p-6">
+    <section className="cmt-render-ahead flex w-full justify-center bg-white p-3 sm:p-4 md:p-6">
       <div className="relative h-auto min-h-0 w-full max-w-[1440px] overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:h-[58vh] sm:max-h-[500px] sm:min-h-[360px] sm:rounded-3xl">
         {/* No `loop`: the clip runs once and holds on its final frame.
             A small left-anchored zoom crops the train fragment at the right
-            edge of the footage and its poster without stretching either. */}
+            edge of the footage and its poster without stretching either.
+            The poster is an ordinary lazy image under the video rather than
+            its poster attribute, which browsers fetch as soon as the page is
+            parsed; the video stays transparent until it has a frame. */}
+        <Image
+          src="/videos/trainvideo1-poster.jpg"
+          alt=""
+          fill
+          sizes="(max-width: 1440px) 100vw, 1440px"
+          className="origin-left scale-[1.03] object-cover"
+        />
         <video
           ref={videoRef}
           className="absolute inset-0 h-full w-full origin-left scale-[1.03] object-cover"
           muted
           playsInline
           preload={loadVideo ? "auto" : "none"}
-          poster="/videos/trainvideo1-poster.jpg"
           aria-hidden="true"
           tabIndex={-1}
         >

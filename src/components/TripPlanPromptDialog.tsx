@@ -1,37 +1,10 @@
 "use client";
 
-import { lockPageScroll } from "@/lib/lockPageScroll";
-
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ArrowRight,
-  CalendarDays,
-  CheckCircle2,
-  ChevronDown,
-  IndianRupee,
-  Mail,
-  MapPin,
-  ShieldCheck,
-  Sparkles,
-  UserRound,
-  Users,
-  X,
-} from "lucide-react";
-
-import PhoneNumberField from "@/components/PhoneNumberField";
-import { usePackages } from "@/lib/usePackages";
-import { buildDestinations } from "@/lib/destinations";
+import { useEffect, useState } from "react";
 import { onSiteReady } from "@/lib/siteReady";
-import {
-  DEPARTURE_TYPES,
-  DEPARTURE_TYPE_LABELS,
-  FOOD_PREFERENCES,
-  FOOD_PREFERENCE_LABELS,
-  savePopupLead,
-  type DepartureType,
-  type FoodPreference,
-} from "@/lib/firebase/popupLeads";
+import { hasSubmittedTripPrompt } from "@/lib/tripPrompt";
 
 /* ------------------------------------------------------------------ */
 /* The timed pop-up. It asks a browsing visitor what trip they want and  */
@@ -41,39 +14,29 @@ import {
 /* only browsing should not be asked for a password to get a quote.      */
 /*                                                                      */
 /* It only ever opens by itself on the homepage, a few seconds after the */
-/* loading screen lifts, and at most once per document load: closing it  */
+/* visitor starts browsing (their first scroll, tap or key press once    */
+/* the page has loaded), and at most once per document load: closing it  */
 /* lasts until the next refresh. A visitor who has already sent the form */
 /* is remembered in localStorage and never prompted again.               */
+/*                                                                      */
+/* This part is mounted on every page and only decides when to open. The */
+/* form, with the catalogue and Firestore code it needs, loads the first */
+/* time it opens.                                                        */
 /* ------------------------------------------------------------------ */
+
+const TripPlanPromptForm = dynamic(() => import("./TripPlanPromptForm"), { ssr: false });
 
 const HOME_PATH = "/";
 const PROMPT_DELAY_MS = 6000;
+/* What counts as the visitor starting to browse. */
+const ENGAGEMENT_EVENTS = ["scroll", "pointerdown", "keydown"] as const;
 /* When the timer lands while the visitor is typing or another modal is up,
    wait this long and look again rather than interrupting them. */
 const PROMPT_RETRY_MS = 3000;
-/* Matches the exit animation in globals.css (.cmt-trip-prompt). */
-const EXIT_MS = 180;
-const SUBMITTED_KEY = "cmt:trip-prompt-submitted";
 
 /* Lives for the document, not the component: SiteExperience can remount the
    dialog, and neither that nor a trip back to the homepage should re-arm it. */
 let promptedThisLoad = false;
-
-const hasSubmitted = () => {
-  try {
-    return window.localStorage.getItem(SUBMITTED_KEY) === "1";
-  } catch {
-    return false;
-  }
-};
-
-const rememberSubmitted = () => {
-  try {
-    window.localStorage.setItem(SUBMITTED_KEY, "1");
-  } catch {
-    /* Private mode or blocked storage: the lead is still sent. */
-  }
-};
 
 const visitorIsBusy = () => {
   const active = document.activeElement;
@@ -83,65 +46,24 @@ const visitorIsBusy = () => {
   );
 };
 
-/* Offered when the catalogue has not loaded yet, so the picker is never
-   empty on a cold first paint. The visitor can type anything regardless. */
-const FALLBACK_DESTINATIONS = [
-  "Kashmir", "Kerala", "Goa", "Rajasthan", "Himachal Pradesh", "Uttarakhand",
-  "Andaman", "Ladakh", "Meghalaya", "Sikkim", "Bali", "Thailand",
-  "Dubai", "Singapore", "Maldives", "Vietnam", "Sri Lanka", "Nepal",
-];
-
-const fieldClass =
-  "h-12 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white px-4 font-body text-[16px] text-cmt-neutral-900 shadow-cmt-xs outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-cmt-neutral-400 hover:border-cmt-neutral-300 focus:border-2 focus:border-cmt-primary-500 focus:ring-[3px] focus:ring-cmt-primary-500/20";
-const labelClass =
-  "mb-2 block text-xs font-semibold uppercase leading-[1.4] tracking-[0.008em] text-cmt-neutral-500";
-
-const todayISO = () => new Date().toISOString().slice(0, 10);
-
 export default function TripPlanPromptDialog() {
   const pathname = usePathname();
-  const packages = usePackages();
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const closeTimerRef = useRef<number | null>(null);
 
   /* "auto" is the homepage timer; "request" is an explicit open from a
      product action, which is allowed on any page. */
   const [trigger, setTrigger] = useState<"auto" | "request" | null>(null);
-  const [closing, setClosing] = useState(false);
+  const [formLoaded, setFormLoaded] = useState(false);
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("+91");
-  const [destinations, setDestinations] = useState<string[]>([]);
-  const [destinationDraft, setDestinationDraft] = useState("");
-  const [departureType, setDepartureType] = useState<DepartureType>("group");
-  const [foodPreference, setFoodPreference] = useState<FoodPreference>("veg");
-  const [travelDate, setTravelDate] = useState("");
-  const [travellers, setTravellers] = useState("2");
-  const [budget, setBudget] = useState("");
-
-  const [error, setError] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  /* Real destinations from the catalogue, so the suggestions are places we
-     actually sell. Falls back to a static list until packages arrive. */
-  const suggestions = useMemo(() => {
-    const live = buildDestinations(packages).map((destination) => destination.name);
-    return (live.length ? live : FALLBACK_DESTINATIONS)
-      .filter((suggestion) => !destinations.includes(suggestion))
-      .slice(0, 40);
-  }, [packages, destinations]);
-
-  /* The timer starts once the visitor is on the homepage and the first-load
-     screen has lifted, and is dropped the moment they leave, so it can never
-     fire over another page or over the loader. */
+  /* The timer starts once the visitor is on the homepage, the page has
+     loaded and they have started browsing it, so a page still loading or
+     not yet looked at is never covered. It is dropped the moment they
+     leave, so it can never fire over another page. */
   useEffect(() => {
-    if (pathname !== HOME_PATH || promptedThisLoad || hasSubmitted()) return;
+    if (pathname !== HOME_PATH || promptedThisLoad || hasSubmittedTripPrompt()) return;
 
     let timer = 0;
     const attempt = () => {
-      if (promptedThisLoad || hasSubmitted()) return;
+      if (promptedThisLoad || hasSubmittedTripPrompt()) return;
       if (visitorIsBusy()) {
         timer = window.setTimeout(attempt, PROMPT_RETRY_MS);
         return;
@@ -149,11 +71,17 @@ export default function TripPlanPromptDialog() {
       promptedThisLoad = true;
       setTrigger((current) => current ?? "auto");
     };
-    const stopWaiting = onSiteReady(() => {
+    const stopListening = () => ENGAGEMENT_EVENTS.forEach((type) => window.removeEventListener(type, engaged));
+    function engaged() {
+      stopListening();
       timer = window.setTimeout(attempt, PROMPT_DELAY_MS);
+    }
+    const stopWaiting = onSiteReady(() => {
+      ENGAGEMENT_EVENTS.forEach((type) => window.addEventListener(type, engaged, { passive: true }));
     });
     return () => {
       stopWaiting();
+      stopListening();
       window.clearTimeout(timer);
     };
   }, [pathname]);
@@ -161,12 +89,7 @@ export default function TripPlanPromptDialog() {
   /* Product actions can open this same form immediately, so there is one
      enquiry experience across the site. */
   useEffect(() => {
-    const handleRequest = () => {
-      if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-      setClosing(false);
-      setTrigger("request");
-    };
+    const handleRequest = () => setTrigger("request");
     window.addEventListener("cmt:open-trip-prompt", handleRequest);
     return () => window.removeEventListener("cmt:open-trip-prompt", handleRequest);
   }, []);
@@ -176,386 +99,8 @@ export default function TripPlanPromptDialog() {
   if (trigger === "auto" && pathname !== HOME_PATH) setTrigger(null);
 
   const open = trigger !== null;
+  if (open && !formLoaded) setFormLoaded(true);
+  if (!formLoaded) return null;
 
-  /* showModal() is what gives the focus trap, the inert background and Esc
-     without hand-rolling any of them. The entrance animation is plain CSS
-     on [open], so it runs on the first painted frame with nothing to race. */
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (open && dialog && !dialog.open) dialog.showModal();
-  }, [open]);
-
-  /* Keep the page behind the modal completely still. The form retains its
-     own scroll container, and the previous page styles are restored when the
-     visitor closes the prompt. */
-  useEffect(() => {
-    if (!open) return;
-
-    return lockPageScroll({ root: true });
-  }, [open]);
-
-  /* Plays the exit animation, then unmounts. The pending timer guards against
-     Esc and the button both landing during those few frames. */
-  const close = () => {
-    if (closeTimerRef.current !== null) return;
-    setClosing(true);
-
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    closeTimerRef.current = window.setTimeout(() => {
-      closeTimerRef.current = null;
-      setClosing(false);
-      setTrigger(null);
-      window.dispatchEvent(new Event("cmt:trip-prompt-dismissed"));
-    }, reducedMotion ? 0 : EXIT_MS);
-  };
-
-  const addDestination = (value: string) => {
-    const trimmed = value.trim();
-    if (!trimmed) return;
-    setDestinations((current) =>
-      current.length >= 12 || current.some((item) => item.toLowerCase() === trimmed.toLowerCase())
-        ? current
-        : [...current, trimmed],
-    );
-    setDestinationDraft("");
-  };
-
-  const removeDestination = (value: string) =>
-    setDestinations((current) => current.filter((item) => item !== value));
-
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError("");
-
-    /* A destination typed but not committed with Enter still counts — losing
-       it because the visitor went straight for the button would be rude. */
-    const draft = destinationDraft.trim();
-    const chosen = draft && !destinations.some((item) => item.toLowerCase() === draft.toLowerCase())
-      ? [...destinations, draft]
-      : destinations;
-
-    const phoneDigits = phone.replace(/\D/g, "");
-    const travellerCount = Number(travellers);
-    const budgetvalue = budget.trim() ? Number(budget.replace(/[^\d]/g, "")) : 0;
-
-    if (name.trim().length < 2) return setError("Please enter your name.");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setError("Please enter a valid email address.");
-    if (phoneDigits.length < 7 || phoneDigits.length > 15) return setError("Please enter a valid phone number.");
-    if (!chosen.length) return setError("Tell us where you would like to go.");
-    if (!travelDate) return setError("Please choose your travel date.");
-    if (!Number.isFinite(travellerCount) || travellerCount < 1 || travellerCount > 60)
-      return setError("Please enter between 1 and 60 travellers.");
-
-    setSending(true);
-    try {
-      await savePopupLead({
-        name,
-        email,
-        phone,
-        destinations: chosen,
-        departureType,
-        foodPreference,
-        travelDate,
-        travellers: travellerCount,
-        budgetPerPerson: Number.isFinite(budgetvalue) ? budgetvalue : 0,
-        pagePath: pathname,
-      });
-      rememberSubmitted();
-      setDestinations(chosen);
-      setDestinationDraft("");
-      setSent(true);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Your request could not be sent. Please try again.");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  if (!open) return null;
-
-  return (
-    <dialog
-      ref={dialogRef}
-      aria-labelledby="trip-prompt-title"
-      data-closing={closing ? "" : undefined}
-      onClose={close}
-      onCancel={(event) => {
-        event.preventDefault();
-        close();
-      }}
-      className="cmt-phone-dialog cmt-trip-prompt m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[560px] overflow-hidden rounded-cmt-lg border-0 bg-transparent p-0 backdrop:bg-[rgba(15,23,42,0.48)]"
-    >
-      <div
-        className="relative flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-cmt-lg bg-cmt-white font-body text-cmt-neutral-900 shadow-cmt-xl"
-      >
-        <button
-          type="button"
-          onClick={close}
-          aria-label="Close and keep browsing"
-          className={`absolute right-4 top-4 z-10 grid size-11 place-items-center rounded-cmt-control border transition-colors duration-200 focus-visible:shadow-[var(--cmt-focus-ring)] focus-visible:outline-none ${
-            sent
-              ? "border-cmt-neutral-200 bg-white text-cmt-neutral-600 hover:border-cmt-neutral-300 hover:bg-cmt-neutral-50 hover:text-cmt-neutral-900"
-              : "border-white/15 bg-white/10 text-white hover:bg-white/20"
-          }`}
-        >
-          <X size={18} strokeWidth={2} aria-hidden="true" />
-        </button>
-
-        {sent ? (
-          <div className="p-8 text-center sm:p-10">
-            <span className="mx-auto grid size-14 place-items-center rounded-cmt-full bg-cmt-success-100 text-cmt-success-700">
-              <CheckCircle2 className="size-7" aria-hidden="true" />
-            </span>
-            <h2 id="trip-prompt-title" className="mt-5 font-display text-2xl font-semibold">
-              Request received
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-cmt-neutral-600">
-              Our travel team will call you on {phone} with quotes for{" "}
-              {destinations.join(", ")}.
-            </p>
-            <button
-              type="button"
-              onClick={close}
-              className="mt-6 h-11 rounded-cmt-control bg-cmt-primary-500 px-6 text-sm font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary focus-visible:shadow-[var(--cmt-focus-ring)] focus-visible:outline-none"
-            >
-              Keep browsing
-            </button>
-          </div>
-        ) : (
-          <>
-            <header className="shrink-0 bg-cmt-neutral-900 px-6 py-6 pr-20 text-white sm:px-8 sm:pr-20">
-              <span className="inline-flex items-center gap-1.5 rounded-cmt-full bg-white/10 px-3 py-1 text-xs font-semibold text-cmt-primary-400">
-                <Sparkles className="size-3.5" aria-hidden="true" /> Free trip planning
-              </span>
-              <h2
-                id="trip-prompt-title"
-                className="mt-3 text-balance font-display text-[24px] font-semibold leading-[1.2] tracking-[-0.005em] sm:text-[26px]"
-              >
-                Planning a holiday? Let us help.
-              </h2>
-              <p className="mt-2 text-pretty text-[14px] leading-[1.55] text-cmt-neutral-300">
-                Share your trip and our travel experts will call you with a personalised quote.
-              </p>
-            </header>
-
-            <form
-              onSubmit={submit}
-              noValidate
-              className="flex min-h-0 flex-1 flex-col"
-            >
-              <div className="cmt-trip-prompt-fields min-h-0 overflow-y-auto overscroll-contain px-5 py-5 sm:px-8 sm:py-6">
-                {error ? (
-                  <p
-                    id="trip-prompt-error"
-                    role="alert"
-                    className="mb-5 rounded-cmt-control border border-cmt-error-500/20 bg-cmt-error-100 px-4 py-3 text-sm leading-6 text-cmt-error-700"
-                  >
-                    {error}
-                  </p>
-                ) : null}
-
-                <div className="grid gap-4">
-                  <label className="block">
-                    <span className={labelClass}>Name *</span>
-                    <span className="relative block">
-                      <UserRound className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-500" aria-hidden="true" />
-                      <input
-                        required
-                        autoComplete="name"
-                        value={name}
-                        onChange={(event) => setName(event.target.value)}
-                        placeholder="Your full name"
-                        className={`${fieldClass} pl-11`}
-                      />
-                    </span>
-                  </label>
-
-                  <PhoneNumberField
-                    required
-                    compactCountryCode
-                    value={phone}
-                    onChange={setPhone}
-                    label={<>Phone number *</>}
-                    labelClassName={labelClass.replace("mb-2 block", "block")}
-                  />
-                </div>
-
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className={labelClass}>Email *</span>
-                    <span className="relative block">
-                      <Mail className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-500" aria-hidden="true" />
-                      <input
-                        required
-                        type="email"
-                        autoComplete="email"
-                        value={email}
-                        onChange={(event) => setEmail(event.target.value)}
-                        placeholder="you@example.com"
-                        className={`${fieldClass} pl-11`}
-                      />
-                    </span>
-                  </label>
-
-                  {/* Chips plus free text: visitors are never limited to the catalogue. */}
-                  <div>
-                    <label id="trip-prompt-destination-label" htmlFor="trip-prompt-destination" className={labelClass}>
-                      Where to? (one or more) *
-                    </label>
-                    <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded-cmt-control border border-cmt-neutral-200 bg-white px-3 py-1.5 shadow-cmt-xs transition-[border-color,box-shadow] duration-200 hover:border-cmt-neutral-300 focus-within:border-2 focus-within:border-cmt-primary-500 focus-within:ring-[3px] focus-within:ring-cmt-primary-500/20">
-                      <MapPin className="size-4 shrink-0 text-cmt-neutral-500" aria-hidden="true" />
-                      {destinations.map((destination) => (
-                        <span
-                          key={destination}
-                          className="cmt-trip-prompt-destination inline-flex items-center gap-1 rounded-cmt-full bg-cmt-primary-100 py-1 pl-3 pr-1.5 text-[12px] font-semibold text-cmt-neutral-900"
-                        >
-                          <span>{destination}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeDestination(destination)}
-                            aria-label={`Remove ${destination}`}
-                            className="grid size-5 place-items-center rounded-cmt-full text-cmt-neutral-700 transition-colors hover:bg-cmt-primary-50 focus-visible:shadow-[var(--cmt-focus-ring)] focus-visible:outline-none"
-                          >
-                            <X className="size-3" aria-hidden="true" />
-                          </button>
-                        </span>
-                      ))}
-                      <input
-                        id="trip-prompt-destination"
-                        list="trip-prompt-destinations"
-                        value={destinationDraft}
-                        onChange={(event) => {
-                          const { value } = event.target;
-                          if (suggestions.some((suggestion) => suggestion === value)) addDestination(value);
-                          else setDestinationDraft(value);
-                        }}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === ",") {
-                            event.preventDefault();
-                            addDestination(destinationDraft);
-                          } else if (event.key === "Backspace" && !destinationDraft && destinations.length) {
-                            removeDestination(destinations[destinations.length - 1]);
-                          }
-                        }}
-                        placeholder={destinations.length ? "Add another…" : "Kashmir, Bali…"}
-                        className="h-8 min-w-0 flex-1 bg-transparent px-1 font-body text-[16px] text-cmt-neutral-900 outline-none placeholder:text-cmt-neutral-400"
-                      />
-                      <datalist id="trip-prompt-destinations">
-                        {suggestions.map((suggestion) => (
-                          <option key={suggestion} value={suggestion} />
-                        ))}
-                      </datalist>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className={labelClass}>Departure type</span>
-                    <span className="relative block">
-                      <select
-                        value={departureType}
-                        onChange={(event) => setDepartureType(event.target.value as DepartureType)}
-                        className={`${fieldClass} appearance-none pr-10`}
-                      >
-                        {DEPARTURE_TYPES.map((value) => (
-                          <option key={value} value={value}>
-                            {DEPARTURE_TYPE_LABELS[value]}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-500" aria-hidden="true" />
-                    </span>
-                  </label>
-
-                  <label className="block">
-                    <span className={labelClass}>Food preference</span>
-                    <span className="relative block">
-                      <select
-                        value={foodPreference}
-                        onChange={(event) => setFoodPreference(event.target.value as FoodPreference)}
-                        className={`${fieldClass} appearance-none pr-10`}
-                      >
-                        {FOOD_PREFERENCES.map((value) => (
-                          <option key={value} value={value}>
-                            {FOOD_PREFERENCE_LABELS[value]}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-500" aria-hidden="true" />
-                    </span>
-                  </label>
-                </div>
-
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <label className="block min-w-0">
-                    <span className={labelClass}>Travel date *</span>
-                    <span className="relative block min-w-0">
-                      <CalendarDays className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-500" aria-hidden="true" />
-                      <input
-                        required
-                        type="date"
-                        min={todayISO()}
-                        value={travelDate}
-                        onChange={(event) => setTravelDate(event.target.value)}
-                        className={`${fieldClass} min-w-0 pl-11 pr-3`}
-                      />
-                    </span>
-                  </label>
-
-                  <label className="block">
-                    <span className={labelClass}>Travellers *</span>
-                    <span className="relative block">
-                      <Users className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-500" aria-hidden="true" />
-                      <input
-                        required
-                        type="number"
-                        min="1"
-                        max="60"
-                        value={travellers}
-                        onChange={(event) => setTravellers(event.target.value)}
-                        className={`${fieldClass} pl-11`}
-                      />
-                    </span>
-                  </label>
-                </div>
-
-                <label className="mt-4 block">
-                  <span className={labelClass}>
-                    Budget / person <span className="normal-case tracking-normal text-cmt-neutral-400">(optional)</span>
-                  </span>
-                  <span className="relative block">
-                    <IndianRupee className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-500" aria-hidden="true" />
-                    <input
-                      inputMode="numeric"
-                      value={budget}
-                      onChange={(event) => setBudget(event.target.value)}
-                      placeholder="e.g. 25,000"
-                      className={`${fieldClass} pl-11`}
-                    />
-                  </span>
-                </label>
-              </div>
-
-              <footer className="shrink-0 border-t border-cmt-neutral-100 bg-white px-5 py-4 sm:px-8">
-                <button
-                  type="submit"
-                  disabled={sending}
-                  aria-busy={sending}
-                  className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-6 text-sm font-semibold tracking-[0.005em] text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 active:shadow-none focus-visible:shadow-[var(--cmt-focus-ring)] focus-visible:outline-none disabled:cursor-wait disabled:bg-cmt-neutral-100 disabled:text-cmt-neutral-400 disabled:shadow-none"
-                >
-                  {sending ? "Sending…" : "Get free quotes"}
-                  {!sending ? <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" /> : null}
-                </button>
-                <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-cmt-neutral-500">
-                  <ShieldCheck className="size-4 shrink-0" aria-hidden="true" />
-                  Your details stay with our verified travel team.
-                </p>
-              </footer>
-            </form>
-          </>
-        )}
-      </div>
-    </dialog>
-  );
+  return <TripPlanPromptForm open={open} onClosed={() => setTrigger(null)} />;
 }

@@ -8,7 +8,6 @@ import { CheckCircle2, LoaderCircle, Mail, MessageSquareText, UserRound, Users, 
 import DepartureDatePicker from "@/components/DepartureDatePicker";
 import { departureDays, departureDaysLabel, isDepartureAllowed } from "@/lib/packageData";
 import PhoneNumberField from "@/components/PhoneNumberField";
-import { saveContactEnquiry } from "@/lib/firebase/enquiries";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
 import { useUserProfile, type UserProfile } from "@/lib/firebase/useUserProfile";
 import type { TravelPackage } from "@/lib/packageData";
@@ -51,6 +50,8 @@ function QuoteForm({ pkg, profile, userId, initialTravellers, initialTravelDate,
     if (!isValidQuoteTravellers(travellers)) return setError(QUOTE_TRAVELLERS_ERROR);
     try {
       setSending(true);
+      // Firestore loads on send rather than with the package page.
+      const { saveContactEnquiry } = await import("@/lib/firebase/enquiries");
       await saveContactEnquiry({ name, email: profile.email, phone, destination: pkg.location, departure: travelDate, travellers, message, packageId: pkg.id, packageTitle: pkg.title, pricePerPerson: pkg.price, userId, source: "custom_quote" });
       setSent(true);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Your quote request could not be sent."); }

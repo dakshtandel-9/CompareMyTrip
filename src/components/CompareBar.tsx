@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeftRight, ChevronRight, X } from "lucide-react";
 
-import { COMPARE_STORAGE_KEY, COMPARE_UPDATE_EVENT, useCompare } from "@/lib/useCompare";
+import { COMPARE_STORAGE_KEY, COMPARE_UPDATE_EVENT, DEFAULT_COMPARE_IDS, useCompare } from "@/lib/useCompare";
 import { usePackages } from "@/lib/usePackages";
 
 /* ------------------------------------------------------------------ */
@@ -63,9 +63,23 @@ function Slash() {
   );
 }
 
+/* FloatingActions hides the bar below Tailwind's md breakpoint. */
+const WIDE_QUERY = "(min-width: 768px)";
+const subscribeWide = (notify: () => void) => {
+  const query = window.matchMedia(WIDE_QUERY);
+  query.addEventListener("change", notify);
+  return () => query.removeEventListener("change", notify);
+};
+const isWide = () => window.matchMedia(WIDE_QUERY).matches;
+
 export default function CompareBar() {
   const { slots, count, toggle } = useCompare();
-  const packages = usePackages();
+  /* The catalogue is only needed to draw real picks on a bar that is on
+     screen. An untouched tray holds placeholder ids that match no package,
+     and phones never show the bar, so neither downloads it. */
+  const wide = useSyncExternalStore(subscribeWide, isWide, () => false);
+  const hasPicks = slots.some((id) => id !== null && !DEFAULT_COMPARE_IDS.includes(id));
+  const packages = usePackages({ enabled: wide && hasPicks });
 
   /* Empty slots, and slots holding a package that has since left the
      catalogue, simply show nothing. */

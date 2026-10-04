@@ -55,7 +55,6 @@ const linkColumns: { heading: string; links: FooterLink[] }[] = [
   {
     heading: "Explore",
     links: [
-      { label: "Trips from Bengaluru", href: "/bengaluru" },
       { label: "All Packages", href: "/packages" },
       { label: "Weekend Treks", href: "/packages?category=weekend-treks" },
       { label: "Domestic", href: "/packages?region=india" },

@@ -10,6 +10,6 @@ export function usePackagesState() {
   return { packages, loading, error, databaseInitialized: !loading && !error };
 }
 
-export function usePackages() {
-  return usePackagesState().packages;
+export function usePackages(options?: { enabled?: boolean }) {
+  return usePublicContent(options).packages;
 }

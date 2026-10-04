@@ -6,7 +6,6 @@ import { AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 import { TRAVELLER_TYPES } from "@/lib/bengaluruTravel";
 import { enquiryPlanningMessage } from "@/lib/enquiryPlanning";
 import PhoneNumberField from "@/components/PhoneNumberField";
-import { saveContactEnquiry } from "@/lib/firebase/enquiries";
 import { useUserProfile } from "@/lib/firebase/useUserProfile";
 
 /* ------------------------------------------------------------------ */
@@ -164,6 +163,8 @@ export default function EnquiryForm({ initialAudience = "" }: { initialAudience?
       setSubmitting(true);
       // The enquiry record has no separate field for this, so the choice travels with the message.
       const message = enquiryPlanningMessage(values) + (messagingConsent ? "\n\nConsent to receive communication via RCS/WhatsApp/Email: Yes" : "");
+      // Firestore loads on send rather than with the page.
+      const { saveContactEnquiry } = await import("@/lib/firebase/enquiries");
       await saveContactEnquiry({ ...values, message });
       setSent(true);
       // Reset the form, but keep the signed-in user's details filled in for the next enquiry.

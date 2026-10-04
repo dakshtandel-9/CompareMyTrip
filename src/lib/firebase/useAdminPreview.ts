@@ -39,7 +39,7 @@ export function useAdminPreview(pathname: string) {
     anonymousSessionCleared = false;
     async function connect() {
       try {
-        const [{ onIdTokenChanged }, { getFirebaseAuth }] = await Promise.all([import("firebase/auth"), import("./client")]);
+        const [{ onIdTokenChanged }, { getFirebaseAuth }] = await Promise.all([import("firebase/auth"), import("./clientAuth")]);
         if (!active) return;
         const auth = getFirebaseAuth();
         unsubscribe = onIdTokenChanged(auth, currentUser => {

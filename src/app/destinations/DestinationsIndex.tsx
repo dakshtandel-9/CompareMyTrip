@@ -10,8 +10,6 @@ import { buildDestinations, destinationHref, durationLabel } from "@/lib/destina
 import { buildWeekendTrackSummaries, trackHref, weekendTreks } from "@/lib/weekendTracks";
 import { bannerFor } from "@/lib/siteContent";
 import { useSiteContent } from "@/lib/useSiteContent";
-import { usePackagesState } from "@/lib/usePackages";
-import { useDestinationCoversState } from "@/lib/useDestinationCovers";
 import type { TravelPackage } from "@/lib/packageData";
 
 /* ------------------------------------------------------------------ */
@@ -83,12 +81,10 @@ export function DestinationsContent({
   initialCovers: Record<string, string>;
   search?: string;
 }) {
-  const packageState = usePackagesState();
-  const coverState = useDestinationCoversState();
-  const packages = packageState.loading || packageState.error
-    ? initialPackages
-    : packageState.packages;
-  const covers = coverState.loading || coverState.error ? initialCovers : coverState.covers;
+  /* The server's copies. Publishing revalidates this page, so they are
+     current without the browser downloading the catalogue a second time. */
+  const packages = initialPackages;
+  const covers = initialCovers;
   /* Masthead copy and photography, edited in /admin/banners. */
   const banner = bannerFor(useSiteContent().banners, "destinations");
   /* Derived, not stored: the URL is the tab. A menu link or the back button
@@ -168,6 +164,7 @@ export function DestinationsContent({
             alt=""
             fill
             sizes="(max-width: 1440px) 100vw, 1440px"
+            preload
             fetchPriority="high"
             className="-z-20 object-cover object-center"
           />
@@ -301,7 +298,7 @@ export function DestinationsContent({
                         : `${track.minDays}–${track.maxDays} days`;
 
                   return (
-                    <li key={track.id}>
+                    <li key={track.id} className="cmt-offscreen-card">
                       <Link
                         href={trackHref(track.id)}
                         className="group relative flex aspect-[4/3] w-full min-[420px]:aspect-[3/5] sm:aspect-[4/5] overflow-hidden rounded-cmt-lg bg-cmt-secondary-900 shadow-cmt-sm transition-shadow hover:shadow-cmt-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
@@ -386,7 +383,7 @@ export function DestinationsContent({
               {visible.map((destination) => {
                 const duration = durationLabel(destination);
                 return (
-                  <li key={destination.name}>
+                  <li key={destination.name} className="cmt-offscreen-card">
                     <Link
                       /* The destination's own page, not the filtered
                          catalogue: it is the crawlable landing page for the

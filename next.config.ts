@@ -28,15 +28,22 @@ const nextConfig: NextConfig = {
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
       { key: "Content-Security-Policy", value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
-      { key: "Content-Security-Policy-Report-Only", value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google.com https://www.gstatic.com https://www.recaptcha.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https: blob:; font-src 'self'; connect-src 'self' https:; frame-src https://*.firebaseapp.com https://www.google.com https://www.recaptcha.net; form-action 'self' https://secure.payu.in https://test.payu.in; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
+      { key: "Content-Security-Policy-Report-Only", value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https: blob:; font-src 'self'; connect-src 'self' https:; frame-src https://*.firebaseapp.com https://www.google.com https://www.recaptcha.net; form-action 'self' https://secure.payu.in https://test.payu.in; frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
     ] }, {
       // Only versioned media is immutable. Change the filename when re-encoding.
       source: "/videos/hero-scroll-:rendition(desktop-v3|mobile-v4).mp4",
+      headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+    }, {
+      source: "/fonts/:face(inter-rupee-v1|space-grotesk-rupee-v1).woff2",
       headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
     }];
   },
   trailingSlash: false,
   images: {
+    // AVIF is about 40% smaller than WebP for these photos at the same look,
+    // which is most of what a phone downloads before the first paint. WebP
+    // remains for browsers without AVIF. Each format is encoded once per size.
+    formats: ["image/avif", "image/webp"],
     // Match the actual card/hero widths with fewer transform variants.
     deviceSizes: [640, 768, 1080, 1440, 1920, 3840],
     imageSizes: [32, 64, 128, 256, 384],

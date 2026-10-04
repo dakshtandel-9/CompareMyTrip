@@ -44,7 +44,7 @@ export default function PackageCard({
 
   return (
     <article
-      className={`group relative flex h-full min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md ${className}`}
+      className={`cmt-offscreen-card group relative flex h-full min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md ${className}`}
     >
       <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden">
         <Image
@@ -63,7 +63,10 @@ export default function PackageCard({
           </div>
         )}
 
-        <TrekGradeBadge pkg={pkg} className="absolute right-3 top-3" />
+        <TrekGradeBadge
+          pkg={{ id: pkg.id, title: pkg.title, location: pkg.location, tags: pkg.tags, trekGrade: pkg.trekGrade }}
+          className="absolute right-3 top-3"
+        />
       </div>
 
       <div className="flex flex-1 flex-col p-4">

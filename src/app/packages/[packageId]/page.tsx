@@ -11,6 +11,7 @@ import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import { getPublishedPackageForUrl, getPublishedPackages } from "@/lib/serverContent";
 import { packagePath, packageSlug } from "@/lib/packageUrls";
 import { getSimilarPackages } from "@/lib/similarPackages";
+import { toListingPackage } from "@/lib/listingPackages";
 
 export const revalidate = 86400; // 24 hours
 
@@ -63,7 +64,7 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
 
   const packageUrl = absoluteUrl(path);
   const schemaImages = pkg.details?.gallery?.length ? pkg.details.gallery : [pkg.image];
-  const similarPackages = getSimilarPackages(pkg, await getPublishedPackages());
+  const similarPackages = getSimilarPackages(pkg, await getPublishedPackages()).map(toListingPackage);
 
   return (
     <>

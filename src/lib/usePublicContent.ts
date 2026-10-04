@@ -60,8 +60,9 @@ function subscribe(listener: () => void) {
   };
 }
 
-/** Fetch on entry or stale tab activation; no idle polling. Server seeds need no duplicate request. */
-export function usePublicContent() {
+/** Fetch on entry or stale tab activation; no idle polling. Server seeds need no duplicate request.
+    A caller that only sometimes needs the catalogue passes `enabled: false` until it does. */
+export function usePublicContent({ enabled = true }: { enabled?: boolean } = {}) {
   const initial = useContext(PublicContentContext);
-  return useSyncExternalStore(initial ? noSubscription : subscribe, () => initial ?? current, () => initial ?? INITIAL);
+  return useSyncExternalStore(initial || !enabled ? noSubscription : subscribe, () => initial ?? current, () => initial ?? INITIAL);
 }

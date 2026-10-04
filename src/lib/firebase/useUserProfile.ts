@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
-import { getFirebaseDb } from "./client";
 import { useAuthUser } from "./useAuthUser";
 
 export type UserProfile = {
@@ -38,36 +36,45 @@ export function useUserProfile(): ProfileState {
     if (!user) return;
 
     let active = true;
-    const unsubscribe = onSnapshot(
-      doc(getFirebaseDb(), "users", user.uid),
-      (snapshot) => {
+    let unsubscribe: (() => void) | undefined;
+    const authDetails = () => {
+      if (!active) return;
+      setEntry({
+        uid: user.uid,
+        profile: {
+          name: textValue(user.displayName),
+          email: textValue(user.email),
+          phone: "",
+        },
+      });
+    };
+    // Firestore loads only once someone is signed in, so the forms that
+    // prefill from here do not bring it to every visitor's first load.
+    Promise.all([import("firebase/firestore"), import("./client")])
+      .then(([{ doc, onSnapshot }, { getFirebaseDb }]) => {
         if (!active) return;
-        const data = snapshot.data();
-        setEntry({
-          uid: user.uid,
-          profile: {
-            name: textValue(data?.name) || textValue(user.displayName),
-            email: textValue(data?.email) || textValue(user.email),
-            phone: textValue(data?.phone),
+        unsubscribe = onSnapshot(
+          doc(getFirebaseDb(), "users", user.uid),
+          (snapshot) => {
+            if (!active) return;
+            const data = snapshot.data();
+            setEntry({
+              uid: user.uid,
+              profile: {
+                name: textValue(data?.name) || textValue(user.displayName),
+                email: textValue(data?.email) || textValue(user.email),
+                phone: textValue(data?.phone),
+              },
+            });
           },
-        });
-      },
-      () => {
-        if (!active) return;
-        setEntry({
-          uid: user.uid,
-          profile: {
-            name: textValue(user.displayName),
-            email: textValue(user.email),
-            phone: "",
-          },
-        });
-      },
-    );
+          authDetails,
+        );
+      })
+      .catch(authDetails);
 
     return () => {
       active = false;
-      unsubscribe();
+      unsubscribe?.();
     };
   }, [user]);
 

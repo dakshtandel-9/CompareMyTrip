@@ -611,8 +611,10 @@ export default function CompareSection() {
           </button>
         </div>
 
+        {/* Listed only while open: a row and thumbnail per package would
+            otherwise be most of this band's markup on every page load. */}
         <ul className="max-h-[60vh] overflow-y-auto p-3">
-          {packages.map((pkg) => {
+          {pickerColumn !== null && packages.map((pkg) => {
             const isCurrent = openPackage?.id === pkg.id;
             const inAnotherColumn =
               !isCurrent && columns.some((column) => column?.id === pkg.id);

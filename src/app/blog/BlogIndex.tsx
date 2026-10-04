@@ -11,7 +11,6 @@ import {
   readingMinutes,
   type BlogPost,
 } from "@/lib/blogData";
-import { usePublishedBlogPosts } from "@/lib/useBlog";
 
 /* ------------------------------------------------------------------ */
 /* Travel guides index. Posts come from the same live Firestore feed    */
@@ -50,7 +49,7 @@ function PostCard({ post }: { post: BlogPost }) {
   const image = blogPostImage(post);
 
   return (
-    <article className="group h-full">
+    <article className="cmt-offscreen-card group h-full">
       <Link
         href={`/blog/${post.id}`}
         className="flex h-full flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
@@ -96,9 +95,8 @@ function PostCard({ post }: { post: BlogPost }) {
 }
 
 export default function BlogIndex({ initialPosts }: { initialPosts: BlogPost[] }) {
-  const live = usePublishedBlogPosts();
-  const posts = live.loading || live.error ? initialPosts : live.posts;
-  const { loading, error } = live;
+  /* The server's copy; publishing revalidates this page. */
+  const posts = initialPosts;
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [page, setPage] = useState(1);
@@ -208,21 +206,7 @@ export default function BlogIndex({ initialPosts }: { initialPosts: BlogPost[] }
 
       <section className="w-full px-4 pb-14 sm:px-5 sm:pb-20 lg:px-6">
         <div className="mx-auto w-full max-w-[1440px]">
-          {error && (
-            <p role="alert" className="rounded-cmt-control border border-cmt-error-500/20 bg-cmt-error-100 px-4 py-3 text-sm text-cmt-error-700">
-              The guides could not be loaded right now. Please try again shortly.
-            </p>
-          )}
-
-          {loading && !posts.length && (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 3 }, (_, index) => (
-                <div key={index} className="h-80 animate-pulse rounded-cmt-md border border-cmt-neutral-200 bg-cmt-neutral-100" />
-              ))}
-            </div>
-          )}
-
-          {!loading && !posts.length && !error && (
+          {!posts.length && (
             <div className="rounded-cmt-md border border-dashed border-cmt-neutral-300 bg-cmt-neutral-50 px-6 py-16 text-center">
               <PenLine className="mx-auto size-7 text-cmt-neutral-400" aria-hidden="true" />
               <h2 className="mt-4 font-display text-xl font-semibold">No guides published yet</h2>
@@ -250,6 +234,8 @@ export default function BlogIndex({ initialPosts }: { initialPosts: BlogPost[] }
                     src={blogPostImage(lead)}
                     alt={lead.coverAlt || lead.title}
                     fill
+                    preload
+                    fetchPriority="high"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                   />
@@ -286,7 +272,7 @@ export default function BlogIndex({ initialPosts }: { initialPosts: BlogPost[] }
             </ul>
           )}
 
-          {!loading && posts.length > 0 && filtered.length === 0 && (
+          {posts.length > 0 && filtered.length === 0 && (
             <p className="rounded-cmt-md border border-cmt-neutral-200 bg-cmt-neutral-50 px-6 py-14 text-center text-sm text-cmt-neutral-600">
               No guides match that search yet.
             </p>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { getPublishedBlogPosts, getPublishedPackages } from "@/lib/serverContent";
-import { getPublishedSiteContent } from "@/lib/serverSiteContent";
+import { toListingPackage } from "@/lib/listingPackages";
 import HomeContentProvider from "./home/HomeContentProvider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -35,11 +35,9 @@ export const metadata: Metadata = createPageMetadata({
 export const revalidate = 86400; // 24 hours
 
 export default async function HomePage() {
-  const [packages, posts, site] = await Promise.all([
-    getPublishedPackages(), getPublishedBlogPosts(), getPublishedSiteContent(),
-  ]);
+  const [packages, posts] = await Promise.all([getPublishedPackages(), getPublishedBlogPosts()]);
   return (
-    <HomeContentProvider packages={packages} posts={posts} site={site}>
+    <HomeContentProvider packages={packages.map(toListingPackage)} posts={posts}>
       <Header />
 
       <main className="cmt-home w-full bg-white font-body text-cmt-neutral-900">

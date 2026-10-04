@@ -177,7 +177,8 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
                 src={destination.image}
                 alt=""
                 fill
-                priority
+                preload
+                fetchPriority="high"
                 sizes="(max-width: 1440px) 100vw, 1440px"
                 className="-z-20 object-cover object-center"
               />

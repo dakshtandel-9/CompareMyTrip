@@ -22,7 +22,6 @@ import {
   treksOnTrack,
 } from "@/lib/weekendTracks";
 import { toIndiaState } from "@/lib/indiaStates";
-import { usePackagesState } from "@/lib/usePackages";
 import { bannerFor, type BannerContent } from "@/lib/siteContent";
 import { useSiteContent } from "@/lib/useSiteContent";
 import ContentImage from "@/app/home/_components/ContentImage";
@@ -130,6 +129,7 @@ function CatalogBanner({
           alt=""
           fill
           sizes="(max-width: 1440px) 100vw, 1440px"
+          preload
           fetchPriority="high"
           className="-z-20 object-cover object-center"
         />
@@ -440,10 +440,6 @@ export function CatalogContent({
   initialPackages: TravelPackage[];
   search?: string;
 }) {
-  const packageState = usePackagesState();
-  const livePackages = packageState.loading || packageState.error
-    ? initialPackages
-    : packageState.packages;
   /* Masthead copy and photography, edited in /admin/banners. */
   const { banners } = useSiteContent();
   /* One subscription for the whole grid rather than one per card. */
@@ -455,7 +451,9 @@ export function CatalogContent({
   const router = useRouter();
   const typeCategory = TYPE_CATEGORY[searchParams.get("type")?.trim().toLowerCase() ?? ""];
   const initialCategory = searchParams.get("category") ?? typeCategory;
-  const packages = livePackages;
+  /* The server's copy. Publishing revalidates this page, so it is current
+     without the browser downloading the catalogue a second time. */
+  const packages = initialPackages;
   const initialMinimum = Number(searchParams.get("budgetMin"));
   const initialMaximum = Number(searchParams.get("budgetMax"));
 

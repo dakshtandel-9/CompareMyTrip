@@ -10,10 +10,9 @@ import {
   BOOKING_TIMELINES,
   CABIN_TYPE_LABELS,
   CABIN_TYPES,
-  saveCruiseEnquiry,
   type BookingTimeline,
   type CabinType,
-} from "@/lib/firebase/cruiseEnquiries";
+} from "@/lib/cruiseEnquiryOptions";
 
 /* The Get quote form. Deliberately not the package QuoteModal: that one needs
    a TravelPackage and forces a sign-in, and a cruise enquiry should not put a
@@ -202,6 +201,8 @@ export default function CruiseQuoteModal({
 
     setSending(true); setError(""); setErrorField("");
     try {
+      // Firestore loads on send rather than with the page.
+      const { saveCruiseEnquiry } = await import("@/lib/firebase/cruiseEnquiries");
       await saveCruiseEnquiry({
         name, email, phone,
         cruiseId: selected.id,

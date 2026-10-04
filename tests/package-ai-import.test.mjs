@@ -196,14 +196,14 @@ test('unpriced imports remain editable drafts and cannot pass published-price va
 
 test('all 1,000 prompt icons have matching SVG symbols, including existing travel icons', () => {
   assert.equal(names.length, 1000); assert.equal(new Set(names).size, 1000);
-  const svg = fs.readFileSync('public/package-icons.svg', 'utf8');
-  const symbols = [...svg.matchAll(/<symbol id="([^"]+)"/g)].map(match => match[1]);
-  assert.deepEqual(symbols, names);
+  const files = fs.readdirSync('public/package-icons').filter(file => file.endsWith('.svg')).map(file => file.slice(0, -4)).sort();
+  assert.deepEqual(files, [...names].sort());
+  for (const name of names) assert.match(fs.readFileSync(`public/package-icons/${name}.svg`, 'utf8'), /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"><symbol id="i" viewBox="0 0 24 24">/);
   for (const name of ['Clock3', 'PlateAndCup', 'Plane', 'Users', 'Mountain', 'TreePalm']) assert.ok(names.includes(name));
   const { PackageGlyph } = load('src/lib/PackageGlyph.tsx', { './packageIconNames.json': { default: names }, 'react/jsx-runtime': jsx });
   const markup = renderToStaticMarkup(React.createElement(PackageGlyph, { name: names[800] }));
-  assert.ok(markup.includes(`/package-icons.svg#${names[800]}`));
-  assert.ok(renderToStaticMarkup(React.createElement(PackageGlyph, { name: '<script>' })).includes('#MapPin'));
+  assert.ok(markup.includes(`/package-icons/${names[800]}.svg#i`));
+  assert.ok(renderToStaticMarkup(React.createElement(PackageGlyph, { name: '<script>' })).includes('/package-icons/MapPin.svg#i'));
 });
 
 test('copied prompt contains exactly the importer schema and asks questions before JSON when needed', () => {

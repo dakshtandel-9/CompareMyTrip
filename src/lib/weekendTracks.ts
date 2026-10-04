@@ -243,8 +243,11 @@ type GradedTrek = { id: string; name: string; grade: number };
 
 /** Prefer the package's saved grade; 0 explicitly hides the badge.
     Older weekend treks still use their matched catalogue grade. */
+/** The only package fields a difficulty grade depends on. */
+export type TrekGradeSource = Pick<TravelPackage, "id" | "title" | "location" | "tags" | "trekGrade">;
+
 export function trekGrade(
-  pkg: TravelPackage,
+  pkg: TrekGradeSource,
   treks: readonly GradedTrek[],
 ): number | undefined {
   if (pkg.trekGrade !== undefined) return [1, 2, 3].includes(pkg.trekGrade) ? pkg.trekGrade : undefined;

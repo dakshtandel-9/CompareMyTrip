@@ -198,7 +198,7 @@ export default function Header() {
     closeDropdown();
     setIsMobileMenuOpen(false);
     const [{ signOut }, { getFirebaseAuth }] = await Promise.all([
-      import("firebase/auth"), import("@/lib/firebase/client"),
+      import("firebase/auth"), import("@/lib/firebase/clientAuth"),
     ]);
     await signOut(getFirebaseAuth());
   }

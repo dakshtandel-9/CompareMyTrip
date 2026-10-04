@@ -22,7 +22,6 @@ import BookingCard from "./BookingCard";
 import QuoteModal from "./QuoteModal";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
 import type { PackageStay, TravelPackage } from "@/lib/packageData";
-import { usePackagesState } from "@/lib/usePackages";
 import { getSimilarPackages } from "@/lib/similarPackages";
 import PackageCard from "@/app/home/_components/PackageCard";
 
@@ -33,7 +32,6 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
   const PageRoot = preview ? "div" : "main";
   const legacyPreview = preview && !publicPreview;
   const authUser = useAuthUser();
-  const packageState = usePackagesState();
   const [travellers, setTravellers] = useState(2);
   /* Asked once in the booking card and carried from there into the quote
      form and the checkout, so the traveller states their dates a single
@@ -41,19 +39,12 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
   const [travelDate, setTravelDate] = useState("");
   const [quoteOpen, setQuoteOpen] = useState(false);
   const router = useRouter();
-  // By id: the URL segment is a slug, or an old id that is about to redirect.
-  const livePackage = packageState.packages.find((item) => item.id === initialPackage.id);
-  const pkg = preview ? initialPackage : packageState.loading || packageState.error
-    ? livePackage ?? initialPackage
-    : livePackage;
-
-  if (!pkg) {
-    return <main className="grid min-h-[60vh] place-items-center bg-cmt-neutral-50 px-4"><div className="text-center"><h1 className="font-display text-3xl font-semibold">Package not found</h1><Link href="/packages" className="mt-5 inline-flex h-11 items-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-5 text-sm font-semibold"><ArrowLeft className="size-4" /> All packages</Link></div></main>;
-  }
+  /* The server's copy. Publishing revalidates this page, so it is current
+     without the browser downloading the whole catalogue to check. */
+  const pkg = initialPackage;
 
   const details = getPackageDetails(pkg);
-  const similarPackages = preview ? [] : getSimilarPackages(pkg,
-    packageState.loading || packageState.error ? initialSimilarPackages : packageState.packages);
+  const similarPackages = preview ? [] : getSimilarPackages(pkg, initialSimilarPackages);
   const itinerary = getPackageItinerary(details);
   const discount = getDiscountPercent(pkg);
   const facts = getPackageFacts(pkg);

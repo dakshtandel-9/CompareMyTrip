@@ -75,7 +75,7 @@ export default function PackageGallery({ images, maxImages = 10 }: { images?: st
     <>
       <div className={`${styles.frame} cmt-package-gallery-frame relative overflow-hidden rounded-xl border border-cmt-neutral-200 bg-cmt-neutral-50`}>
         <button type="button" onClick={() => setSelectedIndex(active)} aria-label={`Open package gallery at image ${active + 1}`} className={`${styles.heroButton} relative block h-[clamp(220px,42vw,420px)] w-full`}>
-          <Image src={galleryImages[active].src} alt={galleryImages[active].alt} fill loading="eager" sizes="(max-width: 1023px) 100vw, 65vw" className={`${styles.heroImage} object-contain`} />
+          <Image src={galleryImages[active].src} alt={galleryImages[active].alt} fill preload fetchPriority="high" sizes="(max-width: 1023px) 100vw, 65vw" className={`${styles.heroImage} object-contain`} />
         </button>
         {galleryImages.length > 1 && <>
           <button type="button" aria-label="Previous photo" onClick={() => setActiveIndex((active - 1 + galleryImages.length) % galleryImages.length)} className={`${styles.arrow} absolute left-3 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-white/95`}><ChevronLeft size={18} /></button>

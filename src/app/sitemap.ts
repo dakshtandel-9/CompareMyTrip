@@ -1,5 +1,4 @@
 import { packagePath } from "@/lib/packageUrls";
-import { BENGALURU_COLLECTIONS } from "@/lib/bengaluruCollections";
 import type { MetadataRoute } from "next";
 
 import { buildDestinations, destinationHref } from "@/lib/destinations";
@@ -32,10 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Legal pages remain noindex until approved business policies are published.
   ];
 
-  staticPages.push(
-    { url: absoluteUrl("/corporate-group-trips"), changeFrequency: "monthly", priority: 0.8 },
-    ...BENGALURU_COLLECTIONS.map(item => ({ url: absoluteUrl(`/bengaluru/${item.slug}`), changeFrequency: "weekly" as const, priority: 0.8 })),
-  );
+  staticPages.push({ url: absoluteUrl("/corporate-group-trips"), changeFrequency: "monthly", priority: 0.8 });
   const seen = new Set(staticPages.map((entry) => entry.url));
   const packagePages: MetadataRoute.Sitemap = [];
   for (const pkg of packages) {

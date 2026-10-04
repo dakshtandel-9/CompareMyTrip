@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import SiteExperience from "@/components/SiteExperience";
-import WebsiteLoader from "@/components/WebsiteLoader";
+import SiteContentProvider from "@/components/SiteContentProvider";
+import SiteReadySignal from "@/components/SiteReadySignal";
 import JsonLd from "@/components/JsonLd";
 import Analytics from "@/components/Analytics";
 import {
@@ -10,6 +11,7 @@ import {
   getSiteUrl,
   SITE_NAME,
 } from "@/lib/seo";
+import { getPublishedSiteContent } from "@/lib/serverSiteContent";
 import "./globals.css";
 
 const inter = Inter({
@@ -81,7 +83,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  /* Published once per revalidation and shared by every page, so the header,
+     banners and forms paint with real content. Should the read fail, the
+     pages fall back to the live Firestore listener as before. */
+  const site = await getPublishedSiteContent().catch(() => null);
+  const experience = <SiteExperience>{children}</SiteExperience>;
   return (
     <html
       lang="en"
@@ -113,8 +120,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
         <Analytics />
-        <WebsiteLoader />
-        <SiteExperience>{children}</SiteExperience>
+        <SiteReadySignal />
+        {site ? <SiteContentProvider site={site}>{experience}</SiteContentProvider> : experience}
       </body>
     </html>
   );

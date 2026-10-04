@@ -14,3 +14,9 @@
 
 /videos/hero-scroll-mobile-v4.mp4
   Cache-Control: public, max-age=31536000, immutable
+
+/fonts/inter-rupee-v1.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+/fonts/space-grotesk-rupee-v1.woff2
+  Cache-Control: public, max-age=31536000, immutable

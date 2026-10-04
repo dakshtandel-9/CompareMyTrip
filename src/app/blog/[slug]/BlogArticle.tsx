@@ -13,7 +13,6 @@ import {
   toParagraphs,
   type BlogPost,
 } from "@/lib/blogData";
-import { usePublishedBlogPosts } from "@/lib/useBlog";
 
 /* ------------------------------------------------------------------ */
 /* One article. Body copy is rendered from the post's sections, each of  */
@@ -29,21 +28,11 @@ export default function BlogArticle({
   initialPosts: BlogPost[];
   destinationLink?: { name: string; href: string };
 }) {
-  const live = usePublishedBlogPosts();
-  const posts = live.loading || live.error ? initialPosts : live.posts;
-  const loading = live.loading;
+  /* The server's copy; publishing revalidates this page. */
+  const posts = initialPosts;
   const post = posts.find((item) => item.id === initialPost.id);
 
   const related = useMemo(() => (post ? relatedBlogPosts(post, posts) : []), [post, posts]);
-
-  if (loading && !post) {
-    return (
-      <main className="mx-auto w-full max-w-[760px] px-4 py-16">
-        <div className="h-8 w-2/3 animate-pulse rounded-cmt-sm bg-cmt-neutral-100" />
-        <div className="mt-4 h-64 animate-pulse rounded-cmt-md bg-cmt-neutral-100" />
-      </main>
-    );
-  }
 
   if (!post) {
     return (
@@ -128,6 +117,7 @@ export default function BlogArticle({
                   src={cover}
                   alt={post.coverAlt || post.title}
                   fill
+                  preload
                   fetchPriority="high"
                   sizes="(max-width: 1000px) 100vw, 1000px"
                   className="object-cover"

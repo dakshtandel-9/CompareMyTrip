@@ -9,7 +9,6 @@ import { validateTransport } from "./transport";
 
 import { quoteFileError, sendEnquiryWithQuote } from "@/lib/quoteUpload";
 import PhoneNumberField from "@/components/PhoneNumberField";
-import { saveContactEnquiry } from "@/lib/firebase/enquiries";
 import { useUserProfile } from "@/lib/firebase/useUserProfile";
 import {
   composeMessage,
@@ -218,7 +217,8 @@ export default function AddOnForm({ service }: { service: ServiceSpec }) {
         message: composeMessage(service, values, values.notes ?? ""),
       };
       if (quoteFile) await sendEnquiryWithQuote(quoteFile, enquiry);
-      else await saveContactEnquiry(enquiry);
+      // Firestore loads on send rather than with the page.
+      else await (await import("@/lib/firebase/enquiries")).saveContactEnquiry(enquiry);
       setQuoteFile(null);
       setSent(true);
       // Keep a signed-in visitor's details in place for the next enquiry.

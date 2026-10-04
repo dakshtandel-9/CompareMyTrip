@@ -5,7 +5,6 @@ import { AlertCircle, ArrowRight, CheckCircle2, Mail } from "lucide-react";
 
 import { Glyph } from "@/lib/adminIcons";
 import { useSiteContent } from "@/lib/useSiteContent";
-import { saveNewsletterSubscription } from "@/lib/firebase/newsletter";
 import ContentImage from "../_components/ContentImage";
 
 /* ------------------------------------------------------------------ */
@@ -153,6 +152,8 @@ export default function TrustAndNewsletter() {
 
     try {
       setSubmitting(true);
+      // Firestore loads on subscribe rather than with the homepage.
+      const { saveNewsletterSubscription } = await import("@/lib/firebase/newsletter");
       await saveNewsletterSubscription(value);
       setState({ kind: "success" });
       setEmail("");

@@ -219,8 +219,6 @@ const data = { ...load('src/lib/packageData.ts'), ...load('src/lib/packageSeed.t
 const { getSimilarPackages } = load('src/lib/similarPackages.ts');
 const original = data.DUMMY_PACKAGES.find((pkg) => pkg.details?.itinerary?.length && pkg.details?.inclusions?.length && pkg.details?.exclusions?.length && pkg.details?.stays?.length && pkg.details?.highlights?.length);
 let activePackage;
-let relatedCatalogue = [];
-let catalogueLoading = false;
 const { default: PackageDetailClient } = load('src/app/packages/[packageId]/PackageDetailClient.tsx', {
   'next/image': { default: imageMock },
   '@/lib/displayableImage': load('src/lib/displayableImage.ts'),
@@ -246,11 +244,11 @@ const { default: PackageDetailClient } = load('src/app/packages/[packageId]/Pack
   './BookingCard': { default: noOp },
   './QuoteModal': { default: noOp },
   '@/lib/firebase/useAuthUser': { useAuthUser: () => null },
-  '@/lib/usePackages': { usePackagesState: () => ({ packages: [activePackage, ...relatedCatalogue], loading: catalogueLoading, error: null }) },
 });
-const renderDetail = (pageSections, detailsPatch = {}) => {
+// Similar packages come from the server page, as the live route passes them.
+const renderDetail = (pageSections, detailsPatch = {}, initialSimilarPackages = []) => {
   activePackage = { ...original, details: { ...data.getPackageDetails(original), ...detailsPatch, pageSections } };
-  return renderToStaticMarkup(React.createElement(PackageDetailClient, { initialPackage: activePackage }));
+  return renderToStaticMarkup(React.createElement(PackageDetailClient, { initialPackage: activePackage, initialSimilarPackages }));
 };
 
 test('similar packages exclude the current package and drafts, rank relevance, and cap the list', () => {
@@ -265,32 +263,14 @@ test('similar packages exclude the current package and drafts, rank relevance, a
 
 test('similar package cards appear last and the section is hidden when there are no alternatives', () => {
   assert.doesNotMatch(renderDetail({}), /similar-packages-title/);
-  relatedCatalogue = [{ ...original, id: 'related-trip', title: 'Another holiday', status: 'published' }];
-  try {
-    const html = renderDetail({});
-    assert.match(html, /You may also like/);
-    assert.match(html, /Similar packages/);
-    assert.match(html, /data-related-package="related-trip"/);
-    assert.ok(html.indexOf('similar-packages-title') > html.indexOf('id="booking-options"'));
-    const preview = renderToStaticMarkup(React.createElement(PackageDetailClient, { initialPackage: activePackage, preview: true }));
-    assert.doesNotMatch(preview, /similar-packages-title/);
-  } finally {
-    relatedCatalogue = [];
-  }
-});
-
-test('server-provided similar packages render before the live catalogue has loaded', () => {
-  activePackage = original;
-  catalogueLoading = true;
-  try {
-    const html = renderToStaticMarkup(React.createElement(PackageDetailClient, {
-      initialPackage: original,
-      initialSimilarPackages: [{ ...original, id: 'server-related', status: 'published' }],
-    }));
-    assert.match(html, /data-related-package="server-related"/);
-  } finally {
-    catalogueLoading = false;
-  }
+  const related = [{ ...original, id: 'related-trip', title: 'Another holiday', status: 'published' }];
+  const html = renderDetail({}, {}, related);
+  assert.match(html, /You may also like/);
+  assert.match(html, /Similar packages/);
+  assert.match(html, /data-related-package="related-trip"/);
+  assert.ok(html.indexOf('similar-packages-title') > html.indexOf('id="booking-options"'));
+  const preview = renderToStaticMarkup(React.createElement(PackageDetailClient, { initialPackage: activePackage, initialSimilarPackages: related, preview: true }));
+  assert.doesNotMatch(preview, /similar-packages-title/);
 });
 
 test('existing detail sections remain visible by default and each can be hidden independently', () => {

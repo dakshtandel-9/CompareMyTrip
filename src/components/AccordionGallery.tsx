@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
 import Image from "next/image";
-import { gsap } from "gsap";
+import type { gsap as Gsap } from "gsap";
 
 import "./AccordionGallery.css";
 
@@ -67,7 +67,11 @@ export default function AccordionGallery({
   const barRefs = useRef<(HTMLElement | null)[]>([]);
   const textRefs = useRef<(HTMLElement | null)[]>([]);
   const descRefs = useRef<(HTMLElement | null)[]>([]);
-  const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const tlRef = useRef<ReturnType<(typeof Gsap)["timeline"]> | null>(null);
+  /* gsap (~30 KB compressed) loads as the gallery nears the viewport, not
+     with the page: the gallery sits near the end of the homepage. Until
+     then the panels keep their stylesheet layout. */
+  const [gsap, setGsap] = useState<typeof Gsap | null>(null);
   const firstRunRef = useRef(true);
   const mediaSizeRef = useRef(320);
 
@@ -83,7 +87,7 @@ export default function AccordionGallery({
   const applyLayout = useCallback(
     (animate: boolean) => {
       const panels = panelRefs.current;
-      if (!panels.length) return;
+      if (!panels.length || !gsap) return;
 
       const r = Math.min(Math.max(expandRatio, 0.2), 0.9);
       const grow = count > 1 ? (r * (count - 1)) / (1 - r) : 1;
@@ -153,8 +157,27 @@ export default function AccordionGallery({
       showLabels,
       stagger,
       prefersReduced,
+      gsap,
     ]
   );
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || gsap) return;
+    let live = true;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) return;
+      observer.disconnect();
+      import("gsap").then((module) => {
+        if (live) setGsap(() => module.gsap);
+      }).catch(() => {});
+    }, { rootMargin: "600px 0px" });
+    observer.observe(el);
+    return () => {
+      live = false;
+      observer.disconnect();
+    };
+  }, [gsap]);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -187,9 +210,10 @@ export default function AccordionGallery({
   }, [applyLayout, gap, count, expandRatio, vertical]);
 
   useEffect(() => {
+    if (!gsap) return;
     applyLayout(!firstRunRef.current);
     firstRunRef.current = false;
-  }, [applyLayout]);
+  }, [applyLayout, gsap]);
 
   useEffect(
     () => () => {

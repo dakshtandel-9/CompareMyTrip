@@ -6,18 +6,37 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Compass, Phone, Plane, ShieldCheck } from "lucide-react";
 import ContentImage from "@/app/home/_components/ContentImage";
-import { useSiteContentState } from "@/lib/useSiteContent";
+import { useSiteContent } from "@/lib/useSiteContent";
+import { refreshComingSoonStatus, useComingSoonStatus } from "@/lib/comingSoonStatus";
+
+/* While this screen is up, the switch is re-read each minute and whenever
+   the visitor returns to the tab. */
+const RECHECK_MS = 60_000;
 
 export default function ComingSoonScreen() {
-  const { content: { comingSoon, header }, loading } = useSiteContentState();
+  const { comingSoon, header } = useSiteContent();
+  const enabled = useComingSoonStatus();
   const router = useRouter();
   const phone = header.topBar.phoneNumber.replace(/\D/g, "");
+
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState === "visible") void refreshComingSoonStatus();
+    };
+    check();
+    const timer = window.setInterval(check, RECHECK_MS);
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, []);
 
   // Re-run the server guard when an already open coming-soon page is
   // switched off, including a page restored from the client router cache.
   useEffect(() => {
-    if (!loading && !comingSoon.enabled) router.refresh();
-  }, [comingSoon.enabled, loading, router]);
+    if (enabled === false) router.refresh();
+  }, [enabled, router]);
 
   return (
     <main className="min-h-dvh bg-[#faf9f6] font-body text-cmt-neutral-900">

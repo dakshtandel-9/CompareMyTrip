@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PackagesCatalog, { CatalogContent } from "./PackagesCatalog";
 import { getPublishedPackages } from "@/lib/serverContent";
+import { toListingPackage } from "@/lib/listingPackages";
 import { createPageMetadata } from "@/lib/seo";
 
 export const revalidate = 86400; // 24 hours
@@ -18,7 +19,7 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default async function PackagesPage() {
-  const packages = await getPublishedPackages();
+  const packages = (await getPublishedPackages()).map(toListingPackage);
 
   return (
     <>

@@ -141,6 +141,7 @@ test('CMS revalidation rejects guests and another origin, then immediately expir
 test('public content endpoint reports an outage without returning fallback or private content', async () => {
   const route = load('src/app/api/content/route.ts', {
     '@/lib/serverContent': { getPublishedPackages: async () => { throw new Error('private operational detail'); }, getPublishedBlogPosts: async () => [] },
+    '@/lib/listingPackages': { toListingPackage: (pkg) => pkg },
   });
   const response = await route.GET();
   assert.equal(response.status, 503);

@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useState } from "react";
 import { Download, MapPin } from "lucide-react";
 import { isCruiseDemo, publicCruises, type CruiseListing } from "@/lib/cruiseListings";
-import { useCruisesState } from "@/lib/useCruises";
 import { useSiteContent } from "@/lib/useSiteContent";
 import { bannerFor } from "@/lib/siteContent";
 import CruiseQuoteModal from "./CruiseQuoteModal";
@@ -19,16 +18,14 @@ const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 /* nothing here is a link. The two buttons are the only way out: an     */
 /* enquiry, or the brochure PDF.                                        */
 /*                                                                      */
-/* Seeded from the server so the cards are in the first paint, then     */
-/* kept live by the same Firestore subscription the admin uses.         */
+/* Rendered from the server's copy, so the cards are in the first paint; */
+/* publishing a cruise revalidates the page.                            */
 /* ------------------------------------------------------------------ */
 
 export default function CruiseGrid({ initialCruises }: { initialCruises: CruiseListing[] }) {
-  const { cruises, loading, error } = useCruisesState();
   const { banners } = useSiteContent();
   const banner = bannerFor(banners, "packages-cruise");
-  const live = loading || error ? initialCruises : cruises;
-  const visible = publicCruises(live);
+  const visible = publicCruises(initialCruises);
   const [quoteFor, setQuoteFor] = useState<CruiseListing | null>(null);
 
   return (
@@ -38,7 +35,7 @@ export default function CruiseGrid({ initialCruises }: { initialCruises: CruiseL
       <section className="flex w-full justify-center p-3 text-white sm:p-4 md:p-6">
         <div className="relative isolate flex min-h-[340px] w-full max-w-[1440px] items-center overflow-hidden rounded-2xl bg-cmt-secondary-900 px-6 py-14 sm:min-h-[400px] sm:rounded-3xl sm:px-10 sm:py-20">
           {banner.image && (
-            <Image src={banner.image} alt="" fill priority sizes="(max-width: 1440px) 100vw, 1440px" className="-z-20 object-cover object-center" />
+            <Image src={banner.image} alt="" fill preload fetchPriority="high" sizes="(max-width: 1440px) 100vw, 1440px" className="-z-20 object-cover object-center" />
           )}
           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/65 to-black/10" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/15" />

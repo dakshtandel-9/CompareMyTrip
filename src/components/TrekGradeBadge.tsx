@@ -1,8 +1,7 @@
 "use client";
 
 import { useSiteContent } from "@/lib/useSiteContent";
-import type { TravelPackage } from "@/lib/packageData";
-import { TREK_GRADE_LABELS, trekGrade } from "@/lib/weekendTracks";
+import { TREK_GRADE_LABELS, trekGrade, type TrekGradeSource } from "@/lib/weekendTracks";
 
 /* ------------------------------------------------------------------ */
 /* Difficulty badge for a package card.                                 */
@@ -12,13 +11,16 @@ import { TREK_GRADE_LABELS, trekGrade } from "@/lib/weekendTracks";
 /*                                                                      */
 /* Three bars plus the word, matching the weekend-treks section — never   */
 /* colour or shape alone (design.md §17.5).                              */
+/*                                                                      */
+/* Takes only the fields the grade reads: rendered from a server page,  */
+/* everything passed here is sent to the browser for every card.        */
 /* ------------------------------------------------------------------ */
 
 export default function TrekGradeBadge({
   pkg,
   className = "",
 }: {
-  pkg: TravelPackage;
+  pkg: TrekGradeSource;
   className?: string;
 }) {
   const { weekendTreks } = useSiteContent();

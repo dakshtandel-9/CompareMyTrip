@@ -23,6 +23,8 @@ const jsx = (type, props) => ({ type, props });
 const jsxRuntime = { jsx, jsxs: jsx, Fragment: 'fragment' };
 const destination = load('src/lib/firebase/authDestination.ts');
 const comingSoon = load('src/lib/comingSoon.ts');
+// The shell re-reads the coming-soon switch when the tab becomes visible again.
+const visibleDocument = { visibilityState: 'visible', addEventListener() {}, removeEventListener() {} };
 
 // Exercise the component's observable states, effects and event handlers without
 // a browser or a Firebase account. The requests and timers stay under test control.
@@ -289,14 +291,14 @@ test('admin and sign-in routes never mount customer profile completion', () => {
       '@/lib/comingSoon': comingSoon,
       '@/lib/firebase/useAdminPreview': { useAdminPreview: () => 'denied' },
       '@/lib/firebase/authDestination': destination,
-      '@/lib/useSiteContent': { useSiteContentState: () => ({ loading: false, content: { comingSoon: { enabled } } }) },
+      '@/lib/comingSoonStatus': { useComingSoonStatus: () => enabled, refreshComingSoonStatus: async () => {} },
       './ComingSoonScreen': { __esModule: true, default: chrome[0] },
       './FloatingActions': { __esModule: true, default: chrome[1] },
       './MobileNavigation': { __esModule: true, default: chrome[2] },
       'next/dynamic': { __esModule: true, default: () => ProfileCompletionGate },
       '@/lib/firebase/useAuthUser': { useAuthUser: () => ({ uid: 'customer' }) },
       './TripPlanPromptDialog': { __esModule: true, default: chrome[3] },
-    });
+    }, { document: visibleDocument });
     const tree = view.mount(SiteExperience, { children: protectedChild });
     assert.equal(hasProtected(tree), true, `${path} retains its own authentication surface`);
     assert.equal(nodes(tree).some(node => node?.type === ProfileCompletionGate), false, `${path} does not ask for a traveller phone number`);
@@ -318,14 +320,14 @@ test('only verified admins see the website during coming-soon mode, including ca
     '@/lib/comingSoon': comingSoon,
     '@/lib/firebase/useAdminPreview': { useAdminPreview: () => preview },
     '@/lib/firebase/authDestination': destination,
-    '@/lib/useSiteContent': { useSiteContentState: () => ({ loading: false, content: { comingSoon: { enabled: true } } }) },
+    '@/lib/comingSoonStatus': { useComingSoonStatus: () => true, refreshComingSoonStatus: async () => {} },
     './ComingSoonScreen': { __esModule: true, default: 'coming-soon-screen' },
     './FloatingActions': { __esModule: true, default: 'floating-actions' },
     './MobileNavigation': { __esModule: true, default: 'mobile-navigation' },
     'next/dynamic': { __esModule: true, default: () => 'profile-completion' },
     '@/lib/firebase/useAuthUser': { useAuthUser: () => ({ uid: 'customer' }) },
     './TripPlanPromptDialog': { __esModule: true, default: 'trip-prompt' },
-  }, { window: { location: { pathname: path, search: '?date=2026-10-01', hash: '#itinerary', origin: 'https://example.com' } } });
+  }, { document: visibleDocument, window: { location: { pathname: path, search: '?date=2026-10-01', hash: '#itinerary', origin: 'https://example.com' } } });
   view.mount(SiteExperience, { children: protectedChild });
   assert.equal(hasProtected(view.tree), false, 'no content is exposed while checking');
   assert.equal(redirects.length, 0, 'wait for verification before redirecting an admin');
@@ -354,7 +356,7 @@ test('admin preview session waits for verification and serializes sign-out behin
     react: view.react,
     'firebase/auth': { onIdTokenChanged: (_, callback) => { tokenChanged = callback; queueMicrotask(() => callback(user)); return () => {}; } },
     '@/lib/adminPreview': { ADMIN_PREVIEW_SESSION_PATH: '/api/admin/preview-session' },
-    './client': { getFirebaseAuth: () => ({}) },
+    './clientAuth': { getFirebaseAuth: () => ({}) },
     './useAuthUser': { useAuthUser: () => user },
   }, {
     AbortSignal,
