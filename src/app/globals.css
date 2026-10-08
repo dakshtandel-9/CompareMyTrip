@@ -401,6 +401,11 @@ body {
   .cmt-hero:not(.cmt-hero-static) .cmt-hero-stage { position: sticky; top: 0; }
   .cmt-hero .cmt-hero-surface, .cmt-hero-static .cmt-hero-surface { display: block; height: 100%; min-height: 0; overflow: hidden; border-radius: 28px; background: #0f172a; }
   .cmt-hero .cmt-hero-poster, .cmt-hero video { position: absolute !important; inset: 0 !important; height: 100% !important; width: 100%; border-radius: inherit; object-position: center; }
+  /* The phone video is a portrait centre crop (668 × 1080) of the 16:9 still.
+     Widen the still's box to the full 16:9 frame (1920 / 668 = 287.43%) so
+     object-fit: cover frames it exactly like the video's first frame, and
+     the picture does not zoom when the video takes over. */
+  .cmt-hero .cmt-hero-poster { left: -93.716% !important; right: auto !important; width: 287.431% !important; max-width: none; }
   .cmt-hero .cmt-hero-overlay { display: block; background: linear-gradient(to bottom, #02061705 25%, #02061755 55%, #020617eb 100%); }
   .cmt-hero .cmt-hero-content { display: flex; height: 100%; padding: 28px 22px; justify-content: flex-end; }
   .cmt-hero .cmt-hero-intro { position: relative; flex: none; min-width: 0; min-height: 0; margin: 0; padding: 0; justify-content: flex-end; }
