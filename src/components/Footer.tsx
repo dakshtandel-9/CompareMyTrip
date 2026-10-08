@@ -85,6 +85,8 @@ const linkColumns: { heading: string; links: FooterLink[] }[] = [
       { label: "Terms & Conditions", href: "/terms" },
       { label: "Privacy Policy", href: "/privacy" },
       { label: "Refund & Cancellation", href: "/refund-policy" },
+      { label: "Trust Guarantee", href: "/trust-guarantee" },
+      { label: "Data Protection", href: "/data-protection" },
     ],
   },
 ];

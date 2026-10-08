@@ -30,6 +30,6 @@ export function normalizeComingSoon(raw: unknown): ComingSoonContent {
 export function bypassComingSoon(pathname: string) {
   const prefixes = ["/admin", "/api", "/_next", "/login", "/forgot-password", "/account", "/checkout/status", "/pay/status"];
   return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
-    || ["/coming-soon", "/404", "/terms", "/privacy", "/refund-policy"].includes(pathname)
+    || ["/coming-soon", "/404", "/terms", "/privacy", "/refund-policy", "/trust-guarantee", "/data-protection"].includes(pathname)
     || /\.[^/]+$/.test(pathname);
 }
