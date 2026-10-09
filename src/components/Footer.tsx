@@ -37,7 +37,12 @@ export const LINKEDIN =
   "M6.94 8.5H3.56V21h3.38V8.5ZM5.25 3a1.96 1.96 0 1 0 0 3.92 1.96 1.96 0 0 0 0-3.92ZM20.44 21v-6.86c0-3.36-1.79-4.92-4.19-4.92a3.6 3.6 0 0 0-3.27 1.8h-.05V8.5H9.68V21h3.38v-6.19c0-1.63.31-3.21 2.33-3.21 1.99 0 2.02 1.86 2.02 3.31V21h3.03Z";
 
 // Only verified business profiles belong here; never link to platform homepages.
-const SOCIAL_LINKS: { label: string; href: string; path: string }[] = [];
+const SOCIAL_LINKS: { label: string; href: string; path: string }[] = [
+  { label: "Instagram", href: "https://www.instagram.com/comparemytrip/", path: INSTAGRAM },
+  { label: "Facebook", href: "https://www.facebook.com/people/Compare-My-Trip/61580825471306/", path: FACEBOOK },
+  { label: "YouTube", href: "https://www.youtube.com/@CompareMyTripOfficial", path: YOUTUBE },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/comparemytrip/", path: LINKEDIN },
+];
 
 
 /* Other platforms that list CompareMyTrip. Fill in `href` with the
