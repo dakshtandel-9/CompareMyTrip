@@ -37,10 +37,3 @@ export function collectionPackages(packages: TravelPackage[], slug: string) {
   const collection = BENGALURU_COLLECTIONS.find(item => item.slug === slug);
   return collection ? packages.filter(pkg => startsInBengaluru(pkg) && collection.filter(pkg)) : [];
 }
-export const BENGALURU_FAQS = [
-  { question: "Where do Bengaluru trips start?", answer: "Pickup points vary by package. Check the itinerary and pickup section for the published locations and timings, and confirm your boarding point with the team before booking." },
-  { question: "Can I travel over the weekend without taking leave?", answer: "Check the departure night and expected return time for your chosen trip. Overnight travel, traffic and itinerary changes can affect your return; do not assume every weekend package fits your work schedule." },
-  { question: "Can students or solo travellers join a group?", answer: "Ask the team about the selected departure's age limits, group format and room-sharing arrangements. Published per-person prices and inclusions help you compare costs; student discounts apply only when explicitly offered." },
-  { question: "Can you help with a family, friends or corporate trip?", answer: "Send your group size, preferred dates, departure city and budget through the enquiry form. The team will check suitable options and confirm transport, accommodation and pricing in the quote." },
-  { question: "Are flights from Bengaluru included in holiday prices?", answer: "Only when the package explicitly lists them as included. Many domestic and international holidays start at the destination. Check the flight and transfer sections and request a quote for your departure city." },
-];

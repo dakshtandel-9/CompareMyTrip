@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "@/components/SiteImage";
-import { ShieldCheck, TriangleAlert, X } from "lucide-react";
+import { TriangleAlert, X } from "lucide-react";
 
 import type { AppliedCoupon } from "@/lib/coupons";
 import { getFirebaseAuth } from "@/lib/firebase/client";
@@ -255,11 +255,6 @@ export default function CheckoutPanels({
               You save {formatINR(discount)}
             </p>
           )}
-
-          <p className="mt-4 flex items-center gap-1.5 text-xs text-cmt-neutral-600">
-            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-cmt-success-700" strokeWidth={2.25} aria-hidden="true" />
-            Free cancellation
-          </p>
         </div>
       </aside>
     </div>

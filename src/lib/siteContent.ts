@@ -498,6 +498,8 @@ export type FaqItem = {
 };
 
 export type FaqContent = {
+  /** Marks the Bengaluru-questions migration so later intentional deletions persist. */
+  version: number;
   enabled: boolean;
   header: SectionHeaderContent;
   items: FaqItem[];
@@ -1789,6 +1791,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   },
 
   faq: {
+    version: 1,
     enabled: true,
     header: {
       eyebrow: "Questions",
@@ -1806,6 +1809,36 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       ctaHref: "/contact",
     },
     items: [
+      {
+        id: "bengaluru-faq-1",
+        question: "Where do Bengaluru trips start?",
+        answer:
+          "Pickup points vary by package. Check the itinerary and pickup section for the published locations and timings, and confirm your boarding point with the team before booking.",
+      },
+      {
+        id: "bengaluru-faq-2",
+        question: "Can I travel over the weekend without taking leave?",
+        answer:
+          "Check the departure night and expected return time for your chosen trip. Overnight travel, traffic and itinerary changes can affect your return; do not assume every weekend package fits your work schedule.",
+      },
+      {
+        id: "bengaluru-faq-3",
+        question: "Can students or solo travellers join a group?",
+        answer:
+          "Ask the team about the selected departure's age limits, group format and room-sharing arrangements. Published per-person prices and inclusions help you compare costs; student discounts apply only when explicitly offered.",
+      },
+      {
+        id: "bengaluru-faq-4",
+        question: "Can you help with a family, friends or corporate trip?",
+        answer:
+          "Send your group size, preferred dates, departure city and budget through the enquiry form. The team will check suitable options and confirm transport, accommodation and pricing in the quote.",
+      },
+      {
+        id: "bengaluru-faq-5",
+        question: "Are flights from Bengaluru included in holiday prices?",
+        answer:
+          "Only when the package explicitly lists them as included. Many domestic and international holidays start at the destination. Check the flight and transfer sections and request a quote for your departure city.",
+      },
       {
         id: "faq-1",
         question: "What am I comparing on CompareMyTrip?",
@@ -2072,6 +2105,18 @@ function list<T>(
   if (!Array.isArray(raw)) return fallback;
   const items = raw.filter(isRecord).map(map);
   return items.length > 0 ? items : fallback;
+}
+
+/* The Bengaluru questions used to be hard-coded into the homepage FAQ, so
+   they showed on the site but never in /admin. They now live in the editable
+   list: content saved before the move gets them added to the top once, and
+   after the next save (which stores version 1) a deleted one stays deleted. */
+function withBengaluruFaqs(items: FaqItem[], version: unknown): FaqItem[] {
+  if (version === 1) return items;
+  const seeded = DEFAULT_SITE_CONTENT.faq.items.filter(
+    item => item.id.startsWith("bengaluru-faq-") && !items.some(existing => existing.question === item.question),
+  );
+  return [...seeded, ...items];
 }
 
 /* Weekend-trek menu links used to carry the same thing twice —
@@ -2710,13 +2755,17 @@ export function normalizeSiteContent(raw: unknown): SiteContent {
     },
 
     faq: {
+      version: 1,
       enabled: bool(faqRaw.enabled, base.faq.enabled),
       header: header(faqRaw.header, base.faq.header),
-      items: list(faqRaw.items, base.faq.items, (item, index) => ({
-        id: str(item.id, `faq-${index + 1}`),
-        question: str(item.question, "Untitled"),
-        answer: str(item.answer, ""),
-      })),
+      items: withBengaluruFaqs(
+        list(faqRaw.items, base.faq.items, (item, index) => ({
+          id: str(item.id, `faq-${index + 1}`),
+          question: str(item.question, "Untitled"),
+          answer: str(item.answer, ""),
+        })),
+        faqRaw.version,
+      ),
       help: {
         icon: str(faqHelpRaw.icon, base.faq.help.icon),
         title: str(faqHelpRaw.title, base.faq.help.title),
