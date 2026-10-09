@@ -73,16 +73,15 @@ export async function POST(request: Request) {
   if (file.size > 5_000_000) return Response.json({ error: "Each image must be 5 MB or smaller." }, { status: 400 });
 
   const original = Buffer.from(await file.arrayBuffer());
-  const shouldCompress = file.size >= 800_000;
-  const body = shouldCompress
-    ? await sharp(original)
-        .rotate()
-        .resize({ width: 2400, height: 2400, fit: "inside", withoutEnlargement: true })
-        .webp({ quality: 70 })
-        .toBuffer()
-    : original;
-  const extension = shouldCompress ? "webp" : file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-  const contentType = shouldCompress ? "image/webp" : file.type;
+  /* Every upload is re-encoded here because images are served without
+     next/image optimisation (images.unoptimized in next.config). */
+  const body = await sharp(original)
+    .rotate()
+    .resize({ width: 2400, height: 2400, fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 75 })
+    .toBuffer();
+  const extension = "webp";
+  const contentType = "image/webp";
   const key = `${folder}/${crypto.randomUUID()}.${extension}`;
   await config.client.send(new PutObjectCommand({
     Bucket: config.bucket,

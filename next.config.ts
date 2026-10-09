@@ -40,18 +40,10 @@ const nextConfig: NextConfig = {
   },
   trailingSlash: false,
   images: {
-    // AVIF is about 40% smaller than WebP for these photos at the same look,
-    // which is most of what a phone downloads before the first paint. WebP
-    // remains for browsers without AVIF. Each format is encoded once per size.
-    formats: ["image/avif", "image/webp"],
-    // Match the actual card/hero widths with fewer transform variants.
-    deviceSizes: [640, 768, 1080, 1440, 1920, 3840],
-    imageSizes: [32, 64, 128, 256, 384],
-    // 90 is for the destination cards, whose photos are cropped and enlarged.
-    qualities: [75, 90],
-    /* Package photography imported from tourbazaar.in is served from the
-       operators' Supabase storage bucket, so next/image has to be told the
-       host is allowed before it will optimise those files. */
+    /* Every next/image is served as-is: the hosting plan's transformation
+       quota (5K a month) ran out. CRM uploads are resized and encoded to
+       WebP at upload instead, so the optimiser has nothing left to save. */
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
