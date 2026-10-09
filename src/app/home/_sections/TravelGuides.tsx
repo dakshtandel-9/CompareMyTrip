@@ -63,7 +63,7 @@ export default function TravelGuides() {
                   href={guide.href}
                   className="flex h-full flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
                 >
-                  <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden">
+                  <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-cmt-neutral-100">
                     <ContentImage
                       src={guide.image}
                       alt={guide.alt}

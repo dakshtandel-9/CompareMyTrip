@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Check, Copy, Download, Landmark, QrCode } from "lucide-react";

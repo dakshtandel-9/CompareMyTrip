@@ -38,6 +38,7 @@ const inlineEditing = load('src/app/packages/_components/PackageInlineEditing.ts
 const pageSectionComponents = load('src/app/packages/_components/PackagePageSections.tsx', {
   'react/jsx-runtime': jsxRuntime,
   'next/image': { default: imageMock },
+  '@/components/SiteImage': { default: imageMock },
   'lucide-react': icons,
   '@/lib/packageDetailSections': model,
   './PackageGallery': { default: galleryMock },
@@ -143,6 +144,7 @@ const { default: RealPackageGallery } = load('src/app/packages/_components/Packa
   'react/jsx-runtime': jsxRuntime,
   react: { ...React, useState: () => [0, noOp], useEffect: noOp },
   'next/image': { default: imageMock },
+  '@/components/SiteImage': { default: imageMock },
   'lucide-react': icons,
   './PackageGallery.module.css': { default: {} },
   '@/components/Modal': { default: ({ children }) => children },
@@ -150,6 +152,7 @@ const { default: RealPackageGallery } = load('src/app/packages/_components/Packa
 const { default: SectionsWithRealGallery } = load('src/app/packages/_components/PackagePageSections.tsx', {
   'react/jsx-runtime': jsxRuntime,
   'next/image': { default: imageMock },
+  '@/components/SiteImage': { default: imageMock },
   'lucide-react': icons,
   '@/lib/packageDetailSections': model,
   './PackageInlineEditing': { ...inlineEditing, EditableGallery: RealPackageGallery },
@@ -221,6 +224,7 @@ const original = data.DUMMY_PACKAGES.find((pkg) => pkg.details?.itinerary?.lengt
 let activePackage;
 const { default: PackageDetailClient } = load('src/app/packages/[packageId]/PackageDetailClient.tsx', {
   'next/image': { default: imageMock },
+  '@/components/SiteImage': { default: imageMock },
   '@/lib/displayableImage': load('src/lib/displayableImage.ts'),
   'react/jsx-runtime': jsxRuntime,
   react: React,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSiteContent } from "@/lib/useSiteContent";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 
 /* ------------------------------------------------------------------ */
 /* The tourism boards, scrolling along the top of the footer.           */

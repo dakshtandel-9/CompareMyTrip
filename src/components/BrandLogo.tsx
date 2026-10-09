@@ -15,8 +15,8 @@ export default function BrandLogo({
       <Image
         src="/comparemytrip-logo.webp"
         alt="CompareMyTrip"
-        width={2172}
-        height={724}
+        width={1086}
+        height={362}
         sizes={sizes}
         fetchPriority={fetchPriority}
         className="absolute top-1/2 left-0 h-auto w-full max-w-none -translate-y-1/2"

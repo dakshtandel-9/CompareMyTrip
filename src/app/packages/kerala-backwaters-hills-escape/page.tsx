@@ -1,7 +1,7 @@
 import { packagePath } from "@/lib/packageUrls";
 import { DUMMY_PACKAGES } from "@/lib/packageSeed";
 import type { Metadata } from "next";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";

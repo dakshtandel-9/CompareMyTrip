@@ -1,4 +1,5 @@
-import Image, { type ImageProps } from "next/image";
+import type { ImageProps } from "next/image";
+import Image from "@/components/SiteImage";
 
 /* next/image, but tolerant of the two things the CRM can hand it that the
    plain component cannot take: an uploaded data URL, which the optimiser has

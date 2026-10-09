@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import { ShieldCheck, TriangleAlert, X } from "lucide-react";
 
 import type { AppliedCoupon } from "@/lib/coupons";

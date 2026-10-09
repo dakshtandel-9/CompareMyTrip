@@ -4,7 +4,7 @@ import { packagePath } from "@/lib/packageUrls";
 import { getPlanComparison as attributesFor, hasTravellerRating, type ComparedAttributes } from "@/lib/planComparison";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import Link from "next/link";
 import {
   ArrowLeftRight,

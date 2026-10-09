@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import { useState } from "react";
 import { Download, MapPin } from "lucide-react";
 import { isCruiseDemo, publicCruises, type CruiseListing } from "@/lib/cruiseListings";

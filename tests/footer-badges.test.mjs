@@ -71,7 +71,7 @@ test('partial or invalid image data retains defaults and rejects unsafe image UR
 let renderedContent = DEFAULT_SITE_CONTENT;
 const { default: PartnerMarquee } = load('src/components/PartnerMarquee.tsx', {
   'react/jsx-runtime': jsxRuntime,
-  'next/image': { default: ({ fill, ...props }) => { void fill; return React.createElement('img', props); } },
+  '@/components/SiteImage': { default: ({ fill, ...props }) => { void fill; return React.createElement('img', props); } },
   '@/lib/useSiteContent': { useSiteContent: () => renderedContent },
 });
 
@@ -88,7 +88,7 @@ test('original scrolling logos return for legacy content and the new visibility 
 const { default: TrustStrip } = load('src/components/TrustStrip.tsx', {
   'react/jsx-runtime': jsxRuntime,
   'lucide-react': icons,
-  'next/image': { default: ({ unoptimized, ...props }) => { void unoptimized; return React.createElement('img', props); } },
+  '@/components/SiteImage': { default: ({ unoptimized, ...props }) => { void unoptimized; return React.createElement('img', props); } },
   '@/lib/useSiteContent': { useSiteContent: () => renderedContent },
 });
 

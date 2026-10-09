@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import { useEffect, useRef, useState } from "react";
 import { shouldLoadVideo, videoSource } from "@/lib/videoSource";
 import { Sparkles } from "lucide-react";

@@ -2,7 +2,7 @@
 
 import PackageRichText from "@/components/PackageRichText";
 import { hasRichText } from "@/lib/packageRichText";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import { ArrowUpRight, Backpack, Bus, ChevronDown, MapPin, ShieldCheck, Star } from "lucide-react";
 import type { ReactNode } from "react";
 import {

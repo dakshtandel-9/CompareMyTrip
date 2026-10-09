@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import { ArrowLeftRight, ChevronRight, X } from "lucide-react";
 
 import { COMPARE_STORAGE_KEY, COMPARE_UPDATE_EVENT, DEFAULT_COMPARE_IDS, useCompare } from "@/lib/useCompare";

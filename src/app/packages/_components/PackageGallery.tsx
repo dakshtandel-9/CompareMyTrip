@@ -2,7 +2,7 @@
 
 import Modal from "@/components/Modal";
 
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import styles from "./PackageGallery.module.css";

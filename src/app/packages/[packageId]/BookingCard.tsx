@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import Link from "next/link";
 import { BadgePercent, Flame, Minus, Plus, ShieldCheck } from "lucide-react";
 import { DEFAULT_AVAILABILITY_NOTE, DEFAULT_QUOTE_NOTE, departureDays, departureDaysLabel, getDiscountPercent, getPackageBookingBadges, type PackageDetails, type TravelPackage } from "@/lib/packageData";

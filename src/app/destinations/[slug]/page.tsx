@@ -1,7 +1,7 @@
 import { packagePath } from "@/lib/packageUrls";
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ArrowRight, CalendarDays, MapPin, Wallet } from "lucide-react";
 

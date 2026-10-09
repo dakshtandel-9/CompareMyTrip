@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import { ArrowDown, Check, ClipboardList, Clock3, ShieldCheck } from "lucide-react";
 import { useSiteContent } from "@/lib/useSiteContent";
 

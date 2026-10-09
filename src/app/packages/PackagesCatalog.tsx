@@ -4,7 +4,7 @@ import { packagePath } from "@/lib/packageUrls";
 import { BENGALURU, startsInBengaluru, matchesTraveller, matchesDepartureWindow } from "@/lib/bengaluruTravel";
 import { lockPageScroll } from "@/lib/lockPageScroll";
 
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import Link from "next/link";
 import PackageLogistics from "@/components/PackageLogistics";
 import { useRouter, useSearchParams } from "next/navigation";

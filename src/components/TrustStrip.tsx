@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import { ShieldCheck, Star } from "lucide-react";
 import { useSiteContent } from "@/lib/useSiteContent";
 import type { FooterBadgesContent } from "@/lib/siteContent";

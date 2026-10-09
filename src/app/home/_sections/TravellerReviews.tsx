@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import { ArrowLeft, ArrowRight, MessageSquareQuote, Quote } from "lucide-react";
 
 import { useSiteContent } from "@/lib/useSiteContent";

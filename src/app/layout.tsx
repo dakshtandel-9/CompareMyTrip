@@ -3,6 +3,8 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import SiteExperience from "@/components/SiteExperience";
 import SiteContentProvider from "@/components/SiteContentProvider";
 import SiteReadySignal from "@/components/SiteReadySignal";
+import ImageLookahead from "@/components/ImageLookahead";
+import { ImageRevealScript } from "@/components/SiteImage";
 import JsonLd from "@/components/JsonLd";
 import Analytics from "@/components/Analytics";
 import {
@@ -93,8 +95,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${inter.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      /* ImageRevealScript flags <html> before React hydrates. */
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-white">
+        <ImageRevealScript />
         <JsonLd
           data={{
             "@context": "https://schema.org",
@@ -121,6 +126,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         />
         <Analytics />
         <SiteReadySignal />
+        <ImageLookahead />
         {site ? <SiteContentProvider site={site}>{experience}</SiteContentProvider> : experience}
       </body>
     </html>

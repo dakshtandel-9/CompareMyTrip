@@ -105,6 +105,27 @@ body {
   contain-intrinsic-height: auto 440px;
 }
 
+/* Lazy photos (SiteImage) stay hidden until they have fully arrived, then
+   fade in, so a card shows its placeholder background instead of a photo
+   painting in strips. Only once the layout's inline script has flagged the
+   page: without it, every image paints as it arrives. An animation rather
+   than a transition, so the photos' own hover transitions are untouched. */
+:root[data-image-reveal] img[data-reveal]:not([data-loaded]) {
+  opacity: 0;
+}
+
+:root[data-image-reveal] img[data-reveal][data-loaded] {
+  animation: cmt-image-reveal 250ms ease-out;
+}
+
+@keyframes cmt-image-reveal {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-image-reveal] img[data-reveal][data-loaded] { animation: none; }
+}
+
 /* FAQ accordion (§15.5 C-6) — slide the panel open over 300ms instead of
    snapping. `interpolate-size` is what lets a height animate to `auto`;
    browsers without ::details-content support ignore the whole rule and the

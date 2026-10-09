@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 
 /* ------------------------------------------------------------------ */
 /* "Why book with us" — the reassurance band under the cruise grid.     */

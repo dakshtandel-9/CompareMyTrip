@@ -26,6 +26,7 @@ const noop = () => null;
 const { default: BookingCard } = load('src/app/packages/[packageId]/BookingCard.tsx', {
   'react/jsx-runtime': jsx,
   'next/image': { default: noop },
+  '@/components/SiteImage': { default: noop },
   'next/link': { default: ({ children, ...props }) => React.createElement('a', props, children) },
   'lucide-react': Object.fromEntries(['BadgePercent', 'BedDouble', 'Check', 'Flame', 'GitCompareArrows', 'Minus', 'Plane', 'Plus', 'ShieldCheck'].map(name => [name, noop])),
   '@/lib/PackageGlyph': { PackageGlyph: ({ name }) => React.createElement('svg', { 'data-icon': name }) },

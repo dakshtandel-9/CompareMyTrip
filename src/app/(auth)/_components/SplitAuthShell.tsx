@@ -1,5 +1,5 @@
 import BrandLogo from "@/components/BrandLogo";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import Link from "next/link";
 import type { ReactNode } from "react";
 

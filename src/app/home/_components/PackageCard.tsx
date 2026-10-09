@@ -1,6 +1,6 @@
 import { packagePath } from "@/lib/packageUrls";
 import Link from "next/link";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import { BedDouble, Clock, MapPin, Users } from "lucide-react";
 
 import { getPackageAccommodationLabel, getDiscountPercent, hasPackageAccommodation, type TravelPackage } from "@/lib/packageData";
@@ -46,7 +46,7 @@ export default function PackageCard({
     <article
       className={`cmt-offscreen-card group relative flex h-full min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md ${className}`}
     >
-      <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden">
+      <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-cmt-neutral-100">
         <Image
           src={pkg.image}
           alt={pkg.location}

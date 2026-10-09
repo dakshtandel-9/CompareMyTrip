@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { packagePath } from "@/lib/packageUrls";

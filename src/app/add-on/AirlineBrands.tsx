@@ -1,16 +1,16 @@
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 
 // Frame only the tail artwork in the original 1448 × 1086 images.
 // Separate HTML captions stay sharp and readable at every screen size.
 const AIRLINES = [
-  { name: "Air India", src: "/Flight/Flight8.png", frame: [509, 314, 420, 315] },
-  { name: "IndiGo", src: "/Flight/Flight10.png", frame: [482, 308, 484, 363] },
-  { name: "Air India Express", src: "/Flight/Flight2.png", frame: [525, 332, 396, 297] },
-  { name: "Akasa Air", src: "/Flight/Flight9.png", frame: [510, 310, 428, 321] },
-  { name: "SpiceJet", src: "/Flight/Flight1.png", frame: [500, 306, 448, 336] },
-  { name: "Oman Air", src: "/Flight/Flight3.png", frame: [493, 308, 468, 351] },
-  { name: "Gulf Air", src: "/Flight/Flight4.png", frame: [493, 302, 448, 336] },
-  { name: "Saudia", src: "/Flight/Flight5.png", frame: [525, 340, 396, 297] },
+  { name: "Air India", src: "/Flight/Flight8.webp", frame: [509, 314, 420, 315] },
+  { name: "IndiGo", src: "/Flight/Flight10.webp", frame: [482, 308, 484, 363] },
+  { name: "Air India Express", src: "/Flight/Flight2.webp", frame: [525, 332, 396, 297] },
+  { name: "Akasa Air", src: "/Flight/Flight9.webp", frame: [510, 310, 428, 321] },
+  { name: "SpiceJet", src: "/Flight/Flight1.webp", frame: [500, 306, 448, 336] },
+  { name: "Oman Air", src: "/Flight/Flight3.webp", frame: [493, 308, 468, 351] },
+  { name: "Gulf Air", src: "/Flight/Flight4.webp", frame: [493, 302, 448, 336] },
+  { name: "Saudia", src: "/Flight/Flight5.webp", frame: [525, 340, 396, 297] },
 ] as const;
 
 export default function AirlineBrands() {

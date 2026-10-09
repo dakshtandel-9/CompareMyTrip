@@ -1,5 +1,5 @@
 import BrandLogo from "@/components/BrandLogo";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import { Fragment } from "react";
 import Link from "next/link";
 import { ArrowUpRight, CreditCard, Mail, MapPin, Phone } from "lucide-react";

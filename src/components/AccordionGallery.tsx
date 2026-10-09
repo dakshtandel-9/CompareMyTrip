@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
-import Image from "next/image";
+import Image from "@/components/SiteImage";
 import type { gsap as Gsap } from "gsap";
 
 import "./AccordionGallery.css";

@@ -26,7 +26,7 @@ const model = load('src/app/admin/packages/packageFormModel.ts', {
 });
 const noop = () => null;
 const publicSections = load('src/app/packages/_components/PackagePageSections.tsx', {
-  'react/jsx-runtime': jsx, 'next/image': { default: noop },
+  'react/jsx-runtime': jsx, 'next/image': { default: noop }, '@/components/SiteImage': { default: noop },
   'lucide-react': Object.fromEntries(['ArrowUpRight', 'Backpack', 'Bus', 'ChevronDown', 'MapPin', 'ShieldCheck', 'Star'].map(name => [name, noop])),
   '@/lib/packageDetailSections': sections,
   './PackageInlineEditing': { InlineText: noop, EditableGallery: noop, EditAction: noop, usePackageEditing: () => null },
