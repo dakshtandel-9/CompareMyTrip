@@ -1234,7 +1234,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
         id: "trend-goa",
         name: "Goa",
         subtitle: "Beach Getaway",
-        image: "/popular-destinations/goa.webp",
+        image: "/destinations/goa.webp",
         price: "7,999",
         packages: 836,
         rise: 38,

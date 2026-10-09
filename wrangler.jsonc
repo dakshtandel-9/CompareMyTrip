@@ -5,7 +5,7 @@
   "compatibility_date": "2026-08-27",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "workers_dev": true,
-  "vars": { "NEXT_PUBLIC_SITE_URL": "https://comparemytrip.in", "PAYU_MODE": "test" },
+  "vars": { "NEXT_PUBLIC_SITE_URL": "https://comparemytrip.in", "PAYU_MODE": "live", "PAYU_LIVE_PAYMENTS_ENABLED": "true" },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"

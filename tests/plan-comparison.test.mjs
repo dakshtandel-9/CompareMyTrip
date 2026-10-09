@@ -88,7 +88,7 @@ test('old CMS marketplace wording upgrades without mutating the stored document'
 test('custom CMS copy, intentionally empty text and traveller quotes are preserved', () => {
   const saved = {
     compare: { header: { title: 'Choose your family holiday', description: '', actionLabel: '' } },
-    faq: { items: [{ id: 'custom', question: 'Can I customise a plan?', answer: 'Ask our team about a private trip.' }] },
+    faq: { version: 1, items: [{ id: 'custom', question: 'Can I customise a plan?', answer: 'Ask our team about a private trip.' }] },
     reviews: { items: [{ id: 'review', quote: 'Better choices.', name: 'Traveller' }] },
   };
   const normalized = normalizeSiteContent(saved);
@@ -97,4 +97,16 @@ test('custom CMS copy, intentionally empty text and traveller quotes are preserv
   assert.equal(normalized.compare.header.actionLabel, '');
   assert.equal(normalized.faq.items[0].answer, saved.faq.items[0].answer);
   assert.equal(normalized.reviews.items[0].quote, 'Better choices.');
+});
+
+test('FAQ saved before the Bengaluru questions moved into the CMS gets them once', () => {
+  const custom = { id: 'custom', question: 'Can I customise a plan?', answer: 'Ask our team.' };
+  const migrated = normalizeSiteContent({ faq: { items: [custom] } }).faq;
+  assert.equal(migrated.version, 1);
+  assert.equal(migrated.items.length, 6);
+  assert.ok(migrated.items.slice(0, 5).every(item => item.id.startsWith('bengaluru-faq-')));
+  assert.equal(migrated.items[5].question, custom.question);
+
+  const afterDelete = normalizeSiteContent({ faq: { version: 1, items: [custom] } }).faq;
+  assert.deepEqual(afterDelete.items.map(item => item.id), ['custom']);
 });

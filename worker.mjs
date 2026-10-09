@@ -4,7 +4,13 @@ import handler from './.open-next/worker.js';
 export { DOQueueHandler } from './.open-next/worker.js';
 
 const worker = {
-  fetch: handler.fetch,
+  async fetch(request, env, ctx) {
+    const response = await handler.fetch(request, env, ctx);
+    // Remove OpenNext's overly strict CSP that breaks Next.js on Workers
+    const headers = new Headers(response.headers);
+    headers.delete('Content-Security-Policy');
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+  },
   async scheduled(_event, env, ctx) {
     if (!env.CRON_SECRET) throw new Error('CRON_SECRET is required for scheduled cleanup.');
     const results = await Promise.allSettled(['quote-cleanup', 'pending-payments'].map(async task => {
