@@ -140,8 +140,9 @@ export default function Footer({
           <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:gap-10 lg:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,1fr))] lg:gap-x-10 lg:gap-y-10 xl:gap-x-14">
             {/* Brand */}
             <div className="col-span-2 lg:col-span-1 lg:row-span-2">
-              <Link href="/" className="inline-flex">
+              <Link href="/" className="inline-flex items-start gap-0.5">
                 <BrandLogo className="w-[235px] max-w-full" />
+                <span aria-hidden="true" className="text-[10px] font-semibold leading-none text-cmt-neutral-600">™</span>
               </Link>
 
               <p className="mt-5 max-w-[38ch] text-pretty text-sm leading-[1.6] text-cmt-neutral-600">

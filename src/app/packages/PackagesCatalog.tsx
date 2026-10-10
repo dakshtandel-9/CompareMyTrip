@@ -508,7 +508,6 @@ export function CatalogContent({
          are not aliases of anything, so they pass through untouched. */
       .map(toIndiaState),
   );
-  const [destinationQuery, setDestinationQuery] = useState("");
   const [durations, setDurations] = useState<string[]>(searchParams.getAll("duration").filter(value => durationOptions.some(option => option.value === value)));
   /* The starting point, traveller, and departure-window controls were taken out
      of the filter panel, but the params survive as read-only entry points:
@@ -562,10 +561,10 @@ export function CatalogContent({
   }, [regionPackages]);
 
   const visibleDestinations = useMemo(() => {
-    const needle = destinationQuery.trim().toLowerCase();
+    const needle = query.trim().toLowerCase();
     if (!needle) return destinationOptions;
     return destinationOptions.filter((option) => option.name.toLowerCase().includes(needle));
-  }, [destinationOptions, destinationQuery]);
+  }, [destinationOptions, query]);
 
   const toggleDestination = (value: string) => {
     setDestinations((current) =>
@@ -590,7 +589,6 @@ export function CatalogContent({
     setCategory("All packages");
     setDealsOnly(false);
     setDestinations([]);
-    setDestinationQuery("");
     setBudget(null);
     setDurations([]);
   };
@@ -697,6 +695,22 @@ export function CatalogContent({
 
   const filtersContent = (
     <>
+      {/* One box for both: it filters the grid (title, location, destination)
+          and narrows the destination list below to matching names. */}
+      <FilterGroup title="Search destinations and packages">
+        <label className="relative block">
+          <span className="sr-only">Search destinations and packages</span>
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-cmt-neutral-400" />
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search destinations and packages…"
+            className="h-9 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white pl-8 pr-3 text-xs text-cmt-neutral-900 outline-none placeholder:text-cmt-neutral-400 focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]"
+          />
+        </label>
+      </FilterGroup>
+
       {/* An on/off switch rather than a checkbox: it narrows the whole grid to
           the editorially picked deals, so it reads as a mode, not one more
           box to tick. */}
@@ -735,22 +749,9 @@ export function CatalogContent({
           panel can only ever offer somewhere we actually sell. India reads as
           states, International as countries. */}
       <FilterGroup title="Destination">
-        {destinationOptions.length > 8 && (
-          <label className="relative mb-3 block">
-            <span className="sr-only">Search destinations</span>
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-cmt-neutral-400" />
-            <input
-              type="search"
-              value={destinationQuery}
-              onChange={(event) => setDestinationQuery(event.target.value)}
-              placeholder="Search destinations…"
-              className="h-9 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white pl-8 pr-3 text-xs text-cmt-neutral-900 outline-none placeholder:text-cmt-neutral-400 focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]"
-            />
-          </label>
-        )}
         <div className="max-h-56 space-y-3 overflow-y-auto pr-1">
           {visibleDestinations.length === 0 ? (
-            <p className="text-xs text-cmt-neutral-500">No destination matches that.</p>
+            <p className="text-xs text-cmt-neutral-500">No destination matches — packages are still searched.</p>
           ) : (
             visibleDestinations.map(({ name }) => (
               <label key={name} className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-cmt-neutral-700">
