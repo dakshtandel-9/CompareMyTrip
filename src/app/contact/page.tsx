@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PageSiteContent from "@/components/PageSiteContent";
 import ContactBody from "./ContactBody";
 import { createPageMetadata } from "@/lib/seo";
 
@@ -17,10 +18,10 @@ export const metadata: Metadata = createPageMetadata({
 
 export default function ContactPage() {
   return (
-    <>
+    <PageSiteContent sections={["faq"]}>
       <Header />
       <ContactBody />
       <Footer />
-    </>
+    </PageSiteContent>
   );
 }

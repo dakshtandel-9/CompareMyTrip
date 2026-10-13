@@ -71,7 +71,7 @@ export async function saveCruise(cruise: CruiseListing) {
     }, { merge: true })
     .commit();
   try {
-    await revalidatePublicContent();
+    await revalidatePublicContent("cruises");
     return { refreshWarning: "" };
   } catch {
     // The document is already durable; a refresh failure is not a lost save.
@@ -91,7 +91,7 @@ export async function deleteCruises(cruiseIds: string[]) {
   ids.forEach((id) => batch.delete(doc(db, COLLECTION, id)));
   await batch.commit();
   try {
-    await revalidatePublicContent();
+    await revalidatePublicContent("cruises");
     return { refreshWarning: "" };
   } catch {
     return { refreshWarning: "The cruises were deleted, but public pages could not be refreshed immediately." };

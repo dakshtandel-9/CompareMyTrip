@@ -9,6 +9,7 @@ import {
   sortBlogPosts,
   type BlogPost,
 } from "@/lib/blogData";
+import { PUBLIC_CONTENT_TAG } from "@/lib/contentScopes";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { isPublishedCruise, type CruiseListing } from "@/lib/cruiseListings";
 import {
@@ -92,14 +93,16 @@ const readPackageCatalogue = async (): Promise<PackageCatalogue> => {
 // Keep Cache Components off: the routes use ISR and must return real HTTP 404s.
 // A cache's revalidate also caps every page that reads it, so a short value
 // here makes the whole site regenerate that often. Publishing from the CRM
-// clears the "public-content" tag immediately; the day is only a backstop.
+// expires the matching scope's tag (see contentScopes) immediately; the week
+// is only a backstop. Bump a key when its tags change: entries already cached
+// keep the tags they were written with.
 const readCachedCatalogue = unstable_cache(async () => {
   const catalogue = await readPackageCatalogue();
   return {
     packages: catalogue.packages,
     updatedAt: Array.from(catalogue.updatedAt, ([id, date]) => [id, date.toISOString()]),
   };
-}, ["published-catalogue-v3"], { revalidate: 86400, tags: ["public-content"] });
+}, ["published-catalogue-v4"], { revalidate: 604800, tags: [PUBLIC_CONTENT_TAG, "packages"] });
 const loadPackageCatalogue = cache(async (): Promise<PackageCatalogue> => {
   const catalogue = await readCachedCatalogue();
   return {
@@ -149,7 +152,7 @@ export const getPublishedBlogPosts = cache(unstable_cache(async (): Promise<Blog
     console.error("Unable to load blog posts for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return seedBlogPosts();
   }
-}, ["published-blog-v2"], { revalidate: 86400, tags: ["public-content"] }));
+}, ["published-blog-v3"], { revalidate: 604800, tags: [PUBLIC_CONTENT_TAG, "blog"] }));
 
 export const getPublishedBlogPost = cache(async (slug: string) => {
   const posts = await getPublishedBlogPosts();
@@ -189,7 +192,7 @@ export const getPublishedCruises = cache(unstable_cache(async (): Promise<Cruise
     console.error("Unable to load cruises for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return [];
   }
-}, ["published-cruises-v1"], { revalidate: 86400, tags: ["public-content"] }));
+}, ["published-cruises-v2"], { revalidate: 604800, tags: [PUBLIC_CONTENT_TAG, "cruises"] }));
 
 export const getDestinationCovers = cache(unstable_cache(async (): Promise<Record<string, string>> => {
   const db = getAdminDb();
@@ -209,7 +212,7 @@ export const getDestinationCovers = cache(unstable_cache(async (): Promise<Recor
     console.error("Unable to load destination covers for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return {};
   }
-}, ["destination-covers-v1"], { revalidate: 86400, tags: ["public-content"] }));
+}, ["destination-covers-v2"], { revalidate: 604800, tags: [PUBLIC_CONTENT_TAG, "destinations"] }));
 
 /* Editor-written paragraphs for destination pages, keyed by destination name.
    A separate loader from the covers so those callers keep their shape. */
@@ -231,4 +234,4 @@ export const getDestinationDescriptions = cache(unstable_cache(async (): Promise
     console.error("Unable to load destination descriptions for server rendering:", error instanceof Error ? error.message : "Unknown database error");
     return {};
   }
-}, ["destination-descriptions-v1"], { revalidate: 86400, tags: ["public-content"] }));
+}, ["destination-descriptions-v2"], { revalidate: 604800, tags: [PUBLIC_CONTENT_TAG, "destinations"] }));

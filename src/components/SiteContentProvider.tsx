@@ -1,15 +1,24 @@
 "use client";
 
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { SiteContentContext } from "@/lib/useSiteContent";
-import type { SiteContent } from "@/lib/siteContent";
+import { DEFAULT_SITE_CONTENT, type SiteContent } from "@/lib/siteContent";
 
-/** The published site content, read on the server, for every page under it. */
+/** Published site content, read on the server. The root layout provides the
+    site-wide sections and a page nests its own beneath them, so each page
+    carries only the sections it renders. */
 export default function SiteContentProvider({ site, children }: {
-  site: { content: SiteContent; exists: boolean };
+  site: { content: Partial<SiteContent>; exists: boolean };
   children: React.ReactNode;
 }) {
-  const value = useMemo(() => ({ ...site, loading: false, error: "" }), [site]);
+  const parent = useContext(SiteContentContext);
+  const value = useMemo(() => ({
+    content: { ...(parent?.content ?? DEFAULT_SITE_CONTENT), ...site.content },
+    exists: site.exists,
+    loading: false,
+    error: "",
+    sections: [...(parent?.sections ?? []), ...(Object.keys(site.content) as (keyof SiteContent)[])],
+  }), [parent, site]);
   return <SiteContentContext.Provider value={value}>{children}</SiteContentContext.Provider>;
 }
 

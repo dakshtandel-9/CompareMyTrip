@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PageSiteContent from "@/components/PageSiteContent";
 import DestinationsIndex, { DestinationsContent } from "./DestinationsIndex";
 import { getDestinationCovers, getPublishedPackages } from "@/lib/serverContent";
 import { toListingPackage } from "@/lib/listingPackages";
 import { createPageMetadata } from "@/lib/seo";
 
-export const revalidate = 86400; // 24 hours
+export const revalidate = 604800; // 7 days; publishing refreshes it at once
 
 export const metadata: Metadata = createPageMetadata({
   title: "Travel Destinations in India and Abroad",
@@ -27,13 +28,13 @@ export default async function DestinationsPage() {
   ]);
   const packages = catalogue.map(toListingPackage);
   return (
-    <>
+    <PageSiteContent sections={["banners"]}>
       <Header />
       {/* Keep destination cards in the prerendered HTML while URL tabs hydrate. */}
       <Suspense fallback={<DestinationsContent initialPackages={packages} initialCovers={covers} />}>
         <DestinationsIndex initialPackages={packages} initialCovers={covers} />
       </Suspense>
       <Footer />
-    </>
+    </PageSiteContent>
   );
 }

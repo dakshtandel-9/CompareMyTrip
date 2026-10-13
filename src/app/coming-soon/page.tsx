@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import ComingSoonScreen from "@/components/ComingSoonScreen";
+import { getPublishedSiteSections, SITE_WIDE_SECTIONS } from "@/lib/serverSiteContent";
 
 export const metadata: Metadata = {
   title: "Coming soon",
@@ -9,9 +9,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// Rendered per request so switching the mode off redirects at once. Only
+// visitors sent here while the mode is on, or holding an old link, arrive.
+export const dynamic = "force-dynamic";
+
 export default async function ComingSoonPage() {
-  // Middleware owns the setting lookup and redirects home while the mode is
-  // off; this only catches a request that somehow got past it.
-  if ((await headers()).get("x-cmt-coming-soon") !== "enabled") redirect("/");
+  // The same cached copy the layout reads; an unreadable one keeps the site open.
+  const site = await getPublishedSiteSections(SITE_WIDE_SECTIONS).catch(() => null);
+  if (!site?.content.comingSoon?.enabled) redirect("/");
   return <ComingSoonScreen />;
 }

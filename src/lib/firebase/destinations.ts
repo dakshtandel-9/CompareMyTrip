@@ -72,7 +72,7 @@ export async function saveDestinationCover(name: string, image: string) {
     updatedAt: serverTimestamp(),
     updatedByUid: user.uid,
   }, { merge: true });
-  await revalidatePublicContent();
+  await revalidatePublicContent("destinations");
 }
 
 export const MAX_DESTINATION_DESCRIPTION = 600;
@@ -92,7 +92,7 @@ export async function saveDestinationDescription(name: string, description: stri
     updatedAt: serverTimestamp(),
     updatedByUid: user.uid,
   }, { merge: true });
-  await revalidatePublicContent();
+  await revalidatePublicContent("destinations");
 }
 
 export async function clearDestinationCover(name: string) {

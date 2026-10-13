@@ -13,7 +13,7 @@ import {
   getSiteUrl,
   SITE_NAME,
 } from "@/lib/seo";
-import { getPublishedSiteContent } from "@/lib/serverSiteContent";
+import { getPublishedSiteSections, SITE_WIDE_SECTIONS } from "@/lib/serverSiteContent";
 import "./globals.css";
 
 const inter = Inter({
@@ -86,10 +86,11 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  /* Published once per revalidation and shared by every page, so the header,
-     banners and forms paint with real content. Should the read fail, the
-     pages fall back to the live Firestore listener as before. */
-  const site = await getPublishedSiteContent().catch(() => null);
+  /* The sections every page renders, so the header, footer and coming-soon
+     switch paint with real content. Pages add the sections they render
+     themselves (PageSiteContent). Should the read fail, the pages fall back
+     to the live Firestore listener as before. */
+  const site = await getPublishedSiteSections(SITE_WIDE_SECTIONS).catch(() => null);
   const experience = <SiteExperience>{children}</SiteExperience>;
   return (
     <html

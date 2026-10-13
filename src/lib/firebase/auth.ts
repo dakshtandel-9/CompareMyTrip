@@ -2,15 +2,31 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   createUserWithEmailAndPassword,
+  getAdditionalUserInfo,
   sendPasswordResetEmail,
   setPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
   updateProfile,
+  type User,
 } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { getFirebaseAuth, getFirebaseDb, createGoogleProvider } from "./client";
 import { markProfileCompleted } from "./profileEvents";
+
+/* Asks the server to send the welcome email. Fire-and-forget: keepalive lets
+   it finish after the page navigates away, and a failure never blocks signup.
+   The server checks the account is new and welcomes it only once. */
+function requestWelcomeEmail(user: User, { guest = false }: { guest?: boolean } = {}) {
+  void user.getIdToken().then((token) =>
+    fetch("/api/account/welcome", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({ guest }),
+      keepalive: true,
+    }),
+  ).catch(() => {});
+}
 
 export async function signUpWithEmail({
   name,
@@ -34,6 +50,7 @@ export async function signUpWithEmail({
     createdAt: serverTimestamp(),
   });
   markProfileCompleted(credential.user.uid);
+  requestWelcomeEmail(credential.user);
   return credential.user;
 }
 
@@ -94,6 +111,7 @@ export async function signUpGuest({
     createdAt: serverTimestamp(),
   });
   markProfileCompleted(credential.user.uid);
+  requestWelcomeEmail(credential.user, { guest: true });
   return credential.user;
 }
 
@@ -128,6 +146,7 @@ export async function signInWithGoogle({ remember = true }: { remember?: boolean
   // ProfileCompletionGate collects and saves a new account's required details.
   // A Firestore outage must not turn successful Google authentication into a
   // failed login, or overwrite an existing customer's chosen profile name.
+  if (getAdditionalUserInfo(credential)?.isNewUser) requestWelcomeEmail(credential.user);
   return credential.user;
 }
 

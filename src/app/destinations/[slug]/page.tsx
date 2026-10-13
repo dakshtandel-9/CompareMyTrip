@@ -7,6 +7,7 @@ import { ArrowRight, CalendarDays, MapPin, Wallet } from "lucide-react";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PageSiteContent from "@/components/PageSiteContent";
 import JsonLd from "@/components/JsonLd";
 import PackageCard from "@/app/home/_components/PackageCard";
 import {
@@ -42,7 +43,7 @@ import {
 /* /destinations grid follows.                                          */
 /* ------------------------------------------------------------------ */
 
-export const revalidate = 86400; // 24 hours
+export const revalidate = 604800; // 7 days; publishing refreshes it at once
 
 type DestinationPageProps = { params: Promise<{ slug: string }> };
 
@@ -133,7 +134,7 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
   ];
 
   return (
-    <>
+    <PageSiteContent sections={["weekendTreks"]}>
       <Header />
       <JsonLd
         data={[
@@ -286,6 +287,6 @@ export default async function DestinationPage({ params }: DestinationPageProps) 
         )}
       </main>
       <Footer />
-    </>
+    </PageSiteContent>
   );
 }

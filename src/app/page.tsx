@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getPublishedBlogPosts, getPublishedPackages } from "@/lib/serverContent";
 import { toListingPackage } from "@/lib/listingPackages";
 import HomeContentProvider from "./home/HomeContentProvider";
+import PageSiteContent from "@/components/PageSiteContent";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { createPageMetadata } from "@/lib/seo";
@@ -32,34 +33,43 @@ export const metadata: Metadata = createPageMetadata({
   path: "/",
 });
 
-export const revalidate = 86400; // 24 hours
+export const revalidate = 604800; // 7 days; publishing refreshes it at once
+
+/* Every homepage section the CRM edits. The header and footer come from the
+   root layout; anything else a section starts reading must be added here. */
+const HOME_SECTIONS = [
+  "hero", "categories", "trending", "compare", "featured", "weekendTreks", "trainBanner", "domestic",
+  "international", "whyUs", "latestDeals", "gallery", "reviews", "guides", "faq", "newsletter",
+] as const;
 
 export default async function HomePage() {
   const [packages, posts] = await Promise.all([getPublishedPackages(), getPublishedBlogPosts()]);
   return (
-    <HomeContentProvider packages={packages.map(toListingPackage)} posts={posts}>
-      <Header />
+    <PageSiteContent sections={HOME_SECTIONS}>
+      <HomeContentProvider packages={packages.map(toListingPackage)} posts={posts}>
+        <Header />
 
-      <main className="cmt-home w-full bg-white font-body text-cmt-neutral-900">
-        <ScrollFrameSequence />
-        <QuickTravelCategories />
-        <TrendingDestinations />
-        <CompareBeforeYouBook />
-        <FeaturedPackages />
-        <WeekendTreks />
-        <TrainFrameBanner />
-        <DomesticHolidays />
-        <InternationalHolidays />
-        <WhyTravelWithUs />
-        <LatestDeals />
-        <TravelGallery />
-        <TravellerReviews />
-        <TravelGuides />
-        <Faq />
-        <TrustAndNewsletter />
-      </main>
+        <main className="cmt-home w-full bg-white font-body text-cmt-neutral-900">
+          <ScrollFrameSequence />
+          <QuickTravelCategories />
+          <TrendingDestinations />
+          <CompareBeforeYouBook />
+          <FeaturedPackages />
+          <WeekendTreks />
+          <TrainFrameBanner />
+          <DomesticHolidays />
+          <InternationalHolidays />
+          <WhyTravelWithUs />
+          <LatestDeals />
+          <TravelGallery />
+          <TravellerReviews />
+          <TravelGuides />
+          <Faq />
+          <TrustAndNewsletter />
+        </main>
 
-      <Footer />
-    </HomeContentProvider>
+        <Footer />
+      </HomeContentProvider>
+    </PageSiteContent>
   );
 }

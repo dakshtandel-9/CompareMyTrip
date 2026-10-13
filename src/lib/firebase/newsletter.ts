@@ -3,8 +3,6 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
-  serverTimestamp,
-  setDoc,
   type Timestamp,
 } from "firebase/firestore";
 import { FirebaseError } from "firebase/app";
@@ -20,14 +18,6 @@ type StoredSubscriber = {
   email?: unknown;
   subscribedAt?: Timestamp | null;
 };
-
-export async function saveNewsletterSubscription(email: string) {
-  const normalizedEmail = email.trim().toLowerCase();
-  await setDoc(doc(getFirebaseDb(), "newsletterSubscribers", encodeURIComponent(normalizedEmail)), {
-    email: normalizedEmail,
-    subscribedAt: serverTimestamp(),
-  });
-}
 
 export async function deleteNewsletterSubscriber(subscriberId: string) {
   await deleteDoc(doc(getFirebaseDb(), "newsletterSubscribers", subscriberId));

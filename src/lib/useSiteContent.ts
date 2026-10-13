@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useSyncExternalStore } from "react";
+import { createContext, useContext, useMemo, useSyncExternalStore } from "react";
 
 import { DEFAULT_SITE_CONTENT, type SiteContent } from "@/lib/siteContent";
 
@@ -9,6 +9,9 @@ export type SiteContentState = {
   loading: boolean;
   error: string;
   exists: boolean;
+  /** The sections the server published into this page. Any other section
+      holds its default, so a component that reads one shows stale copy. */
+  sections?: readonly (keyof SiteContent)[];
 };
 
 const SERVER_STATE: SiteContentState = {
@@ -18,8 +21,8 @@ const SERVER_STATE: SiteContentState = {
   exists: false,
 };
 
-/* The root layout provides the published document from the server, so
-   public pages paint with it and never open Firestore for it. Admin screens
+/* The root layout and each page provide the published sections from the
+   server, so public pages paint with them and never open Firestore. Admin screens
    edit the live document and reset this to null (LiveSiteContent), which
    puts them back on the shared listener below. */
 export const SiteContentContext = createContext<SiteContentState | null>(null);
@@ -81,11 +84,29 @@ const noSubscription = () => () => {};
 const getSnapshot = () => currentState;
 const getServerSnapshot = () => SERVER_STATE;
 
+/* Development only: name the section a page forgot to request, rather than
+   letting it quietly render the default copy until someone notices. */
+function warnOnUnpublishedSections(state: SiteContentState, sections: readonly (keyof SiteContent)[]): SiteContentState {
+  const content = new Proxy(state.content, {
+    get(target, key, receiver) {
+      if (typeof key === "string" && key in target && !sections.includes(key as keyof SiteContent)) {
+        console.error(`Site content "${key}" was not published into this page, so it shows its default. Add it to the page's <PageSiteContent sections>.`);
+      }
+      return Reflect.get(target, key, receiver);
+    },
+  });
+  return { ...state, content };
+}
+
 export function useSiteContentState(): SiteContentState {
   const initial = useContext(SiteContentContext);
-  return useSyncExternalStore(initial ? noSubscription : subscribe,
+  const state = useSyncExternalStore(initial ? noSubscription : subscribe,
     () => initial ?? getSnapshot(),
     () => initial ?? getServerSnapshot());
+  const sections = initial?.sections;
+  return useMemo(() => process.env.NODE_ENV !== "production" && sections
+    ? warnOnUnpublishedSections(state, sections)
+    : state, [state, sections]);
 }
 
 export function useSiteContent(): SiteContent {

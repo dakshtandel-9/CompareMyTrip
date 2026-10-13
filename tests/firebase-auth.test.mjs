@@ -13,9 +13,9 @@ function load(file, globals = {}) {
   return exports;
 }
 
-function setup({ persistence, popupError } = {}) {
+function setup({ persistence, popupError, isNewUser = false } = {}) {
   const calls = [];
-  const user = { uid: 'traveller', displayName: 'Google name', email: 'traveller@example.com' };
+  const user = { uid: 'traveller', displayName: 'Google name', email: 'traveller@example.com', getIdToken: async () => 'id-token' };
   const auth = {};
   const provider = {};
   const sdk = {
@@ -31,8 +31,11 @@ function setup({ persistence, popupError } = {}) {
       calls.push(['popup']);
       return popupError ? Promise.reject(popupError) : Promise.resolve({ user });
     },
+    getAdditionalUserInfo: () => ({ isNewUser }),
   };
+  const fetch = async (url, init) => { calls.push(['fetch', url, init.headers.authorization, JSON.parse(init.body)]); return { ok: true }; };
   const library = load('src/lib/firebase/auth.ts', {
+    fetch,
     require(name) {
       if (name === 'firebase/auth') return sdk;
       if (name === 'firebase/firestore') return {};
@@ -65,6 +68,18 @@ test('successful Google login does not depend on Firestore or overwrite the cust
   const h = setup();
   assert.equal(await h.signInWithGoogle(), h.user);
   assert.deepEqual(h.calls, [['persistence', 'local'], ['popup']]);
+});
+
+test('a first-time Google sign-in asks the server for a welcome email; a returning one does not', async () => {
+  const fresh = setup({ isNewUser: true });
+  await fresh.signInWithGoogle();
+  await new Promise(setImmediate);
+  assert.deepEqual(fresh.calls.at(-1), ['fetch', '/api/account/welcome', 'Bearer id-token', { guest: false }]);
+
+  const returning = setup();
+  await returning.signInWithGoogle();
+  await new Promise(setImmediate);
+  assert.equal(returning.calls.some(([kind]) => kind === 'fetch'), false);
 });
 
 test('Google popup errors remain distinguishable and actionable', async () => {

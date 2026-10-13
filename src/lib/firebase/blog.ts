@@ -42,13 +42,13 @@ export async function saveBlogPost(post: BlogPost) {
     },
     { merge: true },
   );
-  await revalidatePublicContent();
+  await revalidatePublicContent("blog");
 }
 
 export async function deleteBlogPost(postId: string) {
   requireUser();
   await deleteDoc(doc(getFirebaseDb(), BLOG_COLLECTION, postId));
-  await revalidatePublicContent();
+  await revalidatePublicContent("blog");
 }
 
 /** Images live in Cloudflare R2 under the CRM's `blog/` prefix; Firestore
@@ -75,6 +75,6 @@ export async function seedBlogPosts(posts: BlogPost[], existingIds: string[]) {
     });
   });
   await batch.commit();
-  await revalidatePublicContent();
+  await revalidatePublicContent("blog");
   return { added: fresh.length, skipped: posts.length - fresh.length };
 }

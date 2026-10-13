@@ -53,7 +53,7 @@ export async function savePackage(pkg: TravelPackage) {
   batch.set(doc(db, "packages", CATALOG_MARKER), { initialized: true, updatedAt: serverTimestamp() }, { merge: true });
   await batch.commit();
   try {
-    await revalidatePublicContent();
+    await revalidatePublicContent("packages");
     return { refreshWarning: "" };
   } catch {
     // The document and its image references are already durable. Callers
@@ -65,7 +65,7 @@ export async function savePackage(pkg: TravelPackage) {
 export async function deletePackage(packageId: string) {
   requireUser();
   await deleteDoc(doc(getFirebaseDb(), "packages", packageId));
-  await revalidatePublicContent();
+  await revalidatePublicContent("packages");
 }
 
 /** A single batch keeps a failed bulk delete from removing only some rows. */
@@ -82,7 +82,7 @@ export async function deletePackages(packageIds: string[]) {
   ids.forEach((id) => batch.delete(doc(db, "packages", id)));
   await batch.commit();
   try {
-    await revalidatePublicContent();
+    await revalidatePublicContent("packages");
     return { refreshWarning: "" };
   } catch {
     return { refreshWarning: "The packages were deleted, but public pages could not be refreshed immediately." };
@@ -122,7 +122,7 @@ export async function assignWeekendTrack(
   });
   await batch.commit();
   try {
-    await revalidatePublicContent();
+    await revalidatePublicContent("packages");
     return { refreshWarning: "" };
   } catch {
     return { refreshWarning: "The treks were moved, but public pages could not be refreshed immediately." };
@@ -140,7 +140,7 @@ export async function seedPackages(packages: TravelPackage[]) {
   });
   batch.set(doc(db, "packages", CATALOG_MARKER), { initialized: true, updatedAt: serverTimestamp(), updatedByUid: user.uid });
   await batch.commit();
-  await revalidatePublicContent();
+  await revalidatePublicContent("packages");
 }
 
 export async function uploadPackageImage(file: File) {

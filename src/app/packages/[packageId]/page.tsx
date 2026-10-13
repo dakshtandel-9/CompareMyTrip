@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PageSiteContent from "@/components/PageSiteContent";
 import JsonLd from "@/components/JsonLd";
 import PackageDetailClient from "./PackageDetailClient";
 import { isIndexablePackage } from "@/lib/packageData";
@@ -13,7 +14,7 @@ import { packagePath, packageSlug } from "@/lib/packageUrls";
 import { getSimilarPackages } from "@/lib/similarPackages";
 import { toListingPackage } from "@/lib/listingPackages";
 
-export const revalidate = 86400; // 24 hours
+export const revalidate = 604800; // 7 days; publishing refreshes it at once
 
 type PackagePageProps = { params: Promise<{ packageId: string }> };
 
@@ -67,7 +68,7 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
   const similarPackages = getSimilarPackages(pkg, await getPublishedPackages()).map(toListingPackage);
 
   return (
-    <>
+    <PageSiteContent sections={["weekendTreks"]}>
       <Header />
       <JsonLd
         data={[
@@ -99,6 +100,6 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
       />
       <PackageDetailClient initialPackage={pkg} initialSimilarPackages={similarPackages} />
       <Footer />
-    </>
+    </PageSiteContent>
   );
 }

@@ -2,10 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { useAuthUser } from "@/lib/firebase/useAuthUser";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { bypassComingSoon } from "@/lib/comingSoon";
-import { refreshComingSoonStatus, useComingSoonStatus } from "@/lib/comingSoonStatus";
+import { useComingSoonStatus } from "@/lib/comingSoonStatus";
 import { useAdminPreview } from "@/lib/firebase/useAdminPreview";
 import { getAuthDestination } from "@/lib/firebase/authDestination";
 import ComingSoonScreen from "./ComingSoonScreen";
@@ -19,29 +19,15 @@ export default function SiteExperience({ children }: { children: React.ReactNode
   const user = useAuthUser();
   const pathname = usePathname();
   const router = useRouter();
-  const preview = useAdminPreview(pathname);
+  const preview = useAdminPreview();
   const localPackageDemo = process.env.NODE_ENV === "development" && /^\/package-page-[1-4]\/?$/.test(pathname);
   const maintenance = useComingSoonStatus() === true;
   const paused = maintenance && !localPackageDemo && !bypassComingSoon(pathname) && preview !== "authorized";
   const customPayment = pathname === "/pay" || pathname === "/pay/status";
 
-  // Middleware handles fresh requests; this covers already open pages and
-  // routes held in the browser's client navigation cache. The switch is
-  // re-read on client navigation and when the visitor returns to the tab.
-  const lastPathname = useRef<string | null>(null);
-  useEffect(() => {
-    const navigated = lastPathname.current !== null && lastPathname.current !== pathname;
-    lastPathname.current = pathname;
-    if (navigated || pathname === "/coming-soon") void refreshComingSoonStatus();
-  }, [pathname]);
-  useEffect(() => {
-    const onVisible = () => {
-      if (document.visibilityState === "visible") void refreshComingSoonStatus();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
-  }, []);
-
+  /* The switch is published into the page, so this is the only gate: visitors
+     are sent to the coming-soon page and verified admins may browse. It hides
+     the website from view, not from the page source. */
   useEffect(() => {
     if (paused && preview === "denied") {
       const next = window.location.pathname + window.location.search + window.location.hash;

@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PageSiteContent from "@/components/PageSiteContent";
 import CruiseGrid from "./CruiseGrid";
 import CruiseWhyBook from "./CruiseWhyBook";
 import { getPublishedCruises } from "@/lib/serverContent";
 import { createPageMetadata } from "@/lib/seo";
 
-export const revalidate = 86400; // 24 hours
+export const revalidate = 604800; // 7 days; publishing refreshes it at once
 
 export const metadata: Metadata = createPageMetadata({
   title: "Cruise Holidays & Booking Assistance",
@@ -21,13 +22,13 @@ export default async function CruisePage() {
   const cruises = await getPublishedCruises();
 
   return (
-    <>
+    <PageSiteContent sections={["banners"]}>
       <Header />
       <main className="bg-white">
         <CruiseGrid initialCruises={cruises} />
         <CruiseWhyBook />
       </main>
       <Footer />
-    </>
+    </PageSiteContent>
   );
 }

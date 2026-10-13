@@ -1,5 +1,6 @@
 import { FieldValue } from "firebase-admin/firestore";
 
+import { emailApiKey, emailLayout as layout, escapeHtml, recipients, sendEmail, type EmailMessage, type Outcome } from "./email";
 import { getAdminDb } from "./firebase/admin";
 import { BUSINESS_DETAILS } from "./legalPolicies";
 import { CUSTOM_PAYMENT_PACKAGE_ID } from "./customPayment";
@@ -8,7 +9,7 @@ import { getSiteUrl } from "./seo";
 /* ------------------------------------------------------------------ */
 /* Emails sent once a payment is verified: an acknowledgement to the    */
 /* traveller and a notification to the travel desk. Server-only — it    */
-/* reads RESEND_API_KEY.                                                */
+/* sends through ./email, which reads RESEND_API_KEY.                   */
 /*                                                                      */
 /* settleTrip calls notifyPaidBooking exactly once per booking, on the  */
 /* transition to "successful", whichever path got there first (PayU's   */
@@ -18,9 +19,6 @@ import { getSiteUrl } from "./seo";
 /* the trip. The terms say a payment acknowledgement alone does not     */
 /* confirm availability — the desk confirms in writing afterwards.      */
 /* ------------------------------------------------------------------ */
-
-const RESEND_ENDPOINT = "https://api.resend.com/emails";
-const DEFAULT_FROM = "CompareMyTrip <bookings@comparemytrip.in>";
 
 /** The settled trip document, as settleTrip last wrote it. */
 export type PaidBooking = {
@@ -47,11 +45,7 @@ export type PaidBooking = {
   reportedAmount?: number;
 };
 
-export type EmailMessage = { to: string[]; subject: string; html: string; text: string };
-type Outcome = "sent" | "failed" | "skipped";
-
-const escapeHtml = (value: string) =>
-  value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
+export type { EmailMessage };
 
 const rupees = (value: number) =>
   `₹${value.toLocaleString("en-IN", { minimumFractionDigits: Number.isInteger(value) ? 0 : 2, maximumFractionDigits: 2 })}`;
@@ -64,21 +58,10 @@ function travelDay(value: string | undefined) {
   });
 }
 
-const recipients = (value: string | undefined) =>
-  (value ?? "").split(",").map((item) => item.trim()).filter((item) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item));
-
 function rowsTable(rows: [string, string][]) {
   return `<table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin:16px 0">${rows
     .map(([label, value]) => `<tr><td style="padding:8px 12px 8px 0;color:#64748b;vertical-align:top;white-space:nowrap">${escapeHtml(label)}</td><td style="padding:8px 0;color:#0f172a;font-weight:600">${escapeHtml(value)}</td></tr>`)
     .join("")}</table>`;
-}
-
-function layout(heading: string, body: string) {
-  return `<!doctype html><html lang="en"><body style="margin:0;background:#f8fafc;font:15px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a">
-<div style="max-width:560px;margin:0 auto;padding:24px 16px"><div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:24px">
-<p style="margin:0 0 4px;font-size:13px;font-weight:700;letter-spacing:0.04em;color:#a37c0b">${escapeHtml(BUSINESS_DETAILS.brand)}</p>
-<h1 style="margin:0 0 16px;font-size:20px;line-height:1.35">${escapeHtml(heading)}</h1>${body}</div>
-<p style="margin:16px 0 0;font-size:12px;color:#64748b;text-align:center">${escapeHtml(BUSINESS_DETAILS.legalName)} · ${escapeHtml(BUSINESS_DETAILS.address)}</p></div></body></html>`;
 }
 
 /** Pure: the two messages for a paid booking. Kept separate from sending so it can be tested. */
@@ -153,38 +136,11 @@ ${rowsTable(opsDetails)}
   return { traveller, ops };
 }
 
-async function send(message: EmailMessage, idempotencyKey: string, apiKey: string): Promise<Outcome> {
-  if (!message.to.length) return "skipped";
-  try {
-    const response = await fetch(RESEND_ENDPOINT, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
-      body: JSON.stringify({
-        from: process.env.BOOKING_EMAIL_FROM?.trim() || DEFAULT_FROM,
-        to: message.to,
-        reply_to: BUSINESS_DETAILS.supportEmail,
-        subject: message.subject,
-        html: message.html,
-        text: message.text,
-      }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(8000),
-    });
-    if (response.ok) return "sent";
-    // The body names the problem (unverified domain, bad key) without echoing the key.
-    console.error(`Booking email was rejected (${response.status}): ${(await response.text()).slice(0, 300)}`);
-    return "failed";
-  } catch (cause) {
-    console.error("Booking email could not be sent", cause instanceof Error ? cause.message : cause);
-    return "failed";
-  }
-}
-
 /** Sends both emails and records the outcome on the trip. Never throws: a
     failed email must not cost the traveller their payment confirmation page. */
 export async function notifyPaidBooking(tripId: string, booking: PaidBooking) {
   try {
-    const apiKey = process.env.RESEND_API_KEY?.trim();
+    const apiKey = emailApiKey();
     const { traveller, ops } = buildBookingEmails(tripId, booking, getSiteUrl().origin);
     let result: { traveller: Outcome; ops: Outcome };
     if (!apiKey) {
@@ -192,8 +148,8 @@ export async function notifyPaidBooking(tripId: string, booking: PaidBooking) {
       result = { traveller: "skipped", ops: "skipped" };
     } else {
       const [travellerOutcome, opsOutcome] = await Promise.all([
-        traveller ? send(traveller, `booking-${tripId}-traveller`, apiKey) : Promise.resolve<Outcome>("skipped"),
-        send(ops, `booking-${tripId}-ops`, apiKey),
+        traveller ? sendEmail(traveller, `booking-${tripId}-traveller`, apiKey) : Promise.resolve<Outcome>("skipped"),
+        sendEmail(ops, `booking-${tripId}-ops`, apiKey),
       ]);
       result = { traveller: travellerOutcome, ops: opsOutcome };
     }

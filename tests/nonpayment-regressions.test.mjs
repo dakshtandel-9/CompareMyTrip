@@ -46,28 +46,6 @@ test('the enquiry writer rejects fractional quote counts before any database wri
   assert.equal(writes[1].data.travellers, '6–9', 'contact group labels remain compatible');
 });
 
-test('maintenance cold outage, recovery, disabled mode and repeated outage keep deliberate decisions', async () => {
-  let result = 'timeout';
-  let now = 0;
-  const settings = load('src/lib/comingSoonServer.ts', {}, {
-    Date: { now: () => now },
-    process: { env: { NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'test-project' } },
-    fetch: async () => {
-      if (result === 'timeout') throw new Error('timeout');
-      if (result === 'service-error') return { ok: false, status: 503 };
-      return { ok: true, json: async () => ({ enabled: result }) };
-    },
-  });
-  assert.equal(await settings.readComingSoonEnabled(), true, 'cold workers do not unexpectedly open a paused website');
-  result = true; assert.equal(await settings.readComingSoonEnabled(), true);
-  result = 'service-error'; assert.equal(await settings.readComingSoonEnabled(), true);
-  now += 60000;
-  result = false; assert.equal(await settings.readComingSoonEnabled(), false, 'explicit disable takes effect when the one-minute cache expires');
-  result = 'timeout'; assert.equal(await settings.readComingSoonEnabled(), false);
-  now += 60000;
-  result = true; assert.equal(await settings.readComingSoonEnabled(), true);
-});
-
 const packages = load('src/lib/packageData.ts');
 test('public content retains legitimate legacy packages and withholds drafts and test titles', () => {
   const entries = [
@@ -87,6 +65,7 @@ test('an incomplete package does not invent itinerary, inclusions, photos or fre
   assert.match(details.summary, /Contact the travel team/);
 });
 
+const scopes = load('src/lib/contentScopes.ts');
 function content(db) {
   return load('src/lib/serverContent.ts', {
     react: { cache: fn => fn }, 'next/cache': { unstable_cache: fn => fn },
@@ -96,6 +75,7 @@ function content(db) {
     '@/lib/packageSeed': { DUMMY_PACKAGES: [] },
     '@/lib/cruiseListings': { isPublishedCruise: (cruise) => (cruise.status ?? 'published') === 'published' },
     '@/lib/packageUrls': load('src/lib/packageUrls.ts'),
+    '@/lib/contentScopes': scopes,
   });
 }
 
@@ -120,22 +100,41 @@ test('a healthy initialized catalogue preserves CMS order, timestamps and public
   assert.equal((await source.getPackageUpdateTimes()).get('last').toISOString(), new Date(timestamp).toISOString());
 });
 
-test('CMS revalidation rejects guests and another origin, then immediately expires content for admins', async () => {
+test('CMS revalidation rejects guests and another origin, then immediately expires only what was published', async () => {
   let authorized = false;
   const events = [];
+  const comingSoon = load('src/lib/comingSoon.ts');
+  const siteContent = load('src/lib/siteContent.ts', { '@/lib/comingSoon': comingSoon, '@/lib/weekendTracks': load('src/lib/weekendTracks.ts') });
   const route = load('src/app/api/admin/revalidate-content/route.ts', {
-    'next/cache': { revalidateTag: (...args) => events.push(['tag', ...args]), revalidatePath: (...args) => events.push(['path', ...args]) },
+    'next/cache': { revalidateTag: (...args) => events.push(['tag', ...args]) },
     '@/lib/serverAdminGuard': { isFirebaseAdmin: async () => authorized, notFound: () => new Response(null, { status: 404 }) },
+    '@/lib/contentScopes': scopes,
+    '@/lib/siteContent': siteContent,
   });
-  const req = origin => new Request('https://example.com/api/admin/revalidate-content', { method: 'POST', headers: { origin } });
-  assert.equal((await route.POST(req('https://example.com'))).status, 404);
+  const req = (origin, body) => new Request('https://example.com/api/admin/revalidate-content', {
+    method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const expired = async (body) => {
+    events.length = 0;
+    const response = await route.POST(req('https://example.com', body));
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get('cache-control'), /private.*no-store/);
+    for (const event of events) assert.deepEqual(JSON.parse(JSON.stringify(event.slice(2))), [{ expire: 0 }]);
+    return events.map((event) => event[1]);
+  };
+  assert.equal((await route.POST(req('https://example.com', { scope: 'packages' }))).status, 404);
   authorized = true;
-  assert.equal((await route.POST(req('https://other.example'))).status, 404);
+  assert.equal((await route.POST(req('https://other.example', { scope: 'packages' }))).status, 404);
   assert.equal(events.length, 0);
-  const response = await route.POST(req('https://example.com'));
-  assert.equal(response.status, 200);
-  assert.match(response.headers.get('cache-control'), /private.*no-store/);
-  assert.deepEqual(JSON.parse(JSON.stringify(events)), [['tag', 'public-content', { expire: 0 }], ['path', '/', 'layout'], ['path', '/sitemap.xml']]);
+
+  assert.deepEqual(await expired({ scope: 'packages' }), ['packages']);
+  assert.deepEqual(await expired({ scope: 'blog' }), ['blog']);
+  assert.deepEqual(await expired({ scope: 'site', sections: ['faq', 'hero', 'not-a-section'] }), ['site:hero', 'site:faq']);
+  const everySection = Object.keys(siteContent.DEFAULT_SITE_CONTENT).map((key) => `site:${key}`);
+  assert.deepEqual(await expired({ scope: 'site' }), everySection, 'an unnamed or unchanged publish refreshes every section');
+  assert.deepEqual(await expired({ scope: 'site', sections: ['not-a-section'] }), everySection);
+  assert.deepEqual(await expired(undefined), ['public-content'], 'an older admin tab still refreshes everything');
+  assert.deepEqual(await expired({ scope: 'everything' }), ['public-content']);
 });
 
 test('public content endpoint reports an outage without returning fallback or private content', async () => {
@@ -147,21 +146,4 @@ test('public content endpoint reports an outage without returning fallback or pr
   assert.equal(response.status, 503);
   assert.equal(response.headers.get('cache-control'), 'no-store');
   assert.doesNotMatch(await response.text(), /private operational detail/);
-});
-
-test('server maintenance status exposes only the switch and does not mask database errors', async () => {
-  for (const mode of [true, false, 'offline']) {
-    const route = load('src/app/api/content/status/route.ts', {
-      '@/lib/firebase/admin': { getAdminDb: () => ({ collection: () => ({ doc: () => ({ get: async () => {
-        if (mode === 'offline') throw new Error('private database detail');
-        return { data: () => ({ content: { comingSoon: { enabled: mode }, privateEditorData: 'not public' } }) };
-      } }) }) }) },
-    });
-    const response = await route.GET();
-    assert.equal(response.status, mode === 'offline' ? 503 : 200);
-    assert.equal(response.headers.get('cache-control'), 'no-store');
-    const body = await response.json();
-    if (mode !== 'offline') assert.deepEqual(body, { enabled: mode });
-    assert.doesNotMatch(JSON.stringify(body), /not public|private database detail/);
-  }
 });

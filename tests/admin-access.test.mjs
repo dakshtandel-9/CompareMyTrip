@@ -350,7 +350,6 @@ test('admin preview session waits for verification and serializes sign-out behin
   const admin = { uid: 'admin-a', getIdToken: async () => 'firebase-token' };
   let user = admin;
   let tokenChanged;
-  let path = '/packages';
   const requests = [];
   const { useAdminPreview } = load('src/lib/firebase/useAdminPreview.ts', {
     react: view.react,
@@ -366,7 +365,7 @@ test('admin preview session waits for verification and serializes sign-out behin
       return pending.promise;
     },
   });
-  view.mount(() => ({ type: useAdminPreview(path) }));
+  view.mount(() => ({ type: useAdminPreview() }));
   await view.settle();
   assert.equal(view.tree.type, 'checking');
   assert.equal(requests[0].options.method, 'POST');
@@ -394,14 +393,34 @@ test('admin preview session waits for verification and serializes sign-out behin
   requests[3].resolve({ ok: true, json: async () => ({ authorized: true }) });
   await view.settle();
   assert.equal(view.tree.type, 'authorized', 'Firebase token refresh renews the preview cookie');
-  path = '/pay';
   view.render();
-  assert.equal(view.tree.type, 'checking', 'client navigation rechecks current membership');
+  await view.settle();
+  assert.equal(requests.length, 4, 'navigating between pages makes no further check');
+  tokenChanged(admin);
   await view.settle();
   requests[4].resolve({ ok: false });
   await view.settle();
-  assert.equal(view.tree.type, 'denied', 'removed admins lose preview access');
+  assert.equal(view.tree.type, 'denied', 'removed admins lose preview access at the next token refresh');
 });
+
+test('signed-out visitors are never sent to the admin session service', async () => {
+  const view = renderer();
+  const requests = [];
+  const { useAdminPreview } = load('src/lib/firebase/useAdminPreview.ts', {
+    react: view.react,
+    'firebase/auth': { onIdTokenChanged: () => assert.fail('no auth listener for a signed-out visitor') },
+    '@/lib/adminPreview': { ADMIN_PREVIEW_SESSION_PATH: '/api/admin/preview-session' },
+    './clientAuth': { getFirebaseAuth: () => ({}) },
+    './useAuthUser': { useAuthUser: () => null },
+  }, { AbortSignal, fetch: async (url, options) => { requests.push({ url, options }); return { ok: true }; } });
+  view.mount(() => ({ type: useAdminPreview() }));
+  await view.settle();
+  view.render();
+  await view.settle();
+  assert.equal(view.tree.type, 'denied');
+  assert.equal(requests.length, 0);
+});
+
 
 function authPage(file, returnTo) {
   const dependencies = {

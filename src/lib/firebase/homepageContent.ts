@@ -1,5 +1,5 @@
 import { revalidatePublicContent } from "./revalidateContent";
-import { doc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, getDocFromServer, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 
 import {
   DEFAULT_SITE_CONTENT,
@@ -40,18 +40,33 @@ export function subscribeToHomepageContent(
   );
 }
 
+/* The sections whose published value differs, so a publish refreshes only
+   the pages that show them. Empty when nothing changed — a retry after a
+   failed refresh — and then every section is refreshed instead. */
+function changedSections(before: SiteContent, after: SiteContent) {
+  return (Object.keys(after) as (keyof SiteContent)[])
+    .filter((key) => JSON.stringify(before[key]) !== JSON.stringify(after[key]));
+}
+
 /** Publishes the complete normalized homepage as one atomic Firestore document. */
 export async function saveHomepageContent(content: SiteContent) {
   const auth = getFirebaseAuth();
   await auth.authStateReady();
 
-  await setDoc(doc(getFirebaseDb(), HOMEPAGE_COLLECTION, HOMEPAGE_DOCUMENT), {
-    content: normalizeSiteContent(content),
+  const homepage = doc(getFirebaseDb(), HOMEPAGE_COLLECTION, HOMEPAGE_DOCUMENT);
+  const next = normalizeSiteContent(content);
+  // Unreadable or missing, the previous copy cannot narrow the refresh.
+  const previous = await getDocFromServer(homepage)
+    .then((snapshot) => snapshot.exists() ? normalizeSiteContent((snapshot.data() as StoredHomepageDocument).content) : null)
+    .catch(() => null);
+  await setDoc(homepage, {
+    content: next,
     updatedAt: serverTimestamp(),
     updatedByUid: auth.currentUser?.uid ?? null,
     schemaVersion: 1,
   });
-  await revalidatePublicContent();
+  const changed = previous ? changedSections(previous, next) : [];
+  await revalidatePublicContent("site", changed.length ? changed : undefined);
 }
 
 /**
@@ -84,7 +99,7 @@ export async function saveSiteContentSection<Key extends keyof SiteContent>(
     },
     { merge: true },
   );
-  await revalidatePublicContent();
+  await revalidatePublicContent("site", [key]);
 }
 
 /** Images live in Cloudflare R2; Firestore stores only their durable URL. */

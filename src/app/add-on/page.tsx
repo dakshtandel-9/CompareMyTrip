@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PageSiteContent from "@/components/PageSiteContent";
 import AddOnBody from "./AddOnBody";
 import { createPageMetadata } from "@/lib/seo";
 import { findService, toServiceId } from "./services";
@@ -44,10 +45,10 @@ export default async function AddOnPage({
   const service = toServiceId(params.service);
 
   return (
-    <>
+    <PageSiteContent sections={["addOn"]}>
       <Header />
       <AddOnBody key={service} initialService={service} />
       <Footer />
-    </>
+    </PageSiteContent>
   );
 }

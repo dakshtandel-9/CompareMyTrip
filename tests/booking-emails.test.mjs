@@ -19,10 +19,12 @@ function emails({ env = {}, fetch, db } = {}) {
   const updates = [];
   const store = db ?? { collection: () => ({ doc: id => ({ update: async value => { updates.push([id, value]); } }) }) };
   const quiet = { ...console, warn() {}, error() {} };
+  const legalPolicies = load('src/lib/legalPolicies.ts');
   const loaded = load('src/lib/bookingEmails.ts', {
     'firebase-admin/firestore': { FieldValue: { serverTimestamp: () => 'server-time' } },
+    './email': load('src/lib/email.ts', { './legalPolicies': legalPolicies }, { process: { env }, fetch, console: quiet }),
     './firebase/admin': { getAdminDb: () => store },
-    './legalPolicies': load('src/lib/legalPolicies.ts'),
+    './legalPolicies': legalPolicies,
     './customPayment': load('src/lib/customPayment.ts'),
     './seo': { getSiteUrl: () => new URL('https://comparemytrip.in') },
   }, { process: { env }, fetch, console: quiet });
@@ -103,7 +105,7 @@ test('without an API key nothing is sent and the trip records why', async () => 
 test('with an API key both emails go to Resend with idempotency keys', async () => {
   const requests = [];
   const app = emails({
-    env: { RESEND_API_KEY: 're_test', BOOKING_EMAIL_FROM: 'CompareMyTrip <bookings@comparemytrip.in>' },
+    env: { RESEND_API_KEY: 're_test', EMAIL_FROM: 'CompareMyTrip <bookings@comparemytrip.in>' },
     fetch: async (url, init) => { requests.push({ url, ...init, body: JSON.parse(init.body) }); return { ok: true }; },
   });
   await app.notifyPaidBooking('CMT1', booking());

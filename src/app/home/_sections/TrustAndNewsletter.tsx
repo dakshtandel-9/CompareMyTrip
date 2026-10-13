@@ -152,9 +152,16 @@ export default function TrustAndNewsletter() {
 
     try {
       setSubmitting(true);
-      // Firestore loads on subscribe rather than with the homepage.
-      const { saveNewsletterSubscription } = await import("@/lib/firebase/newsletter");
-      await saveNewsletterSubscription(value);
+      // The server saves the subscriber and sends the welcome email.
+      const response = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: value }),
+      });
+      if (!response.ok) {
+        const { error } = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(error || "We could not save your subscription. Please try again.");
+      }
       setState({ kind: "success" });
       setEmail("");
     } catch (cause) {

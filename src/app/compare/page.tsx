@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PageSiteContent from "@/components/PageSiteContent";
 import CompareSection from "./CompareSection";
 import { createPageMetadata } from "@/lib/seo";
 
@@ -18,7 +19,7 @@ export const metadata: Metadata = createPageMetadata({
 
 export default function ComparePage() {
   return (
-    <>
+    <PageSiteContent sections={["compare"]}>
       <Header />
 
       <main className="cmt-compare w-full bg-white font-body text-cmt-neutral-900">
@@ -27,6 +28,6 @@ export default function ComparePage() {
       </main>
 
       <Footer />
-    </>
+    </PageSiteContent>
   );
 }

@@ -1,4 +1,4 @@
-import { departureDays, departureDaysLabel, type TravelPackage } from "@/lib/packageData";
+import { departureDays, departureDaysLabel, type PackageFact, type TravelPackage } from "@/lib/packageData";
 import { plainPackageText } from "@/lib/packageRichText";
 
 export const BENGALURU = /\b(?:bengaluru|bangalore)\b/i;
@@ -34,8 +34,10 @@ export const TRAVELLER_TYPES = [
   { value: "corporate", label: "Corporate teams", description: "Tell us your group size and outing plans", icon: "Building2" },
 ] as const;
 export type TravellerType = typeof TRAVELLER_TYPES[number]["value"];
+/** The facts that say who a trip suits — the only facts a listing reads. */
+export const isAudienceFact = (fact: PackageFact) => fact.visible && /best for|suitable|traveller/i.test(fact.label);
 export function matchesTraveller(pkg: TravelPackage, audience: string): boolean {
-  const bestFor = (pkg.details?.facts || []).filter(fact => fact.visible && /best for|suitable|traveller/i.test(fact.label)).map(fact => plain(fact.value)).join(" ");
+  const bestFor = (pkg.details?.facts || []).filter(isAudienceFact).map(fact => plain(fact.value)).join(" ");
   switch (audience) {
     case "professionals": return pkg.days <= 3;
     case "students": return pkg.price > 0 && pkg.price <= 5000;

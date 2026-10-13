@@ -98,6 +98,11 @@ Once signed in, open **Website content → Coming-soon page**, turn the switch o
 publish when ready to launch. Verify this path with coming-soon mode still enabled
 after deploying the updated application.
 
+The switch is published into every page like the rest of the site content, so it takes
+effect when you publish rather than being checked on each request. Coming-soon mode hides
+the website from view, not from the page source: page content still reaches the browser.
+Do not rely on it to keep unreleased content private.
+
 ### Google login
 
 `comparemytrip.in` and `www.comparemytrip.in` have been added to Firebase Authentication's
@@ -122,8 +127,7 @@ Enable the reCAPTCHA Enterprise API and create a website key for the real site d
 Register the web app's provider in Firebase App Check. Put the site key into
 `NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY` in both the build environment and local testing
 configuration. Confirm the build key matches the registered web-app key. Deploy the app
-including `/api/admin/preview-check` before enforcement: the Edge coming-soon gate uses this
-same-origin Node route to check admin membership with the Admin SDK, which bypasses App Check.
+before enforcement. Admin checks run in Node routes with the Admin SDK, which bypasses App Check.
 Then inspect valid requests and test contact, newsletter, trip-planning, sign-in and admin
 preview flows. Enable **Cloud Firestore enforcement** only after those checks pass; leave
 Authentication unenforced unless it is separately configured and tested. Monitor usage and
@@ -190,8 +194,7 @@ that chosen migration, not to update the existing Vercel deployment.
 The browser Firebase transport is selected during SSR. Server Firestore uses native REST
 in Workers with startup-prepared protobuf schemas. Keep its pinned transport dependencies
 until the isolated Worker test and actual Worker page checks pass after any upgrade.
-Next's middleware deprecation notice is expected: this adapter still uses the Edge
-middleware convention. OpenNext's existing `data-uri-to-buffer` copy diagnostic and
+The application no longer has middleware. OpenNext's existing `data-uri-to-buffer` copy diagnostic and
 third-party bundling warnings must be distinguished from a failed build or runtime test.
 
 ## Media and launch verification

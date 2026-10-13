@@ -5,7 +5,7 @@ import BlogIndex from "./BlogIndex";
 import { getPublishedBlogPosts } from "@/lib/serverContent";
 import { createPageMetadata } from "@/lib/seo";
 
-export const revalidate = 86400; // 24 hours
+export const revalidate = 604800; // 7 days; publishing refreshes it at once
 
 export const metadata: Metadata = createPageMetadata({
   title: "Travel Guides and Trip Planning Advice",
