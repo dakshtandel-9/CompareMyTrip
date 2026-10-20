@@ -1,5 +1,6 @@
 import { isAudienceFact } from "@/lib/bengaluruTravel";
 import type { PackageDetails, TravelPackage } from "@/lib/packageData";
+import { getTravellerRating } from "@/lib/planComparison";
 import { plainPackageText } from "@/lib/packageRichText";
 
 /** The booking card's own copy; only the detail page renders it. */
@@ -22,6 +23,12 @@ const BOOKING_CARD_FIELDS = ["bookingBadges", "bookingLabel", "bookingHeading", 
  * formatting markup was most of what was left, and listing pages are rewritten
  * whenever any package is published. Only the detail page renders formatting,
  * and it reads the full package.
+ *
+ * Written reviews are left behind with the rest of the detail page's content,
+ * but the rating they add up to is not: it is worked out here, while the
+ * reviews are still attached, and carried on the card's own rating fields —
+ * otherwise cards and comparisons would show only the summary typed into the
+ * CRM, and a package rated through written reviews would show no rating.
  */
 export function toListingPackage(pkg: TravelPackage): TravelPackage {
   const details = pkg.details;
@@ -30,8 +37,10 @@ export function toListingPackage(pkg: TravelPackage): TravelPackage {
   const locations = details.pageSections?.locations;
   const listed: PackageDetails = { ...details };
   for (const field of BOOKING_CARD_FIELDS) delete listed[field];
+  const travellerRating = getTravellerRating(pkg);
   return {
     ...pkg,
+    ...(travellerRating && { rating: travellerRating.rating, reviews: travellerRating.reviews }),
     details: {
       ...listed,
       gallery: [],

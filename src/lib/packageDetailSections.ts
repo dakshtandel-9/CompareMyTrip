@@ -151,6 +151,14 @@ export function getPackagePageSections(details: Pick<PackageDetails, "pageSectio
   };
 }
 
+/** Written reviews the website may show: switched on, marked visible, and
+    complete. Shared by the package page, the cards and the comparisons. */
+export function getVisiblePackageReviews(value: PackagePageSections) {
+  return value.reviews.enabled
+    ? value.reviews.items.filter((review) => review.visible && review.name.trim() && review.text.trim() && Number.isInteger(review.rating) && review.rating >= 1 && review.rating <= 5)
+    : [];
+}
+
 export function isVisiblePackageSection(section: PackageCustomSection): boolean {
   return section.visible && Boolean(section.title.trim()) && (section.layout === "box"
     ? Boolean(section.body.trim())

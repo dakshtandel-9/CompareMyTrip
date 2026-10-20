@@ -1,6 +1,7 @@
 "use client";
 
 import { packagePath } from "@/lib/packageUrls";
+import { getTravellerRating } from "@/lib/planComparison";
 import { BENGALURU, startsInBengaluru, matchesTraveller, matchesDepartureWindow } from "@/lib/bengaluruTravel";
 import { lockPageScroll } from "@/lib/lockPageScroll";
 
@@ -27,6 +28,7 @@ import { useSiteContent } from "@/lib/useSiteContent";
 import ContentImage from "@/app/home/_components/ContentImage";
 import TrekGradeBadge from "@/components/TrekGradeBadge";
 import { useCompare } from "@/lib/useCompare";
+import { JEV_SEARCH_ENABLED, usePackageSearch } from "@/lib/usePackageSearch";
 import {
   ArrowDownUp,
   ArrowLeftRight,
@@ -35,6 +37,7 @@ import {
   Check,
   ChevronDown,
   Clock3,
+  LoaderCircle,
   MapPin,
   Search,
   SlidersHorizontal,
@@ -266,7 +269,7 @@ function PackageCard({
   onToggleCompare: (packageId: string) => void;
 }) {
   const discountPercent = getDiscountPercent(pkg);
-  const hasReviews = pkg.reviews > 0 && pkg.rating > 0;
+  const travellerRating = getTravellerRating(pkg);
 
   return (
     <article className="cmt-catalog-card group relative flex min-w-0 flex-col overflow-hidden rounded-cmt-md border border-cmt-neutral-200 bg-white shadow-cmt-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-cmt-neutral-300 hover:shadow-cmt-md">
@@ -328,17 +331,13 @@ function PackageCard({
             <MapPin className="size-3.5 shrink-0" strokeWidth={2} />
             <span className="truncate">{pkg.location}</span>
           </p>
-          {hasReviews ? (
+          {/* No reviews leaves the space empty: an empty star row would read
+              as a bad score rather than as missing data. */}
+          {travellerRating && (
             <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-cmt-neutral-700">
               <Star className="size-3.5 fill-cmt-primary-500 text-cmt-primary-500" />
-              {pkg.rating}
-              <span className="font-normal text-cmt-neutral-400">({pkg.reviews})</span>
-            </span>
-          ) : (
-            /* No reviews yet is said in words — an empty star row reads as a
-               bad score rather than as missing data. */
-            <span className="shrink-0 text-xs font-medium text-cmt-neutral-400">
-              Newly listed
+              {travellerRating.rating}
+              <span className="font-normal text-cmt-neutral-400">({travellerRating.reviews})</span>
             </span>
           )}
         </div>
@@ -635,9 +634,12 @@ export function CatalogContent({
     router.replace(queryString ? `/packages?${queryString}` : "/packages", { scroll: false });
   };
 
+  /* Text matches arrive instantly; a described trip ("beach under 10k") is
+     answered by Jev once typing pauses, already ranked by fit. */
+  const { results: searchResults, ranked, searching } = usePackageSearch(packages, query);
+
   const visiblePackages = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    const filtered = packages.filter((pkg) => {
+    const filtered = searchResults.filter((pkg) => {
       const matchesTrack = trackIds === null || trackIds.has(pkg.id);
       const matchesRegion = region === "All" || pkg.region === region;
       const matchesDeal = !dealsOnly || pkg.deal === true;
@@ -645,13 +647,6 @@ export function CatalogContent({
         destinations.length === 0 || destinations.includes(destinationKey(pkg));
       const matchesCategory =
         category === "All packages" || pkg.tags.includes(category);
-      const matchesQuery =
-        !normalized ||
-        /* Operator is not searchable: it is never shown, so a match on it
-           would return results the visitor cannot account for. */
-        `${pkg.title} ${pkg.location} ${pkg.destination}`
-          .toLowerCase()
-          .includes(normalized);
       const matchesBudget =
         budget === null || (pkg.price >= budget[0] && pkg.price <= budget[1]);
       const matchesDuration =
@@ -669,11 +664,13 @@ export function CatalogContent({
         matchesDeal &&
         matchesDestination &&
         matchesCategory &&
-        matchesQuery &&
         matchesBudget &&
         matchesDuration
       );
     });
+
+    /* Jev's order is the best answer to "recommended" for a search. */
+    if (ranked && sort === "recommended") return filtered;
 
     return [...filtered].sort((a, b) => {
       if (sort === "price-low") return a.price - b.price;
@@ -681,7 +678,25 @@ export function CatalogContent({
       if (sort === "rating") return b.rating - a.rating;
       return b.reviews + b.rating * 10 - (a.reviews + a.rating * 10);
     });
-  }, [origin, audience, departureStart, departureEnd, budget, category, dealsOnly, destinations, durations, packages, query, region, sort, trackIds]);
+  }, [origin, audience, departureStart, departureEnd, budget, category, dealsOnly, destinations, durations, ranked, region, searchResults, sort, trackIds]);
+
+  /* The search found trips but the panel's filters hide every one of them —
+     "trip under 1k" with Best deals on, say. Say so, and offer the way out,
+     rather than reporting that nothing matched. */
+  const hiddenMatches =
+    query.trim() !== "" && !searching && visiblePackages.length === 0
+      ? searchResults.length
+      : 0;
+
+  const showAllMatches = () => {
+    setCategory("All packages");
+    setDealsOnly(false);
+    setDestinations([]);
+    setBudget(null);
+    setDurations([]);
+    if (track) clearTrack();
+    if (region !== "All") chooseRegion("All");
+  };
 
   /* The URL-seeded filters are deliberately left out: "Clear all" can no longer
      reset them, so counting them would show a badge the user cannot clear. */
@@ -705,9 +720,15 @@ export function CatalogContent({
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search destinations and packages…"
-            className="h-9 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white pl-8 pr-3 text-xs text-cmt-neutral-900 outline-none placeholder:text-cmt-neutral-400 focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]"
+            placeholder={JEV_SEARCH_ENABLED ? "Try “beach under ₹1,000”" : "Search destinations and packages…"}
+            className="h-9 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white pl-8 pr-8 text-xs text-cmt-neutral-900 outline-none placeholder:text-cmt-neutral-400 focus:border-cmt-primary-500 focus:shadow-[var(--cmt-focus-ring)]"
           />
+          {searching && (
+            <LoaderCircle
+              className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-cmt-neutral-400"
+              aria-label="Finding matching trips"
+            />
+          )}
         </label>
       </FilterGroup>
 
@@ -1021,15 +1042,37 @@ export function CatalogContent({
                   <div className="mx-auto grid size-12 place-items-center rounded-full bg-cmt-primary-50 text-cmt-primary-900">
                     <Search className="size-5" />
                   </div>
-                  <h2 className="mt-4 font-display text-xl font-semibold">No packages found</h2>
-                  <p className="mt-2 text-sm text-cmt-neutral-500">Try another destination or package type.</p>
-                  <button
-                    type="button"
-                    onClick={() => { chooseRegion("All"); clearFilters(); }}
-                    className="mt-5 rounded-cmt-control bg-cmt-primary-500 px-5 py-2.5 text-sm font-semibold text-cmt-neutral-900"
-                  >
-                    View all packages
-                  </button>
+                  <h2 className="mt-4 font-display text-xl font-semibold">
+                    {searching
+                      ? "Finding trips that match\u2026"
+                      : hiddenMatches > 0
+                        ? `${hiddenMatches} ${hiddenMatches === 1 ? "trip matches" : "trips match"} your search`
+                        : "No packages found"}
+                  </h2>
+                  <p className="mt-2 text-sm text-cmt-neutral-500">
+                    {searching
+                      ? "Reading your search against every package."
+                      : hiddenMatches > 0
+                        ? "But the filters you have on hide them."
+                        : "Try another destination or package type."}
+                  </p>
+                  {hiddenMatches > 0 ? (
+                    <button
+                      type="button"
+                      onClick={showAllMatches}
+                      className="mt-5 rounded-cmt-control bg-cmt-primary-500 px-5 py-2.5 text-sm font-semibold text-cmt-neutral-900"
+                    >
+                      Remove filters and show {hiddenMatches === 1 ? "it" : "them"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => { chooseRegion("All"); clearFilters(); }}
+                      className="mt-5 rounded-cmt-control bg-cmt-primary-500 px-5 py-2.5 text-sm font-semibold text-cmt-neutral-900"
+                    >
+                      View all packages
+                    </button>
+                  )}
                 </div>
               </div>
             )}

@@ -1,12 +1,25 @@
 import { departureDaysLabel, getPackageDetails, getPackageItinerary, type TravelPackage } from "@/lib/packageData";
 import { plainPackageText } from "@/lib/packageRichText";
+import { getPackagePageSections, getVisiblePackageReviews } from "@/lib/packageDetailSections";
 
 const CONFIRM = "Confirm with our travel team";
 const text = (value: string | undefined) => plainPackageText(value ?? "").trim();
 const lines = (values: string[]) => values.map(text).filter(Boolean).join("\n");
 
+/** The rating a traveller sees for a package, or null when it has none.
+    Written reviews added in the CRM win, averaged to one decimal — the same
+    figure the package page shows; otherwise the entered rating summary. */
+export function getTravellerRating(pkg: TravelPackage): { rating: number; reviews: number } | null {
+  const written = getVisiblePackageReviews(getPackagePageSections(getPackageDetails(pkg)));
+  if (written.length) {
+    const total = written.reduce((sum, review) => sum + review.rating, 0);
+    return { rating: Math.round((total / written.length) * 10) / 10, reviews: written.length };
+  }
+  return pkg.rating > 0 && pkg.reviews > 0 ? { rating: pkg.rating, reviews: pkg.reviews } : null;
+}
+
 export function hasTravellerRating(pkg: TravelPackage) {
-  return pkg.rating > 0 && pkg.reviews > 0;
+  return getTravellerRating(pkg) !== null;
 }
 
 /** Both comparison surfaces use the published plan details, including unknowns.

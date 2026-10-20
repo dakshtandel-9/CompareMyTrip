@@ -1,7 +1,7 @@
 "use client";
 
 import { packagePath } from "@/lib/packageUrls";
-import { getPlanComparison as attributesFor, hasTravellerRating, type ComparedAttributes } from "@/lib/planComparison";
+import { getPlanComparison as attributesFor, getTravellerRating, hasTravellerRating, type ComparedAttributes } from "@/lib/planComparison";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "@/components/SiteImage";
@@ -11,7 +11,9 @@ import {
   ArrowRight,
   Check,
   Clock,
+  LoaderCircle,
   Plus,
+  Search,
   X,
 } from "lucide-react";
 
@@ -19,6 +21,7 @@ import ComparisonText from "@/components/ComparisonText";
 import type { TravelPackage } from "@/lib/packageData";
 import { usePackagesState } from "@/lib/usePackages";
 import { useCompare } from "@/lib/useCompare";
+import { JEV_SEARCH_ENABLED, usePackageSearch } from "@/lib/usePackageSearch";
 import { useSiteContent } from "@/lib/useSiteContent";
 import Price from "../_components/Price";
 import Rating from "../_components/Rating";
@@ -199,10 +202,13 @@ const ROWS: Row[] = [
     /* Only when every plan being compared has real reviews — one plan
        without them hides the whole row. */
     visible: (columns) => columns.length > 0 && columns.every(hasTravellerRating),
-    render: (pkg) => <Rating value={pkg.rating} reviews={pkg.reviews} />,
+    render: (pkg) => {
+      const rating = getTravellerRating(pkg);
+      return rating && <Rating value={rating.rating} reviews={rating.reviews} />;
+    },
     best: (columns) =>
       strictBestIndex(
-        columns.map((pkg) => pkg.rating),
+        columns.map((pkg) => getTravellerRating(pkg)?.rating ?? 0),
         "max",
       ),
     bestLabel: "Top rated",
@@ -221,6 +227,7 @@ export default function CompareBeforeYouBook() {
   }, [packages, loading, error, initialiseSuggestions]);
   /* Which slot's picker is open, or null when the dialog is closed. */
   const [pickerColumn, setPickerColumn] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   /* One entry per slot, null where the slot is empty or its package has
@@ -261,6 +268,8 @@ export default function CompareBeforeYouBook() {
     if (pickerColumn !== null && !dialog.open) dialog.showModal();
     if (pickerColumn === null && dialog.open) dialog.close();
   }, [pickerColumn]);
+
+  const { results: visiblePackages, searching } = usePackageSearch(packages, query);
 
   const choosePackage = (columnIndex: number, packageId: string) => {
     setSlot(columnIndex, packageId);
@@ -563,7 +572,10 @@ export default function CompareBeforeYouBook() {
           horizontal scroll container. */}
       <dialog
         ref={dialogRef}
-        onClose={() => setPickerColumn(null)}
+        onClose={() => {
+          setPickerColumn(null);
+          setQuery("");
+        }}
         onClick={(event) => {
           if (event.target === dialogRef.current) setPickerColumn(null);
         }}
@@ -595,10 +607,34 @@ export default function CompareBeforeYouBook() {
           </button>
         </div>
 
+        <div className="border-b border-cmt-neutral-100 px-5 py-3">
+          <label className="relative block">
+            <span className="sr-only">Search packages</span>
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-cmt-neutral-500"
+              strokeWidth={2.25}
+              aria-hidden="true"
+            />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={JEV_SEARCH_ENABLED ? "Search or describe a trip, e.g. beach under ₹10k" : "Search by name or destination"}
+              className="h-10 w-full rounded-cmt-control border border-cmt-neutral-200 bg-white pl-9 pr-9 text-sm text-cmt-neutral-900 placeholder:text-cmt-neutral-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+            />
+            {searching && (
+              <LoaderCircle
+                className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-cmt-neutral-500"
+                aria-label="Finding matching trips"
+              />
+            )}
+          </label>
+        </div>
+
         {/* Listed only while open: a row and thumbnail per package would
             otherwise be most of this band's markup on every page load. */}
         <ul className="max-h-[60vh] overflow-y-auto p-3">
-          {pickerColumn !== null && packages.map((pkg) => {
+          {pickerColumn !== null && visiblePackages.map((pkg) => {
             const isCurrent = openPackage?.id === pkg.id;
             const inAnotherColumn =
               !isCurrent && columns.some((column) => column?.id === pkg.id);
@@ -669,6 +705,14 @@ export default function CompareBeforeYouBook() {
               </li>
             );
           })}
+
+          {pickerColumn !== null && visiblePackages.length === 0 && (
+            <li className="px-3 py-8 text-center text-sm text-cmt-neutral-500">
+              {searching
+                ? "Finding trips that match\u2026"
+                : <>No packages match &ldquo;{query.trim()}&rdquo;.</>}
+            </li>
+          )}
         </ul>
       </dialog>
     </section>

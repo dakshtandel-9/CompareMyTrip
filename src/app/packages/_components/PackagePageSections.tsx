@@ -14,7 +14,7 @@ import {
   type PackagePageSections as PackagePageSectionsValue,
 } from "@/lib/packageDetailSections";
 import { InlineText, EditableGallery, EditAction, usePackageEditing } from "./PackageInlineEditing";
-import { movePackageSection } from "@/lib/packageDetailSections";
+import { getVisiblePackageReviews, movePackageSection } from "@/lib/packageDetailSections";
 import PackageSectionTextEditor from "./PackageSectionTextEditor";
 
 const bodyClass = "whitespace-pre-wrap break-words text-sm leading-7 text-cmt-neutral-600";
@@ -44,11 +44,7 @@ export function PackageDescription({ value, path, label, easyEdit = false }: { v
   })}</div>;
 }
 
-export function getVisiblePackageReviews(value: PackagePageSectionsValue) {
-  return value.reviews.enabled
-    ? value.reviews.items.filter((review) => review.visible && review.name.trim() && review.text.trim() && Number.isInteger(review.rating) && review.rating >= 1 && review.rating <= 5)
-    : [];
-}
+export { getVisiblePackageReviews };
 
 function Section({ id, title, children, placement }: { id?: string; title: ReactNode; children: ReactNode; placement?: string }) {
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { packagePath } from "@/lib/packageUrls";
+import { getTravellerRating } from "@/lib/planComparison";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
@@ -88,6 +89,7 @@ function Field({
 }
 
 function PickCard({ pkg }: { pkg: TravelPackage }) {
+  const travellerRating = getTravellerRating(pkg);
   return (
     <Link
       href={packagePath(pkg)}
@@ -122,9 +124,9 @@ function PickCard({ pkg }: { pkg: TravelPackage }) {
 
         <div className="mt-1 flex items-center justify-between gap-2">
           <span className="cmt-hero-pick-rating inline-flex items-center gap-1 font-body text-xs font-medium text-white/85">
-            {pkg.reviews > 0 && pkg.rating > 0 && <>
+            {travellerRating && <>
               <Star className="size-3 fill-cmt-primary-500 text-cmt-primary-500" aria-hidden="true" />
-              <span aria-label={`${pkg.rating} out of 5 stars`}>{pkg.rating}</span>
+              <span aria-label={`${travellerRating.rating} out of 5 stars`}>{travellerRating.rating}</span>
             </>}
           </span>
           <span className="cmt-hero-pick-unit shrink-0 font-body text-xs text-white/55">/person</span>

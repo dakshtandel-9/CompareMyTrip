@@ -15,6 +15,7 @@ import { InlineText, EditableGallery, EditableImage, EditorOnly, EditAction, use
 import styles from "../_components/SimplePackagePage.module.css";
 import presentation from "../_components/ProductDetailPresentation.module.css";
 import PackagePageSections, { getVisiblePackageReviews, PackageDescription, PracticalSection } from "../_components/PackagePageSections";
+import { getTravellerRating } from "@/lib/planComparison";
 import PackageShareButton from "../_components/PackageShareButton";
 import ItineraryDownloadButton from "../_components/ItineraryDownloadButton";
 import CompareButton from "@/components/CompareButton";
@@ -50,10 +51,9 @@ export default function PackageDetailClient({ initialPackage, initialSimilarPack
   const facts = getPackageFacts(pkg);
   const pageSections = getPackagePageSections(details);
   const writtenReviews = getVisiblePackageReviews(pageSections);
-  const reviewCount = writtenReviews.length || pkg.reviews;
-  const reviewRating = writtenReviews.length
-    ? Math.round(writtenReviews.reduce((total, review) => total + review.rating, 0) / writtenReviews.length * 10) / 10
-    : pkg.rating;
+  const travellerRating = getTravellerRating(pkg);
+  const reviewCount = travellerRating?.reviews ?? 0;
+  const reviewRating = travellerRating?.rating ?? 0;
   const hiddenSections = new Set(pageSections.hiddenSections);
   const showInclusions = Boolean(editor) || (!hiddenSections.has("inclusions") && details.inclusions.length > 0);
   const showExclusions = Boolean(editor) || (!hiddenSections.has("exclusions") && details.exclusions.length > 0);

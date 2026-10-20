@@ -18,9 +18,10 @@ function load(file, dependencies = {}) {
 const data = load('src/lib/packageData.ts');
 const richText = load('src/lib/packageRichText.ts');
 const travel = load('src/lib/bengaluruTravel.ts', { '@/lib/packageData': data, '@/lib/packageRichText': richText });
-const { getPlanComparison } = load('src/lib/planComparison.ts', { '@/lib/packageData': data, '@/lib/packageRichText': richText });
+const comparison = load('src/lib/planComparison.ts', { '@/lib/packageData': data, '@/lib/packageRichText': richText, '@/lib/packageDetailSections': load('src/lib/packageDetailSections.ts') });
+const { getPlanComparison, getTravellerRating } = comparison;
 const { toListingPackage } = load('src/lib/listingPackages.ts', {
-  '@/lib/bengaluruTravel': travel, '@/lib/packageData': data, '@/lib/packageRichText': richText,
+  '@/lib/bengaluruTravel': travel, '@/lib/packageData': data, '@/lib/packageRichText': richText, '@/lib/planComparison': comparison,
 });
 // Values built inside the sandbox have its own Array/Object prototypes.
 const plain = value => JSON.parse(JSON.stringify(value));
@@ -90,4 +91,22 @@ test('listing packages carry no formatting markup and none of the detail page\'s
   assert.deepEqual(listed.details.pageSections.locations.items[0], { ...pkg.details.pageSections.locations.items[0], notes: '', mapUrl: '', image: '' });
   assert.equal(listed.details.availabilityNote, pkg.details.availabilityNote, 'comparison dates still read the availability note');
   assert.equal(pkg.details.bookingTitle, 'Reserve your seat', 'the full package is left untouched');
+});
+
+test('a rating from written reviews survives the trim, though the reviews themselves do not', () => {
+  const reviewed = { ...pkg, rating: 0, reviews: 0, details: { ...pkg.details, pageSections: { ...pkg.details.pageSections, reviews: { enabled: true, items: [
+    { id: 'a', name: 'Asha', text: 'Lovely sunrise.', rating: 5, visible: true },
+    { id: 'b', name: 'Vikram', text: 'Steep but worth it.', rating: 4, visible: true },
+    { id: 'c', name: 'Hidden', text: 'Not shown.', rating: 1, visible: false },
+  ] } } } };
+  const listed = plain(toListingPackage(reviewed));
+  assert.deepEqual(plain(getTravellerRating(listed)), { rating: 4.5, reviews: 2 });
+  assert.deepEqual(plain(getTravellerRating(listed)), plain(getTravellerRating(reviewed)));
+  assert.deepEqual(listed.details.pageSections.reviews.items, [], 'review text stays on the detail page');
+});
+
+test('a package without reviews keeps no rating on its card', () => {
+  const unreviewed = { ...pkg, rating: 0, reviews: 0, details: { ...pkg.details, pageSections: { ...pkg.details.pageSections, reviews: { enabled: true, items: [] } } } };
+  const listed = plain(toListingPackage(unreviewed));
+  assert.equal(getTravellerRating(listed), null);
 });

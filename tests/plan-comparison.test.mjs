@@ -20,6 +20,7 @@ const richText = value => 'cmt-rich:v1:' + JSON.stringify({ type: 'paragraph', c
 const { getPlanComparison } = load('src/lib/planComparison.ts', {
   '@/lib/packageData': data,
   '@/lib/packageRichText': load('src/lib/packageRichText.ts'),
+  '@/lib/packageDetailSections': load('src/lib/packageDetailSections.ts'),
 });
 const { normalizeSiteContent, DEFAULT_SITE_CONTENT } = load('src/lib/siteContent.ts', {
   '@/lib/weekendTracks': load('src/lib/weekendTracks.ts'),

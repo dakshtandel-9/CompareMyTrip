@@ -1,4 +1,5 @@
 import { packagePath } from "@/lib/packageUrls";
+import { getTravellerRating } from "@/lib/planComparison";
 import Link from "next/link";
 import Image from "@/components/SiteImage";
 import { BedDouble, Clock, MapPin, Users } from "lucide-react";
@@ -38,6 +39,7 @@ export default function PackageCard({
   /* Imported operator listings publish no pre-discount price, so the pill is
      dropped entirely rather than reading "0% off". */
   const discountPercent = getDiscountPercent(pkg);
+  const travellerRating = getTravellerRating(pkg);
   const marker =
     badge ??
     (discountPercent > 0 ? { label: `${discountPercent}% off`, tone: "coral" as const } : null);
@@ -79,10 +81,8 @@ export default function PackageCard({
           {pkg.title}
         </h3>
 
-        {pkg.reviews > 0 && pkg.rating > 0 ? (
-          <Rating value={pkg.rating} reviews={pkg.reviews} className="mt-2" />
-        ) : (
-          <p className="mt-2 text-xs font-medium text-cmt-neutral-400">Newly listed</p>
+        {travellerRating && (
+          <Rating value={travellerRating.rating} reviews={travellerRating.reviews} className="mt-2" />
         )}
 
         <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-cmt-neutral-600">

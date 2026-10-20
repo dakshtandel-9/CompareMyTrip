@@ -237,6 +237,11 @@ const { default: PackageDetailClient } = load('src/app/packages/[packageId]/Pack
   '@/app/home/_components/PackageCard': { default: ({ pkg }) => React.createElement('article', { 'data-related-package': pkg.id }, pkg.title) },
   '@/lib/packageFacts': { getPackageFacts: () => [] },
   '@/lib/packageDetailSections': model,
+  '@/lib/planComparison': load('src/lib/planComparison.ts', {
+    '@/lib/packageData': data,
+    '@/lib/packageRichText': load('src/lib/packageRichText.ts'),
+    '@/lib/packageDetailSections': model,
+  }),
   '../_components/PackageFactsBar': { default: noOp },
   '../_components/PackageInlineEditing': inlineEditing,
   '../_components/SimplePackagePage.module.css': { default: {} },
