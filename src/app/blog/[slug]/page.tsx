@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     title: post.seoTitle || post.title,
     description,
     path: `/blog/${post.id}`,
-    image: blogPostImage(post) || "/images/destinations-header-banner.jpg",
+    image: blogPostImage(post) || "/images/og-himalaya-peaks.jpg",
     imageAlt: post.coverAlt || post.title,
     type: "article",
   });
