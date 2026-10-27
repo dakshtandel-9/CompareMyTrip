@@ -6,7 +6,7 @@ import { ArrowLeft, TriangleAlert } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { isDepartureAllowed } from "@/lib/packageData";
-import { getPayuConfig, normaliseTravelDate, normaliseTravellers, priceOrder, resolvePackage } from "@/lib/payu";
+import { getPayuConfig, MAX_TRAVELLERS, normaliseTravelDate, resolvePackage } from "@/lib/payu";
 import CheckoutPanels from "./CheckoutPanels";
 
 export const metadata: Metadata = {
@@ -51,7 +51,7 @@ function Notice({ title, body }: { title: string; body: string }) {
 export default async function CheckoutPage({
   searchParams,
 }: {
-  searchParams: Promise<{ pkg?: string; travellers?: string; date?: string }>;
+  searchParams: Promise<{ pkg?: string; date?: string }>;
 }) {
   const params = await searchParams;
   const pkg = await resolvePackage(params.pkg ?? "");
@@ -67,7 +67,6 @@ export default async function CheckoutPage({
     );
   }
 
-  const order = priceOrder(pkg, normaliseTravellers(params.travellers));
   /* Chosen back on the package page. Re-checked here rather than trusted:
      it arrives in a URL anyone can edit, and the package may only run on
      certain weekdays. A date that fails either test is dropped, so the
@@ -105,10 +104,9 @@ export default async function CheckoutPage({
         packageImage={pkg.image}
         nights={pkg.nights}
         days={pkg.days}
-        perPerson={order.perPerson}
-        travellers={order.travellers}
+        perPerson={pkg.price}
+        maxTravellers={MAX_TRAVELLERS}
         travelDate={travelDate}
-        subtotal={order.subtotal}
         configured={configured}
       />
     </Shell>

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "@/components/SiteImage";
-import { TriangleAlert, X } from "lucide-react";
+import { Minus, Plus, TriangleAlert, X } from "lucide-react";
 
 import type { AppliedCoupon } from "@/lib/coupons";
 import { getFirebaseAuth } from "@/lib/firebase/client";
@@ -35,9 +35,8 @@ type Props = {
   nights: number;
   days: number;
   perPerson: number;
-  travellers: number;
+  maxTravellers: number;
   travelDate: string;
-  subtotal: number;
   configured: boolean;
 };
 
@@ -49,9 +48,8 @@ export default function CheckoutPanels({
   nights,
   days,
   perPerson,
-  travellers,
+  maxTravellers,
   travelDate,
-  subtotal,
   configured,
 }: Props) {
   const user = useAuthUser();
@@ -59,13 +57,16 @@ export default function CheckoutPanels({
   const [applied, setApplied] = useState<AppliedCoupon | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [summaryOpen, setSummaryOpen] = useState(false);
+  /* Checkout always opens on one traveller, whatever was picked on the
+     package page; the traveller sets the real number here. */
+  const [travellers, setTravellers] = useState(1);
+  const [summaryOpen, setSummaryOpen] = useState(true);
   /* A standing offer this order qualifies for. It is only ever suggested:
      the traveller applies it themselves, like any other code. */
   const [offer, setOffer] = useState<AppliedCoupon | null>(null);
 
   const validate = useCallback(
-    async (code: string) => {
+    async (code: string, count: number) => {
       let idToken = "";
       try {
         idToken = (await getFirebaseAuth().currentUser?.getIdToken()) ?? "";
@@ -77,7 +78,7 @@ export default function CheckoutPanels({
       const response = await fetch("/api/coupons/validate", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code, packageId, travellers, idToken }),
+        body: JSON.stringify({ code, packageId, travellers: count, idToken }),
       });
 
       return (await response.json()) as {
@@ -86,7 +87,7 @@ export default function CheckoutPanels({
         message?: string;
       };
     },
-    [packageId, travellers],
+    [packageId],
   );
 
   // Standing offers, looked for once the auth state has settled — an offer
@@ -97,7 +98,7 @@ export default function CheckoutPanels({
     let cancelled = false;
     void (async () => {
       try {
-        const result = await validate("");
+        const result = await validate("", travellers);
         if (!cancelled) setOffer(result.ok && result.coupon ? result.coupon : null);
       } catch {
         // No standing offer is the normal case; a failure looks the same.
@@ -107,13 +108,13 @@ export default function CheckoutPanels({
     return () => {
       cancelled = true;
     };
-  }, [user, validate]);
+  }, [user, validate, travellers]);
 
   const handleApply = async (code: string) => {
     setBusy(true);
     setError("");
     try {
-      const result = await validate(code);
+      const result = await validate(code, travellers);
       if (result.ok && result.coupon) {
         setApplied(result.coupon);
       } else {
@@ -126,11 +127,36 @@ export default function CheckoutPanels({
     }
   };
 
+  /* A coupon's worth depends on the order, so a held code is checked again
+     for the new head-count; if it no longer fits it comes off and says why. */
+  const changeTravellers = async (next: number) => {
+    const count = Math.min(maxTravellers, Math.max(1, next));
+    if (count === travellers) return;
+    setTravellers(count);
+    if (!applied) return;
+    setBusy(true);
+    setError("");
+    try {
+      const result = await validate(applied.code, count);
+      if (result.ok && result.coupon) setApplied(result.coupon);
+      else {
+        setApplied(null);
+        setError(result.message || `${applied.code} no longer applies to this order.`);
+      }
+    } catch {
+      setApplied(null);
+      setError("We couldn't re-check your coupon. Apply it again to continue.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleRemove = () => {
     setApplied(null);
     setError("");
   };
 
+  const subtotal = perPerson * travellers;
   const discount = applied?.discount ?? 0;
   const total = subtotal - discount;
 
@@ -193,7 +219,27 @@ export default function CheckoutPanels({
             </div>
             <div className="flex items-center justify-between">
               <dt className="text-cmt-neutral-600">Travellers</dt>
-              <dd className="tabular-nums font-medium">{travellers}</dd>
+              <dd className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => changeTravellers(travellers - 1)}
+                  disabled={busy || travellers <= 1}
+                  aria-label="Fewer travellers"
+                  className="grid size-8 place-items-center rounded-cmt-full border border-cmt-neutral-300 bg-white text-cmt-neutral-900 transition-colors hover:border-cmt-neutral-400 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                >
+                  <Minus className="size-4" strokeWidth={2.5} aria-hidden="true" />
+                </button>
+                <output aria-live="polite" className="w-8 text-center tabular-nums font-semibold">{travellers}</output>
+                <button
+                  type="button"
+                  onClick={() => changeTravellers(travellers + 1)}
+                  disabled={busy || travellers >= maxTravellers}
+                  aria-label="More travellers"
+                  className="grid size-8 place-items-center rounded-cmt-full border border-cmt-neutral-300 bg-white text-cmt-neutral-900 transition-colors hover:border-cmt-neutral-400 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500"
+                >
+                  <Plus className="size-4" strokeWidth={2.5} aria-hidden="true" />
+                </button>
+              </dd>
             </div>
             {/* Only when the traveller actually picked one — an empty row
                 reads as missing information rather than an open date. */}
