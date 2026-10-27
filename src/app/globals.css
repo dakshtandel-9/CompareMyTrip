@@ -364,6 +364,39 @@ body {
   }
 }
 
+/* The homepage loader (ScrollFrameSequence): it covers the page while the
+   hero clip downloads and fades away on the clip's first frame. The bar is
+   indeterminate until the download reports a size. Reduced motion never gets
+   the clip, so it never gets the loader either. If the script never runs,
+   the loader gives up on its own rather than hiding the page for good. */
+.cmt-hero-loader {
+  position: fixed; inset: 0; z-index: 9000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+  padding-inline: 16px; background: #fff; touch-action: none; overscroll-behavior: contain;
+  transition: opacity 400ms ease-out, visibility 0s linear 400ms;
+  animation: cmt-hero-loader-give-up 400ms ease-out 15s forwards;
+}
+.cmt-hero-loader[data-leaving] { opacity: 0; visibility: hidden; pointer-events: none; animation: none; }
+.cmt-hero-loader-track { position: relative; width: min(240px, 70vw); height: 4px; overflow: hidden; border-radius: 999px; background: #f1f5f9; }
+.cmt-hero-loader-bar {
+  position: absolute; inset: 0; border-radius: inherit; background: #facc15;
+  transform-origin: left; transform: scaleX(0.3);
+  transition: transform 200ms ease-out;
+  animation: cmt-hero-loader-slide 1.2s ease-in-out infinite;
+}
+.cmt-hero-loader-bar[data-measured] { animation: none; }
+.cmt-hero-loader-text { margin: 0; font-family: var(--font-body); font-size: 13px; color: #64748b; font-variant-numeric: tabular-nums; }
+@keyframes cmt-hero-loader-slide {
+  from { translate: -100% 0; }
+  to { translate: 100% 0; }
+}
+@keyframes cmt-hero-loader-give-up {
+  to { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cmt-hero-loader { display: none; }
+}
+
 /* A still hero must not leave several empty viewports of scroll. */
 .cmt-hero-static { height: auto; }
 .cmt-hero-static .cmt-hero-stage { position: relative; height: auto; min-height: 85svh; }

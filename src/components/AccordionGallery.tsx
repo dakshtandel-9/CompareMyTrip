@@ -5,6 +5,8 @@ import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
 import Image from "@/components/SiteImage";
 import type { gsap as Gsap } from "gsap";
 
+import { onHeroSettled } from "@/lib/siteReady";
+
 import "./AccordionGallery.css";
 
 export type AccordionGalleryItem = {
@@ -78,6 +80,15 @@ export default function AccordionGallery({
   const vertical = orientation === "vertical";
   const count = items.length;
   const [active, setActive] = useState(Math.min(Math.max(defaultIndex, 0), count - 1));
+  /* The photos load by themselves once the page and the hero clip are done,
+     so they are already there when the visitor scrolls down. Until then (or
+     on Save-Data) they stay lazy and load as the gallery nears the screen. */
+  const [preload, setPreload] = useState(false);
+  useEffect(() => {
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    if (connection?.saveData || window.matchMedia("(prefers-reduced-data: reduce)").matches) return;
+    return onHeroSettled(() => setPreload(true));
+  }, []);
 
   const prefersReduced =
     typeof window !== "undefined" && window.matchMedia
@@ -303,6 +314,7 @@ export default function AccordionGallery({
                   alt={item.alt || item.label || ""}
                   fill
                   sizes={sizes}
+                  loading={preload ? "eager" : "lazy"}
                   draggable={false}
                   fetchPriority={i === defaultIndex ? "high" : "auto"}
                   /* Panels edited in /admin can carry an uploaded data URL,

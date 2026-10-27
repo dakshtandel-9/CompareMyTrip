@@ -30,8 +30,9 @@ const HOME_PATH = "/";
 const PROMPT_DELAY_MS = 6000;
 /* What counts as the visitor starting to browse. */
 const ENGAGEMENT_EVENTS = ["scroll", "pointerdown", "keydown"] as const;
-/* When the timer lands while the visitor is typing or another modal is up,
-   wait this long and look again rather than interrupting them. */
+/* When the timer lands while the visitor is typing, another modal is up or
+   the homepage loader still covers the page, wait this long and look again
+   rather than interrupting them. */
 const PROMPT_RETRY_MS = 3000;
 
 /* Lives for the document, not the component: SiteExperience can remount the
@@ -41,7 +42,7 @@ let promptedThisLoad = false;
 const visitorIsBusy = () => {
   const active = document.activeElement;
   return (
-    document.querySelector("dialog[open]") !== null ||
+    document.querySelector("dialog[open], .cmt-hero-loader:not([data-leaving])") !== null ||
     (active instanceof HTMLElement && active.matches("input, textarea, select, [contenteditable='true']"))
   );
 };

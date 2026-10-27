@@ -2,10 +2,11 @@
 
 import { shouldLoadVideo } from "@/lib/videoSource";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import BrandLogo from "@/components/BrandLogo";
 import ContentImage from "../_components/ContentImage";
 import HeroSearch from "../_components/HeroSearch";
 import { startScrollVideo } from "@/lib/scrollVideo";
-import { onSiteReady } from "@/lib/siteReady";
+import { markHeroSettled } from "@/lib/siteReady";
 import { useSiteContent } from "@/lib/useSiteContent";
 
 // Versioned, fast-start encodes with a keyframe every two frames. Phones
@@ -30,6 +31,18 @@ const TAIL_HOLD = 0.13;
 // Fraction of a copy window spent fading between one block and the next.
 const COPY_FADE = 0.12;
 
+// The loader covers the page until the whole clip is in memory and its first
+// frame is on screen, so the scrub never stalls under the visitor. A slow line
+// is not held hostage: after this long the page opens on the poster and the
+// clip keeps downloading behind it.
+const LOADER_MAX_MS = 10_000;
+
+/* Lives for the document, not the component: the clip only has to come down
+   once, so a client-side trip back to the homepage opens straight away. */
+let loaderDoneThisLoad = false;
+
+const SCROLL_KEYS = new Set([" ", "ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End"]);
+
 const clamp01 = (value: number) => (value < 0 ? 0 : value > 1 ? 1 : value);
 
 
@@ -49,7 +62,11 @@ export default function ScrollFrameSequence() {
   const [phonePicksTarget, setPhonePicksTarget] = useState<HTMLDivElement | null>(null);
   const { hero } = useSiteContent();
   const heroCopy = hero.copy;
-
+  const [loader, setLoader] = useState<"shown" | "leaving" | "gone">(() =>
+    loaderDoneThisLoad ? "gone" : "shown",
+  );
+  const loaderBarRef = useRef<HTMLDivElement>(null);
+  const loaderLabelRef = useRef<HTMLSpanElement>(null);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -85,6 +102,23 @@ export default function ScrollFrameSequence() {
     // has really moved. Rebuilt whenever the blocks themselves change.
     let lastShown: number[] = [];
     let lastProgress = 0;
+
+    // Download progress goes straight to the DOM; a render per chunk would
+    // redraw the whole hero for a number.
+    const showLoadProgress = (fraction: number) => {
+      const bar = loaderBarRef.current;
+      const label = loaderLabelRef.current;
+      if (!bar || !label) return;
+      bar.dataset.measured = "";
+      bar.style.transform = `scaleX(${clamp01(fraction)})`;
+      label.textContent = `${Math.round(clamp01(fraction) * 100)}%`;
+    };
+    const revealPage = () => {
+      loaderDoneThisLoad = true;
+      clearTimeout(loaderCap);
+      setLoader((current) => (current === "shown" ? "leaving" : current));
+    };
+    const loaderCap = setTimeout(revealPage, LOADER_MAX_MS);
 
     // Progress is split into one equal window per copy block. Blocks cross
     // over at each window boundary: the outgoing one is fully gone before the
@@ -180,7 +214,7 @@ export default function ScrollFrameSequence() {
           wrapper.style.removeProperty("--cmt-phone-opening-inset");
         };
       }
-      if (!enabled) { drawCopy(0); return; }
+      if (!enabled) { drawCopy(0); markHeroSettled(); revealPage(); return; }
 
       const networkSrc = phone.matches ? MOBILE_VIDEO_SRC : DESKTOP_VIDEO_SRC;
       const start = (src: string) => {
@@ -191,10 +225,15 @@ export default function ScrollFrameSequence() {
           tailHold: TAIL_HOLD,
           scrubDuration: phone.matches ? 0.18 : 0.1,
           // Both layouts follow the decoded frame, including reverse scrolling.
-          onFrame: drawCopy,
+          // The first one painted is also the cue to lift the loader.
+          onFrame: (progress) => {
+            drawCopy(progress);
+            revealPage();
+          },
           onError: () => {
             wrapper.classList.add("cmt-hero-static");
             drawCopy(0);
+            revealPage();
           },
           // Keep the video timeline independent of the opening resize.
           scrollDistance: () => wrapper.offsetHeight - stage.offsetHeight - openingInset,
@@ -205,29 +244,39 @@ export default function ScrollFrameSequence() {
       // memory. Left to itself, a paused video only buffers at about playback
       // speed, so scrolling ahead of that stalls on range requests. The file
       // is immutable, so a repeat visit reads it straight from the HTTP cache.
-      // If the download fails, stream it the ordinary way instead. It waits
-      // for the page itself to finish loading, so the clip never shares the
-      // connection with the poster, fonts and scripts of the first paint; the
-      // poster stands in until then.
+      // If the download fails, stream it the ordinary way instead. It starts
+      // at once: the loader is up, so the clip is what the visitor waits on.
+      // The body is read in chunks so the loader can count the download.
       const download = new AbortController();
       let objectUrl: string | undefined;
-      const stopWaiting = onSiteReady(() => {
-        fetch(networkSrc, { signal: download.signal })
-          .then((response) => {
-            if (!response.ok) throw new Error(`Hero video request failed: ${response.status}`);
-            return response.blob();
-          })
-          .then((blob) => {
-            if (download.signal.aborted) return;
-            objectUrl = URL.createObjectURL(blob);
-            start(objectUrl);
-          })
-          .catch(() => {
-            if (!download.signal.aborted) start(networkSrc);
-          });
-      });
+      fetch(networkSrc, { signal: download.signal })
+        .then(async (response) => {
+          if (!response.ok) throw new Error(`Hero video request failed: ${response.status}`);
+          const total = Number(response.headers.get("content-length"));
+          if (!response.body || !total) return response.blob();
+          const reader = response.body.getReader();
+          const chunks: BlobPart[] = [];
+          let received = 0;
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            received += value.length;
+            showLoadProgress(received / total);
+          }
+          return new Blob(chunks, { type: response.headers.get("content-type") ?? "video/mp4" });
+        })
+        .then((blob) => {
+          if (download.signal.aborted) return;
+          objectUrl = URL.createObjectURL(blob);
+          start(objectUrl);
+          markHeroSettled();
+        })
+        .catch(() => {
+          if (!download.signal.aborted) start(networkSrc);
+          markHeroSettled();
+        });
       stopDownload = () => {
-        stopWaiting();
         download.abort();
         if (objectUrl) URL.revokeObjectURL(objectUrl);
         objectUrl = undefined;
@@ -238,6 +287,7 @@ export default function ScrollFrameSequence() {
     queries.forEach(query => query.addEventListener("change", syncLayout));
     connection?.addEventListener("change", syncLayout);
     return () => {
+      clearTimeout(loaderCap);
       refreshCopyRef.current = undefined;
       stopSequence?.();
       stopDownload?.();
@@ -247,12 +297,50 @@ export default function ScrollFrameSequence() {
     };
   }, [hero.enabled]);
 
+  /* The page underneath must not scroll while it is covered, or the loader
+     would lift on a different part of the sequence than the one it hid. */
+  const loaderShown = hero.enabled && loader === "shown";
+  useEffect(() => {
+    if (!loaderShown) return;
+    const block = (event: Event) => event.preventDefault();
+    const blockKeys = (event: KeyboardEvent) => {
+      if (SCROLL_KEYS.has(event.key)) event.preventDefault();
+    };
+    window.addEventListener("wheel", block, { passive: false });
+    window.addEventListener("touchmove", block, { passive: false });
+    window.addEventListener("keydown", blockKeys);
+    return () => {
+      window.removeEventListener("wheel", block);
+      window.removeEventListener("touchmove", block);
+      window.removeEventListener("keydown", blockKeys);
+    };
+  }, [loaderShown]);
+
   /* After the video effect, never before — an early bail would
      change the hook order between an enabled and a disabled hero. */
   if (!hero.enabled) return null;
 
   return (
     <>
+    {loader !== "gone" && (
+      <div
+        className="cmt-hero-loader"
+        data-leaving={loader === "leaving" ? "" : undefined}
+        role="status"
+        aria-live="polite"
+        onTransitionEnd={(event) => {
+          if (event.target === event.currentTarget && loader === "leaving") setLoader("gone");
+        }}
+      >
+        <BrandLogo className="w-[190px] sm:w-[235px]" />
+        <div className="cmt-hero-loader-track" aria-hidden="true">
+          <div ref={loaderBarRef} className="cmt-hero-loader-bar" />
+        </div>
+        <p className="cmt-hero-loader-text">
+          Getting your trip ready <span ref={loaderLabelRef} />
+        </p>
+      </div>
+    )}
     <div ref={wrapperRef} className="cmt-hero relative h-[450vh] bg-white">
       <div ref={stageRef} className="cmt-hero-stage sticky top-0 flex h-screen w-full items-center justify-center p-3 sm:p-4 md:p-6">
         <div className="cmt-hero-surface relative h-full w-full overflow-hidden rounded-2xl bg-cmt-secondary-900 sm:rounded-3xl">
