@@ -182,10 +182,11 @@ test('map search and embed destinations encode the address and never use an arbi
   const link = new URL(locationMapLink(stop));
   assert.equal(link.origin, 'https://www.google.com');
   assert.equal(link.searchParams.get('query'), stop.address);
+  // The iframe-only /maps/embed page, never the full Maps app, which refuses to be framed on signed-in phones.
   const embed = new URL(locationEmbedUrl(stop));
-  assert.equal(embed.origin, 'https://www.google.com');
-  assert.equal(embed.searchParams.get('q'), stop.address);
-  assert.equal(embed.searchParams.get('output'), 'embed');
+  assert.equal(embed.origin + embed.pathname, 'https://www.google.com/maps/embed');
+  assert.equal(embed.searchParams.get('pb'), `!1m2!2m1!1s${stop.address}`);
+  assert.equal(new URL(locationEmbedUrl(location({ address: 'Shop *7! Main Rd' }))).searchParams.get('pb'), '!1m2!2m1!1sShop *2A7*21 Main Rd');
   assert.equal(locationMapLink(location({ mapUrl: 'https://maps.apple.com/?q=Goa' })), 'https://maps.apple.com/?q=Goa');
   assert.equal(locationEmbedUrl(location({ address: '', mapUrl: 'https://maps.apple.com/?q=Goa' })), null);
   assert.equal(new URL(locationMapLink(location({ address: '', name: 'Airport' }))).searchParams.get('query'), 'Airport');

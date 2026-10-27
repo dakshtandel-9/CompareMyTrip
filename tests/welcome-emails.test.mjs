@@ -96,7 +96,7 @@ test('a guest account created at checkout is told how to sign in later', async (
   assert.equal(await welcomeNewAccount('uid1', { guest: true }), 'sent');
   assert.match(sent[0].body.text, /created a CompareMyTrip account for priya@example\.com when you checked out/);
   assert.match(sent[0].body.text, /https:\/\/comparemytrip\.in\/forgot-password/);
-  assert.match(sent[0].body.html, /Open my account/);
+  assert.match(sent[0].body.html, /Open My Account →/);
 });
 
 test('without an API key nothing is sent and nothing is claimed', async () => {
@@ -118,6 +118,31 @@ test('a new newsletter subscriber is saved and welcomed; a repeat is not emailed
   assert.equal(body.subject, "You're subscribed to CompareMyTrip travel deals");
   assert.match(body.headers['List-Unsubscribe'], /mailto:support@comparemytrip\.in/);
   assert.match(body.text, /unsubscribe/);
+  assert.match(body.html, /Welcome to our travel community!/);
+  assert.match(body.html, /<a href="https:\/\/comparemytrip\.in\/deals"[^>]*>Discover Travel Deals<\/a>/);
+  assert.match(body.text, /Discover travel deals: https:\/\/comparemytrip\.in\/deals/);
+  assert.match(body.html, />Unsubscribe<\/a> · <a href="https:\/\/comparemytrip\.in\/privacy"/);
+});
+
+test('every welcome uses the branded template: logo, banner, icons, linked contacts and the mapped address', () => {
+  const { buildAccountWelcomeEmail, buildNewsletterWelcomeEmail } = welcome();
+  const account = buildAccountWelcomeEmail({ name: 'Priya Sharma', email: 'priya@example.com' });
+  const newsletter = buildNewsletterWelcomeEmail('priya@example.com');
+  for (const { html } of [account, newsletter]) {
+    assert.match(html, /<img src="https:\/\/comparemytrip\.in\/email\/logo\.png\?v=1"/);
+    assert.match(html, /<img src="https:\/\/comparemytrip\.in\/email\/banner\.jpg\?v=1"/);
+    assert.match(html, /<a href="mailto:support@comparemytrip\.in"[^>]*>support@comparemytrip\.in<\/a> or <a href="tel:\+919535976868"/);
+    assert.match(html, /<a href="https:\/\/www\.google\.com\/maps\/search\/\?api=1&amp;query=Ranka\+Junction[^"]*"[^>]*>CompareMyTrip, Ranka Junction, #224, 3rd Floor, Old Madras Road, K R Puram, Bengaluru, KAR 560016 \(Near TIN Factory Metro Station\)<\/a>/);
+    assert.match(html, /Privacy Policy<\/a> · <a href="https:\/\/comparemytrip\.in\/terms"/);
+  }
+  assert.match(account.html, /Welcome to CompareMyTrip!/);
+  assert.match(account.html, /Your next trip starts here/);
+  for (const icon of ['circle-check', 'compass', 'headphones']) assert.match(account.html, new RegExp(`/email/icon-${icon}\\.png`));
+  assert.match(account.html, /<a href="https:\/\/comparemytrip\.in\/packages"[^>]*>Explore Travel Packages →<\/a>/);
+  for (const icon of ['tag', 'map', 'compass']) assert.match(newsletter.html, new RegExp(`/email/icon-${icon}\\.png`));
+  for (const [, file] of (account.html + newsletter.html).matchAll(/https:\/\/comparemytrip\.in\/email\/([\w.-]+)\?v=1/g)) {
+    assert.ok(fs.existsSync(`public/email/${file}`), `public/email/${file} is missing`);
+  }
 });
 
 test('one connection can sign up at most ten addresses an hour', async () => {

@@ -215,10 +215,24 @@ export function locationMapLink(location: Pick<PackageLocation, "mapUrl" | "addr
   return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : null;
 }
 
+/**
+ * Google's iframe-only map page for a search, the same URL its "Embed a map"
+ * dialog produces. Do not use `maps?q=…&output=embed`: that is the full Maps
+ * app, which forbids framing and only redirects here when it chooses to — on
+ * phones signed in to Google it can serve the app or a sign-in page instead,
+ * and the frame shows Chrome's "refused to connect" face.
+ */
+export function googleMapEmbedUrl(query: string): string {
+  // The pb parameter is "!"-delimited, so the search text escapes "*" and "!"
+  // as *2A and *21 (in that order) after the usual URL encoding.
+  const text = encodeURIComponent(query).replace(/\*/g, "*2A").replace(/!/g, "*21");
+  return `https://www.google.com/maps/embed?pb=!1m2!2m1!1s${text}`;
+}
+
 /** Map previews always use an address we encode, never administrator-provided iframe HTML. */
 export function locationEmbedUrl(location: Pick<PackageLocation, "address">): string | null {
   const address = location.address.trim();
-  return address ? `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed` : null;
+  return address ? googleMapEmbedUrl(address) : null;
 }
 
 function validImage(value: string): boolean {

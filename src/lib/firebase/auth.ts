@@ -130,8 +130,19 @@ export async function signInWithEmail({
   return credential.user;
 }
 
+/* The reset email goes out through Resend in our own template. Firebase's
+   own email is the fallback whenever the server cannot send it. */
 export async function requestPasswordReset(email: string) {
-  await sendPasswordResetEmail(getFirebaseAuth(), email.trim().toLowerCase());
+  const address = email.trim().toLowerCase();
+  const response = await fetch("/api/account/password-reset", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: address }),
+  }).catch(() => null);
+  if (response?.ok) return;
+  if (response?.status === 429) throw { code: "auth/too-many-requests" };
+  if (response?.status === 400) throw { code: "auth/invalid-email" };
+  await sendPasswordResetEmail(getFirebaseAuth(), address);
 }
 
 export async function signInWithGoogle({ remember = true }: { remember?: boolean } = {}) {

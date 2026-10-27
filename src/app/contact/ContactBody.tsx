@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Clock, MapPin } from "lucide-react";
 
 import { Glyph } from "@/lib/adminIcons";
+import { googleMapEmbedUrl } from "@/lib/packageDetailSections";
 import { DEFAULT_SITE_CONTENT } from "@/lib/siteContent";
 import { useSiteContent } from "@/lib/useSiteContent";
 import Faq from "@/app/home/_sections/Faq";
@@ -233,7 +234,7 @@ export default function ContactBody() {
                   {office.address.trim() ? (
                     <iframe
                       title={`Google map for ${office.city || "our office"}: ${office.address}`}
-                      src={`https://www.google.com/maps?q=${encodeURIComponent(`${office.address}, ${office.city}`)}&output=embed`}
+                      src={googleMapEmbedUrl(`${office.address}, ${office.city}`)}
                       className="h-72 w-full border-0 bg-cmt-neutral-100 sm:h-96"
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"

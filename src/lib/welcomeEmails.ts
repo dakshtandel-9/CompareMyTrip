@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
-import { emailApiKey, emailButton, emailLayout, escapeHtml, recipients, sendEmail, type EmailMessage, type Outcome } from "./email";
+import {
+  emailApiKey, emailButton, emailContact, emailFeatures, emailLayout, escapeHtml, recipients, sendEmail,
+  type EmailFeature, type EmailMessage, type Outcome,
+} from "./email";
 import { getAdminAuth, getAdminDb } from "./firebase/admin";
 import { BUSINESS_DETAILS } from "./legalPolicies";
 import { getSiteUrl } from "./seo";
@@ -33,30 +36,31 @@ export function buildAccountWelcomeEmail(
 
   const intro = guest
     ? `We created a ${BUSINESS_DETAILS.brand} account for ${email} when you checked out, so your bookings and payments stay in one place.`
-    : `Thanks for creating your ${BUSINESS_DETAILS.brand} account. You're all set to compare trips and book with us.`;
-  const points = [
-    "Compare tour packages side by side — price, inclusions and itinerary.",
-    "Save your details once for faster quotes and checkout.",
-    "Track your bookings and payments from your account.",
+    : `Thanks for creating your ${BUSINESS_DETAILS.brand} account. You're all set to discover exciting destinations, compare travel packages and start planning your next adventure.`;
+  const features: EmailFeature[] = [
+    { icon: "circle-check", title: "Compare travel packages", text: "Review prices, itineraries and inclusions side by side." },
+    { icon: "compass", title: "Discover new destinations", text: "Explore weekend treks, domestic holidays and international escapes." },
+    { icon: "headphones", title: "Get travel assistance", text: "Our travel team is here to help with your travel enquiries." },
   ];
   const guestNote = `To sign in later, set a password from ${resetUrl}, or continue with Google using this email.`;
 
   return {
     to,
     subject: `Welcome to ${BUSINESS_DETAILS.brand}, ${firstName}!`,
-    html: emailLayout(`Welcome to ${BUSINESS_DETAILS.brand}`, `<p style="margin:0 0 12px">Hi ${escapeHtml(firstName)},</p>
+    html: emailLayout(`Welcome to ${BUSINESS_DETAILS.brand}!`, `<p style="margin:0 0 12px">Hi ${escapeHtml(firstName)},</p>
 <p style="margin:0 0 12px">${escapeHtml(intro)}</p>
-<ul style="margin:0 0 12px;padding-left:20px">${points.map((point) => `<li style="margin:0 0 6px">${escapeHtml(point)}</li>`).join("")}</ul>
 ${guest ? `<p style="margin:0 0 12px">To sign in later, <a href="${escapeHtml(resetUrl)}" style="color:#a37c0b">set a password</a>, or continue with Google using this email.</p>` : ""}
-${emailButton(guest ? accountUrl : packagesUrl, guest ? "Open my account" : "Explore packages")}
-<p style="margin:0">Questions? Just reply to this email or reach us at ${escapeHtml(support)}.</p>`),
+${emailFeatures("Your next trip starts here", features)}
+${emailButton(guest ? accountUrl : packagesUrl, guest ? "Open My Account →" : "Explore Travel Packages →")}
+${emailContact()}`, intro),
     text: [
       `Hi ${firstName},`, "",
       intro, "",
-      ...points.map((point) => `- ${point}`), "",
       ...(guest ? [guestNote, ""] : []),
-      guest ? `Open your account: ${accountUrl}` : `Explore packages: ${packagesUrl}`, "",
-      `Questions? Just reply to this email or reach us at ${support}.`,
+      "Your next trip starts here",
+      ...features.map((feature) => `- ${feature.title}: ${feature.text}`), "",
+      guest ? `Open your account: ${accountUrl}` : `Explore travel packages: ${packagesUrl}`, "",
+      `Questions? Contact us at ${support}.`,
     ].join("\n"),
   };
 }
@@ -65,30 +69,36 @@ ${emailButton(guest ? accountUrl : packagesUrl, guest ? "Open my account" : "Exp
 export function buildNewsletterWelcomeEmail(email: string, siteUrl = "https://comparemytrip.in"): EmailMessage | null {
   const to = recipients(email);
   if (!to.length) return null;
-  const packagesUrl = new URL("/packages", siteUrl).toString();
+  // /deals is the site's own deals link; it lands on the packages list filtered to offers.
+  const dealsUrl = new URL("/deals", siteUrl).toString();
+  const privacyUrl = new URL("/privacy", siteUrl).toString();
   const unsubscribe = `mailto:${BUSINESS_DETAILS.supportEmail}?subject=Unsubscribe`;
-  const points = [
-    "Handpicked deals and limited-time offers on tour packages.",
-    "Destination guides and travel tips from our team.",
-    "Early word on new trips, before they fill up.",
+  const features: EmailFeature[] = [
+    { icon: "tag", title: "Travel deals and special offers", text: "Discover offers on selected treks, getaways and holiday packages." },
+    { icon: "map", title: "Destination inspiration", text: "Find ideas for your next weekend escape or international holiday." },
+    { icon: "compass", title: "Travel tips and new trips", text: "Get useful planning tips and updates on upcoming travel experiences." },
   ];
+  const intro = "You're now on the list for travel inspiration, destination ideas and updates on selected offers.";
+  const small = "margin:0;font-size:12px;color:#6b7280";
 
   return {
     to,
     subject: `You're subscribed to ${BUSINESS_DETAILS.brand} travel deals`,
-    html: emailLayout("Thanks for subscribing!", `<p style="margin:0 0 12px">Hi there,</p>
-<p style="margin:0 0 12px">You're now on the ${escapeHtml(BUSINESS_DETAILS.brand)} newsletter. Here's what you'll get:</p>
-<ul style="margin:0 0 12px;padding-left:20px">${points.map((point) => `<li style="margin:0 0 6px">${escapeHtml(point)}</li>`).join("")}</ul>
-${emailButton(packagesUrl, "Browse current deals")}
-<p style="margin:0 0 12px">Questions? Just reply to this email or reach us at ${escapeHtml(support)}.</p>
-<p style="margin:0;font-size:12px;color:#64748b">Didn't sign up, or changed your mind? <a href="${escapeHtml(unsubscribe)}" style="color:#64748b">Unsubscribe</a> by replying "unsubscribe".</p>`),
+    html: emailLayout("Welcome to our travel community!", `<p style="margin:0 0 12px">Hi there,</p>
+<p style="margin:0 0 12px">Thanks for subscribing to the <strong style="color:#111827">${escapeHtml(BUSINESS_DETAILS.brand)} newsletter!</strong> ${escapeHtml(intro)}</p>
+${emailFeatures("Here's what you can look forward to", features)}
+${emailButton(dealsUrl, "Discover Travel Deals")}
+${emailContact("Have a question?")}
+<p style="${small};margin-top:16px">You're receiving this email because you subscribed to ${escapeHtml(BUSINESS_DETAILS.brand)} updates. You can unsubscribe at any time using the link below.</p>
+<p style="${small};margin-top:8px;text-align:center"><a href="${escapeHtml(unsubscribe)}" style="color:#6b7280">Unsubscribe</a> · <a href="${escapeHtml(privacyUrl)}" style="color:#6b7280">Privacy Policy</a></p>`, intro),
     text: [
       "Hi there,", "",
-      `You're now on the ${BUSINESS_DETAILS.brand} newsletter. Here's what you'll get:`, "",
-      ...points.map((point) => `- ${point}`), "",
-      `Browse current deals: ${packagesUrl}`, "",
-      `Questions? Just reply to this email or reach us at ${support}.`, "",
-      `Didn't sign up, or changed your mind? Reply "unsubscribe" to this email.`,
+      `Thanks for subscribing to the ${BUSINESS_DETAILS.brand} newsletter! ${intro}`, "",
+      "Here's what you can look forward to",
+      ...features.map((feature) => `- ${feature.title}: ${feature.text}`), "",
+      `Discover travel deals: ${dealsUrl}`, "",
+      `Have a question? Contact us at ${support}.`, "",
+      `You're receiving this email because you subscribed to ${BUSINESS_DETAILS.brand} updates. To unsubscribe, reply "unsubscribe" to this email.`,
     ].join("\n"),
     headers: { "List-Unsubscribe": `<${unsubscribe}>` },
   };

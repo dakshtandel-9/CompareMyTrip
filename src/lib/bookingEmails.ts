@@ -1,6 +1,6 @@
 import { FieldValue } from "firebase-admin/firestore";
 
-import { emailApiKey, emailLayout as layout, escapeHtml, recipients, sendEmail, type EmailMessage, type Outcome } from "./email";
+import { emailApiKey, emailLayout as layout, emailSupportLinks, escapeHtml, recipients, sendEmail, type EmailMessage, type Outcome } from "./email";
 import { getAdminDb } from "./firebase/admin";
 import { BUSINESS_DETAILS } from "./legalPolicies";
 import { CUSTOM_PAYMENT_PACKAGE_ID } from "./customPayment";
@@ -96,7 +96,7 @@ export function buildBookingEmails(tripId: string, booking: PaidBooking, siteUrl
 <p style="margin:0 0 12px">Thank you — your payment to ${escapeHtml(BUSINESS_DETAILS.brand)} was successful.</p>
 ${rowsTable(details)}
 <p style="margin:0 0 12px">${escapeHtml(nextStep)}</p>
-<p style="margin:0">Questions? Reply to this email or contact us at ${escapeHtml(support)}. Please quote your booking reference.</p>`),
+<p style="margin:0">Questions? Reply to this email or contact us at ${emailSupportLinks()}. Please quote your booking reference.</p>`, `${rupees(charged)} received for ${title}. Booking reference ${tripId}.`),
     text: [
       `Hi ${firstName},`, "",
       `Thank you — your payment to ${BUSINESS_DETAILS.brand} was successful.`, "",
