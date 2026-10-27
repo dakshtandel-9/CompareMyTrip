@@ -197,7 +197,7 @@ export default function CheckoutForm({
       <button
         type="submit"
         disabled={disabled || provisioning}
-        className="mt-7 inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-cmt-control bg-cmt-primary-500 px-8 font-body text-[18px] font-semibold text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 disabled:cursor-not-allowed disabled:bg-cmt-neutral-200 disabled:text-cmt-neutral-500 disabled:shadow-none disabled:hover:translate-y-0"
+        className="mt-7 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-cmt-control bg-cmt-primary-500 px-4 py-2 font-body text-base font-semibold sm:gap-2.5 sm:px-8 sm:text-[18px] text-cmt-neutral-900 shadow-cmt-xs transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-cmt-primary-600 hover:shadow-cmt-primary active:translate-y-0 active:bg-cmt-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 disabled:cursor-not-allowed disabled:bg-cmt-neutral-200 disabled:text-cmt-neutral-500 disabled:shadow-none disabled:hover:translate-y-0"
       >
         <Lock className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
         {provisioning ? "Preparing your account…" : "Pay securely with PayU"}

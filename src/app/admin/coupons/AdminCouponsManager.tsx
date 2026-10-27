@@ -338,7 +338,7 @@ function CouponRow({
           <Pill tone={availability === "Available" ? "good" : "muted"}>
             {availability}
           </Pill>
-          {coupon.autoApply && <Pill tone="info">Applied automatically</Pill>}
+          {coupon.autoApply && <Pill tone="info">Suggested at checkout</Pill>}
           {coupon.firstBookingOnly && <Pill tone="info">First booking</Pill>}
         </div>
 
@@ -540,10 +540,10 @@ function CouponEditor({
             onChange={(active) => patch({ active })}
           />
           <Toggle
-            label="Apply automatically"
+            label="Suggest at checkout"
             description={
               draft.autoApply
-                ? "Applied for every order that qualifies, without the code being typed. Where two auto offers fit, the traveller gets the bigger one."
+                ? "Shown at checkout for every order that qualifies, with an Apply button. It is never applied until the traveller taps it. Where two fit, the bigger one is shown."
                 : "The traveller has to enter the code."
             }
             checked={draft.autoApply}

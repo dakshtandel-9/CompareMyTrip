@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "@/components/SiteImage";
 import { TriangleAlert, X } from "lucide-react";
 
@@ -60,9 +60,9 @@ export default function CheckoutPanels({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
-  /* An auto-applied offer that the traveller took off stays off, rather
-     than reappearing the next time this component asks the server. */
-  const dismissedAuto = useRef(false);
+  /* A standing offer this order qualifies for. It is only ever suggested:
+     the traveller applies it themselves, like any other code. */
+  const [offer, setOffer] = useState<AppliedCoupon | null>(null);
 
   const validate = useCallback(
     async (code: string) => {
@@ -92,13 +92,13 @@ export default function CheckoutPanels({
   // Standing offers, looked for once the auth state has settled — an offer
   // for a first booking needs to know whose booking it is.
   useEffect(() => {
-    if (user === undefined || applied || dismissedAuto.current) return;
+    if (user === undefined) return;
 
     let cancelled = false;
     void (async () => {
       try {
         const result = await validate("");
-        if (!cancelled && result.ok && result.coupon) setApplied(result.coupon);
+        if (!cancelled) setOffer(result.ok && result.coupon ? result.coupon : null);
       } catch {
         // No standing offer is the normal case; a failure looks the same.
       }
@@ -107,7 +107,7 @@ export default function CheckoutPanels({
     return () => {
       cancelled = true;
     };
-  }, [applied, user, validate]);
+  }, [user, validate]);
 
   const handleApply = async (code: string) => {
     setBusy(true);
@@ -116,7 +116,6 @@ export default function CheckoutPanels({
       const result = await validate(code);
       if (result.ok && result.coupon) {
         setApplied(result.coupon);
-        dismissedAuto.current = false;
       } else {
         setError(result.message || "That code could not be applied.");
       }
@@ -128,7 +127,6 @@ export default function CheckoutPanels({
   };
 
   const handleRemove = () => {
-    if (applied?.auto) dismissedAuto.current = true;
     setApplied(null);
     setError("");
   };
@@ -137,9 +135,9 @@ export default function CheckoutPanels({
   const total = subtotal - discount;
 
   return (
-    <div className="cmt-checkout-panels mt-8 grid gap-6 lg:grid-cols-12 lg:gap-8">
+    <div className="cmt-checkout-panels mt-8 grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
       {/* Buyer details */}
-      <section className="cmt-checkout-form lg:col-span-7">
+      <section className="cmt-checkout-form min-w-0 lg:col-span-7">
         <div className="rounded-cmt-md border border-cmt-neutral-200 bg-white p-6 shadow-cmt-sm sm:p-8">
           <h2 className="font-display text-xl font-semibold sm:text-2xl">Who is travelling?</h2>
           <p className="mt-2 max-w-[52ch] text-sm leading-[1.6] text-cmt-neutral-600">
@@ -167,8 +165,8 @@ export default function CheckoutPanels({
       </section>
 
       {/* Order summary */}
-      <aside className="cmt-order-summary lg:col-span-5" data-expanded={summaryOpen}>
-        <button type="button" aria-expanded={summaryOpen} aria-controls="checkout-order-summary" onClick={() => setSummaryOpen(value => !value)} className="cmt-summary-toggle md:hidden">
+      <aside className="cmt-order-summary min-w-0 lg:col-span-5" data-expanded={summaryOpen}>
+        <button type="button" aria-expanded={summaryOpen} aria-controls="checkout-order-summary" onClick={() => setSummaryOpen(value => !value)} className="cmt-summary-toggle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cmt-primary-500 md:hidden">
           <span><span className="block text-xs font-medium text-cmt-neutral-500">Your trip total</span><strong className="mt-1 block text-xl">{formatINR(total)}</strong><span className="mt-1 block line-clamp-1 text-xs text-cmt-neutral-600">{packageTitle}</span></span>
           <span className="shrink-0 text-xs font-semibold">{summaryOpen ? "Hide details −" : "View details +"}</span>
         </button>
@@ -180,10 +178,10 @@ export default function CheckoutPanels({
               <Image src={packageImage} alt="" fill sizes="96px" className="object-cover" />
             </span>
             <div className="min-w-0">
-              <p className="font-display text-[15px] font-semibold leading-snug">{packageTitle}</p>
+              <p className="break-words font-display text-[15px] font-semibold leading-snug">{packageTitle}</p>
               <p className="mt-1 text-sm text-cmt-neutral-600">{packageLocation}</p>
               <p className="mt-1 text-xs text-cmt-neutral-500">
-                {nights} nights / {days} days · {packageLocation}
+                {nights} nights / {days} days
               </p>
             </div>
           </div>
@@ -191,7 +189,7 @@ export default function CheckoutPanels({
           <dl className="mt-6 space-y-3 border-t border-cmt-neutral-200 pt-5 text-sm">
             <div className="flex items-center justify-between">
               <dt className="text-cmt-neutral-600">Per person</dt>
-              <dd className="tabular-nums font-medium">{formatINR(perPerson)}</dd>
+              <dd className="whitespace-nowrap tabular-nums font-medium">{formatINR(perPerson)}</dd>
             </div>
             <div className="flex items-center justify-between">
               <dt className="text-cmt-neutral-600">Travellers</dt>
@@ -202,7 +200,7 @@ export default function CheckoutPanels({
             {travelDate ? (
               <div className="flex items-center justify-between gap-4">
                 <dt className="text-cmt-neutral-600">Travel date</dt>
-                <dd className="font-medium">{formatTripDate(travelDate)}</dd>
+                <dd className="text-right font-medium">{formatTripDate(travelDate)}</dd>
               </div>
             ) : null}
 
@@ -210,11 +208,13 @@ export default function CheckoutPanels({
               <>
                 <div className="flex items-center justify-between">
                   <dt className="text-cmt-neutral-600">Subtotal</dt>
-                  <dd className="tabular-nums font-medium">{formatINR(subtotal)}</dd>
+                  <dd className="whitespace-nowrap tabular-nums font-medium">{formatINR(subtotal)}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <dt className="flex min-w-0 items-center gap-1.5 text-cmt-success-700">
-                    <span className="truncate">Coupon {applied.code}</span>
+                  {/* Wraps rather than truncates: the code is the one thing here
+                      the traveller has to be able to read. */}
+                  <dt className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-cmt-success-700">
+                    <span>Coupon {applied.code}</span>
                     <button
                       type="button"
                       onClick={handleRemove}
@@ -226,7 +226,7 @@ export default function CheckoutPanels({
                       Remove
                     </button>
                   </dt>
-                  <dd className="tabular-nums font-medium text-cmt-success-700">
+                  <dd className="shrink-0 whitespace-nowrap tabular-nums font-medium text-cmt-success-700">
                     −{formatINR(discount)}
                   </dd>
                 </div>
@@ -236,6 +236,7 @@ export default function CheckoutPanels({
 
           {!applied && (
             <CouponCard
+              offer={offer}
               error={error}
               busy={busy}
               onApply={handleApply}
@@ -243,9 +244,9 @@ export default function CheckoutPanels({
             />
           )}
 
-          <div className="mt-5 flex items-baseline justify-between border-t border-cmt-neutral-200 pt-5">
+          <div className="mt-5 flex items-baseline justify-between gap-4 border-t border-cmt-neutral-200 pt-5">
             <span className="font-display text-base font-semibold">Total payable</span>
-            <span className="tabular-nums font-display text-2xl font-bold">
+            <span className="whitespace-nowrap tabular-nums font-display text-2xl font-bold">
               {formatINR(total)}
             </span>
           </div>

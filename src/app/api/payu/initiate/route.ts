@@ -91,20 +91,24 @@ export async function POST(request: Request) {
   // rejection now means something changed underneath them (the code ran
   // out, the campaign closed, it was their second use) — they go back to
   // checkout to see the real total rather than being charged a different
-  // one than the screen promised.
+  // one than the screen promised. No code posted means no coupon: standing
+  // offers are only suggested at checkout, so one the traveller never
+  // applied (or took off) must not come back here.
   const requestedCode = normaliseCode(read("coupon"));
   const subtotal = priceOrder(pkg, travellers).subtotal;
-  const coupon = await resolveCoupon({
-    requestedCode,
-    packageId: pkg.id,
-    subtotal,
-    identity: { userId, email },
-  }).catch((cause) => {
-    // A coupon lookup that falls over must not cost the booking. Full price
-    // is always a price we can stand behind.
-    console.error("coupon could not be resolved", cause);
-    return { applied: null, error: "" };
-  });
+  const coupon = requestedCode
+    ? await resolveCoupon({
+        requestedCode,
+        packageId: pkg.id,
+        subtotal,
+        identity: { userId, email },
+      }).catch((cause) => {
+        // A coupon lookup that falls over must not cost the booking. Full
+        // price is always a price we can stand behind.
+        console.error("coupon could not be resolved", cause);
+        return { applied: null, error: "" };
+      })
+    : { applied: null, error: "" };
 
   if (requestedCode && !coupon.applied) {
     return fail(origin, "coupon-rejected");

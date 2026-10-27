@@ -59,6 +59,7 @@ function paymentRoutes(env = {}) {
   });
   const settled = [];
   const pending = [];
+  const lookups = [];
   const mocks = {
     '@/lib/payu': { ...payment, resolvePackage: () => ({ id: 'p1', title: 'Trek', price: 2749 }) },
     '@/lib/firebase/serverTrips': {
@@ -66,14 +67,14 @@ function paymentRoutes(env = {}) {
       createPendingTrip: async value => { pending.push(value); },
     },
     '@/lib/firebase/admin': { uidFromIdToken: async () => '' },
-    '@/lib/couponServer': { resolveCoupon: async () => ({ applied: null, error: '' }) },
+    '@/lib/couponServer': { resolveCoupon: async value => { lookups.push(value); return env.coupon ?? { applied: null, error: '' }; } },
     '@/lib/packageData': { isDepartureAllowed: () => true },
     '@/lib/coupons': { normaliseCode: value => value },
   };
   return {
     callback: load('src/app/api/payu/callback/route.ts', mocks),
     initiate: load('src/app/api/payu/initiate/route.ts', mocks),
-    settled, pending,
+    settled, pending, lookups,
   };
 }
 
@@ -92,6 +93,23 @@ test('initiate sends both PayU return URLs to the local checkout server', async 
     assert.ok(html.includes(`name="${field}" value="http://localhost:3100/api/payu/callback"`));
   }
   assert.equal(pending.length, 1);
+});
+
+test('initiate never applies a standing offer the traveller did not post', async () => {
+  const applied = { code: 'AUTO', label: 'Auto', headline: '', discount: 500, auto: true };
+  const { initiate, pending, lookups } = paymentRoutes({ coupon: { applied, error: '' } });
+  const submit = coupon => initiate.POST(new Request('http://localhost:3100/api/payu/initiate', {
+    method: 'POST', body: new URLSearchParams({
+      packageId: 'p1', travellers: '2', firstname: input.firstname,
+      email: input.email, phone: '9999999999', coupon,
+    }),
+  }));
+  assert.equal((await submit('')).status, 200);
+  assert.equal(lookups.length, 0);
+  assert.equal(pending[0].couponCode, '');
+  assert.equal((await submit('AUTO')).status, 200);
+  assert.equal(lookups[0].requestedCode, 'AUTO');
+  assert.equal(pending[1].couponCode, 'AUTO');
 });
 
 for (const [gatewayStatus, state, savedStatus] of [
