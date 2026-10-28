@@ -59,10 +59,10 @@ export const metadata: Metadata = {
     url: absoluteUrl("/"),
     images: [
       {
-        url: "/images/og-himalaya-peaks.jpg",
+        url: "/images/og-share-banner.jpg",
         width: 1200,
-        height: 630,
-        alt: "Snow-covered Himalayan peaks featured by CompareMyTrip",
+        height: 400,
+        alt: "Travel Beyond Expectations - CompareMyTrip",
       },
     ],
   },
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Treks, Getaways & Holiday Packages | CompareMyTrip",
     description: DEFAULT_DESCRIPTION,
-    images: ["/images/og-himalaya-peaks.jpg"],
+    images: ["/images/og-share-banner.jpg"],
   },
   robots: {
     index: true,

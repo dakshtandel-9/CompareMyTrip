@@ -49,7 +49,7 @@ export function createPageMetadata({
   title,
   description,
   path,
-  image = "/images/og-himalaya-peaks.jpg",
+  image = "/images/og-share-banner.jpg",
   imageAlt = "Snow-covered Himalayan peaks featured by CompareMyTrip",
   index = true,
   follow = index,
