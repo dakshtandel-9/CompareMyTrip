@@ -142,7 +142,7 @@ export default function Footer({
             <div className="col-span-2 lg:col-span-1 lg:row-span-2">
               <Link href="/" className="inline-flex items-start gap-0.5">
                 <BrandLogo className="w-[235px] max-w-full" />
-                <span aria-hidden="true" className="text-[10px] font-semibold leading-none text-cmt-neutral-600">™</span>
+                <span aria-hidden="true" className="inline-flex size-[15px] items-center justify-center rounded-full border border-cmt-neutral-600 pb-px text-[7px] font-bold leading-none tracking-tighter text-cmt-neutral-600">TM</span>
               </Link>
 
               <p className="mt-5 max-w-[38ch] text-pretty text-sm leading-[1.6] text-cmt-neutral-600">
